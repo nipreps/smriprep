@@ -23,4 +23,3 @@ from .__about__ import (  # noqa
     __description__,
     __longdesc__
 )
-
