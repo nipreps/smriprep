@@ -17,7 +17,7 @@ __maintainer__ = 'Oscar Esteban'
 __email__ = 'code@oscaresteban.es'
 __status__ = 'Prototype'
 __url__ = 'https://github.com/poldracklab/smriprep'
-__packagename__ = 'fmriprep'
+__packagename__ = 'smriprep'
 __description__ = ("sMRIPrep (Structural MRI PREprocessing) pipeline")
 __longdesc__ = """\
 The workflow is based on `Nipype <https://nipype.readthedocs.io>`_ and encompases a large
