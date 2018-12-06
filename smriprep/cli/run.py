@@ -535,7 +535,7 @@ def build_workflow(opts, retval):
         plugin_settings['plugin_args']['n_procs'] = nprocs
 
     if opts.mem_mb:
-        plugin_settings['plugin_args']['memory_gb'] = opts.mem_mb / 1024
+        plugin_settings['plugin_args']['memory_gb'] = opts.mem_gb
 
     omp_nthreads = opts.omp_nthreads
     if omp_nthreads == 0:
