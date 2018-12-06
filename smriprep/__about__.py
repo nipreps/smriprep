@@ -41,8 +41,6 @@ DOWNLOAD_URL = (
 
 SETUP_REQUIRES = [
     'setuptools>=18.0',
-    'numpy',
-    'cython',
 ]
 
 REQUIRES = [
