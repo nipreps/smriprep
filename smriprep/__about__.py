@@ -11,7 +11,8 @@ del get_versions
 
 __author__ = 'The Nipy community'
 __copyright__ = 'Copyright 2018, Center for Reproducible Neuroscience, Stanford University'
-__credits__ = ['Oscar Esteban', 'Chris Gorgolewski', 'Christopher J. Markiewicz', 'Russell A. Poldrack']
+__credits__ = ['Oscar Esteban', 'Chris Gorgolewski', 'Christopher J. Markiewicz',
+               'Russell A. Poldrack']
 __license__ = '3-clause BSD'
 __maintainer__ = 'Oscar Esteban'
 __email__ = 'code@oscaresteban.es'
