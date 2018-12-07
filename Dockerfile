@@ -5,7 +5,6 @@ FROM ubuntu:xenial-20161213
 COPY docker/files/neurodebian.gpg /root/.neurodebian.gpg
 
 # Prepare environment
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
                     curl \
@@ -16,8 +15,10 @@ RUN apt-get update && \
                     build-essential \
                     autoconf \
                     libtool \
-                    pkg-config 
-                    git
+                    pkg-config \
+                    git && \
+    curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
+    apt-get install -y --no-install-recommends \
                     nodejs && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
