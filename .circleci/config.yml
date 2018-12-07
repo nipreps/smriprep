@@ -1,0 +1,376 @@
+version: 2
+jobs:
+
+  build:
+    environment:
+      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+      SCRATCH: "/scratch"
+    docker:
+      - image: docker:18.01.0-ce-git
+    working_directory: /tmp/src/smriprep
+    steps:
+      - run:
+          name: Install parallel gzip and python3
+          command: |
+            apk add --no-cache pigz python3
+      - restore_cache:
+          keys:
+            - docker-v1-{{ .Branch }}-{{ epoch }}
+            - docker-v1-{{ .Branch }}-
+            - docker-v1-master-
+            - docker-v1-
+          paths:
+            - /tmp/cache/docker.tar.gz
+            - /tmp/cache/ubuntu.tar.gz
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Load Docker image layer cache
+          no_output_timeout: 30m
+          command: |
+            docker info
+            set +o pipefail
+            if [ -f /tmp/cache/docker.tar.gz ]; then
+              pigz -d --stdout /tmp/cache/docker.tar.gz | docker load
+              docker images
+            fi
+      - run:
+          name: Build Docker image
+          no_output_timeout: 60m
+          command: |
+            # Get version, update files.
+            THISVERSION=$( python3 get_version.py )
+            if [[ ${THISVERSION:0:1} == "0" ]] ; then
+              echo "WARNING: latest git tag could not be found"
+              echo "Please, make sure you fetch all tags from upstream with"
+              echo "the command ``git fetch --tags --verbose`` and push"
+              echo "them to your fork with ``git push origin --tags``"
+            fi
+            # sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" wrapper/smriprep_docker.py
+            # sed -i -E "s/(var version = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" docs/citing.rst
+            # sed -i "s/title = {sMRIPrep}/title = {sMRIPrep ${CIRCLE_TAG:-$THISVERSION}}/" smriprep/data/boilerplate.bib
+            # Build docker image
+            e=1 && for i in {1..5}; do
+              docker build \
+                --cache-from=poldracklab/smriprep \
+                --rm=false \
+                -t poldracklab/smriprep:latest \
+                --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+                --build-arg VCS_REF=`git rev-parse --short HEAD` \
+                --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" . \
+              && e=0 && break || sleep 15
+            done && [ "$e" -eq "0" ]
+
+      - run:
+          name: Docker save
+          no_output_timeout: 40m
+          command: |
+            mkdir -p /tmp/cache
+            docker save ubuntu:xenial-20161213 poldracklab/smriprep:latest \
+            | pigz -8 -p 3 > /tmp/cache/docker.tar.gz
+
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - cache/docker.tar.gz
+            - src/smriprep
+
+  update_cache:
+    machine:
+      # Ubuntu 14.04 with Docker 17.10.0-ce
+      image: circleci/classic:201711-01
+    working_directory: /tmp/src/smriprep
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - save_cache:
+         key: docker-v1-{{ .Branch }}-{{ epoch }}
+         paths:
+            - /tmp/cache/docker.tar.gz
+
+  get_data:
+    machine:
+      # Ubuntu 14.04 with Docker 17.10.0-ce
+      image: circleci/classic:201711-01
+    working_directory: /home/circleci/data
+    steps:
+      - restore_cache:
+          keys:
+            - data-v5-{{ epoch }}
+            - data-v5-
+      - run:
+          name: Get test data from ds000005
+          command: |
+            mkdir -p /tmp/data
+            if [[ ! -d /tmp/data/ds005 ]]; then
+              wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q \
+                -O ds005_downsampled.tar.gz "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/57f32a429ad5a101f977eb75"
+              tar xvzf ds005_downsampled.tar.gz -C /tmp/data/
+            else
+              echo "Dataset ds000005 was cached"
+            fi
+      - run:
+          name: Get test data from ds000054
+          command: |
+            if [[ ! -d /tmp/data/ds054 ]]; then
+              wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q \
+                -O ds054_downsampled.tar.gz "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/57f32c22594d9001ef91bf9e"
+              tar xvzf ds054_downsampled.tar.gz -C /tmp/data/
+            else
+              echo "Dataset ds000054 was cached"
+            fi
+      - run:
+          name: Get test data from ds000210
+          command: |
+            if [[ ! -d /tmp/data/ds210 ]]; then
+              wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q \
+                -O ds210_downsampled.tar.gz "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/5ae9e37b9a64d7000ce66c21"
+              tar xvzf ds210_downsampled.tar.gz -C /tmp/data/
+            else
+              echo "Dataset ds000210 was cached"
+            fi
+      - run:
+          name: Get FreeSurfer derivatives for ds000005
+          command: |
+            if [[ ! -d /tmp/ds005/derivatives/freesurfer ]]; then
+              mkdir -p /tmp/ds005/derivatives
+              wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q \
+                -O ds005_derivatives_freesurfer.tar.gz "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/58fe59eb594d900250960180"
+              tar xvzf ds005_derivatives_freesurfer.tar.gz -C /tmp/ds005/derivatives
+            else
+              echo "FreeSurfer derivatives of ds000005 were cached"
+            fi
+      - run:
+          name: Store FreeSurfer license file
+          command: |
+            mkdir -p /tmp/fslicense
+            cd /tmp/fslicense
+            echo "cHJpbnRmICJrcnp5c3p0b2YuZ29yZ29sZXdza2lAZ21haWwuY29tXG41MTcyXG4gKkN2dW12RVYzelRmZ1xuRlM1Si8yYzFhZ2c0RVxuIiA+IGxpY2Vuc2UudHh0Cg==" | base64 -d | sh
+      - run:
+          name: Create Nipype config files
+          command: |
+            mkdir -p /tmp/ds005 /tmp/ds054 /tmp/ds210
+            printf "[execution]\nstop_on_first_crash = true\n" > /tmp/ds005/nipype.cfg
+            echo "poll_sleep_duration = 0.01" >> /tmp/ds005/nipype.cfg
+            echo "hash_method = content" >> /tmp/ds005/nipype.cfg
+            cp /tmp/ds005/nipype.cfg /tmp/ds054/nipype.cfg
+            cp /tmp/ds005/nipype.cfg /tmp/ds210/nipype.cfg
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - data
+            - fslicense
+            - ds005/nipype.cfg
+            - ds005/derivatives
+            - ds054/nipype.cfg
+            - ds210/nipype.cfg
+      - save_cache:
+         key: data-v5-{{ epoch }}
+         paths:
+            - /tmp/data
+            - /tmp/ds005/derivatives/freesurfer
+
+  test_pytest:
+    machine:
+      image: circleci/classic:201711-01
+    working_directory: /tmp/src/smriprep
+    steps:
+      - checkout:
+          path: /home/circleci/src/smriprep
+      - run:
+          name: Check whether build should be skipped
+          command: |
+            cd /home/circleci/src/smriprep
+            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?tests\]' )" != "" ]]; then
+              echo "Skipping pytest job"
+              circleci step halt
+            fi
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Check PyPi preconditions
+          command: |
+            pip install "setuptools>=27.0" cython numpy twine future docutils
+            python setup.py check -r -s
+            python setup.py sdist
+      - run:
+          name: Load Docker image layer cache
+          no_output_timeout: 30m
+          command: |
+            docker info
+            set +o pipefail
+            if [ -f /tmp/cache/docker.tar.gz ]; then
+              sudo apt update && sudo apt -y install pigz
+              pigz -d --stdout /tmp/cache/docker.tar.gz | docker load
+              docker images
+            fi
+      - run:
+          name: Run sMRIPrep tests
+          no_output_timeout: 2h
+          command: |
+            mkdir /tmp/data/reports && \
+            docker run -ti --rm=false \
+              -v /tmp/data:/tmp/data \
+              --entrypoint="py.test" poldracklab/smriprep:latest \
+              /root/src/smriprep/ \
+              -svx --doctest-modules --ignore=/root/src/smriprep/docs --ignore=setup.py
+      # - run:
+      #     name: Test smriprep-wrapper (Python 2)
+      #     command: |
+      #       export PY2=$(pyenv versions | grep '2\.' |
+      #                    sed -e 's/.* 2\./2./' -e 's/ .*//')
+      #       pyenv local $PY2
+      #       echo -n "Python version: "
+      #       python --version
+      #       pip install --upgrade wrapper/
+      #       which smriprep-docker
+      #       smriprep-docker -i poldracklab/smriprep:latest --help
+      #       smriprep-docker -i poldracklab/smriprep:latest --version
+      # - run:
+      #     name: Test smriprep-wrapper (Python 3)
+      #     command: |
+      #       export PY3=$(pyenv versions | grep '3\.' |
+      #                    sed -e 's/.* 3\./3./' -e 's/ .*//')
+      #       pyenv local $PY3
+      #       echo -n "Python version: "
+      #       python --version
+      #       pip install --upgrade wrapper/
+      #       which smriprep-docker
+      #       smriprep-docker -i poldracklab/smriprep:latest --help
+      #       smriprep-docker -i poldracklab/smriprep:latest --version
+      - store_artifacts:
+          path: /tmp/data/reports
+
+  deploy_docker:
+    machine:
+      image: circleci/classic:201711-01
+    working_directory: /tmp/src/smriprep
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Load Docker image layer cache
+          no_output_timeout: 30m
+          command: |
+            docker info
+            set +o pipefail
+            if [ -f /tmp/cache/docker.tar.gz ]; then
+              sudo apt update && sudo apt -y install pigz
+              pigz -d --stdout /tmp/cache/docker.tar.gz | docker load
+              docker images
+            fi
+      - run:
+          name: Deploy to Docker Hub
+          no_output_timeout: 40m
+          command: |
+            if [[ -n "$DOCKER_PASS" ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker tag poldracklab/smriprep poldracklab/smriprep:unstable
+              docker push poldracklab/smriprep:unstable
+              if [[ -n "$CIRCLE_TAG" ]]; then
+                docker push poldracklab/smriprep:latest
+                docker tag poldracklab/smriprep poldracklab/smriprep:$CIRCLE_TAG
+                docker push poldracklab/smriprep:$CIRCLE_TAG
+              fi
+            fi
+
+  deploy_pypi:
+    machine:
+      image: circleci/classic:201711-01
+    working_directory: /tmp/src/smriprep
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Deploy to PyPi
+          command: |
+            pip install "setuptools>=27.0" cython numpy twine future docutils
+            echo "${CIRCLE_TAG}" > smriprep/VERSION
+            python setup.py check -r -s
+            python setup.py sdist
+            twine upload dist/*
+            cd wrapper && python setup.py sdist
+            twine upload dist/*
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+
+      - get_data:
+          filters:
+            branches:
+              ignore:
+                - /docs?\/.*/
+                - /tests?\/.*/
+            tags:
+              only: /.*/
+
+      # - build_docs:
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         ignore:
+      #           - /tests?\/.*/
+      #           - /ds005\/.*/
+      #           - /ds054\/.*/
+      #           - /ds210\/.*/
+      #       tags:
+      #         only: /.*/
+
+      - update_cache:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - /docs?\/.*/
+                - /tests?\/.*/
+            tags:
+              only: /.*/
+
+      - test_pytest:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - /docs?\/.*/
+                - /ds005\/.*/
+                - /ds054\/.*/
+                - /ds210\/.*/
+            tags:
+              only: /.*/
+
+      - deploy_docker:
+          requires:
+            - build
+            - test_pytest
+            # - build_docs
+            # - ds005
+            # - ds054
+            # - ds210
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /.*/
+
+      - deploy_pypi:
+          requires:
+            - build
+            - test_pytest
+            # - build_docs
+            # - ds005
+            # - ds054
+            # - ds210
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
