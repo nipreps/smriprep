@@ -172,7 +172,7 @@ jobs:
 
   test_pytest:
     machine:
-      image: circleci/classic:201711-01
+      image: circleci/python:3.7-stretch-node-browsers
     working_directory: /tmp/src/smriprep
     steps:
       - checkout:
