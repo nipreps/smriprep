@@ -76,9 +76,8 @@ jobs:
             - src/smriprep
 
   update_cache:
-    machine:
-      # Ubuntu 14.04 with Docker 17.10.0-ce
-      image: circleci/classic:201711-01
+    docker:
+      - image: ubuntu:bionic-20181112
     working_directory: /tmp/src/smriprep
     steps:
       - attach_workspace:
@@ -91,7 +90,7 @@ jobs:
   get_data:
     machine:
       # Ubuntu 14.04 with Docker 17.10.0-ce
-      image: circleci/classic:201711-01
+      image: circleci/classic:201808-01
     working_directory: /home/circleci/data
     steps:
       - restore_cache:
@@ -172,7 +171,7 @@ jobs:
 
   test_pytest:
     machine:
-      image: circleci/python:3.7-stretch-node-browsers
+      image: circleci/classic:201808-01
     working_directory: /tmp/src/smriprep
     steps:
       - checkout:
@@ -190,9 +189,9 @@ jobs:
       - run:
           name: Check PyPi preconditions
           command: |
-            pip install "setuptools>=27.0" cython numpy twine future docutils
-            python setup.py check -r -s
-            python setup.py sdist
+            pip3 install "setuptools>=27.0" twine future docutils
+            python3 setup.py check -r -s
+            python3 setup.py sdist
       - run:
           name: Load Docker image layer cache
           no_output_timeout: 30m
@@ -243,7 +242,7 @@ jobs:
 
   deploy_docker:
     machine:
-      image: circleci/classic:201711-01
+      image: circleci/classic:201808-01
     working_directory: /tmp/src/smriprep
     steps:
       - attach_workspace:
@@ -275,8 +274,8 @@ jobs:
             fi
 
   deploy_pypi:
-    machine:
-      image: circleci/classic:201711-01
+    docker:
+      - image: python:3.7.1
     working_directory: /tmp/src/smriprep
     steps:
       - attach_workspace:
@@ -284,7 +283,7 @@ jobs:
       - run:
           name: Deploy to PyPi
           command: |
-            pip install "setuptools>=27.0" cython numpy twine future docutils
+            pip install "setuptools>=27.0" twine future docutils
             echo "${CIRCLE_TAG}" > smriprep/VERSION
             python setup.py check -r -s
             python setup.py sdist
