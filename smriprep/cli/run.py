@@ -50,7 +50,7 @@ def get_parser():
 
     verstr = 'smriprep v{}'.format(__version__)
 
-    parser = ArgumentParser(description='sMRIPrep: fMRI PREProcessing workflows',
+    parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
                             formatter_class=RawTextHelpFormatter)
 
     # Arguments as specified by BIDS-Apps
@@ -80,7 +80,7 @@ def get_parser():
     g_perfm = parser.add_argument_group('Options to handle performance')
     g_perfm.add_argument('--nprocs', '--ncpus', '--nthreads', '--n_cpus', '-n-cpus',
                          action='store', type=int,
-                         help='maximum number of threads across all processes')
+                         help='number of CPUs to be used.')
     g_perfm.add_argument('--omp-nthreads', action='store', type=int, default=0,
                          help='maximum number of threads per-process')
     g_perfm.add_argument('--mem-gb', '--mem_gb', action='store', default=0, type=float,
@@ -167,8 +167,8 @@ def main():
     """Entry point"""
     from nipype import logging as nlogging
     from multiprocessing import set_start_method, Process, Manager
-    from ..viz.reports import generate_reports
-    from ..utils.bids import write_derivative_description
+    from fmriprep.viz.reports import generate_reports
+    from fmriprep.utils.bids import write_derivative_description
     set_start_method('forkserver')
 
     warnings.showwarning = _warn_redirect
