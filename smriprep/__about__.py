@@ -52,7 +52,7 @@ REQUIRES = [
     'grabbit==0.2.3',
     'pybids==0.6.5',
     'nipype>=1.1.6',
-    'niworkflows==0.5.1',
+    'niworkflows==0.5.2',
     'indexed_gzip>=0.8.8',
     'versioneer',
     'pyyaml',
