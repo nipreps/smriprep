@@ -15,10 +15,10 @@ jobs:
             apk add --no-cache pigz python3
       - restore_cache:
           keys:
-            - docker-v1-{{ .Branch }}-{{ epoch }}
-            - docker-v1-{{ .Branch }}-
-            - docker-v1-master-
-            - docker-v1-
+            - build-v1-{{ .Branch }}-{{ epoch }}
+            - build-v1-{{ .Branch }}-
+            - build-v1-master-
+            - build-v1-
           paths:
             - /tmp/cache/docker.tar.gz
             - /tmp/cache/ubuntu.tar.gz
@@ -77,13 +77,13 @@ jobs:
 
   update_cache:
     docker:
-      - image: ubuntu:bionic-20181112
+      - image: docker:18.01.0-ce-git
     working_directory: /tmp/src/smriprep
     steps:
       - attach_workspace:
           at: /tmp
       - save_cache:
-         key: docker-v1-{{ .Branch }}-{{ epoch }}
+         key: build-v1-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/cache/docker.tar.gz
 
@@ -95,8 +95,8 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - data-v1-{{ epoch }}
-            - data-v1-
+            - testdata-v1-{{ epoch }}
+            - testdata-v1-
       - run:
           name: Get test data from ds000005
           command: |
@@ -164,7 +164,7 @@ jobs:
             - ds054/nipype.cfg
             - ds210/nipype.cfg
       - save_cache:
-         key: data-v1-{{ epoch }}
+         key: testdata-v1-{{ epoch }}
          paths:
             - /tmp/data
             - /tmp/ds005/derivatives/freesurfer
@@ -189,7 +189,7 @@ jobs:
       - run:
           name: Check PyPi preconditions
           command: |
-            apt-get install -y --no-install-recommends python3 python3-pip
+            sudo apt-get install -y --no-install-recommends python3 python3-pip
             pip3 install "setuptools>=27.0" twine future docutils
             python3 setup.py check -r -s
             python3 setup.py sdist
