@@ -172,6 +172,10 @@ jobs:
   test_pytest:
     machine:
       image: circleci/classic:201808-01
+      pre:
+        - pyenv global 3.7.0
+        - virtualenv venv
+        - pip install "setuptools>=27.0" twine future docutils
     working_directory: /tmp/src/smriprep
     steps:
       - checkout:
@@ -189,10 +193,8 @@ jobs:
       - run:
           name: Check PyPi preconditions
           command: |
-            sudo apt-get install -y --no-install-recommends python3 python3-pip
-            pip3 install "setuptools>=27.0" twine future docutils
-            python3 setup.py check -r -s
-            python3 setup.py sdist
+            python setup.py check -r -s
+            python setup.py sdist
       - run:
           name: Load Docker image layer cache
           no_output_timeout: 30m
