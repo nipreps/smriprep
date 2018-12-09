@@ -19,16 +19,18 @@ from nipype.interfaces import (
     utility as niu,
     freesurfer as fs,
 )
-from niworkflows.interfaces.segmentation import ReconAllRPT
 
-from ..engine import Workflow
-from ..interfaces import (
-    MakeMidthickness, FSInjectBrainExtracted,
-    FSDetectInputs, NormalizeSurf, RefineBrainMask,
-)
-from ..interfaces.freesurfer import (
+from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.interfaces.freesurfer import (
+    FSDetectInputs,
+    FSInjectBrainExtracted,
+    MakeMidthickness,
     PatchedLTAConvert as LTAConvert,
-    PatchedRobustRegister as RobustRegister)
+    PatchedRobustRegister as RobustRegister,
+    RefineBrainMask,
+)
+from niworkflows.interfaces.segmentation import ReconAllRPT
+from niworkflows.interfaces.surf import NormalizeSurf
 
 
 def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):

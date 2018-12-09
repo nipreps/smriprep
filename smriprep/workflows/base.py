@@ -21,19 +21,18 @@ from nipype.interfaces import (
 )
 from nipype.interfaces.ants import BrainExtraction, N4BiasFieldCorrection
 
-from niworkflows.interfaces.registration import RobustMNINormalizationRPT
 import niworkflows.data as nid
+from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.interfaces.registration import RobustMNINormalizationRPT
 from niworkflows.interfaces.masks import ROIsPlot
-
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
-
-from ..engine import Workflow
-from ..interfaces import StructuralReference, TemplateDimensions, Conform
-from ..utils.misc import fix_multi_T1w_source_name, add_suffix
-from ..interfaces.freesurfer import (
+from niworkflows.interfaces.freesurfer import (
+    StructuralReference,
     PatchedConcatenateLTA as ConcatenateLTA,
     PatchedLTAConvert as LTAConvert,
 )
+from niworkflows.interfaces.images import TemplateDimensions, Conform
+from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
 

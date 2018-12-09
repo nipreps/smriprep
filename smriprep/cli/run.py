@@ -167,8 +167,8 @@ def main():
     """Entry point"""
     from nipype import logging as nlogging
     from multiprocessing import set_start_method, Process, Manager
-    from fmriprep.viz.reports import generate_reports
-    from fmriprep.utils.bids import write_derivative_description
+    from niworkflows.viz.reports import generate_reports
+    from niworkflows.utils.bids import write_derivative_description
     set_start_method('forkserver')
 
     warnings.showwarning = _warn_redirect
@@ -463,8 +463,8 @@ def build_workflow(opts, retval):
     from nipype import logging, config as ncfg
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
-    from ..utils.bids import collect_participants
-    from ..viz.reports import generate_reports
+    from niworkflows.utils.bids import collect_participants
+    from niworkflows.viz.reports import generate_reports
 
     logger = logging.getLogger('nipype.workflow')
 

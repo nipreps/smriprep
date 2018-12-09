@@ -11,11 +11,12 @@ Writting outputs
 """
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
-from ..engine import Workflow
+from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
-from ..utils.misc import fix_multi_T1w_source_name
-from ..interfaces import DerivativesDataSink, GiftiNameSource
-from ..interfaces.freesurfer import PatchedLTAConvert as LTAConvert
+from niworkflows.utils.misc import fix_multi_T1w_source_name
+from niworkflows.interfaces.bids import DerivativesDataSink
+from niworkflows.interfaces.surf import GiftiNameSource
+from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
 
 
 def init_anat_reports_wf(reportlets_dir, output_spaces,
