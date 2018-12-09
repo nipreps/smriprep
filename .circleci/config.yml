@@ -95,8 +95,8 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - data-v5-{{ epoch }}
-            - data-v5-
+            - data-v1-{{ epoch }}
+            - data-v1-
       - run:
           name: Get test data from ds000005
           command: |
@@ -164,7 +164,7 @@ jobs:
             - ds054/nipype.cfg
             - ds210/nipype.cfg
       - save_cache:
-         key: data-v5-{{ epoch }}
+         key: data-v1-{{ epoch }}
          paths:
             - /tmp/data
             - /tmp/ds005/derivatives/freesurfer
@@ -189,6 +189,7 @@ jobs:
       - run:
           name: Check PyPi preconditions
           command: |
+            apt-get install -y --no-install-recommends python3 python3-pip
             pip3 install "setuptools>=27.0" twine future docutils
             python3 setup.py check -r -s
             python3 setup.py sdist
