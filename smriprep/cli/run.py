@@ -168,7 +168,7 @@ def main():
     from nipype import logging as nlogging
     from multiprocessing import set_start_method, Process, Manager
     from niworkflows.viz.reports import generate_reports
-    from niworkflows.utils.bids import write_derivative_description
+    from ..utils.bids import write_derivative_description
     set_start_method('forkserver')
 
     warnings.showwarning = _warn_redirect
