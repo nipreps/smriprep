@@ -90,7 +90,7 @@ jobs:
   get_data:
     machine:
       # Ubuntu 14.04 with Docker 17.10.0-ce
-      image: circleci/classic:201808-01
+      image: circleci/classic:201711-01
     working_directory: /home/circleci/data
     steps:
       - restore_cache:
@@ -171,7 +171,7 @@ jobs:
 
   test_pytest:
     machine:
-      image: circleci/classic:201808-01
+      image: circleci/classic:201711-01
     working_directory: /tmp/src/smriprep
     steps:
       - checkout:
@@ -189,7 +189,7 @@ jobs:
       - run:
           name: Check PyPi preconditions
           command: |
-            pyenv global 3.7.0
+            pyenv global 3.5.2
             virtualenv venv
             pip install "setuptools>=27.0" twine future docutils
             python setup.py check -r -s
@@ -244,7 +244,7 @@ jobs:
 
   deploy_docker:
     machine:
-      image: circleci/classic:201808-01
+      image: circleci/classic:201711-01
     working_directory: /tmp/src/smriprep
     steps:
       - attach_workspace:
@@ -285,7 +285,7 @@ jobs:
       - run:
           name: Deploy to PyPi
           command: |
-            pyenv global 3.7.0
+            pyenv global 3.5.2
             virtualenv venv
             pip install "setuptools>=27.0" twine future docutils
             echo "${CIRCLE_TAG}" > smriprep/VERSION
