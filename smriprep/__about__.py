@@ -4,13 +4,14 @@
 """
 Base module variables
 """
-
+from datetime import datetime
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
 __author__ = 'The Nipy community'
-__copyright__ = 'Copyright 2018, Center for Reproducible Neuroscience, Stanford University'
+__copyright__ = 'Copyright {}, Center for Reproducible Neuroscience, Stanford University'.format(
+    datetime.now().year)
 __credits__ = ['Oscar Esteban', 'Chris Gorgolewski', 'Christopher J. Markiewicz',
                'Russell A. Poldrack']
 __license__ = '3-clause BSD'
@@ -41,23 +42,23 @@ DOWNLOAD_URL = (
 
 
 SETUP_REQUIRES = [
-    'setuptools>=18.0',
+    'setuptools>=27.0',
 ]
 
 REQUIRES = [
-    'numpy',
+    'grabbit==0.2.3',
+    'indexed_gzip>=0.8.8',
     'lockfile',
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
-    'grabbit==0.2.3',
-    'pybids==0.6.5',
     'nipype>=1.1.6',
-    'niworkflows==0.5.2',
-    'indexed_gzip>=0.8.8',
-    'versioneer',
-    'pyyaml',
+    'niworkflows>=0.5.2.post4,<0.5.3',
+    'numpy',
     'packaging',
+    'pybids==0.6.5',
+    'pyyaml',
 ]
+
 
 LINKS_REQUIRES = [
 ]
