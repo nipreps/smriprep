@@ -103,23 +103,28 @@ RUN curl -sSLO https://repo.continuum.io/miniconda/Miniconda3-4.5.11-Linux-x86_6
     bash Miniconda3-4.5.11-Linux-x86_64.sh -b -p /usr/local/miniconda && \
     rm Miniconda3-4.5.11-Linux-x86_64.sh
 
+# Set CPATH for packages relying on compiled libs (e.g. indexed_gzip)
 ENV PATH="/usr/local/miniconda/bin:$PATH" \
+    CPATH="/usr/local/miniconda/include/:$CPATH" \
     LANG="C.UTF-8" \
     LC_ALL="C.UTF-8" \
     PYTHONNOUSERSITE=1
 
 # Installing precomputed python packages
-RUN conda install -y python=3.7; sync && \
-    conda install -y mkl=2018.0.3 mkl-service; sync && \
-    conda install -y numpy=1.15.4 \
+RUN conda install -y python=3.7.1 \
+                     mkl=2018.0.3 \
+                     mkl-service \
+                     numpy=1.15.4 \
                      scipy=1.1.0 \
                      scikit-learn=0.19.1 \
-                     matplotlib=2.2.0 \
-                     pandas=0.23.0 \
-                     libxml2=2.9.4 \
-                     libxslt=1.1.29 \
+                     matplotlib=2.2.2 \
+                     pandas=0.23.4 \
+                     libxml2=2.9.8 \
+                     libxslt=1.1.32 \
                      graphviz=2.40.1 \
-                     traits=4.6.0; sync &&  \
+                     traits=4.6.0 \
+                     # Make sure zlib is installed
+                     zlib; sync &&  \
     chmod -R a+rX /usr/local/miniconda; sync && \
     chmod +x /usr/local/miniconda/bin/*; sync && \
     conda clean --all -y; sync && \
@@ -134,13 +139,13 @@ RUN python -c "from matplotlib import font_manager" && \
 ENV MKL_NUM_THREADS=1 \
     OMP_NUM_THREADS=1
 
-WORKDIR /root/
+WORKDIR /src/
 
 # Precaching atlases
 ENV CRN_SHARED_DATA="/templateflow"
 ADD docker/scripts/get_templates.sh get_templates.sh
 RUN mkdir $CRN_SHARED_DATA && \
-    /root/get_templates.sh && \
+    /src/get_templates.sh && \
     find $CRN_SHARED_DATA -type d -exec chmod 555 {} \; && \
     find $CRN_SHARED_DATA -type f -exec chmod 444 {} \; && \
     chmod +w $CRN_SHARED_DATA
@@ -151,11 +156,12 @@ RUN pip install -r requirements.txt && \
     rm -rf ~/.cache/pip
 
 # Installing sMRIPREP
-COPY . /root/src/smriprep
+COPY . /src/smriprep
 ARG VERSION
 # Force static versioning within container
-RUN echo "${VERSION}" > /root/src/smriprep/smriprep/VERSION && \
-    cd /root/src/smriprep && \
+RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
+    echo "include smriprep/VERSION" >> /src/smriprep/MANIFEST.in && \
+    cd /src/smriprep && \
     pip install .[all] && \
     rm -rf ~/.cache/pip
 
@@ -167,7 +173,6 @@ ENTRYPOINT ["/usr/local/miniconda/bin/smriprep"]
 
 ARG BUILD_DATE
 ARG VCS_REF
-ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="sMRIPrep" \
       org.label-schema.description="sMRIPrep - robust structural MRI preprocessing tool" \
@@ -176,4 +181,3 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.vcs-url="https://github.com/poldracklab/smriprep" \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
-

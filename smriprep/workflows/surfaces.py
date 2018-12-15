@@ -474,7 +474,7 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
         :graph2use: orig
         :simple_form: yes
 
-        from fmriprep.workflows.anatomical import init_segs_to_native_wf
+        from smriprep.workflows.anatomical import init_segs_to_native_wf
         wf = init_segs_to_native_wf()
 
 

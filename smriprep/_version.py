@@ -490,8 +490,22 @@ def get_versions():
     except NotThisMethod:
         pass
 
+    root = os.path.realpath(__file__)
+
+    root_dir = os.path.dirname(root)
+    if os.path.isfile(os.path.join(root_dir, 'VERSION')):
+        with open(os.path.join(root_dir, 'VERSION')) as vfile:
+            version = vfile.readline().strip()
+
+        return {
+            "version": version,
+            "full-revisionid": None,
+            "dirty": None,
+            "error": None,
+            "date": None
+        }
+
     try:
-        root = os.path.realpath(__file__)
         # versionfile_source is the relative path from the top of the source
         # tree (where the .git directory might live) to this file. Invert
         # this to find the root from __file__.

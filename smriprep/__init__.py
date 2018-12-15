@@ -19,7 +19,7 @@ from .__about__ import (  # noqa
     __email__,
     __status__,
     __url__,
-    __packagename__,
+    __package__,
     __description__,
     __longdesc__
 )

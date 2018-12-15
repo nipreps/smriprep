@@ -4,14 +4,13 @@
 """
 Base module variables
 """
-from datetime import datetime
+
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
 __author__ = 'The Nipy community'
-__copyright__ = 'Copyright {}, Center for Reproducible Neuroscience, Stanford University'.format(
-    datetime.now().year)
+__copyright__ = 'Copyright 2018, Center for Reproducible Neuroscience, Stanford University'
 __credits__ = ['Oscar Esteban', 'Chris Gorgolewski', 'Christopher J. Markiewicz',
                'Russell A. Poldrack']
 __license__ = '3-clause BSD'
@@ -19,7 +18,7 @@ __maintainer__ = 'Oscar Esteban'
 __email__ = 'code@oscaresteban.es'
 __status__ = 'Prototype'
 __url__ = 'https://github.com/poldracklab/smriprep'
-__packagename__ = 'smriprep'
+__package__ = 'smriprep'
 __description__ = ("sMRIPrep (Structural MRI PREprocessing) pipeline")
 __longdesc__ = """\
 The workflow is based on `Nipype <https://nipype.readthedocs.io>`_ and encompases a large
@@ -38,7 +37,7 @@ available.
 
 DOWNLOAD_URL = (
     'https://github.com/poldracklab/{name}/archive/{ver}.tar.gz'.format(
-        name=__packagename__, ver=__version__))
+        name=__package__, ver=__version__))
 
 
 SETUP_REQUIRES = [
@@ -52,7 +51,7 @@ REQUIRES = [
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
     'nipype>=1.1.6',
-    'niworkflows>=0.5.2.post4,<0.5.3',
+    'niworkflows>=0.5.2.post5,<0.5.3',
     'numpy',
     'packaging',
     'pybids==0.6.5',

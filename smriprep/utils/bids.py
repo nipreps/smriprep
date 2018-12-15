@@ -45,13 +45,13 @@ def write_derivative_description(bids_dir, deriv_dir):
             'Name': 'sMRIPrep',
             'Version': __version__,
             'CodeURL': DOWNLOAD_URL,
-            },
+        },
         'CodeURL': __url__,
         'HowToAcknowledge':
             'Please cite our paper (https://doi.org/10.1101/306951), and '
             'include the generated citation boilerplate within the Methods '
             'section of the text.',
-        }
+    }
 
     # Keys that can only be set by environment
     if 'SMRIPREP_DOCKER_TAG' in os.environ:

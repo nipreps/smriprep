@@ -43,7 +43,7 @@ def init_anat_preproc_wf(skull_strip_template, output_spaces, template, debug,
                          output_dir, num_t1w,
                          skull_strip_fixed_seed=False, name='anat_preproc_wf'):
     r"""
-    This workflow controls the anatomical preprocessing stages of FMRIPREP.
+    This workflow controls the anatomical preprocessing stages of smriprep.
 
     This includes:
 
@@ -57,7 +57,7 @@ def init_anat_preproc_wf(skull_strip_template, output_spaces, template, debug,
         :graph2use: orig
         :simple_form: yes
 
-        from fmriprep.workflows.anatomical import init_anat_preproc_wf
+        from smriprep.workflows.anatomical import init_anat_preproc_wf
         wf = init_anat_preproc_wf(omp_nthreads=1,
                                   reportlets_dir='.',
                                   output_dir='.',
@@ -160,8 +160,8 @@ def init_anat_preproc_wf(skull_strip_template, output_spaces, template, debug,
 
     **Subworkflows**
 
-        * :py:func:`~fmriprep.workflows.anatomical.init_skullstrip_ants_wf`
-        * :py:func:`~fmriprep.workflows.anatomical.init_surface_recon_wf`
+        * :py:func:`~smriprep.workflows.anatomical.init_skullstrip_ants_wf`
+        * :py:func:`~smriprep.workflows.anatomical.init_surface_recon_wf`
 
     """
 
@@ -416,7 +416,7 @@ def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_templa
         :graph2use: orig
         :simple_form: yes
 
-        from fmriprep.workflows.anatomical import init_anat_template_wf
+        from smriprep.workflows.anatomical import init_anat_template_wf
         wf = init_anat_template_wf(longitudinal=False, omp_nthreads=1, num_t1w=1)
 
     **Parameters**
@@ -482,7 +482,7 @@ A T1w-reference map was computed after registration of
                 return in_list[0]
             return in_list
 
-        outputnode.inputs.template_transforms = [pkgr('fmriprep', 'data/itkIdentityTransform.txt')]
+        outputnode.inputs.template_transforms = [pkgr('smriprep', 'data/itkIdentityTransform.txt')]
 
         workflow.connect([
             (t1_conform, outputnode, [(('out_file', _get_first), 't1_template')]),
@@ -559,7 +559,7 @@ def init_skullstrip_ants_wf(skull_strip_template, debug, omp_nthreads,
         :graph2use: orig
         :simple_form: yes
 
-        from fmriprep.workflows.anatomical import init_skullstrip_ants_wf
+        from smriprep.workflows.anatomical import init_skullstrip_ants_wf
         wf = init_skullstrip_ants_wf(skull_strip_template='OASIS', debug=False, omp_nthreads=1)
 
     **Parameters**

@@ -7,32 +7,11 @@ sMRIPrep: Structural MRI PREProcessing workflow
 ===============================================
 """
 
-import os
-import os.path as op
-from pathlib import Path
-import logging
-import sys
-import gc
-import re
-import uuid
-import json
-import tempfile
-import psutil
-import warnings
-import subprocess
-from argparse import ArgumentParser
-from argparse import RawTextHelpFormatter
-from multiprocessing import cpu_count
-from time import strftime
-from glob import glob
 
-logging.addLevelName(25, 'IMPORTANT')  # Add a new level between INFO and WARNING
-logging.addLevelName(15, 'VERBOSE')  # Add a new level between INFO and DEBUG
-logger = logging.getLogger('cli')
-
-
-def _warn_redirect(message, category, filename, lineno, file=None, line=None):
-    logger.warning('Captured warning (%s): %s', category, message)
+def main():
+    """Entrypoint"""
+    opts = get_parser().parse_args()
+    return build_opts(opts)
 
 
 def check_deps(workflow):
@@ -46,9 +25,10 @@ def check_deps(workflow):
 
 def get_parser():
     """Build parser object"""
+    from os.path import abspath
+    from argparse import ArgumentParser
+    from argparse import RawTextHelpFormatter
     from ..__about__ import __version__
-
-    verstr = 'smriprep v{}'.format(__version__)
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
                             formatter_class=RawTextHelpFormatter)
@@ -67,7 +47,7 @@ def get_parser():
                              'sMRIPrep (see BIDS-Apps specification).')
 
     # optional arguments
-    parser.add_argument('--version', action='version', version=verstr)
+    parser.add_argument('--version', action='version', version='smriprep v{}'.format(__version__))
 
     g_bids = parser.add_argument_group('Options for filtering BIDS queries')
     g_bids.add_argument('--skip-bids-validation', '--skip_bids_validation', action='store_true',
@@ -116,7 +96,7 @@ def get_parser():
     # FreeSurfer options
     g_fs = parser.add_argument_group('Specific options for FreeSurfer preprocessing')
     g_fs.add_argument(
-        '--fs-license-file', metavar='PATH', type=os.path.abspath,
+        '--fs-license-file', metavar='PATH', type=abspath,
         help='Path to FreeSurfer license key file. Get it (for free) by registering'
              ' at https://surfer.nmr.mgh.harvard.edu/registration.html')
 
@@ -163,17 +143,28 @@ def get_parser():
     return parser
 
 
-def main():
+def build_opts(opts):
     """Entry point"""
-    from nipype import logging as nlogging
+    import os
+    from os import cpu_count
+    from pathlib import Path
+    import logging
+    import sys
+    import gc
+    import re
+    import psutil
+    import warnings
     from multiprocessing import set_start_method, Process, Manager
-    from niworkflows.viz.reports import generate_reports
-    from niworkflows.utils.bids import write_derivative_description
-    set_start_method('forkserver')
+    # set_start_method('forkserver')
+
+    logging.addLevelName(25, 'IMPORTANT')  # Add a new level between INFO and WARNING
+    logging.addLevelName(15, 'VERBOSE')  # Add a new level between INFO and DEBUG
+    logger = logging.getLogger('cli')
+
+    def _warn_redirect(message, category, filename, lineno, file=None, line=None):
+        logger.warning('Captured warning (%s): %s', category, message)
 
     warnings.showwarning = _warn_redirect
-    opts = get_parser().parse_args()
-
     exec_env = os.name
 
     # special variable set in the container
@@ -281,9 +272,12 @@ def main():
     log_level = int(max(25 - 5 * opts.verbose_count, logging.DEBUG))
     # Set logging
     logger.setLevel(log_level)
-    nlogging.getLogger('nipype.workflow').setLevel(log_level)
-    nlogging.getLogger('nipype.interface').setLevel(log_level)
-    nlogging.getLogger('nipype.utils').setLevel(log_level)
+
+    if True:
+        from nipype import logging as nlogging
+        nlogging.getLogger('nipype.workflow').setLevel(log_level)
+        nlogging.getLogger('nipype.interface').setLevel(log_level)
+        nlogging.getLogger('nipype.utils').setLevel(log_level)
 
     errno = 0
 
@@ -346,6 +340,8 @@ def main():
             sentry_sdk.capture_exception(e)
             raise
     finally:
+        from niworkflows.viz.reports import generate_reports
+        from ..utils.bids import write_derivative_description
         # Generate reports phase
         errno += generate_reports(subject_list, output_dir, work_dir, run_uuid,
                                   sentry_sdk=sentry_sdk)
@@ -357,6 +353,12 @@ def main():
 
 
 def validate_input_dir(exec_env, bids_dir, participant_label):
+    import os
+    import json
+    import tempfile
+    import subprocess
+    import logger
+    from glob import glob
     # Ignore issues and warnings that should not influence sMRIPrep
     validator_config_dict = {
         "ignore": [
@@ -457,6 +459,12 @@ def build_workflow(opts, retval):
     ``multiprocessing.Process`` that allows smriprep to enforce
     a hard-limited memory-scope.
     """
+    import os
+    import os.path as op
+    from pathlib import Path
+    from os import cpu_count
+    import uuid
+    from time import strftime
     from subprocess import check_call, CalledProcessError, TimeoutExpired
     from pkg_resources import resource_filename as pkgrf
 
@@ -464,7 +472,6 @@ def build_workflow(opts, retval):
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
     from niworkflows.utils.bids import collect_participants
-    from niworkflows.viz.reports import generate_reports
 
     logger = logging.getLogger('nipype.workflow')
 
@@ -589,6 +596,8 @@ def build_workflow(opts, retval):
 
     # Called with reports only
     if opts.reports_only:
+        from niworkflows.viz.reports import generate_reports
+
         logger.log(25, 'Running --reports-only on participants %s', ', '.join(subject_list))
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid

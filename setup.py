@@ -11,7 +11,7 @@ def main():
     from inspect import getfile, currentframe
     from setuptools import setup, find_packages
     from smriprep.__about__ import (
-        __packagename__,
+        __package__,
         __version__,
         __author__,
         __email__,
@@ -30,7 +30,7 @@ def main():
     )
 
     pkg_data = {
-        __packagename__: [
+        __package__: [
             'data/*.json',
             'data/*.nii.gz',
             'data/*.mat',
@@ -45,10 +45,10 @@ def main():
     cmdclass = {}
 
     root_dir = Path(getfile(currentframe())).resolve().parent
-    verfile = root_dir / __packagename__ / 'VERSION'
+    verfile = root_dir / __package__ / 'VERSION'
     if verfile.is_file():
         version = verfile.read_text().splitlines()[0].strip()
-        pkg_data[__packagename__].insert(0, 'VERSION')
+        pkg_data[__package__].insert(0, 'VERSION')
 
     if version is None:
         import versioneer
@@ -56,7 +56,7 @@ def main():
         cmdclass = versioneer.get_cmdclass()
 
     setup(
-        name=__packagename__,
+        name=__package__,
         version=__version__,
         description=__description__,
         long_description=__longdesc__,
