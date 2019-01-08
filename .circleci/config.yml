@@ -337,7 +337,7 @@ jobs:
                 poldracklab/smriprep:latest \
                 /tmp/data/ds005 /tmp/ds005/derivatives participant \
                  -w /tmp/data/ds005/work \
-                --sloppy --write-graph --mem_mb 4096 \
+                --sloppy --write-graph --mem-gb 4 \
                 --ncpus 2 --omp-nthreads 2 -vv
       - save_cache:
          key: ds005-anat-v1-{{ .Branch }}-{{ epoch }}
@@ -417,7 +417,7 @@ jobs:
                 poldracklab/smriprep:latest \
                 /tmp/data/ds054 /tmp/ds054/derivatives participant \
                 -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
-                --mem_mb 4096 --nthreads 2 -vv
+                --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv
       - save_cache:
          key: ds054-anat-v1-{{ .Branch }}-{{ epoch }}
          paths:

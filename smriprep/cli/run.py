@@ -349,10 +349,13 @@ def build_opts(opts):
             sentry_sdk.capture_exception(e)
             raise
     finally:
+        from pkg_resources import resource_filename as pkgrf
         from niworkflows.viz.reports import generate_reports
+
         from ..utils.bids import write_derivative_description
         # Generate reports phase
         errno += generate_reports(subject_list, output_dir, work_dir, run_uuid,
+                                  config=pkgrf('smriprep', 'data/reports/config.json'),
                                   sentry_sdk=sentry_sdk)
         write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
 
@@ -589,7 +592,9 @@ def build_workflow(opts, retval):
         logger.log(25, 'Running --reports-only on participants %s', ', '.join(subject_list))
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid
-        retval['return_code'] = generate_reports(subject_list, output_dir, work_dir, run_uuid)
+        retval['return_code'] = generate_reports(
+            subject_list, output_dir, work_dir, run_uuid,
+            config=pkgrf('smriprep', 'data/reports/config.json'))
         return retval
 
     # Build main workflow
@@ -629,6 +634,7 @@ def build_workflow(opts, retval):
     cmd = ['pandoc', '-s', '--bibliography',
            pkgrf('smriprep', 'data/boilerplate.bib'),
            '--filter', 'pandoc-citeproc',
+           '--metadata',  'title="sMRIPrep citation boilerplate"',
            str(logs_path / 'CITATION.md'),
            '-o', str(logs_path / 'CITATION.html')]
     try:

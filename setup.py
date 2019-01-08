@@ -36,8 +36,8 @@ def main():
             'data/*.mat',
             'data/boilerplate.bib',
             'data/itkIdentityTransform.txt',
-            'viz/*.tpl',
-            'viz/*.json',
+            'data/reports/config.json',
+            'data/reports/report.tpl',
         ]
     }
 
