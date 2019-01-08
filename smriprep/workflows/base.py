@@ -347,9 +347,8 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
         subject_data = {
             't1w': ['/completely/made/up/path/sub-01_T1w.nii.gz'],
         }
-        layout = None
     else:
-        subject_data, layout = collect_data(bids_dir, subject_id)
+        subject_data = collect_data(bids_dir, subject_id)[0]
 
     if not subject_data['t1w']:
         raise Exception("No T1w images found for participant {}. "

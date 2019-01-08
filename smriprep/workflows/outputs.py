@@ -12,11 +12,11 @@ Writting outputs
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-
 from niworkflows.utils.misc import fix_multi_T1w_source_name
-from niworkflows.interfaces.bids import DerivativesDataSink
 from niworkflows.interfaces.surf import GiftiNameSource
 from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
+
+from ..interfaces import DerivativesDataSink
 
 
 def init_anat_reports_wf(reportlets_dir, template, freesurfer,
@@ -98,9 +98,9 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
 
     ds_t1_tpms = pe.Node(
         DerivativesDataSink(base_directory=output_dir,
-                            suffix='label-{extra_value}_probseg'),
+                            suffix='probseg'),
         name='ds_t1_tpms', run_without_submitting=True)
-    ds_t1_tpms.inputs.extra_values = ['CSF', 'GM', 'WM']
+    ds_t1_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
     ds_t1_mni = pe.Node(
         DerivativesDataSink(base_directory=output_dir,
@@ -119,9 +119,9 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
 
     ds_mni_tpms = pe.Node(
         DerivativesDataSink(base_directory=output_dir,
-                            space=template, suffix='label-{extra_value}_probseg'),
+                            space=template, suffix='probseg'),
         name='ds_mni_tpms', run_without_submitting=True)
-    ds_mni_tpms.inputs.extra_values = ['CSF', 'GM', 'WM']
+    ds_mni_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
     # Transforms
     suffix_fmt = 'from-{}_to-{}_mode-image_xfm'.format
