@@ -105,8 +105,17 @@ def get_parser():
     g_surfs.add_argument('--no-submm-recon', action='store_false', dest='hires',
                          help='disable sub-millimeter (hires) reconstruction')
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
-    g_surfs_xor.add_argument('--cifti-output', action='store_true', default=False,
-                             help='output BOLD files as CIFTI dtseries')
+
+    g_surfs_xor.add_argument(
+        '--fs-output-spaces', required=False, action='store',
+        choices=['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'],
+        nargs='+', default=['fsaverage5'],
+        help='configure Freesurfer\'s output spaces:\n'
+             ' - fsnative: individual subject surface\n'
+             ' - fsaverage*: FreeSurfer average meshes\n'
+             'this argument can be single value or a space delimited list,\n'
+             'for example: --fs-output-spaces fsnative fsaverage fsaverage5'
+    )
     g_surfs_xor.add_argument('--fs-no-reconall', '--no-freesurfer',
                              action='store_false', dest='run_reconall',
                              help='disable FreeSurfer surface preprocessing.'
@@ -473,7 +482,7 @@ def build_workflow(opts, retval):
 
     from nipype import logging, config as ncfg
     from ..__about__ import __version__
-    from ..workflows.base import init_anat_preproc_wf
+    from ..workflows.base import init_smriprep_wf
     from niworkflows.utils.bids import collect_participants
 
     logger = logging.getLogger('nipype.workflow')
@@ -591,7 +600,7 @@ def build_workflow(opts, retval):
         uuid=run_uuid)
     )
 
-    retval['workflow'] = init_anat_preproc_wf(
+    retval['workflow'] = init_smriprep_wf(
         subject_list=subject_list,
         run_uuid=run_uuid,
         debug=opts.sloppy,
@@ -604,8 +613,8 @@ def build_workflow(opts, retval):
         output_dir=output_dir,
         bids_dir=bids_dir,
         freesurfer=opts.run_reconall,
+        fs_spaces=opts.fs_output_spaces,
         template=opts.template,
-        cifti_output=opts.cifti_output,
         hires=opts.hires,
     )
     retval['return_code'] = 0

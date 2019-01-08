@@ -38,7 +38,7 @@ from .surfaces import init_surface_recon_wf
 
 
 #  pylint: disable=R0914
-def init_anat_preproc_wf(skull_strip_template, output_spaces, template, debug,
+def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
                          freesurfer, longitudinal, omp_nthreads, hires, reportlets_dir,
                          output_dir, num_t1w,
                          skull_strip_fixed_seed=False, name='anat_preproc_wf'):
@@ -62,7 +62,7 @@ def init_anat_preproc_wf(skull_strip_template, output_spaces, template, debug,
                                   reportlets_dir='.',
                                   output_dir='.',
                                   template='MNI152NLin2009cAsym',
-                                  output_spaces=['T1w', 'fsnative',
+                                  fs_spaces=['T1w', 'fsnative',
                                                  'template', 'fsaverage5'],
                                   skull_strip_template='OASIS',
                                   freesurfer=True,
@@ -75,7 +75,7 @@ def init_anat_preproc_wf(skull_strip_template, output_spaces, template, debug,
 
         skull_strip_template : str
             Name of ANTs skull-stripping template ('OASIS' or 'NKI')
-        output_spaces : list
+        fs_spaces : list
             List of output spaces functional images are to be resampled to.
 
             Some pipeline components will only be instantiated for some output spaces.
@@ -315,38 +315,39 @@ and used as T1w-reference throughout the workflow.
         name='mni_tpms'
     )
 
-    if 'template' in output_spaces:
-        ref_img = str(nid.get_template(template) /
-                      ('tpl-%s_space-MNI_res-01_T1w.nii.gz' % template))
+    # TODO isolate the spatial normalization workflow
+    ref_img = str(nid.get_template(template) /
+                  ('tpl-%s_space-MNI_res-01_T1w.nii.gz' % template))
 
-        t1_2_mni.inputs.template = template
-        mni_mask.inputs.reference_image = ref_img
-        mni_seg.inputs.reference_image = ref_img
-        mni_tpms.inputs.reference_image = ref_img
+    t1_2_mni.inputs.template = template
+    mni_mask.inputs.reference_image = ref_img
+    mni_seg.inputs.reference_image = ref_img
+    mni_tpms.inputs.reference_image = ref_img
 
-        workflow.connect([
-            (inputnode, t1_2_mni, [('roi', 'lesion_mask')]),
-            (skullstrip_ants_wf, t1_2_mni, [('outputnode.bias_corrected', 'moving_image')]),
-            (buffernode, t1_2_mni, [('t1_mask', 'moving_mask')]),
-            (buffernode, mni_mask, [('t1_mask', 'input_image')]),
-            (t1_2_mni, mni_mask, [('composite_transform', 'transforms')]),
-            (t1_seg, mni_seg, [('tissue_class_map', 'input_image')]),
-            (t1_2_mni, mni_seg, [('composite_transform', 'transforms')]),
-            (t1_seg, mni_tpms, [('probability_maps', 'input_image')]),
-            (t1_2_mni, mni_tpms, [('composite_transform', 'transforms')]),
-            (t1_2_mni, outputnode, [
-                ('warped_image', 't1_2_mni'),
-                ('composite_transform', 't1_2_mni_forward_transform'),
-                ('inverse_composite_transform', 't1_2_mni_reverse_transform')]),
-            (mni_mask, outputnode, [('output_image', 'mni_mask')]),
-            (mni_seg, outputnode, [('output_image', 'mni_seg')]),
-            (mni_tpms, outputnode, [('output_image', 'mni_tpms')]),
-        ])
+    workflow.connect([
+        (inputnode, t1_2_mni, [('roi', 'lesion_mask')]),
+        (skullstrip_ants_wf, t1_2_mni, [('outputnode.bias_corrected', 'moving_image')]),
+        (buffernode, t1_2_mni, [('t1_mask', 'moving_mask')]),
+        (buffernode, mni_mask, [('t1_mask', 'input_image')]),
+        (t1_2_mni, mni_mask, [('composite_transform', 'transforms')]),
+        (t1_seg, mni_seg, [('tissue_class_map', 'input_image')]),
+        (t1_2_mni, mni_seg, [('composite_transform', 'transforms')]),
+        (t1_seg, mni_tpms, [('probability_maps', 'input_image')]),
+        (t1_2_mni, mni_tpms, [('composite_transform', 'transforms')]),
+        (t1_2_mni, outputnode, [
+            ('warped_image', 't1_2_mni'),
+            ('composite_transform', 't1_2_mni_forward_transform'),
+            ('inverse_composite_transform', 't1_2_mni_reverse_transform')]),
+        (mni_mask, outputnode, [('output_image', 'mni_mask')]),
+        (mni_seg, outputnode, [('output_image', 'mni_seg')]),
+        (mni_tpms, outputnode, [('output_image', 'mni_tpms')]),
+    ])
+    ### spatial normalization ends here
 
     seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
                       name='seg_rpt')
     anat_reports_wf = init_anat_reports_wf(
-        reportlets_dir=reportlets_dir, output_spaces=output_spaces, template=template,
+        reportlets_dir=reportlets_dir, template=template,
         freesurfer=freesurfer)
     workflow.connect([
         (inputnode, anat_reports_wf, [
@@ -358,6 +359,7 @@ and used as T1w-reference throughout the workflow.
         (t1_seg, seg_rpt, [('tissue_class_map', 'in_rois')]),
         (outputnode, seg_rpt, [('t1_mask', 'in_mask')]),
         (seg_rpt, anat_reports_wf, [('out_report', 'inputnode.seg_report')]),
+        (t1_2_mni, anat_reports_wf, [('out_report', 'inputnode.t1_2_mni_report')]),
     ])
 
     if freesurfer:
@@ -365,13 +367,8 @@ and used as T1w-reference throughout the workflow.
             (surface_recon_wf, anat_reports_wf, [
                 ('outputnode.out_report', 'inputnode.recon_report')]),
         ])
-    if 'template' in output_spaces:
-        workflow.connect([
-            (t1_2_mni, anat_reports_wf, [('out_report', 'inputnode.t1_2_mni_report')]),
-        ])
 
     anat_derivatives_wf = init_anat_derivatives_wf(output_dir=output_dir,
-                                                   output_spaces=output_spaces,
                                                    template=template,
                                                    freesurfer=freesurfer)
 

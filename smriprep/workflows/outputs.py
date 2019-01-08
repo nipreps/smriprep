@@ -19,8 +19,8 @@ from niworkflows.interfaces.surf import GiftiNameSource
 from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
 
 
-def init_anat_reports_wf(reportlets_dir, output_spaces,
-                         template, freesurfer, name='anat_reports_wf'):
+def init_anat_reports_wf(reportlets_dir, template, freesurfer,
+                         name='anat_reports_wf'):
     """
     Set up a battery of datasinks to store reports in the right location
     """
@@ -44,32 +44,28 @@ def init_anat_reports_wf(reportlets_dir, output_spaces,
         DerivativesDataSink(base_directory=reportlets_dir, suffix='seg_brainmask'),
         name='ds_t1_seg_mask_report', run_without_submitting=True)
 
-    ds_recon_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, suffix='reconall'),
-        name='ds_recon_report', run_without_submitting=True)
-
     workflow.connect([
         (inputnode, ds_t1_conform_report, [('source_file', 'source_file'),
                                            ('t1_conform_report', 'in_file')]),
         (inputnode, ds_t1_seg_mask_report, [('source_file', 'source_file'),
                                             ('seg_report', 'in_file')]),
+        (inputnode, ds_t1_2_mni_report, [('source_file', 'source_file'),
+                                         ('t1_2_mni_report', 'in_file')])
     ])
 
     if freesurfer:
+        ds_recon_report = pe.Node(
+            DerivativesDataSink(base_directory=reportlets_dir, suffix='reconall'),
+            name='ds_recon_report', run_without_submitting=True)
         workflow.connect([
             (inputnode, ds_recon_report, [('source_file', 'source_file'),
                                           ('recon_report', 'in_file')])
-        ])
-    if 'template' in output_spaces:
-        workflow.connect([
-            (inputnode, ds_t1_2_mni_report, [('source_file', 'source_file'),
-                                             ('t1_2_mni_report', 'in_file')])
         ])
 
     return workflow
 
 
-def init_anat_derivatives_wf(output_dir, output_spaces, template, freesurfer,
+def init_anat_derivatives_wf(output_dir, template, freesurfer,
                              name='anat_derivatives_wf'):
     """
     Set up a battery of datasinks to store derivatives in the right location
@@ -171,6 +167,19 @@ def init_anat_derivatives_wf(output_dir, output_spaces, template, freesurfer,
         (t1_name, ds_t1_mask, [('out', 'source_file')]),
         (t1_name, ds_t1_seg, [('out', 'source_file')]),
         (t1_name, ds_t1_tpms, [('out', 'source_file')]),
+        # Template
+        (inputnode, ds_t1_mni_warp, [('t1_2_mni_forward_transform', 'in_file')]),
+        (inputnode, ds_t1_mni_inv_warp, [('t1_2_mni_reverse_transform', 'in_file')]),
+        (inputnode, ds_t1_mni, [('t1_2_mni', 'in_file')]),
+        (inputnode, ds_mni_mask, [('mni_mask', 'in_file')]),
+        (inputnode, ds_mni_seg, [('mni_seg', 'in_file')]),
+        (inputnode, ds_mni_tpms, [('mni_tpms', 'in_file')]),
+        (t1_name, ds_t1_mni_warp, [('out', 'source_file')]),
+        (t1_name, ds_t1_mni_inv_warp, [('out', 'source_file')]),
+        (t1_name, ds_t1_mni, [('out', 'source_file')]),
+        (t1_name, ds_mni_mask, [('out', 'source_file')]),
+        (t1_name, ds_mni_seg, [('out', 'source_file')]),
+        (t1_name, ds_mni_tpms, [('out', 'source_file')]),
     ])
 
     if freesurfer:
@@ -192,21 +201,6 @@ def init_anat_derivatives_wf(output_dir, output_spaces, template, freesurfer,
             (inputnode, ds_t1_fsparc, [('t1_fs_aparc', 'in_file')]),
             (t1_name, ds_t1_fsaseg, [('out', 'source_file')]),
             (t1_name, ds_t1_fsparc, [('out', 'source_file')]),
-        ])
-    if 'template' in output_spaces:
-        workflow.connect([
-            (inputnode, ds_t1_mni_warp, [('t1_2_mni_forward_transform', 'in_file')]),
-            (inputnode, ds_t1_mni_inv_warp, [('t1_2_mni_reverse_transform', 'in_file')]),
-            (inputnode, ds_t1_mni, [('t1_2_mni', 'in_file')]),
-            (inputnode, ds_mni_mask, [('mni_mask', 'in_file')]),
-            (inputnode, ds_mni_seg, [('mni_seg', 'in_file')]),
-            (inputnode, ds_mni_tpms, [('mni_tpms', 'in_file')]),
-            (t1_name, ds_t1_mni_warp, [('out', 'source_file')]),
-            (t1_name, ds_t1_mni_inv_warp, [('out', 'source_file')]),
-            (t1_name, ds_t1_mni, [('out', 'source_file')]),
-            (t1_name, ds_mni_mask, [('out', 'source_file')]),
-            (t1_name, ds_mni_seg, [('out', 'source_file')]),
-            (t1_name, ds_mni_tpms, [('out', 'source_file')]),
         ])
 
     return workflow
