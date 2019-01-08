@@ -119,16 +119,6 @@ jobs:
               echo "Dataset ds000054 was cached"
             fi
       - run:
-          name: Get test data from ds000210
-          command: |
-            if [[ ! -d /tmp/data/ds210 ]]; then
-              wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q \
-                -O ds210_downsampled.tar.gz "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/5ae9e37b9a64d7000ce66c21"
-              tar xvzf ds210_downsampled.tar.gz -C /tmp/data/
-            else
-              echo "Dataset ds000210 was cached"
-            fi
-      - run:
           name: Get FreeSurfer derivatives for ds000005
           command: |
             if [[ ! -d /tmp/ds005/derivatives/freesurfer ]]; then
@@ -148,7 +138,7 @@ jobs:
       - run:
           name: Create Nipype config files
           command: |
-            mkdir -p /tmp/ds005 /tmp/ds054 /tmp/ds210
+            mkdir -p /tmp/ds005 /tmp/ds054
             printf "[execution]\nstop_on_first_crash = true\n" > /tmp/ds005/nipype.cfg
             echo "poll_sleep_duration = 0.01" >> /tmp/ds005/nipype.cfg
             echo "hash_method = content" >> /tmp/ds005/nipype.cfg
@@ -476,7 +466,6 @@ workflows:
       #           - /tests?\/.*/
       #           - /ds005\/.*/
       #           - /ds054\/.*/
-      #           - /ds210\/.*/
       #       tags:
       #         only: /.*/
 
@@ -500,7 +489,6 @@ workflows:
                 - /docs?\/.*/
                 - /ds005\/.*/
                 - /ds054\/.*/
-                - /ds210\/.*/
             tags:
               only: /.*/
 
@@ -508,10 +496,9 @@ workflows:
           requires:
             - build
             - test_pytest
+            - ds005
+            - ds054
             # - build_docs
-            # - ds005
-            # - ds054
-            # - ds210
           filters:
             branches:
               only: master
@@ -522,12 +509,37 @@ workflows:
           requires:
             - build
             - test_pytest
+            - ds005
+            - ds054
             # - build_docs
-            # - ds005
-            # - ds054
-            # - ds210
           filters:
             branches:
               ignore: /.*/
+            tags:
+              only: /.*/
+
+      - ds005:
+          requires:
+            - get_data
+            - build
+          filters:
+            branches:
+              ignore:
+                - /docs?\/.*/
+                - /tests?\/.*/
+                - /ds054\/.*/
+            tags:
+              only: /.*/
+
+      - ds054:
+          requires:
+            - get_data
+            - build
+          filters:
+            branches:
+              ignore:
+                - /docs?\/.*/
+                - /tests?\/.*/
+                - /ds005\/.*/
             tags:
               only: /.*/
