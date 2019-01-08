@@ -80,9 +80,9 @@ def get_parser():
         '--longitudinal', action='store_true',
         help='treat dataset as longitudinal - may increase runtime')
     g_conf.add_argument(
-        '--template', required=False, action='store',
-        choices=['MNI152NLin2009cAsym'], default='MNI152NLin2009cAsym',
-        help='volume template space (default: MNI152NLin2009cAsym)')
+        '--template', '--spatial-normalization-target',
+        required=False, action='store', nargs='+', default='MNI152NLin2009cAsym',
+        help='spatial normalization targets (one or more TemplateFlow Identifiers')
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
@@ -357,8 +357,11 @@ def validate_input_dir(exec_env, bids_dir, participant_label):
     import json
     import tempfile
     import subprocess
-    import logger
+    import logging
     from glob import glob
+
+    logger = logging.getLogger('cli')
+
     # Ignore issues and warnings that should not influence sMRIPrep
     validator_config_dict = {
         "ignore": [
@@ -470,7 +473,7 @@ def build_workflow(opts, retval):
 
     from nipype import logging, config as ncfg
     from ..__about__ import __version__
-    from ..workflows.base import init_smriprep_wf
+    from ..workflows.base import init_anat_preproc_wf
     from niworkflows.utils.bids import collect_participants
 
     logger = logging.getLogger('nipype.workflow')
@@ -481,30 +484,6 @@ def build_workflow(opts, retval):
       * Participant list: {subject_list}.
       * Run identifier: {uuid}.
     """.format
-
-    output_spaces = opts.output_space or []
-
-    # Validity of some inputs
-    # ERROR check if use_aroma was specified, but the correct template was not
-    if opts.use_aroma and (opts.template != 'MNI152NLin2009cAsym' or
-                           'template' not in output_spaces):
-        output_spaces.append('template')
-        logger.warning(
-            'Option "--use-aroma" requires functional images to be resampled to MNI space. '
-            'The argument "template" has been automatically added to the list of output '
-            'spaces (option "--output-space").'
-        )
-
-    # Check output_space
-    if 'template' not in output_spaces and (opts.use_syn_sdc or opts.force_syn):
-        msg = ['SyN SDC correction requires T1 to MNI registration, but '
-               '"template" is not specified in "--output-space" arguments.',
-               'Option --use-syn will be cowardly dismissed.']
-        if opts.force_syn:
-            output_spaces.append('template')
-            msg[1] = (' Since --force-syn has been requested, "template" has been added to'
-                      ' the "--output-space" list.')
-        logger.warning(' '.join(msg))
 
     # Set up some instrumental utilities
     run_uuid = '%s_%s' % (strftime('%Y%m%d-%H%M%S'), uuid.uuid4())
@@ -541,7 +520,7 @@ def build_workflow(opts, retval):
             nprocs = cpu_count()
         plugin_settings['plugin_args']['n_procs'] = nprocs
 
-    if opts.mem_mb:
+    if opts.mem_gb:
         plugin_settings['plugin_args']['memory_gb'] = opts.mem_gb
 
     omp_nthreads = opts.omp_nthreads
@@ -612,16 +591,7 @@ def build_workflow(opts, retval):
         uuid=run_uuid)
     )
 
-    template_out_grid = opts.template_resampling_grid
-    if opts.output_grid_reference is not None:
-        logger.warning(
-            'Option --output-grid-reference is deprecated, please use '
-            '--template-resampling-grid')
-        template_out_grid = template_out_grid or opts.output_grid_reference
-    if opts.debug:
-        logger.warning('Option --debug is deprecated and has no effect')
-
-    retval['workflow'] = init_smriprep_wf(
+    retval['workflow'] = init_anat_preproc_wf(
         subject_list=subject_list,
         run_uuid=run_uuid,
         debug=opts.sloppy,
