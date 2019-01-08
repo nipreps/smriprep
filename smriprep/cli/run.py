@@ -477,6 +477,7 @@ def build_workflow(opts, retval):
     import os
     import os.path as op
     from pathlib import Path
+    from shutil import copyfile
     from os import cpu_count
     import uuid
     from time import strftime
@@ -653,6 +654,8 @@ def build_workflow(opts, retval):
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning('Could not generate CITATION.tex file:\n%s',
                        ' '.join(cmd))
+    else:
+        copyfile(pkgrf('fmriprep', 'data/boilerplate.bib'), str(logs_path / 'CITATION.bib'))
     return retval
 
 
