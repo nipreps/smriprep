@@ -263,8 +263,8 @@ jobs:
             fi
 
   deploy_pypi:
-    docker:
-      - image: python:3.7.1
+    machine:
+      image: circleci/classic:201711-01
     working_directory: /tmp/src/smriprep
     steps:
       - attach_workspace:
@@ -276,6 +276,7 @@ jobs:
             virtualenv venv
             pip install "setuptools>=27.0" twine future docutils
             echo "${CIRCLE_TAG}" > smriprep/VERSION
+            echo "include smriprep/VERSION" >> MANIFEST.in
             python setup.py check -r -s
             python setup.py sdist
             twine upload dist/*
