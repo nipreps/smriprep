@@ -177,8 +177,10 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
 
+    fov_check = pe.Node(niu.Function(function=_check_cw256), name='fov_check')
+
     autorecon1 = pe.Node(
-        fs.ReconAll(directive='autorecon1', flags='-noskullstrip', openmp=omp_nthreads),
+        fs.ReconAll(directive='autorecon1', openmp=omp_nthreads),
         name='autorecon1', n_procs=omp_nthreads, mem_gb=5)
     autorecon1.interface._can_resume = False
     autorecon1.interface._always_run = True
@@ -214,6 +216,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             ('outputnode.subject_id', 'inputnode.subject_id')]),
         # Reconstruction phases
         (inputnode, autorecon1, [('t1w', 'T1_files')]),
+        (inputnode, fov_check, [('t1w', 'in_files')]),
+        (fov_check, autorecon1, [('out', 'flags')]),
         (recon_config, autorecon1, [('t2w', 'T2_file'),
                                     ('flair', 'FLAIR_file'),
                                     ('hires', 'hires'),
@@ -527,3 +531,12 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
         (tonii, outputnode, [('out_file', 'out_file')]),
     ])
     return workflow
+
+
+def _check_cw256(in_files):
+    from nibabel.funcs import concat_images
+    if isinstance(in_files, str):
+        in_files = [in_files]
+    if any(concat_images(in_files).shape[:3] > 256):
+        return ['-noskullstrip', '-cw256']
+    return '-noskullstrip'
