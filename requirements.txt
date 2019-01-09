@@ -1,4 +1,4 @@
-git+https://github.com/oesteban/niworkflows.git@748a4670d90e05d5975064b6e84beed9758a7f17#egg=niworkflows
+niworkflows>=0.5.3,<0.6
 grabbit==0.2.3
 pybids==0.6.5
 indexed_gzip>=0.8.8

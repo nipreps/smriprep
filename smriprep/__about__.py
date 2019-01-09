@@ -51,8 +51,7 @@ REQUIRES = [
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
     'nipype>=1.1.6',
-    'niworkflows',
-    # 'niworkflows>=0.5.2.post5,<0.5.3',
+    'niworkflows>=0.5.3,<0.6',
     'numpy',
     'packaging',
     'pybids==0.6.5',
@@ -61,8 +60,6 @@ REQUIRES = [
 
 
 LINKS_REQUIRES = [
-    'git+https://github.com/oesteban/niworkflows.git@'
-    '748a4670d90e05d5975064b6e84beed9758a7f17#egg=niworkflows',
 ]
 
 TESTS_REQUIRES = [
