@@ -537,6 +537,6 @@ def _check_cw256(in_files):
     from nibabel.funcs import concat_images
     if isinstance(in_files, str):
         in_files = [in_files]
-    if any(concat_images(in_files).shape[:3] > 256):
+    if any((s > 256 for s in concat_images(in_files).shape[:3])):
         return ['-noskullstrip', '-cw256']
     return '-noskullstrip'
