@@ -29,17 +29,25 @@ RUN curl -o pandoc-2.2.2.1-1-amd64.deb -sSL "https://github.com/jgm/pandoc/relea
 
 # Installing freesurfer
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.1/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.1.tar.gz | tar zxv --no-same-owner -C /opt \
-    --exclude='freesurfer/trctrain' \
+    --exclude='freesurfer/average' \
+    --exclude='freesurfer/diffusion' \
+    --exclude='freesurfer/docs' \
+    --exclude='freesurfer/fsfast' \
+    --exclude='freesurfer/lib/cuda' \
+    --exclude='freesurfer/lib/qt' \
+    --exclude='freesurfer/matlab' \
+    --exclude='freesurfer/mni/share/man' \
     --exclude='freesurfer/subjects/fsaverage_sym' \
     --exclude='freesurfer/subjects/fsaverage3' \
     --exclude='freesurfer/subjects/fsaverage4' \
     --exclude='freesurfer/subjects/cvs_avg35' \
     --exclude='freesurfer/subjects/cvs_avg35_inMNI152' \
     --exclude='freesurfer/subjects/bert' \
+    --exclude='freesurfer/subjects/lh.EC_average' \
+    --exclude='freesurfer/subjects/rh.EC_average' \
+    --exclude='freesurfer/subjects/sample-*.mgz' \
     --exclude='freesurfer/subjects/V1_average' \
-    --exclude='freesurfer/average/mult-comp-cor' \
-    --exclude='freesurfer/lib/cuda' \
-    --exclude='freesurfer/lib/qt'
+    --exclude='freesurfer/trctrain'
 
 ENV FSL_DIR="/usr/share/fsl/5.0" \
     OS="Linux" \
@@ -51,11 +59,9 @@ ENV SUBJECTS_DIR="$FREESURFER_HOME/subjects" \
     FUNCTIONALS_DIR="$FREESURFER_HOME/sessions" \
     MNI_DIR="$FREESURFER_HOME/mni" \
     LOCAL_DIR="$FREESURFER_HOME/local" \
-    FSFAST_HOME="$FREESURFER_HOME/fsfast" \
     MINC_BIN_DIR="$FREESURFER_HOME/mni/bin" \
     MINC_LIB_DIR="$FREESURFER_HOME/mni/lib" \
-    MNI_DATAPATH="$FREESURFER_HOME/mni/data" \
-    FMRI_ANALYSIS_DIR="$FREESURFER_HOME/fsfast"
+    MNI_DATAPATH="$FREESURFER_HOME/mni/data"
 ENV PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
     MNI_PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
     PATH="$FREESURFER_HOME/bin:$FSFAST_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH"
@@ -68,9 +74,9 @@ RUN curl -sSL "http://neuro.debian.net/lists/$( lsb_release -c | cut -f2 ).us-ca
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
                     fsl-core=5.0.9-5~nd16.04+1 \
-                    fsl-mni152-templates=5.0.7-2 \
                     afni=16.2.07~dfsg.1-5~nd16.04+1 \
-                    convert3d
+                    convert3d \
+                    git-annex-standalone
 
 ENV FSLDIR="/usr/share/fsl/5.0" \
     FSLOUTPUTTYPE="NIFTI_GZ" \
@@ -124,7 +130,7 @@ RUN conda install -y python=3.7.1 \
                      graphviz=2.40.1 \
                      traits=4.6.0 \
                      # Make sure zlib is installed
-                     zlib; sync &&  \
+                     zlib; sync && \
     chmod -R a+rX /usr/local/miniconda; sync && \
     chmod +x /usr/local/miniconda/bin/*; sync && \
     conda clean --all -y; sync && \
@@ -139,18 +145,21 @@ RUN python -c "from matplotlib import font_manager" && \
 ENV MKL_NUM_THREADS=1 \
     OMP_NUM_THREADS=1
 
-WORKDIR /src/
 
 # Precaching atlases
-ENV CRN_SHARED_DATA="/templateflow"
-ADD docker/scripts/get_templates.sh get_templates.sh
-RUN mkdir $CRN_SHARED_DATA && \
-    /src/get_templates.sh && \
-    find $CRN_SHARED_DATA -type d -exec chmod 555 {} \; && \
-    find $CRN_SHARED_DATA -type f -exec chmod 444 {} \; && \
-    chmod +w $CRN_SHARED_DATA
+ENV TEMPLATEFLOW_HOME="/templateflow"
+RUN pip install datalad && \
+    rm -rf ~/.cache/pip
+
+RUN cd / && \
+    git config --global user.name "First Last" && \
+    git config --global user.email "email@domain.com" && \
+    datalad install -r https://github.com/templateflow/templateflow.git && \
+    datalad get $TEMPLATEFLOW_HOME/*/*_T1w.nii.gz && \
+    datalad get $TEMPLATEFLOW_HOME/*/*_desc-brain_mask.nii.gz
 
 # Installing dev requirements (packages that are not in pypi)
+WORKDIR /src/
 ADD requirements.txt requirements.txt
 RUN pip install -r requirements.txt && \
     rm -rf ~/.cache/pip
