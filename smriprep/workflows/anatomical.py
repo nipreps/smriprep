@@ -316,7 +316,7 @@ and used as T1w-reference throughout the workflow.
     )
 
     # TODO isolate the spatial normalization workflow
-    ref_img = get_template(template, 'space-MNI_res-01_T1w.nii.gz')
+    ref_img = get_template(template, 'res-01_T1w.nii.gz')
 
     t1_2_mni.inputs.template = template
     mni_mask.inputs.reference_image = ref_img
