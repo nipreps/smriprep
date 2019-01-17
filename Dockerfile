@@ -29,7 +29,6 @@ RUN curl -o pandoc-2.2.2.1-1-amd64.deb -sSL "https://github.com/jgm/pandoc/relea
 
 # Installing freesurfer
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.1/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.1.tar.gz | tar zxv --no-same-owner -C /opt \
-    --exclude='freesurfer/average' \
     --exclude='freesurfer/diffusion' \
     --exclude='freesurfer/docs' \
     --exclude='freesurfer/fsfast' \
