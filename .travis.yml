@@ -6,7 +6,7 @@ cache:
     - $HOME/.cache/pip
 
 python:
-  - 3.7
+  - 3.6
 
 before_install:
   - python -m pip install --upgrade pip
