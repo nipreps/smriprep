@@ -147,16 +147,18 @@ ENV MKL_NUM_THREADS=1 \
 
 
 # Precaching atlases
-ENV TEMPLATEFLOW_HOME="/templateflow"
-RUN pip install datalad && \
+WORKDIR /opt
+ENV TEMPLATEFLOW_HOME="/opt/templateflow"
+RUN pip install "datalad==0.10.0" && \
     rm -rf ~/.cache/pip
 
-RUN cd / && \
-    git config --global user.name "First Last" && \
+RUN git config --global user.name "First Last" && \
     git config --global user.email "email@domain.com" && \
-    datalad install -r https://github.com/templateflow/templateflow.git && \
-    datalad get $TEMPLATEFLOW_HOME/*/*_T1w.nii.gz && \
-    datalad get $TEMPLATEFLOW_HOME/*/*_desc-brain_mask.nii.gz
+    datalad install -r https://github.com/templateflow/templateflow.git
+RUN datalad get $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_T1w.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_T1w.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_desc-brain_mask.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_desc-brain_mask.nii.gz 
 
 # Installing dev requirements (packages that are not in pypi)
 WORKDIR /src/
