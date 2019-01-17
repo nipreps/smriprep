@@ -158,7 +158,7 @@ RUN git config --global user.name "First Last" && \
 RUN datalad get $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_T1w.nii.gz \
                 $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_T1w.nii.gz \
                 $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_desc-brain_mask.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_desc-brain_mask.nii.gz 
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_desc-brain_mask.nii.gz
 
 # Installing dev requirements (packages that are not in pypi)
 WORKDIR /src/
