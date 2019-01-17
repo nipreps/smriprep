@@ -81,14 +81,15 @@ def get_parser():
         help='treat dataset as longitudinal - may increase runtime')
     g_conf.add_argument(
         '--template', '--spatial-normalization-target',
+        choices=['MNI152NLin2009cAsym', 'MNI152Lin', 'OASIS30ANTs', 'NKI', 'PNC'],
         required=False, action='store', nargs='+', default='MNI152NLin2009cAsym',
         help='spatial normalization targets (one or more TemplateFlow Identifiers')
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
-    g_ants.add_argument('--skull-strip-template', action='store', default='OASIS',
-                        choices=['OASIS', 'NKI'],
-                        help='select ANTs skull-stripping template (default: OASIS))')
+    g_ants.add_argument('--skull-strip-template', action='store', default='OASIS30ANTs',
+                        choices=['OASIS30ANTs', 'NKI', 'MNI152NLin2009cAsym'],
+                        help='select ANTs skull-stripping template (default: OASIS30ANTs))')
     g_ants.add_argument('--skull-strip-fixed-seed', action='store_true',
                         help='do not use a random seed for skull-stripping - will ensure '
                              'run-to-run replicability when used with --omp-nthreads 1')
@@ -164,7 +165,7 @@ def build_opts(opts):
     import psutil
     import warnings
     from multiprocessing import set_start_method, Process, Manager
-    # set_start_method('forkserver')
+    set_start_method('forkserver')
 
     logging.addLevelName(25, 'IMPORTANT')  # Add a new level between INFO and WARNING
     logging.addLevelName(15, 'VERBOSE')  # Add a new level between INFO and DEBUG

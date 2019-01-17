@@ -1,3 +1,4 @@
+templateflow>=0.0.3
 niworkflows>=0.5.3,<0.6
 grabbit==0.2.3
 pybids==0.6.5
