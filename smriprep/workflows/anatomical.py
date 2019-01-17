@@ -315,7 +315,7 @@ and used as T1w-reference throughout the workflow.
         name='mni_tpms'
     )
 
-    # TODO isolate the spatial normalization workflow
+    # TODO isolate the spatial normalization workflow #############
     ref_img = get_template(template, 'res-01_T1w.nii.gz')
 
     t1_2_mni.inputs.template = template
@@ -341,7 +341,7 @@ and used as T1w-reference throughout the workflow.
         (mni_seg, outputnode, [('output_image', 'mni_seg')]),
         (mni_tpms, outputnode, [('output_image', 'mni_tpms')]),
     ])
-    ### spatial normalization ends here
+    # spatial normalization ends here ###############################
 
     seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
                       name='seg_rpt')
