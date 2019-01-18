@@ -162,7 +162,7 @@ RUN datalad get $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_T1w.nii.gz \
 
 # Installing dev requirements (packages that are not in pypi)
 WORKDIR /src/
-ADD requirements.txt requirements.txt
+COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt && \
     rm -rf ~/.cache/pip
 
