@@ -5,6 +5,7 @@
 from niworkflows.interfaces import (
     bids, cifti, freesurfer, images, itk, surf, utils)
 
+
 class DerivativesDataSink(bids.DerivativesDataSink):
     out_path_base = 'smriprep'
 

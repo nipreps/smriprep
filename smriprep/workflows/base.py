@@ -18,7 +18,6 @@ from copy import deepcopy
 from nipype import __version__ as nipype_ver
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
-from nilearn import __version__ as nilearn_ver
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.bids import (
@@ -65,7 +64,7 @@ def init_smriprep_wf(subject_list, run_uuid, work_dir, output_dir, bids_dir,
                               longitudinal=False,
                               t2s_coreg=False,
                               omp_nthreads=1,
-                              skull_strip_template='OASIS',
+                              skull_strip_template='OASIS30ANTs',
                               skull_strip_fixed_seed=False,
                               freesurfer=True,
                               fs_spaces=['T1w', 'fsnative',
@@ -118,7 +117,7 @@ def init_smriprep_wf(subject_list, run_uuid, work_dir, output_dir, bids_dir,
         omp_nthreads : int
             Maximum number of threads an individual process may use
         skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS' or 'NKI')
+            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
         skull_strip_fixed_seed : bool
             Do not use a random seed for skull-stripping - will ensure
             run-to-run replicability when used with --omp-nthreads 1
@@ -240,7 +239,7 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
                                     longitudinal=False,
                                     t2s_coreg=False,
                                     omp_nthreads=1,
-                                    skull_strip_template='OASIS',
+                                    skull_strip_template='OASIS30ANTs',
                                     skull_strip_fixed_seed=False,
                                     freesurfer=True,
                                     template='MNI152NLin2009cAsym',
@@ -286,7 +285,7 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
         omp_nthreads : int
             Maximum number of threads an individual process may use
         skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS' or 'NKI')
+            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
         skull_strip_fixed_seed : bool
             Do not use a random seed for skull-stripping - will ensure
             run-to-run replicability when used with --omp-nthreads 1

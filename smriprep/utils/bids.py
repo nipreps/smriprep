@@ -5,6 +5,7 @@ Utilities to handle BIDS inputs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 """
 
+
 def write_derivative_description(bids_dir, deriv_dir):
     """Write a ``dataset_description.json`` for the derivatives
     folder.
