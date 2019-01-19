@@ -156,9 +156,13 @@ RUN git config --global user.name "First Last" && \
     git config --global user.email "email@domain.com" && \
     datalad install -r https://github.com/templateflow/templateflow.git
 RUN datalad get $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_T1w.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_T1w.nii.gz \
                 $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_desc-brain_mask.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_desc-brain_mask.nii.gz
+                $TEMPLATEFLOW_HOME/tpl-MNI152Lin/*_T1w.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-MNI152Lin/*_desc-brain_mask.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_T1w.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_desc-brain_mask.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_label-brain_probseg.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_desc-BrainCerebellumExtraction_mask.nii.gz
 
 # Installing dev requirements (packages that are not in pypi)
 WORKDIR /src/

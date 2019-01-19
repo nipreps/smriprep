@@ -20,7 +20,7 @@ from nipype.interfaces import (
     image,
 )
 from nipype.interfaces.ants import BrainExtraction, N4BiasFieldCorrection
-from templateflow.api import get as get_template
+from templateflow.api import get as get_template, get_metadata
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.registration import RobustMNINormalizationRPT
@@ -165,13 +165,22 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
 
     """
 
+    if isinstance(template, list):  # THIS SHOULD BE DELETED
+        template = template[0]
+
+    template_meta = get_metadata(template)
+    template_refs = ['@%s' % template.lower()]
+
+    if template_meta.get('RRID', None):
+        template_refs += ['RRID:%s' % template_meta['RRID']]
+
     workflow = Workflow(name=name)
     workflow.__postdesc__ = """\
-Spatial normalization to the ICBM 152 Nonlinear Asymmetrical
-template version 2009c [@mni, RRID:SCR_008796] was performed
-through nonlinear registration with `antsRegistration`
-[ANTs {ants_ver}, RRID:SCR_004757, @ants], using
-brain-extracted versions of both T1w volume and template.
+Spatial normalization to the
+*{template_name}* [{template_refs}]
+was performed through nonlinear registration with `antsRegistration`
+(ANTs {ants_ver}), using brain-extracted versions of both T1w volume
+and template.
 Brain tissue segmentation of cerebrospinal fluid (CSF),
 white-matter (WM) and gray-matter (GM) was performed on
 the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
@@ -179,6 +188,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 """.format(
         ants_ver=BrainExtraction().version or '<ver>',
         fsl_ver=fsl.FAST().version or '<ver>',
+        template_name=template_meta['Name'],
+        template_refs=', '.join(template_refs),
     )
     desc = """Anatomical data preprocessing
 
@@ -187,12 +198,13 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 A total of {num_t1w} T1-weighted (T1w) images were found within the input
 BIDS dataset.
 All of them were corrected for intensity non-uniformity (INU)
-using `N4BiasFieldCorrection` [@n4, ANTs {ants_ver}].
 """ if num_t1w > 1 else """\
 The T1-weighted (T1w) image was corrected for intensity non-uniformity (INU)
-using `N4BiasFieldCorrection` [@n4, ANTs {ants_ver}],
-and used as T1w-reference throughout the workflow.
 """
+    desc += """\
+with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
+[@ants, RRID:SCR_004757]"""
+    desc += '.\n' if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
 
     workflow.__desc__ = desc.format(
         num_t1w=num_t1w,
@@ -316,9 +328,6 @@ and used as T1w-reference throughout the workflow.
     )
 
     # TODO isolate the spatial normalization workflow #############
-    if isinstance(template, list):
-        template = template[0]
-
     ref_img = get_template(template, 'res-01_T1w.nii.gz')
 
     t1_2_mni.inputs.template = template
