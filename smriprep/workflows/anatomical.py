@@ -617,6 +617,7 @@ The T1w-reference was then skull-stripped using `antsBrainExtraction.sh`
 
     return workflow
 
+
 def _pop(inlist):
     if isinstance(inlist, (list, tuple)):
         return inlist[0]
