@@ -129,7 +129,6 @@ RUN conda install -y python=3.7.1 \
                      libxslt=1.1.32 \
                      graphviz=2.40.1 \
                      traits=4.6.0 \
-                     # Make sure zlib is installed
                      zlib; sync && \
     chmod -R a+rX /usr/local/miniconda; sync && \
     chmod +x /usr/local/miniconda/bin/*; sync && \
@@ -157,14 +156,16 @@ RUN git config --global user.name "First Last" && \
     datalad install -r https://github.com/templateflow/templateflow.git
 RUN datalad get $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_T1w.nii.gz \
                 $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_desc-brain_mask.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-MNI152Lin/*_T1w.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-MNI152Lin/*_desc-brain_mask.nii.gz \
                 $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_T1w.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_desc-brain_mask.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_desc-BrainCerebellumRegistration_mask.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_label-brain_probseg.nii.gz
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_desc-brain_mask.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_label-brain_probseg.nii.gz \
+                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_desc-BrainCerebellum*_mask.nii.gz
 
 # Installing dev requirements (packages that are not in pypi)
 WORKDIR /src/
-ADD requirements.txt requirements.txt
+COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt && \
     rm -rf ~/.cache/pip
 

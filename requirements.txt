@@ -1,5 +1,5 @@
 templateflow>=0.0.4
-git+https://github.com/poldracklab/niworkflows.git@de38e398cc29ae78194dc435d051a34b15044634#niworkflows-0.5.3
+niworkflows>=0.6.1,<0.7
 grabbit==0.2.3
 pybids==0.6.5
 indexed_gzip>=0.8.8

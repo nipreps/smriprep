@@ -19,9 +19,10 @@ from nipype.interfaces import (
     fsl,
     image,
 )
+
 from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
-from templateflow.api import get as get_template
+from templateflow.api import get as get_template, get_metadata
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.registration import RobustMNINormalizationRPT
@@ -65,7 +66,7 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
                                   output_dir='.',
                                   template='MNI152NLin2009cAsym',
                                   fs_spaces=['T1w', 'fsnative',
-                                                 'template', 'fsaverage5'],
+                                             'template', 'fsaverage5'],
                                   skull_strip_template='OASIS30ANTs',
                                   freesurfer=True,
                                   longitudinal=False,
@@ -167,13 +168,22 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
 
     """
 
+    if isinstance(template, list):  # THIS SHOULD BE DELETED
+        template = template[0]
+
+    template_meta = get_metadata(template)
+    template_refs = ['@%s' % template.lower()]
+
+    if template_meta.get('RRID', None):
+        template_refs += ['RRID:%s' % template_meta['RRID']]
+
     workflow = Workflow(name=name)
     workflow.__postdesc__ = """\
-Spatial normalization to the ICBM 152 Nonlinear Asymmetrical
-template version 2009c [@mni, RRID:SCR_008796] was performed
-through nonlinear registration with `antsRegistration`
-[ANTs {ants_ver}, RRID:SCR_004757, @ants], using
-brain-extracted versions of both T1w volume and template.
+Spatial normalization to the
+*{template_name}* [{template_refs}]
+was performed through nonlinear registration with `antsRegistration`
+(ANTs {ants_ver}), using brain-extracted versions of both T1w volume
+and template.
 Brain tissue segmentation of cerebrospinal fluid (CSF),
 white-matter (WM) and gray-matter (GM) was performed on
 the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
@@ -181,6 +191,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 """.format(
         ants_ver=ANTsInfo.version() or '<ver>',
         fsl_ver=fsl.FAST().version or '<ver>',
+        template_name=template_meta['Name'],
+        template_refs=', '.join(template_refs),
     )
     desc = """Anatomical data preprocessing
 
@@ -189,12 +201,13 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 A total of {num_t1w} T1-weighted (T1w) images were found within the input
 BIDS dataset.
 All of them were corrected for intensity non-uniformity (INU)
-using `N4BiasFieldCorrection` [@n4, ANTs {ants_ver}].
 """ if num_t1w > 1 else """\
 The T1-weighted (T1w) image was corrected for intensity non-uniformity (INU)
-using `N4BiasFieldCorrection` [@n4, ANTs {ants_ver}],
-and used as T1w-reference throughout the workflow.
 """
+    desc += """\
+with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
+[@ants, RRID:SCR_004757]"""
+    desc += '.\n' if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
 
     workflow.__desc__ = desc.format(
         num_t1w=num_t1w,
@@ -589,10 +602,10 @@ def init_skullstrip_ants_wf(skull_strip_template, debug, omp_nthreads,
     """
     workflow = Workflow(name=name)
     workflow.__desc__ = """\
-The T1w-reference was then skull-stripped using `antsBrainExtraction.sh`
-(ANTs {ants_ver}), using {skullstrip_tpl} as target template.
-""".format(ants_ver=ANTsInfo.version() or '<ver>',
-           skullstrip_tpl=skull_strip_template)
+The T1w-reference was then skull-stripped with a *Nipype* implementation of
+the `antsBrainExtraction.sh` workflow (from ANTs), using {skullstrip_tpl}
+as target template.
+""".format(skullstrip_tpl=skull_strip_template)
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['in_file']),
                         name='inputnode')

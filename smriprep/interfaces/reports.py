@@ -14,7 +14,7 @@ import time
 
 from nipype.interfaces.base import (
     traits, TraitedSpec, BaseInterfaceInputSpec,
-    File, Directory, InputMultiPath, Str, isdefined,
+    File, Directory, InputMultiObject, Str, isdefined,
     SimpleInterface)
 from nipype.interfaces import freesurfer as fs
 
@@ -22,7 +22,8 @@ from nipype.interfaces import freesurfer as fs
 SUBJECT_TEMPLATE = """\t<ul class="elem-desc">
 \t\t<li>Subject ID: {subject_id}</li>
 \t\t<li>Structural images: {n_t1s:d} T1-weighted {t2w}</li>
-\t\t<li>Resampling targets: {fs_spaces}
+\t\t<li>Surface spaces: {fs_spaces}</li>
+{template}\
 \t\t<li>FreeSurfer reconstruction: {freesurfer_status}</li>
 \t</ul>
 """
@@ -52,12 +53,12 @@ class SummaryInterface(SimpleInterface):
 
 
 class SubjectSummaryInputSpec(BaseInterfaceInputSpec):
-    t1w = InputMultiPath(File(exists=True), desc='T1w structural images')
-    t2w = InputMultiPath(File(exists=True), desc='T2w structural images')
+    t1w = InputMultiObject(File(exists=True), desc='T1w structural images')
+    t2w = InputMultiObject(File(exists=True), desc='T2w structural images')
     subjects_dir = Directory(desc='FreeSurfer subjects directory')
     subject_id = Str(desc='Subject ID')
     fs_spaces = traits.List(desc='Target spaces')
-    template = traits.Enum('MNI152NLin2009cAsym', desc='Template space')
+    template = InputMultiObject(Str, desc='Template space')
 
 
 class SubjectSummaryOutputSpec(SummaryOutputSpec):
@@ -76,6 +77,11 @@ class SubjectSummary(SummaryInterface):
         return super(SubjectSummary, self)._run_interface(runtime)
 
     def _generate_segment(self):
+        if isdefined(self.inputs.template):
+            template = "\t\t<li>Volume standard spaces: {}</li>\n".format(
+                ', '.join(self.inputs.template) if isinstance(self.inputs.template, list)
+                else self.inputs.template)
+
         if not isdefined(self.inputs.subjects_dir):
             freesurfer_status = 'Not run'
         else:
@@ -95,6 +101,7 @@ class SubjectSummary(SummaryInterface):
         return SUBJECT_TEMPLATE.format(subject_id=self.inputs.subject_id,
                                        n_t1s=len(self.inputs.t1w),
                                        t2w=t2w_seg,
+                                       template=template,
                                        fs_spaces=', '.join(self.inputs.fs_spaces),
                                        freesurfer_status=freesurfer_status)
 
