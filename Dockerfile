@@ -129,7 +129,6 @@ RUN conda install -y python=3.7.1 \
                      libxslt=1.1.32 \
                      graphviz=2.40.1 \
                      traits=4.6.0 \
-                     # Make sure zlib is installed
                      zlib; sync && \
     chmod -R a+rX /usr/local/miniconda; sync && \
     chmod +x /usr/local/miniconda/bin/*; sync && \
