@@ -84,7 +84,7 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
 
     The final phase resumes reconstruction, using the T2w image to assist
     in finding the pial surface, if available.
-    See :py:func:`~smriprep.workflows.anatomical.init_autorecon_resume_wf` for details.
+    See :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf` for details.
 
 
     Memory annotations for FreeSurfer are based off `their documentation
@@ -98,7 +98,7 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
         :graph2use: orig
         :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_surface_recon_wf
+        from smriprep.workflows.surfaces import init_surface_recon_wf
         wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
 
     **Parameters**
@@ -151,8 +151,8 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
 
     **Subworkflows**
 
-        * :py:func:`~smriprep.workflows.anatomical.init_autorecon_resume_wf`
-        * :py:func:`~smriprep.workflows.anatomical.init_gifti_surface_wf`
+        * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
+        * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
     """
 
     workflow = Workflow(name=name)
@@ -296,7 +296,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         :graph2use: orig
         :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_autorecon_resume_wf
+        from smriprep.workflows.surfaces import init_autorecon_resume_wf
         wf = init_autorecon_resume_wf(omp_nthreads=1)
 
     **Inputs**
@@ -405,7 +405,7 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
         :graph2use: orig
         :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_gifti_surface_wf
+        from smriprep.workflows.surfaces import init_gifti_surface_wf
         wf = init_gifti_surface_wf()
 
     **Inputs**
@@ -478,7 +478,7 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
         :graph2use: orig
         :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_segs_to_native_wf
+        from smriprep.workflows.surfaces import init_segs_to_native_wf
         wf = init_segs_to_native_wf()
 
 

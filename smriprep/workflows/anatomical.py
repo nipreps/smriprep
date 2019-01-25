@@ -161,7 +161,7 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
     **Subworkflows**
 
         * :py:func:`~smriprep.workflows.anatomical.init_skullstrip_ants_wf`
-        * :py:func:`~smriprep.workflows.anatomical.init_surface_recon_wf`
+        * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
 
     """
 
