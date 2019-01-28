@@ -84,7 +84,7 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
 
     The final phase resumes reconstruction, using the T2w image to assist
     in finding the pial surface, if available.
-    See :py:func:`~smriprep.workflows.anatomical.init_autorecon_resume_wf` for details.
+    See :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf` for details.
 
 
     Memory annotations for FreeSurfer are based off `their documentation
@@ -98,7 +98,7 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
         :graph2use: orig
         :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_surface_recon_wf
+        from smriprep.workflows.surfaces import init_surface_recon_wf
         wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
 
     **Parameters**
@@ -151,8 +151,8 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
 
     **Subworkflows**
 
-        * :py:func:`~smriprep.workflows.anatomical.init_autorecon_resume_wf`
-        * :py:func:`~smriprep.workflows.anatomical.init_gifti_surface_wf`
+        * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
+        * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
     """
 
     workflow = Workflow(name=name)
@@ -177,8 +177,10 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
 
+    fov_check = pe.Node(niu.Function(function=_check_cw256), name='fov_check')
+
     autorecon1 = pe.Node(
-        fs.ReconAll(directive='autorecon1', flags='-noskullstrip', openmp=omp_nthreads),
+        fs.ReconAll(directive='autorecon1', openmp=omp_nthreads),
         name='autorecon1', n_procs=omp_nthreads, mem_gb=5)
     autorecon1.interface._can_resume = False
     autorecon1.interface._always_run = True
@@ -214,6 +216,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             ('outputnode.subject_id', 'inputnode.subject_id')]),
         # Reconstruction phases
         (inputnode, autorecon1, [('t1w', 'T1_files')]),
+        (inputnode, fov_check, [('t1w', 'in_files')]),
+        (fov_check, autorecon1, [('out', 'flags')]),
         (recon_config, autorecon1, [('t2w', 'T2_file'),
                                     ('flair', 'FLAIR_file'),
                                     ('hires', 'hires'),
@@ -292,7 +296,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         :graph2use: orig
         :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_autorecon_resume_wf
+        from smriprep.workflows.surfaces import init_autorecon_resume_wf
         wf = init_autorecon_resume_wf(omp_nthreads=1)
 
     **Inputs**
@@ -401,7 +405,7 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
         :graph2use: orig
         :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_gifti_surface_wf
+        from smriprep.workflows.surfaces import init_gifti_surface_wf
         wf = init_gifti_surface_wf()
 
     **Inputs**
@@ -474,7 +478,7 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
         :graph2use: orig
         :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_segs_to_native_wf
+        from smriprep.workflows.surfaces import init_segs_to_native_wf
         wf = init_segs_to_native_wf()
 
 
@@ -527,3 +531,12 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
         (tonii, outputnode, [('out_file', 'out_file')]),
     ])
     return workflow
+
+
+def _check_cw256(in_files):
+    from nibabel.funcs import concat_images
+    if isinstance(in_files, str):
+        in_files = [in_files]
+    if any((s > 256 for s in concat_images(in_files).shape[:3])):
+        return ['-noskullstrip', '-cw256']
+    return '-noskullstrip'

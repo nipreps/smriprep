@@ -20,8 +20,8 @@ from nipype.interfaces import (
     image,
 )
 from nipype.interfaces.ants import BrainExtraction, N4BiasFieldCorrection
+from templateflow.api import get as get_template, get_metadata
 
-import niworkflows.data as nid
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.registration import RobustMNINormalizationRPT
 from niworkflows.interfaces.masks import ROIsPlot
@@ -63,8 +63,8 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
                                   output_dir='.',
                                   template='MNI152NLin2009cAsym',
                                   fs_spaces=['T1w', 'fsnative',
-                                                 'template', 'fsaverage5'],
-                                  skull_strip_template='OASIS',
+                                             'template', 'fsaverage5'],
+                                  skull_strip_template='OASIS30ANTs',
                                   freesurfer=True,
                                   longitudinal=False,
                                   debug=False,
@@ -74,7 +74,7 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
     **Parameters**
 
         skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS' or 'NKI')
+            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
         fs_spaces : list
             List of output spaces functional images are to be resampled to.
 
@@ -161,17 +161,26 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
     **Subworkflows**
 
         * :py:func:`~smriprep.workflows.anatomical.init_skullstrip_ants_wf`
-        * :py:func:`~smriprep.workflows.anatomical.init_surface_recon_wf`
+        * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
 
     """
 
+    if isinstance(template, list):  # THIS SHOULD BE DELETED
+        template = template[0]
+
+    template_meta = get_metadata(template)
+    template_refs = ['@%s' % template.lower()]
+
+    if template_meta.get('RRID', None):
+        template_refs += ['RRID:%s' % template_meta['RRID']]
+
     workflow = Workflow(name=name)
     workflow.__postdesc__ = """\
-Spatial normalization to the ICBM 152 Nonlinear Asymmetrical
-template version 2009c [@mni, RRID:SCR_008796] was performed
-through nonlinear registration with `antsRegistration`
-[ANTs {ants_ver}, RRID:SCR_004757, @ants], using
-brain-extracted versions of both T1w volume and template.
+Spatial normalization to the
+*{template_name}* [{template_refs}]
+was performed through nonlinear registration with `antsRegistration`
+(ANTs {ants_ver}), using brain-extracted versions of both T1w volume
+and template.
 Brain tissue segmentation of cerebrospinal fluid (CSF),
 white-matter (WM) and gray-matter (GM) was performed on
 the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
@@ -179,6 +188,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 """.format(
         ants_ver=BrainExtraction().version or '<ver>',
         fsl_ver=fsl.FAST().version or '<ver>',
+        template_name=template_meta['Name'],
+        template_refs=', '.join(template_refs),
     )
     desc = """Anatomical data preprocessing
 
@@ -187,12 +198,13 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 A total of {num_t1w} T1-weighted (T1w) images were found within the input
 BIDS dataset.
 All of them were corrected for intensity non-uniformity (INU)
-using `N4BiasFieldCorrection` [@n4, ANTs {ants_ver}].
 """ if num_t1w > 1 else """\
 The T1-weighted (T1w) image was corrected for intensity non-uniformity (INU)
-using `N4BiasFieldCorrection` [@n4, ANTs {ants_ver}],
-and used as T1w-reference throughout the workflow.
 """
+    desc += """\
+with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
+[@ants, RRID:SCR_004757]"""
+    desc += '.\n' if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
 
     workflow.__desc__ = desc.format(
         num_t1w=num_t1w,
@@ -315,9 +327,8 @@ and used as T1w-reference throughout the workflow.
         name='mni_tpms'
     )
 
-    # TODO isolate the spatial normalization workflow
-    ref_img = str(nid.get_template(template) /
-                  ('tpl-%s_space-MNI_res-01_T1w.nii.gz' % template))
+    # TODO isolate the spatial normalization workflow #############
+    ref_img = get_template(template, 'res-01_T1w.nii.gz')
 
     t1_2_mni.inputs.template = template
     mni_mask.inputs.reference_image = ref_img
@@ -342,7 +353,7 @@ and used as T1w-reference throughout the workflow.
         (mni_seg, outputnode, [('output_image', 'mni_seg')]),
         (mni_tpms, outputnode, [('output_image', 'mni_tpms')]),
     ])
-    ### spatial normalization ends here
+    # spatial normalization ends here ###############################
 
     seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
                       name='seg_rpt')
@@ -557,12 +568,13 @@ def init_skullstrip_ants_wf(skull_strip_template, debug, omp_nthreads,
         :simple_form: yes
 
         from smriprep.workflows.anatomical import init_skullstrip_ants_wf
-        wf = init_skullstrip_ants_wf(skull_strip_template='OASIS', debug=False, omp_nthreads=1)
+        wf = init_skullstrip_ants_wf(
+            skull_strip_template='OASIS30ANTs', debug=False, omp_nthreads=1)
 
     **Parameters**
 
         skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS' or 'NKI')
+            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
         debug : bool
             Enable debugging outputs
         omp_nthreads : int
@@ -588,21 +600,11 @@ def init_skullstrip_ants_wf(skull_strip_template, debug, omp_nthreads,
             Reportlet visualizing quality of skull-stripping
 
     """
-    from niworkflows.data.getters import get_template, TEMPLATE_ALIASES
-
-    if skull_strip_template not in ['OASIS', 'NKI']:
-        raise ValueError("Unknown skull-stripping template; select from {OASIS, NKI}")
-
     workflow = Workflow(name=name)
     workflow.__desc__ = """\
 The T1w-reference was then skull-stripped using `antsBrainExtraction.sh`
 (ANTs {ants_ver}), using {skullstrip_tpl} as target template.
 """.format(ants_ver=BrainExtraction().version or '<ver>', skullstrip_tpl=skull_strip_template)
-
-    # Account for template aliases
-    template_name = TEMPLATE_ALIASES.get(skull_strip_template, skull_strip_template)
-    # Template path
-    template_dir = get_template(template_name)
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['in_file']),
                         name='inputnode')
@@ -616,14 +618,11 @@ The T1w-reference was then skull-stripped using `antsBrainExtraction.sh`
         name='t1_skull_strip', n_procs=omp_nthreads)
 
     # Set appropriate inputs
-    t1_skull_strip.inputs.brain_template = str(
-        template_dir / ('tpl-%s_res-01_T1w.nii.gz' % template_name))
-    t1_skull_strip.inputs.brain_probability_mask = str(
-        template_dir /
-        ('tpl-%s_res-01_class-brainmask_probtissue.nii.gz' % template_name))
-    t1_skull_strip.inputs.extraction_registration_mask = str(
-        template_dir /
-        ('tpl-%s_res-01_label-BrainCerebellumExtraction_roi.nii.gz' % template_name))
+    t1_skull_strip.inputs.brain_template = get_template(skull_strip_template, 'res-01_T1w.nii.gz')
+    t1_skull_strip.inputs.brain_probability_mask = get_template(
+        skull_strip_template, 'res-01_label-brain_probseg.nii.gz')
+    t1_skull_strip.inputs.extraction_registration_mask = get_template(
+        skull_strip_template, 'res-01_desc-BrainCerebellumExtraction_mask.nii.gz')
 
     workflow.connect([
         (inputnode, t1_skull_strip, [('in_file', 'anatomical_image')]),
