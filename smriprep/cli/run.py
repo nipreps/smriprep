@@ -505,7 +505,8 @@ def build_workflow(opts, retval):
     # First check that bids_dir looks like a BIDS folder
     bids_dir = os.path.abspath(opts.bids_dir)
     subject_list = collect_participants(
-        bids_dir, participant_label=opts.participant_label)
+        bids_dir, participant_label=opts.participant_label,
+        validate=False)
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
