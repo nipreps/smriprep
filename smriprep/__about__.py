@@ -45,7 +45,7 @@ SETUP_REQUIRES = [
 ]
 
 REQUIRES = [
-    'grabbit==0.2.3',
+    'grabbit==0.2.6',
     'indexed_gzip>=0.8.8',
     'lockfile',
     'matplotlib>=2.2.0',
@@ -54,13 +54,15 @@ REQUIRES = [
     'niworkflows>=0.6.1,<0.7',
     'numpy',
     'packaging',
-    'pybids==0.6.5',
+    'pybids>=0.7.0,<0.8',
     'pyyaml',
     'templateflow>=0.0.4',
 ]
 
 
 LINKS_REQUIRES = [
+    'git+https://github.com/oesteban/niworkflows@'
+    '2b0a5a1d5782a93584308f434388ed478c4489d2#niworkflows-0.6.1',
 ]
 
 TESTS_REQUIRES = [

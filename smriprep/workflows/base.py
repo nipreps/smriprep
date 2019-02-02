@@ -347,7 +347,7 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
             't1w': ['/completely/made/up/path/sub-01_T1w.nii.gz'],
         }
     else:
-        subject_data = collect_data(bids_dir, subject_id)[0]
+        subject_data = collect_data(bids_dir, subject_id, validate=False)[0]
 
     if not subject_data['t1w']:
         raise Exception("No T1w images found for participant {}. "
@@ -380,7 +380,8 @@ to workflows in *sMRIPrep*'s documentation]\
     bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True),
                       name='bidssrc')
 
-    bids_info = pe.Node(BIDSInfo(), name='bids_info', run_without_submitting=True)
+    bids_info = pe.Node(BIDSInfo(bids_dir=bids_dir, bids_validate=False),
+                        name='bids_info', run_without_submitting=True)
 
     summary = pe.Node(SubjectSummary(fs_spaces=fs_spaces, template=template),
                       name='summary', run_without_submitting=True)
@@ -420,12 +421,12 @@ to workflows in *sMRIPrep*'s documentation]\
         (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
         (bidssrc, summary, [('t1w', 't1w'),
                             ('t2w', 't2w')]),
-        (bids_info, summary, [('subject_id', 'subject_id')]),
+        (bids_info, summary, [('subject', 'subject_id')]),
+        (bids_info, anat_preproc_wf, [('subject', 'inputnode.subject_id')]),
         (bidssrc, anat_preproc_wf, [('t1w', 'inputnode.t1w'),
                                     ('t2w', 'inputnode.t2w'),
                                     ('roi', 'inputnode.roi'),
                                     ('flair', 'inputnode.flair')]),
-        (summary, anat_preproc_wf, [('subject_id', 'inputnode.subject_id')]),
         (bidssrc, ds_report_summary, [(('t1w', fix_multi_T1w_source_name), 'source_file')]),
         (summary, ds_report_summary, [('out_report', 'in_file')]),
         (bidssrc, ds_report_about, [(('t1w', fix_multi_T1w_source_name), 'source_file')]),
