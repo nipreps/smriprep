@@ -1,5 +1,5 @@
 templateflow>=0.0.4
-git+https://github.com/oesteban/niworkflows@e3b6647c4dd9b29e459bd99e7a91548cf016ce3f#niworkflows-0.6.1
+git+https://github.com/oesteban/niworkflows.git@e3b6647c4dd9b29e459bd99e7a91548cf016ce3f#niworkflows-0.6.1
 grabbit==0.2.6
 pybids>=0.7.0,<0.8
 indexed_gzip>=0.8.8
