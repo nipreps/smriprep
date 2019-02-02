@@ -347,7 +347,8 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
             't1w': ['/completely/made/up/path/sub-01_T1w.nii.gz'],
         }
     else:
-        subject_data = collect_data(bids_dir, subject_id, validate=False)[0]
+        subject_data = collect_data(bids_dir, subject_id,
+                                    bids_validate=False)[0]
 
     if not subject_data['t1w']:
         raise Exception("No T1w images found for participant {}. "
@@ -422,7 +423,7 @@ to workflows in *sMRIPrep*'s documentation]\
         (bidssrc, summary, [('t1w', 't1w'),
                             ('t2w', 't2w')]),
         (bids_info, summary, [('subject', 'subject_id')]),
-        (bids_info, anat_preproc_wf, [('subject', 'inputnode.subject_id')]),
+        (bids_info, anat_preproc_wf, [(('subject', _prefix), 'inputnode.subject_id')]),
         (bidssrc, anat_preproc_wf, [('t1w', 'inputnode.t1w'),
                                     ('t2w', 'inputnode.t2w'),
                                     ('roi', 'inputnode.roi'),
@@ -434,3 +435,9 @@ to workflows in *sMRIPrep*'s documentation]\
     ])
 
     return workflow
+
+
+def _prefix(subid):
+    if subid.startswith('sub-'):
+        return subid
+    return '-'.join(('sub', subid))
