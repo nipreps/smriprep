@@ -45,7 +45,6 @@ SETUP_REQUIRES = [
 ]
 
 REQUIRES = [
-    'grabbit==0.2.6',
     'indexed_gzip>=0.8.8',
     'lockfile',
     'matplotlib>=2.2.0',
