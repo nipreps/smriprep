@@ -621,7 +621,6 @@ def build_workflow(opts, retval):
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
         work_dir=work_dir,
         output_dir=output_dir,
-        bids_dir=bids_dir,
         freesurfer=opts.run_reconall,
         fs_spaces=opts.fs_output_spaces,
         template=opts.template,
