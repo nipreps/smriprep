@@ -382,9 +382,8 @@ to workflows in *sMRIPrep*'s documentation]\
     bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True),
                       name='bidssrc')
 
-    bids_info = pe.Node(BIDSInfo(), name='bids_info',
+    bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
                         run_without_submitting=True)
-    bids_info.interface.layout = layout
 
     summary = pe.Node(SubjectSummary(fs_spaces=fs_spaces, template=template),
                       name='summary', run_without_submitting=True)
