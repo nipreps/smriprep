@@ -45,16 +45,15 @@ SETUP_REQUIRES = [
 ]
 
 REQUIRES = [
-    'grabbit==0.2.3',
     'indexed_gzip>=0.8.8',
     'lockfile',
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
     'nipype>=1.1.6',
-    'niworkflows>=0.6.1,<0.7',
+    'niworkflows>=0.7.0,<0.8',
     'numpy',
     'packaging',
-    'pybids==0.6.5',
+    'pybids>=0.7.0,<0.8',
     'pyyaml',
     'templateflow>=0.0.4',
 ]

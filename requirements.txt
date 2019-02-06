@@ -1,5 +1,4 @@
-templateflow>=0.0.4
-niworkflows>=0.6.1,<0.7
-grabbit==0.2.3
-pybids==0.6.5
 indexed_gzip>=0.8.8
+niworkflows>=0.7.0,<0.8
+pybids>=0.7.0,<0.8
+templateflow>=0.0.4
