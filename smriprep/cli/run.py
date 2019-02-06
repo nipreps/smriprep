@@ -636,7 +636,7 @@ def build_workflow(opts, retval):
     cmd = ['pandoc', '-s', '--bibliography',
            pkgrf('smriprep', 'data/boilerplate.bib'),
            '--filter', 'pandoc-citeproc',
-           '--metadata',  'title="sMRIPrep citation boilerplate"',
+           '--metadata',  'pagetitle="sMRIPrep citation boilerplate"',
            str(logs_path / 'CITATION.md'),
            '-o', str(logs_path / 'CITATION.html')]
     try:
