@@ -32,7 +32,7 @@ from ..__about__ import __version__
 from .anatomical import init_anat_preproc_wf
 
 
-def init_smriprep_wf(subject_list, run_uuid, work_dir, output_dir, bids_dir,
+def init_smriprep_wf(layout, subject_list, run_uuid, work_dir, output_dir,
                      debug, low_mem, longitudinal, omp_nthreads,
                      skull_strip_template, skull_strip_fixed_seed,
                      freesurfer, fs_spaces, template, hires):
@@ -48,15 +48,16 @@ def init_smriprep_wf(subject_list, run_uuid, work_dir, output_dir, bids_dir,
         :simple_form: yes
 
         import os
+        from pybids import BIDSLayout
         os.environ['FREESURFER_HOME'] = os.getcwd()
         from smriprep.workflows.base import init_smriprep_wf
-        wf = init_smriprep_wf(subject_list=['smripreptest'],
+        wf = init_smriprep_wf(layout=BIDSLayout('.', validate=False),
+                              subject_list=['smripreptest'],
                               task_id='',
                               echo_idx=None,
                               run_uuid='X',
                               work_dir='.',
                               output_dir='.',
-                              bids_dir='.',
                               ignore=[],
                               debug=False,
                               low_mem=False,
@@ -86,6 +87,8 @@ def init_smriprep_wf(subject_list, run_uuid, work_dir, output_dir, bids_dir,
 
     Parameters
 
+        layout : BIDSLayout object
+            BIDS dataset layout
         subject_list : list
             List of subject labels
         task_id : str or None
@@ -99,8 +102,6 @@ def init_smriprep_wf(subject_list, run_uuid, work_dir, output_dir, bids_dir,
             Directory in which to store workflow execution state and temporary files
         output_dir : str
             Directory in which to save derivatives
-        bids_dir : str
-            Root directory of BIDS dataset
         ignore : list
             Preprocessing steps to skip (may include "slicetiming", "fieldmaps")
         debug : bool
@@ -175,11 +176,11 @@ def init_smriprep_wf(subject_list, run_uuid, work_dir, output_dir, bids_dir,
     reportlets_dir = os.path.join(work_dir, 'reportlets')
     for subject_id in subject_list:
         single_subject_wf = init_single_subject_wf(
+            layout=layout,
             subject_id=subject_id,
             name="single_subject_" + subject_id + "_wf",
             reportlets_dir=reportlets_dir,
             output_dir=output_dir,
-            bids_dir=bids_dir,
             debug=debug,
             low_mem=low_mem,
             longitudinal=longitudinal,
@@ -206,7 +207,7 @@ def init_smriprep_wf(subject_list, run_uuid, work_dir, output_dir, bids_dir,
     return smriprep_wf
 
 
-def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_dir,
+def init_single_subject_wf(layout, subject_id, name, reportlets_dir, output_dir,
                            debug, low_mem, longitudinal, omp_nthreads,
                            skull_strip_template, skull_strip_fixed_seed,
                            freesurfer, fs_spaces, template, hires):
@@ -225,13 +226,14 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
         :simple_form: yes
 
         from smriprep.workflows.base import init_single_subject_wf
-        wf = init_single_subject_wf(subject_id='test',
+        from bids import BIDSLayout
+        wf = init_single_subject_wf(layout=BIDSLayout('.', validate=False),
+                                    subject_id='test',
                                     task_id='',
                                     echo_idx=None,
                                     name='single_subject_wf',
                                     reportlets_dir='.',
                                     output_dir='.',
-                                    bids_dir='.',
                                     ignore=[],
                                     debug=False,
                                     low_mem=False,
@@ -260,6 +262,8 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
 
     Parameters
 
+        layout : BIDSLayout object
+            BIDS dataset layout
         subject_id : str
             List of subject labels
         task_id : str or None
@@ -293,8 +297,6 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
             Directory in which to save reportlets
         output_dir : str
             Directory in which to save derivatives
-        bids_dir : str
-            Root directory of BIDS dataset
         freesurfer : bool
             Enable FreeSurfer surface reconstruction (may increase runtime)
         fs_spaces : list
@@ -347,8 +349,7 @@ def init_single_subject_wf(subject_id, name, reportlets_dir, output_dir, bids_di
             't1w': ['/completely/made/up/path/sub-01_T1w.nii.gz'],
         }
     else:
-        subject_data = collect_data(bids_dir, subject_id,
-                                    bids_validate=False)[0]
+        subject_data = collect_data(layout, subject_id)[0]
 
     if not subject_data['t1w']:
         raise Exception("No T1w images found for participant {}. "
@@ -381,8 +382,9 @@ to workflows in *sMRIPrep*'s documentation]\
     bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True),
                       name='bidssrc')
 
-    bids_info = pe.Node(BIDSInfo(bids_dir=bids_dir, bids_validate=False),
-                        name='bids_info', run_without_submitting=True)
+    bids_info = pe.Node(BIDSInfo(), name='bids_info',
+                        run_without_submitting=True)
+    bids_info.interface.layout = layout
 
     summary = pe.Node(SubjectSummary(fs_spaces=fs_spaces, template=template),
                       name='summary', run_without_submitting=True)

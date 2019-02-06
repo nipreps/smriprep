@@ -485,6 +485,7 @@ def build_workflow(opts, retval):
     from subprocess import check_call, CalledProcessError, TimeoutExpired
     from pkg_resources import resource_filename as pkgrf
 
+    from bids import BIDSLayout
     from nipype import logging, config as ncfg
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
@@ -504,9 +505,9 @@ def build_workflow(opts, retval):
 
     # First check that bids_dir looks like a BIDS folder
     bids_dir = os.path.abspath(opts.bids_dir)
+    layout = BIDSLayout(bids_dir, validate=False)
     subject_list = collect_participants(
-        bids_dir, participant_label=opts.participant_label,
-        bids_validate=False)
+        layout, participant_label=opts.participant_label)
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
@@ -609,6 +610,7 @@ def build_workflow(opts, retval):
     )
 
     retval['workflow'] = init_smriprep_wf(
+        layout=layout,
         subject_list=subject_list,
         run_uuid=run_uuid,
         debug=opts.sloppy,
@@ -637,7 +639,7 @@ def build_workflow(opts, retval):
     cmd = ['pandoc', '-s', '--bibliography',
            pkgrf('smriprep', 'data/boilerplate.bib'),
            '--filter', 'pandoc-citeproc',
-           '--metadata',  'title="sMRIPrep citation boilerplate"',
+           '--metadata', 'title="sMRIPrep citation boilerplate"',
            str(logs_path / 'CITATION.md'),
            '-o', str(logs_path / 'CITATION.html')]
     try:
