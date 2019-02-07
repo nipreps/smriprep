@@ -1,3 +1,8 @@
+0.0.5 (February 06, 2019)
+=========================
+
+  * [MAINT] Update to keep up with poldracklab/niworkflows#299 (#51) @oesteban
+
 0.0.4 (January 25, 2019)
 ========================
 
