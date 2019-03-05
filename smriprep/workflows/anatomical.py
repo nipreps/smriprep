@@ -623,7 +623,7 @@ The T1w-reference was then skull-stripped using `antsBrainExtraction.sh`
         skull_strip_template, resolution=1, desc=None, suffix='T1w',
         extensions=['.nii', '.nii.gz']))
     t1_skull_strip.inputs.brain_probability_mask = str(get_template(
-        skull_strip_template, resolution=1, label='brain', suffix='T1w',
+        skull_strip_template, resolution=1, label='brain', suffix='probseg',
         extensions=['.nii', '.nii.gz']))
     t1_skull_strip.inputs.extraction_registration_mask = str(get_template(
         skull_strip_template, resolution=1, desc='BrainCerebellumExtraction',
