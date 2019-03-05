@@ -50,12 +50,12 @@ REQUIRES = [
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
     'nipype>=1.1.6',
-    'niworkflows>=0.7.0,<0.8',
+    'niworkflows>=0.8.0,<0.9.0a0',
     'numpy',
     'packaging',
-    'pybids>=0.7.0,<0.8',
+    'pybids',
     'pyyaml',
-    'templateflow>=0.0.4',
+    'templateflow',
 ]
 
 

@@ -328,7 +328,8 @@ with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
     )
 
     # TODO isolate the spatial normalization workflow #############
-    ref_img = get_template(template, 'res-01_T1w.nii.gz')
+    ref_img = get_template(template, resolution=1, desc=None, suffix='T1w',
+                           extensions=['.nii', '.nii.gz'])
 
     t1_2_mni.inputs.template = template
     mni_mask.inputs.reference_image = ref_img
@@ -618,11 +619,15 @@ The T1w-reference was then skull-stripped using `antsBrainExtraction.sh`
         name='t1_skull_strip', n_procs=omp_nthreads)
 
     # Set appropriate inputs
-    t1_skull_strip.inputs.brain_template = get_template(skull_strip_template, 'res-01_T1w.nii.gz')
+    t1_skull_strip.inputs.brain_template = get_template(
+        skull_strip_template, resolution=1, desc=None, suffix='T1w',
+        extensions=['.nii', '.nii.gz'])
     t1_skull_strip.inputs.brain_probability_mask = get_template(
-        skull_strip_template, 'res-01_label-brain_probseg.nii.gz')
+        skull_strip_template, resolution=1, label='brain', suffix='T1w',
+        extensions=['.nii', '.nii.gz'])
     t1_skull_strip.inputs.extraction_registration_mask = get_template(
-        skull_strip_template, 'res-01_desc-BrainCerebellumExtraction_mask.nii.gz')
+        skull_strip_template, resolution=1, desc='BrainCerebellumExtraction',
+        suffix='mask', extensions=['.nii', '.nii.gz'])
 
     workflow.connect([
         (inputnode, t1_skull_strip, [('in_file', 'anatomical_image')]),
