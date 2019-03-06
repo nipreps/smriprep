@@ -2,7 +2,7 @@
 FROM ubuntu:xenial-20161213
 
 # Pre-cache neurodebian key
-COPY docker/files/neurodebian.gpg /root/.neurodebian.gpg
+COPY docker/files/neurodebian.gpg /usr/local/etc/neurodebian.gpg
 
 # Prepare environment
 RUN apt-get update && \
@@ -67,7 +67,7 @@ ENV PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
 
 # Installing Neurodebian packages (FSL, AFNI, git)
 RUN curl -sSL "http://neuro.debian.net/lists/$( lsb_release -c | cut -f2 ).us-ca.full" >> /etc/apt/sources.list.d/neurodebian.sources.list && \
-    apt-key add /root/.neurodebian.gpg && \
+    apt-key add /usr/local/etc/neurodebian.gpg && \
     (apt-key adv --refresh-keys --keyserver hkp://ha.pool.sks-keyservers.net 0xA5D32F012649A5A9 || true)
 
 RUN apt-get update && \
@@ -144,24 +144,19 @@ RUN python -c "from matplotlib import font_manager" && \
 ENV MKL_NUM_THREADS=1 \
     OMP_NUM_THREADS=1
 
+# Create a shared $HOME directory
+RUN useradd -m -s /bin/bash -G users smriprep
+WORKDIR /home/smriprep
+ENV HOME="/home/smriprep"
 
 # Precaching atlases
-WORKDIR /opt
-ENV TEMPLATEFLOW_HOME="/opt/templateflow"
-RUN pip install "datalad==0.10.0" && \
-    rm -rf ~/.cache/pip
-
-RUN git config --global user.name "First Last" && \
-    git config --global user.email "email@domain.com" && \
-    datalad install -r https://github.com/templateflow/templateflow.git
-RUN datalad get $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_T1w.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-MNI152NLin2009cAsym/*_desc-brain_mask.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-MNI152Lin/*_T1w.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-MNI152Lin/*_desc-brain_mask.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/*_T1w.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_desc-brain_mask.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_label-brain_probseg.nii.gz \
-                $TEMPLATEFLOW_HOME/tpl-OASIS30ANTs/tpl-OASIS30ANTs_res-01_desc-BrainCerebellumExtraction_mask.nii.gz
+RUN pip install --no-cache-dir "templateflow>=0.1.0,<0.2.0a0" && \
+    python -c "from templateflow import api as tfapi; \
+               tfapi.get('MNI152Lin|MNI152NLin2009cAsym|OASIS30ANTs', suffix='T1w'); \
+               tfapi.get('MNI152Lin|MNI152NLin2009cAsym|OASIS30ANTs', desc='brain', suffix='mask'); \
+               tfapi.get('OASIS30ANTs', resolution=1, desc='4', suffix='dseg'); \
+               tfapi.get('OASIS30ANTs|NKI', resolution=1, label='brain', suffix='probseg'); \
+               tfapi.get('OASIS30ANTs|NKI', resolution=1, desc='BrainCerebellumRegistration', suffix='mask'); "
 
 # Installing dev requirements (packages that are not in pypi)
 WORKDIR /src/
@@ -178,6 +173,9 @@ RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
     cd /src/smriprep && \
     pip install .[all] && \
     rm -rf ~/.cache/pip
+
+RUN find $HOME -type d -exec chmod go=u {} + && \
+    find $HOME -type f -exec chmod go=u {} +
 
 ENV IS_DOCKER_8395080871=1
 
