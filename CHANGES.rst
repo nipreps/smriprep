@@ -1,7 +1,12 @@
+0.1.0 (March 05, 2019)
+======================
+
+* [PIN] Niworkflows 0.8 and TemplateFlow 0.1 (#56) @oesteban
+
 0.0.5 (February 06, 2019)
 =========================
 
-  * [MAINT] Update to keep up with poldracklab/niworkflows#299 (#51) @oesteban
+* [MAINT] Update to keep up with poldracklab/niworkflows#299 (#51) @oesteban
 
 0.0.4 (January 25, 2019)
 ========================
