@@ -333,7 +333,7 @@ jobs:
             sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
             docker run --rm=false -it -v /tmp:/tmp \
-                -e FMRIPREP_DEV=1 \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
                 poldracklab/smriprep:latest \
                 /tmp/data/ds005 /tmp/ds005/derivatives participant \
                  -w /tmp/data/ds005/work \
@@ -413,7 +413,7 @@ jobs:
             sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
             docker run --rm=false -it -v /tmp:/tmp \
-                -e FMRIPREP_DEV=1 \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
                 poldracklab/smriprep:latest \
                 /tmp/data/ds054 /tmp/ds054/derivatives participant \
                 -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
