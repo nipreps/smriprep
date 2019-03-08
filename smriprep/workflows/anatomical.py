@@ -241,7 +241,7 @@ as target template.
 
     # 3. Skull-stripping
     # Bias field correction is handled in skull strip workflows.
-    bran_extraction_wf = init_brain_extraction_wf(
+    brain_extraction_wf = init_brain_extraction_wf(
         in_template=skull_strip_template,
         atropos_use_random_seed=not skull_strip_fixed_seed,
         omp_nthreads=omp_nthreads,
@@ -249,9 +249,9 @@ as target template.
 
     workflow.connect([
         (inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')]),
-        (anat_template_wf, bran_extraction_wf, [
+        (anat_template_wf, brain_extraction_wf, [
             ('outputnode.t1_template', 'inputnode.in_files')]),
-        (bran_extraction_wf, outputnode, [
+        (brain_extraction_wf, outputnode, [
             ('outputnode.bias_corrected', 't1_preproc')]),
         (anat_template_wf, outputnode, [
             ('outputnode.template_transforms', 't1_template_transforms')]),
@@ -271,11 +271,11 @@ as target template.
                 ('subjects_dir', 'inputnode.subjects_dir'),
                 ('subject_id', 'inputnode.subject_id')]),
             (anat_template_wf, surface_recon_wf, [('outputnode.t1_template', 'inputnode.t1w')]),
-            (bran_extraction_wf, surface_recon_wf, [
+            (brain_extraction_wf, surface_recon_wf, [
                 (('outputnode.bias_corrected', _pop), 'inputnode.skullstripped_t1'),
                 ('outputnode.out_segm', 'inputnode.ants_segs'),
                 (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
-            (bran_extraction_wf, applyrefined, [
+            (brain_extraction_wf, applyrefined, [
                 (('outputnode.bias_corrected', _pop), 'in_file')]),
             (surface_recon_wf, applyrefined, [
                 ('outputnode.out_brainmask', 'mask_file')]),
@@ -293,7 +293,7 @@ as target template.
         ])
     else:
         workflow.connect([
-            (bran_extraction_wf, buffernode, [
+            (brain_extraction_wf, buffernode, [
                 (('outputnode.bias_corrected', _pop), 't1_brain'),
                 ('outputnode.out_mask', 't1_mask')]),
         ])
@@ -351,7 +351,8 @@ as target template.
 
     workflow.connect([
         (inputnode, t1_2_mni, [('roi', 'lesion_mask')]),
-        (bran_extraction_wf, t1_2_mni, [(('outputnode.bias_corrected', _pop), 'moving_image')]),
+        (brain_extraction_wf, t1_2_mni, [
+            (('outputnode.bias_corrected', _pop), 'moving_image')]),
         (buffernode, t1_2_mni, [('t1_mask', 'moving_mask')]),
         (buffernode, mni_mask, [('t1_mask', 'input_image')]),
         (t1_2_mni, mni_mask, [('composite_transform', 'transforms')]),
