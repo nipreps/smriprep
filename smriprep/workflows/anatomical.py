@@ -209,7 +209,7 @@ with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
 [@ants, RRID:SCR_004757]"""
     desc += '.\n' if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
 
-    desc = """\
+    desc += """\
 The T1w-reference was then skull-stripped with a *Nipype* implementation of
 the `antsBrainExtraction.sh` workflow (from ANTs), using {skullstrip_tpl}
 as target template.
