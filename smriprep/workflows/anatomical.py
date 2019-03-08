@@ -271,7 +271,7 @@ as target template.
                 ('subject_id', 'inputnode.subject_id')]),
             (anat_template_wf, surface_recon_wf, [('outputnode.t1_template', 'inputnode.t1w')]),
             (brain_extraction_wf, surface_recon_wf, [
-                (('outputnode.bias_corrected', _pop), 'inputnode.skullstripped_t1'),
+                (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
                 ('outputnode.out_segm', 'inputnode.ants_segs'),
                 (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
             (brain_extraction_wf, applyrefined, [
@@ -293,7 +293,7 @@ as target template.
     else:
         workflow.connect([
             (brain_extraction_wf, buffernode, [
-                (('outputnode.bias_corrected', _pop), 't1_brain'),
+                (('outputnode.out_file', _pop), 't1_brain'),
                 ('outputnode.out_mask', 't1_mask')]),
         ])
 
