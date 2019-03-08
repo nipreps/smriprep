@@ -220,7 +220,6 @@ as target template.
         ants_ver=ANTsInfo.version() or '<ver>'
     )
 
-
     inputnode = pe.Node(
         niu.IdentityInterface(fields=['t1w', 't2w', 'roi', 'flair', 'subjects_dir', 'subject_id']),
         name='inputnode')
