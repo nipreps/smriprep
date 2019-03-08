@@ -209,10 +209,17 @@ with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
 [@ants, RRID:SCR_004757]"""
     desc += '.\n' if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
 
+    desc = """\
+The T1w-reference was then skull-stripped with a *Nipype* implementation of
+the `antsBrainExtraction.sh` workflow (from ANTs), using {skullstrip_tpl}
+as target template.
+""".format(skullstrip_tpl=skull_strip_template)
+
     workflow.__desc__ = desc.format(
         num_t1w=num_t1w,
         ants_ver=ANTsInfo.version() or '<ver>'
     )
+
 
     inputnode = pe.Node(
         niu.IdentityInterface(fields=['t1w', 't2w', 'roi', 'flair', 'subjects_dir', 'subject_id']),
@@ -234,15 +241,18 @@ with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
 
     # 3. Skull-stripping
     # Bias field correction is handled in skull strip workflows.
-    skullstrip_ants_wf = init_skullstrip_ants_wf(name='skullstrip_ants_wf',
-                                                 skull_strip_template=skull_strip_template,
-                                                 debug=debug,
-                                                 omp_nthreads=omp_nthreads)
+    bran_extraction_wf = init_brain_extraction_wf(
+        in_template=skull_strip_template,
+        atropos_use_random_seed=not skull_strip_fixed_seed,
+        omp_nthreads=omp_nthreads,
+        normalization_quality='precise' if not debug else 'testing')
 
     workflow.connect([
         (inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')]),
-        (anat_template_wf, skullstrip_ants_wf, [('outputnode.t1_template', 'inputnode.in_file')]),
-        (skullstrip_ants_wf, outputnode, [('outputnode.bias_corrected', 't1_preproc')]),
+        (anat_template_wf, bran_extraction_wf, [
+            ('outputnode.t1_template', 'inputnode.in_files')]),
+        (bran_extraction_wf, outputnode, [
+            ('outputnode.bias_corrected', 't1_preproc')]),
         (anat_template_wf, outputnode, [
             ('outputnode.template_transforms', 't1_template_transforms')]),
         (buffernode, outputnode, [('t1_brain', 't1_brain'),
@@ -261,11 +271,11 @@ with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
                 ('subjects_dir', 'inputnode.subjects_dir'),
                 ('subject_id', 'inputnode.subject_id')]),
             (anat_template_wf, surface_recon_wf, [('outputnode.t1_template', 'inputnode.t1w')]),
-            (skullstrip_ants_wf, surface_recon_wf, [
-                (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
-                ('outputnode.out_segs', 'inputnode.ants_segs'),
+            (bran_extraction_wf, surface_recon_wf, [
+                (('outputnode.bias_corrected', _pop), 'inputnode.skullstripped_t1'),
+                ('outputnode.out_segm', 'inputnode.ants_segs'),
                 (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
-            (skullstrip_ants_wf, applyrefined, [
+            (bran_extraction_wf, applyrefined, [
                 (('outputnode.bias_corrected', _pop), 'in_file')]),
             (surface_recon_wf, applyrefined, [
                 ('outputnode.out_brainmask', 'mask_file')]),
@@ -283,8 +293,8 @@ with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
         ])
     else:
         workflow.connect([
-            (skullstrip_ants_wf, buffernode, [
-                (('outputnode.out_file', _pop), 't1_brain'),
+            (bran_extraction_wf, buffernode, [
+                (('outputnode.bias_corrected', _pop), 't1_brain'),
                 ('outputnode.out_mask', 't1_mask')]),
         ])
 
@@ -341,7 +351,7 @@ with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
 
     workflow.connect([
         (inputnode, t1_2_mni, [('roi', 'lesion_mask')]),
-        (skullstrip_ants_wf, t1_2_mni, [(('outputnode.bias_corrected', _pop), 'moving_image')]),
+        (bran_extraction_wf, t1_2_mni, [(('outputnode.bias_corrected', _pop), 'moving_image')]),
         (buffernode, t1_2_mni, [('t1_mask', 'moving_mask')]),
         (buffernode, mni_mask, [('t1_mask', 'input_image')]),
         (t1_2_mni, mni_mask, [('composite_transform', 'transforms')]),
@@ -554,79 +564,6 @@ A T1w-reference map was computed after registration of
         # Output
         (t1_reorient, outputnode, [('out_file', 't1_template')]),
         (lta_to_itk, outputnode, [('out_itk', 'template_transforms')]),
-    ])
-
-    return workflow
-
-
-def init_skullstrip_ants_wf(skull_strip_template, debug, omp_nthreads,
-                            skull_strip_fixed_seed=False, name='skullstrip_ants_wf'):
-    r"""
-    This workflow performs skull-stripping using ANTs' ``BrainExtraction.sh``
-
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
-
-        from smriprep.workflows.anatomical import init_skullstrip_ants_wf
-        wf = init_skullstrip_ants_wf(
-            skull_strip_template='OASIS30ANTs', debug=False, omp_nthreads=1)
-
-    **Parameters**
-
-        skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
-        debug : bool
-            Enable debugging outputs
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        skull_strip_fixed_seed : bool
-            Do not use a random seed for skull-stripping - will ensure
-            run-to-run replicability when used with --omp-nthreads 1 (default: ``False``)
-
-    **Inputs**
-
-        in_file
-            T1-weighted structural image to skull-strip
-
-    **Outputs**
-
-        bias_corrected
-            Bias-corrected ``in_file``, before skull-stripping
-        out_file
-            Skull-stripped ``in_file``
-        out_mask
-            Binary mask of the skull-stripped ``in_file``
-        out_report
-            Reportlet visualizing quality of skull-stripping
-
-    """
-    workflow = Workflow(name=name)
-    workflow.__desc__ = """\
-The T1w-reference was then skull-stripped with a *Nipype* implementation of
-the `antsBrainExtraction.sh` workflow (from ANTs), using {skullstrip_tpl}
-as target template.
-""".format(skullstrip_tpl=skull_strip_template)
-
-    inputnode = pe.Node(niu.IdentityInterface(fields=['in_file']),
-                        name='inputnode')
-    outputnode = pe.Node(niu.IdentityInterface(
-        fields=['bias_corrected', 'out_file', 'out_mask', 'out_segs', 'out_report']),
-        name='outputnode')
-
-    t1_skull_strip = init_brain_extraction_wf(
-        in_template=skull_strip_template,
-        atropos_use_random_seed=not skull_strip_fixed_seed,
-        omp_nthreads=omp_nthreads,
-        normalization_quality='precise' if not debug else 'testing')
-
-    workflow.connect([
-        (inputnode, t1_skull_strip, [('in_file', 'inputnode.in_files')]),
-        (t1_skull_strip, outputnode, [
-            ('outputnode.bias_corrected', 'out_file'),
-            ('outputnode.out_mask', 'out_mask'),
-            ('outputnode.out_segm', 'out_segs'),
-            ('outputnode.bias_corrected', 'bias_corrected')]),
     ])
 
     return workflow
