@@ -161,8 +161,8 @@ RUN pip install --no-cache-dir "templateflow>=0.1.0,<0.2.0a0" && \
 # Installing dev requirements (packages that are not in pypi)
 WORKDIR /src/
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt && \
-    rm -rf ~/.cache/pip
+RUN pip install --no-cache-dir -r requirements.txt && \
+    rm -rf $HOME/.cache/pip
 
 # Installing sMRIPREP
 COPY . /src/smriprep
@@ -171,8 +171,8 @@ ARG VERSION
 RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
     echo "include smriprep/VERSION" >> /src/smriprep/MANIFEST.in && \
     cd /src/smriprep && \
-    pip install .[all] && \
-    rm -rf ~/.cache/pip
+    pip install --no-cache-dir .[all] && \
+    rm -rf $HOME/.cache/pip
 
 RUN find $HOME -type d -exec chmod go=u {} + && \
     find $HOME -type f -exec chmod go=u {} +

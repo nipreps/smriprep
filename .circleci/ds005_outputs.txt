@@ -1,5 +1,7 @@
 smriprep
 smriprep/dataset_description.json
+smriprep/desc-aparcaseg_dseg.tsv
+smriprep/desc-aseg_dseg.tsv
 smriprep/logs
 smriprep/logs/CITATION.bib
 smriprep/logs/CITATION.html
@@ -9,7 +11,9 @@ smriprep/sub-01
 smriprep/sub-01/anat
 smriprep/sub-01/anat/sub-01_desc-aparcaseg_dseg.nii.gz
 smriprep/sub-01/anat/sub-01_desc-aseg_dseg.nii.gz
+smriprep/sub-01/anat/sub-01_desc-brain_mask.json
 smriprep/sub-01/anat/sub-01_desc-brain_mask.nii.gz
+smriprep/sub-01/anat/sub-01_desc-preproc_T1w.json
 smriprep/sub-01/anat/sub-01_desc-preproc_T1w.nii.gz
 smriprep/sub-01/anat/sub-01_dseg.nii.gz
 smriprep/sub-01/anat/sub-01_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5
@@ -27,7 +31,9 @@ smriprep/sub-01/anat/sub-01_hemi-R_smoothwm.surf.gii
 smriprep/sub-01/anat/sub-01_label-CSF_probseg.nii.gz
 smriprep/sub-01/anat/sub-01_label-GM_probseg.nii.gz
 smriprep/sub-01/anat/sub-01_label-WM_probseg.nii.gz
+smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-brain_mask.json
 smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz
+smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-preproc_T1w.json
 smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz
 smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_dseg.nii.gz
 smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_label-CSF_probseg.nii.gz

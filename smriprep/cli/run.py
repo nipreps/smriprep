@@ -349,6 +349,16 @@ def build_opts(opts):
         if "Workflow did not execute cleanly" not in str(e):
             sentry_sdk.capture_exception(e)
             raise
+    else:
+        from pathlib import Path
+        from templateflow import api
+        from niworkflows.utils.misc import _copy_any
+        dseg_tsv = str(api.get('fsaverage', suffix='dseg', extensions=['.tsv']))
+        _copy_any(dseg_tsv,
+                  str(Path(output_dir) / 'smriprep' / 'desc-aseg_dseg.tsv'))
+        _copy_any(dseg_tsv,
+                  str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
+        logger.log(25, 'sMRIPrep finished without errors')
     finally:
         from pkg_resources import resource_filename as pkgrf
         from niworkflows.viz.reports import generate_reports

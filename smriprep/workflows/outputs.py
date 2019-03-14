@@ -87,11 +87,15 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
     ds_t1_preproc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True),
         name='ds_t1_preproc', run_without_submitting=True)
+    ds_t1_preproc.inputs.SkullStripped = False
 
     ds_t1_mask = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask'),
         name='ds_t1_mask', run_without_submitting=True)
+    ds_t1_mask.inputs.Type = 'Brain'
 
+    lut_t1_seg = pe.Node(niu.Function(function=_apply_default_bids_lut),
+                         name='lut_t1_seg')
     ds_t1_seg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='dseg'),
         name='ds_t1_seg', run_without_submitting=True)
@@ -106,12 +110,18 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
         DerivativesDataSink(base_directory=output_dir,
                             space=template, desc='preproc', keep_dtype=True),
         name='ds_t1_mni', run_without_submitting=True)
+    ds_t1_mni.inputs.SkullStripped = True
 
     ds_mni_mask = pe.Node(
         DerivativesDataSink(base_directory=output_dir,
                             space=template, desc='brain', suffix='mask'),
         name='ds_mni_mask', run_without_submitting=True)
+    ds_mni_mask.inputs.Type = 'Brain'
+    ds_mni_mask.inputs.RawSources = 'tpl-{0}/tpl-{0}_res-01_desc-brain_mask.nii.gz'.format(
+        template)
 
+    lut_mni_seg = pe.Node(niu.Function(function=_apply_default_bids_lut),
+                          name='lut_mni_seg')
     ds_mni_seg = pe.Node(
         DerivativesDataSink(base_directory=output_dir,
                             space=template, suffix='dseg'),
@@ -160,9 +170,11 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
         (inputnode, ds_t1_template_transforms, [('source_files', 'source_file'),
                                                 ('t1_template_transforms', 'in_file')]),
         (inputnode, ds_t1_preproc, [('t1_preproc', 'in_file')]),
-        (inputnode, ds_t1_mask, [('t1_mask', 'in_file')]),
-        (inputnode, ds_t1_seg, [('t1_seg', 'in_file')]),
+        (inputnode, ds_t1_mask, [('t1_mask', 'in_file'),
+                                 ('source_files', 'RawSources')]),
+        (inputnode, lut_t1_seg, [('t1_seg', 'in_file')]),
         (inputnode, ds_t1_tpms, [('t1_tpms', 'in_file')]),
+        (lut_t1_seg, ds_t1_seg, [('out', 'in_file')]),
         (t1_name, ds_t1_preproc, [('out', 'source_file')]),
         (t1_name, ds_t1_mask, [('out', 'source_file')]),
         (t1_name, ds_t1_seg, [('out', 'source_file')]),
@@ -172,7 +184,8 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
         (inputnode, ds_t1_mni_inv_warp, [('t1_2_mni_reverse_transform', 'in_file')]),
         (inputnode, ds_t1_mni, [('t1_2_mni', 'in_file')]),
         (inputnode, ds_mni_mask, [('mni_mask', 'in_file')]),
-        (inputnode, ds_mni_seg, [('mni_seg', 'in_file')]),
+        (inputnode, lut_mni_seg, [('mni_seg', 'in_file')]),
+        (lut_mni_seg, ds_mni_seg, [('out', 'in_file')]),
         (inputnode, ds_mni_tpms, [('mni_tpms', 'in_file')]),
         (t1_name, ds_t1_mni_warp, [('out', 'source_file')]),
         (t1_name, ds_t1_mni_inv_warp, [('out', 'source_file')]),
@@ -189,6 +202,10 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
         ds_t1_fsparc = pe.Node(
             DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg'),
             name='ds_t1_fsparc', run_without_submitting=True)
+        ds_t1_fsparc = pe.Node(
+            DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg'),
+            name='ds_t1_fsparc', run_without_submitting=True)
+
         workflow.connect([
             (inputnode, lta_2_itk, [('t1_2_fsnative_forward_transform', 'in_lta')]),
             (t1_name, ds_t1_fsnative, [('out', 'source_file')]),
@@ -204,3 +221,19 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
         ])
 
     return workflow
+
+
+def _apply_default_bids_lut(in_file):
+    import numpy as np
+    import nibabel as nb
+    from os import getcwd
+    from nipype.utils.filemanip import fname_presuffix
+
+    out_file = fname_presuffix(in_file, suffix='_lut', newpath=getcwd())
+    lut = np.array([0, 3, 1, 2], dtype=int)
+
+    segm = nb.load(in_file)
+    segm.__class__(lut[segm.get_data().astype(int)],
+                   segm.affine, segm.header).to_filename(out_file)
+
+    return out_file
