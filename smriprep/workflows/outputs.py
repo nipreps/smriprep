@@ -181,7 +181,7 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir, template,
         (t1_name, ds_t1_mask, [('out', 'source_file')]),
         (t1_name, ds_t1_seg, [('out', 'source_file')]),
         (t1_name, ds_t1_tpms, [('out', 'source_file')]),
-        (raw_sources, ds_t1_mask, [('t1_mask', 'RawSources')]),
+        (raw_sources, ds_t1_mask, [('out', 'RawSources')]),
         # Template
         (inputnode, ds_t1_mni_warp, [('t1_2_mni_forward_transform', 'in_file')]),
         (inputnode, ds_t1_mni_inv_warp, [('t1_2_mni_reverse_transform', 'in_file')]),
