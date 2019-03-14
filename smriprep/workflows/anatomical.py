@@ -6,7 +6,6 @@ Anatomical reference preprocessing workflows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: init_anat_preproc_wf
-.. autofunction:: init_skullstrip_ants_wf
 
 """
 
@@ -41,10 +40,11 @@ from .surfaces import init_surface_recon_wf
 
 
 #  pylint: disable=R0914
-def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
-                         freesurfer, longitudinal, omp_nthreads, hires, reportlets_dir,
-                         output_dir, num_t1w,
-                         skull_strip_fixed_seed=False, name='anat_preproc_wf'):
+def init_anat_preproc_wf(
+        bids_root, freesurfer, fs_spaces, hires, longitudinal,
+        omp_nthreads, output_dir, num_t1w, reportlets_dir,
+        skull_strip_template, template,
+        debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False):
     r"""
     This workflow controls the anatomical preprocessing stages of smriprep.
 
@@ -61,23 +61,29 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
         :simple_form: yes
 
         from smriprep.workflows.anatomical import init_anat_preproc_wf
-        wf = init_anat_preproc_wf(omp_nthreads=1,
-                                  reportlets_dir='.',
-                                  output_dir='.',
-                                  template='MNI152NLin2009cAsym',
-                                  fs_spaces=['T1w', 'fsnative',
-                                             'template', 'fsaverage5'],
-                                  skull_strip_template='OASIS30ANTs',
-                                  freesurfer=True,
-                                  longitudinal=False,
-                                  debug=False,
-                                  hires=True,
-                                  num_t1w=1)
+        wf = init_anat_preproc_wf(
+            bids_root='.'
+            freesurfer=True,
+            fs_spaces=['T1w', 'fsnative',
+                       'template', 'fsaverage5'],
+            hires=True,
+            longitudinal=False,
+            omp_nthreads=1,
+            output_dir='.',
+            num_t1w=1
+            reportlets_dir='.',
+            skull_strip_template='MNI152NLin2009cAsym',
+            template='MNI152NLin2009cAsym',
+        )
 
     **Parameters**
 
-        skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
+        bids_root : str
+            Path of the input BIDS dataset root
+        debug : bool
+            Enable debugging outputs
+        freesurfer : bool
+            Enable FreeSurfer surface reconstruction (increases runtime by 6h, at the very least)
         fs_spaces : list
             List of output spaces functional images are to be resampled to.
 
@@ -89,28 +95,26 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
               - template
               - fsnative
               - fsaverage (or other pre-existing FreeSurfer templates)
-        template : str
-            Name of template targeted by ``template`` output space
-        debug : bool
-            Enable debugging outputs
-        freesurfer : bool
-            Enable FreeSurfer surface reconstruction (may increase runtime)
+        hires : bool
+            Enable sub-millimeter preprocessing in FreeSurfer
         longitudinal : bool
             Create unbiased structural template, regardless of number of inputs
             (may increase runtime)
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        hires : bool
-            Enable sub-millimeter preprocessing in FreeSurfer
-        reportlets_dir : str
-            Directory in which to save reportlets
-        output_dir : str
-            Directory in which to save derivatives
         name : str, optional
             Workflow name (default: anat_preproc_wf)
+        omp_nthreads : int
+            Maximum number of threads an individual process may use
+        output_dir : str
+            Directory in which to save derivatives
+        reportlets_dir : str
+            Directory in which to save reportlets
         skull_strip_fixed_seed : bool
             Do not use a random seed for skull-stripping - will ensure
             run-to-run replicability when used with --omp-nthreads 1 (default: ``False``)
+        skull_strip_template : str
+            Name of ANTs skull-stripping template ('MNI152NLin2009cAsym', 'OASIS30ANTs' or 'NKI')
+        template : str
+            Name of template targeted by ``template`` output space
 
 
     **Inputs**
@@ -163,7 +167,7 @@ def init_anat_preproc_wf(skull_strip_template, fs_spaces, template, debug,
 
     **Subworkflows**
 
-        * :py:func:`~smriprep.workflows.anatomical.init_skullstrip_ants_wf`
+        * :py:func:`~niworkflows.anat.ants.init_brain_extraction_wf`
         * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
 
     """
@@ -393,9 +397,12 @@ as target template.
                 ('outputnode.out_report', 'inputnode.recon_report')]),
         ])
 
-    anat_derivatives_wf = init_anat_derivatives_wf(output_dir=output_dir,
-                                                   template=template,
-                                                   freesurfer=freesurfer)
+    anat_derivatives_wf = init_anat_derivatives_wf(
+        bids_root=bids_root,
+        freesurfer=freesurfer,
+        output_dir=output_dir,
+        template=template,
+    )
 
     workflow.connect([
         (anat_template_wf, anat_derivatives_wf, [

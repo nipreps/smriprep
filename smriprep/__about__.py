@@ -60,8 +60,8 @@ REQUIRES = [
 
 
 LINKS_REQUIRES = [
-    'git+https://github.com/oesteban/niworkflows.git@'
-    '627d5810350127e5806c62dda8296cfa1177b202#egg=niworkflows-0.8.0',
+    'git+https://github.com/poldracklab/niworkflows.git@'
+    '93eb80e1b920d1dfbfee42cbec3b2fc2fc31b2d0#egg=niworkflows-0.8.0',
 ]
 
 TESTS_REQUIRES = [

@@ -65,7 +65,7 @@ def init_anat_reports_wf(reportlets_dir, template, freesurfer,
     return workflow
 
 
-def init_anat_derivatives_wf(output_dir, template, freesurfer,
+def init_anat_derivatives_wf(bids_root, freesurfer, output_dir, template,
                              name='anat_derivatives_wf'):
     """
     Set up a battery of datasinks to store derivatives in the right location
@@ -83,6 +83,8 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
         name='inputnode')
 
     t1_name = pe.Node(niu.Function(function=fix_multi_T1w_source_name), name='t1_name')
+    raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
+    raw_sources.inputs.bids_root = bids_root
 
     ds_t1_preproc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True),
@@ -167,11 +169,11 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
 
     workflow.connect([
         (inputnode, t1_name, [('source_files', 'in_files')]),
+        (inputnode, raw_sources, [('source_files', 'in_files')]),
         (inputnode, ds_t1_template_transforms, [('source_files', 'source_file'),
                                                 ('t1_template_transforms', 'in_file')]),
         (inputnode, ds_t1_preproc, [('t1_preproc', 'in_file')]),
-        (inputnode, ds_t1_mask, [('t1_mask', 'in_file'),
-                                 ('source_files', 'RawSources')]),
+        (inputnode, ds_t1_mask, [('t1_mask', 'in_file')]),
         (inputnode, lut_t1_seg, [('t1_seg', 'in_file')]),
         (inputnode, ds_t1_tpms, [('t1_tpms', 'in_file')]),
         (lut_t1_seg, ds_t1_seg, [('out', 'in_file')]),
@@ -179,6 +181,7 @@ def init_anat_derivatives_wf(output_dir, template, freesurfer,
         (t1_name, ds_t1_mask, [('out', 'source_file')]),
         (t1_name, ds_t1_seg, [('out', 'source_file')]),
         (t1_name, ds_t1_tpms, [('out', 'source_file')]),
+        (raw_sources, ds_t1_mask, [('t1_mask', 'RawSources')]),
         # Template
         (inputnode, ds_t1_mni_warp, [('t1_2_mni_forward_transform', 'in_file')]),
         (inputnode, ds_t1_mni_inv_warp, [('t1_2_mni_reverse_transform', 'in_file')]),
@@ -237,3 +240,11 @@ def _apply_default_bids_lut(in_file):
                    segm.affine, segm.header).to_filename(out_file)
 
     return out_file
+
+
+def _bids_relative(in_files, bids_root):
+    from pathlib import Path
+    if not isinstance(in_files, (list, tuple)):
+        in_files = [in_files]
+    in_files = [str(Path(p).relative_to(bids_root)) for p in in_files]
+    return in_files
