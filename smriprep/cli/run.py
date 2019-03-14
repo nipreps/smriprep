@@ -350,7 +350,6 @@ def build_opts(opts):
             sentry_sdk.capture_exception(e)
             raise
     else:
-        from pathlib import Path
         from templateflow import api
         from niworkflows.utils.misc import _copy_any
         dseg_tsv = str(api.get('fsaverage', suffix='dseg', extensions=['.tsv']))
