@@ -1,7 +1,5 @@
 smriprep
 smriprep/dataset_description.json
-smriprep/desc-aparcaseg_dseg.tsv
-smriprep/desc-aseg_dseg.tsv
 smriprep/logs
 smriprep/logs/CITATION.bib
 smriprep/logs/CITATION.html
