@@ -403,19 +403,22 @@ to workflows in *sMRIPrep*'s documentation]\
         name='ds_report_about', run_without_submitting=True)
 
     # Preprocessing of T1w (includes registration to MNI)
-    anat_preproc_wf = init_anat_preproc_wf(name="anat_preproc_wf",
-                                           skull_strip_template=skull_strip_template,
-                                           skull_strip_fixed_seed=skull_strip_fixed_seed,
-                                           fs_spaces=fs_spaces,
-                                           template=template,
-                                           debug=debug,
-                                           longitudinal=longitudinal,
-                                           omp_nthreads=omp_nthreads,
-                                           freesurfer=freesurfer,
-                                           hires=hires,
-                                           reportlets_dir=reportlets_dir,
-                                           output_dir=output_dir,
-                                           num_t1w=len(subject_data['t1w']))
+    anat_preproc_wf = init_anat_preproc_wf(
+        name="anat_preproc_wf",
+        bids_root=layout.root,
+        skull_strip_template=skull_strip_template,
+        skull_strip_fixed_seed=skull_strip_fixed_seed,
+        fs_spaces=fs_spaces,
+        template=template,
+        debug=debug,
+        longitudinal=longitudinal,
+        omp_nthreads=omp_nthreads,
+        freesurfer=freesurfer,
+        hires=hires,
+        reportlets_dir=reportlets_dir,
+        output_dir=output_dir,
+        num_t1w=len(subject_data['t1w']),
+    )
 
     workflow.connect([
         (inputnode, anat_preproc_wf, [('subjects_dir', 'inputnode.subjects_dir')]),

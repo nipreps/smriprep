@@ -150,19 +150,19 @@ WORKDIR /home/smriprep
 ENV HOME="/home/smriprep"
 
 # Precaching atlases
-RUN pip install --no-cache-dir "templateflow>=0.1.0,<0.2.0a0" && \
+RUN pip install --no-cache-dir "templateflow>=0.1.3,<0.2.0a0" && \
     python -c "from templateflow import api as tfapi; \
                tfapi.get('MNI152Lin|MNI152NLin2009cAsym|OASIS30ANTs', suffix='T1w'); \
                tfapi.get('MNI152Lin|MNI152NLin2009cAsym|OASIS30ANTs', desc='brain', suffix='mask'); \
                tfapi.get('OASIS30ANTs', resolution=1, desc='4', suffix='dseg'); \
                tfapi.get('OASIS30ANTs|NKI', resolution=1, label='brain', suffix='probseg'); \
-               tfapi.get('OASIS30ANTs|NKI', resolution=1, desc='BrainCerebellumRegistration', suffix='mask'); "
+               tfapi.get('MNI152NLin2009cAsym|OASIS30ANTs|NKI', resolution=1, desc='BrainCerebellumRegistration', suffix='mask'); "
 
 # Installing dev requirements (packages that are not in pypi)
 WORKDIR /src/
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt && \
-    rm -rf ~/.cache/pip
+RUN pip install --no-cache-dir -r requirements.txt && \
+    rm -rf $HOME/.cache/pip
 
 # Installing sMRIPREP
 COPY . /src/smriprep
@@ -171,8 +171,8 @@ ARG VERSION
 RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
     echo "include smriprep/VERSION" >> /src/smriprep/MANIFEST.in && \
     cd /src/smriprep && \
-    pip install .[all] && \
-    rm -rf ~/.cache/pip
+    pip install --no-cache-dir .[all] && \
+    rm -rf $HOME/.cache/pip
 
 RUN find $HOME -type d -exec chmod go=u {} + && \
     find $HOME -type f -exec chmod go=u {} +
