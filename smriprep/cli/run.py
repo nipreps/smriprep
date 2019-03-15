@@ -350,13 +350,14 @@ def build_opts(opts):
             sentry_sdk.capture_exception(e)
             raise
     else:
-        from templateflow import api
-        from niworkflows.utils.misc import _copy_any
-        dseg_tsv = str(api.get('fsaverage', suffix='dseg', extensions=['.tsv']))
-        _copy_any(dseg_tsv,
-                  str(Path(output_dir) / 'smriprep' / 'desc-aseg_dseg.tsv'))
-        _copy_any(dseg_tsv,
-                  str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
+        if opts.run_reconall:
+            from templateflow import api
+            from niworkflows.utils.misc import _copy_any
+            dseg_tsv = str(api.get('fsaverage', suffix='dseg', extensions=['.tsv']))
+            _copy_any(dseg_tsv,
+                      str(Path(output_dir) / 'smriprep' / 'desc-aseg_dseg.tsv'))
+            _copy_any(dseg_tsv,
+                      str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
         from pkg_resources import resource_filename as pkgrf
