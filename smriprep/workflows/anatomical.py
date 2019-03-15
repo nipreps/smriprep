@@ -62,7 +62,7 @@ def init_anat_preproc_wf(
 
         from smriprep.workflows.anatomical import init_anat_preproc_wf
         wf = init_anat_preproc_wf(
-            bids_root='.'
+            bids_root='.',
             freesurfer=True,
             fs_spaces=['T1w', 'fsnative',
                        'template', 'fsaverage5'],
@@ -70,7 +70,7 @@ def init_anat_preproc_wf(
             longitudinal=False,
             omp_nthreads=1,
             output_dir='.',
-            num_t1w=1
+            num_t1w=1,
             reportlets_dir='.',
             skull_strip_template='MNI152NLin2009cAsym',
             template='MNI152NLin2009cAsym',
