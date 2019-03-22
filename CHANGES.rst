@@ -1,3 +1,9 @@
+0.1.1 (March 22, 2019)
+======================
+
+* [ENH] Pure Nipype brain extraction workflow (#57) @oesteban
+* [ENH] Write metadata for anatomical outputs (#62) @oesteban
+
 0.1.0 (March 05, 2019)
 ======================
 
