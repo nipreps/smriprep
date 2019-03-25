@@ -499,17 +499,29 @@ workflows:
             tags:
               only: /.*/
 
-      # - build_docs:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         ignore:
-      #           - /tests?\/.*/
-      #           - /ds005\/.*/
-      #           - /ds054\/.*/
-      #       tags:
-      #         only: /.*/
+      - build_docs:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - /tests?\/.*/
+                - /ds005\/.*/
+                - /ds054\/.*/
+            tags:
+              only: /.*/
+
+      - deploy_docs:
+          requires:
+            - build_docs
+          filters:
+            branches:
+              ignore:
+                - /tests?\/.*/
+                - /ds005\/.*/
+                - /ds054\/.*/
+            tags:
+              only: /.*/
 
       - update_cache:
           requires:
