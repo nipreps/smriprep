@@ -440,46 +440,46 @@ jobs:
       - store_artifacts:
           path: /tmp/ds054
 
-build_docs:
-  docker:
-    - image: python:latest
-  steps:
-    - checkout
-    - run:
-      name: Install deps
-      command: pip install -r requirements.txt
-    - run:
-      name: generate api docs
-      command: sphinx-apidoc -of ./docs/_sources/ ./smriprep/
-    - run:
-      name: generate docs
-      command: cd docs && make html
-    - persist_to_workspace:
-      root: docs/_build
-      paths: html
+  build_docs:
+    docker:
+      - image: python:latest
+    steps:
+      - checkout
+      - run:
+        name: Install deps
+        command: pip install -r requirements.txt
+      - run:
+        name: generate api docs
+        command: sphinx-apidoc -of ./docs/_sources/ ./smriprep/
+      - run:
+        name: generate docs
+        command: cd docs && make html
+      - persist_to_workspace:
+        root: docs/_build
+        paths: html
 
-deploy_docs:
-  docker:
-    - image: node:8.10.0
-  steps:
-    - checkout
-    - attach_workspace:
-        at: docs/_build
-    - run:
-      name: Disable jekyll builds
-      command: touch docs/_build/html/.nojekyll
-    - run:
-        name: Install and configure dependencies
-        command: |
-          npm install -g --silent gh-pages@2.0.1
-          git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
-          git config user.name "ci-build"
-    - add_ssh_keys:
-        fingerprints:
-          - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
-    - run:
-        name: Deploy docs to gh-pages branch
-        command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/_build/html
+  deploy_docs:
+    docker:
+      - image: node:8.10.0
+    steps:
+      - checkout
+      - attach_workspace:
+          at: docs/_build
+      - run:
+        name: Disable jekyll builds
+        command: touch docs/_build/html/.nojekyll
+      - run:
+          name: Install and configure dependencies
+          command: |
+            npm install -g --silent gh-pages@2.0.1
+            git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
+            git config user.name "ci-build"
+      - add_ssh_keys:
+          fingerprints:
+            - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
+      - run:
+          name: Deploy docs to gh-pages branch
+          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/_build/html
 
 workflows:
   version: 2
