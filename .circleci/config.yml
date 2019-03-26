@@ -446,17 +446,17 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Install deps
-        command: pip install -r requirements.txt
+          name: Install deps
+          command: pip install -r requirements.txt
       - run:
-        name: generate api docs
-        command: sphinx-apidoc -of ./docs/_sources/ ./smriprep/
+          name: generate api docs
+          command: sphinx-apidoc -of ./docs/_sources/ ./smriprep/
       - run:
-        name: generate docs
-        command: cd docs && make html
+          name: generate docs
+          command: cd docs && make html
       - persist_to_workspace:
-        root: docs/_build
-        paths: html
+          root: docs/_build
+          paths: html
 
   deploy_docs:
     docker:
@@ -466,8 +466,8 @@ jobs:
       - attach_workspace:
           at: docs/_build
       - run:
-        name: Disable jekyll builds
-        command: touch docs/_build/html/.nojekyll
+          name: Disable jekyll builds
+          command: touch docs/_build/html/.nojekyll
       - run:
           name: Install and configure dependencies
           command: |
