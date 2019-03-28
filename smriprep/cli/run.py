@@ -83,7 +83,7 @@ def get_parser():
     g_conf.add_argument(
         '--template', '--spatial-normalization-target',
         choices=[tpl for tpl in templates() if not tpl.startswith('fs')],
-        required=False, action='store', nargs=1, default='MNI152NLin2009cAsym',
+        required=False, action='store', type=str, default='MNI152NLin2009cAsym',
         help='spatial normalization target (one TemplateFlow Identifier')
 
     #  ANTs options
