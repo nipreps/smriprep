@@ -28,6 +28,7 @@ def get_parser():
     from os.path import abspath
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
+    from templateflow.api import templates
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -81,9 +82,9 @@ def get_parser():
         help='treat dataset as longitudinal - may increase runtime')
     g_conf.add_argument(
         '--template', '--spatial-normalization-target',
-        choices=['MNI152NLin2009cAsym', 'MNI152Lin', 'OASIS30ANTs', 'NKI', 'PNC'],
-        required=False, action='store', nargs='+', default='MNI152NLin2009cAsym',
-        help='spatial normalization targets (one or more TemplateFlow Identifiers')
+        choices=[tpl for tpl in templates() if not tpl.startswith('fs')],
+        required=False, action='store', nargs=1, default='MNI152NLin2009cAsym',
+        help='spatial normalization target (one TemplateFlow Identifier')
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
