@@ -172,9 +172,6 @@ def init_anat_preproc_wf(
 
     """
 
-    if isinstance(template, list):  # THIS SHOULD BE DELETED
-        template = template[0]
-
     template_meta = get_metadata(template)
     template_refs = ['@%s' % template.lower()]
 
