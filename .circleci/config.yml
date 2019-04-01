@@ -501,7 +501,8 @@ workflows:
 
       - build_docs:
           requires:
-            - build
+            - deploy_docker
+            - deploy_pypi
           filters:
             branches:
               ignore:
@@ -521,7 +522,7 @@ workflows:
                 - /ds005\/.*/
                 - /ds054\/.*/
             tags:
-              only: /.*/
+              only: /^v.*/
 
       - update_cache:
           requires:
