@@ -21,7 +21,6 @@ from nipype.interfaces import (
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
-from templateflow.api import get as get_metadata
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.masks import ROIsPlot

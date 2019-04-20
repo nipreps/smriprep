@@ -8,12 +8,7 @@ Spatial normalization workflows
 
 """
 from nipype.pipeline import engine as pe
-from nipype.interfaces import (
-    utility as niu,
-    freesurfer as fs,
-    fsl,
-    image,
-)
+from nipype.interfaces import utility as niu
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
 

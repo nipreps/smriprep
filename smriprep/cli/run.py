@@ -244,7 +244,7 @@ Get it (for free) by registering at https://surfer.nmr.mgh.harvard.edu/registrat
     gc.collect()
     try:
         smriprep_wf.run(**plugin_settings)
-    except RuntimeError as e:
+    except RuntimeError:
         errno = 1
     else:
         if opts.run_reconall:

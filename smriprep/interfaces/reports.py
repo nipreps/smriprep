@@ -13,7 +13,7 @@ from pathlib import Path
 import time
 
 from nipype.interfaces.base import (
-    traits, TraitedSpec, BaseInterfaceInputSpec,
+    TraitedSpec, BaseInterfaceInputSpec,
     File, Directory, InputMultiObject, Str, isdefined,
     SimpleInterface)
 from nipype.interfaces import freesurfer as fs
