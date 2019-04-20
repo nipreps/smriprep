@@ -25,7 +25,7 @@ def check_deps(workflow):
 
 def get_parser():
     """Build parser object"""
-    from os.path import abspath
+    from pathlib import Path
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
     from templateflow.api import templates
@@ -37,10 +37,10 @@ def get_parser():
     # Arguments as specified by BIDS-Apps
     # required, positional arguments
     # IMPORTANT: they must go directly with the parser object
-    parser.add_argument('bids_dir', action='store',
+    parser.add_argument('bids_dir', action='store', type=Path,
                         help='the root folder of a BIDS valid dataset (sub-XXXXX folders should '
                              'be found at the top level in this folder).')
-    parser.add_argument('output_dir', action='store',
+    parser.add_argument('output_dir', action='store', type=Path,
                         help='the output path for the outcomes of preprocessing and visual '
                              'reports')
     parser.add_argument('analysis_level', choices=['participant'],
@@ -98,7 +98,7 @@ def get_parser():
     # FreeSurfer options
     g_fs = parser.add_argument_group('Specific options for FreeSurfer preprocessing')
     g_fs.add_argument(
-        '--fs-license-file', metavar='PATH', type=abspath,
+        '--fs-license-file', metavar='PATH', type=Path,
         help='Path to FreeSurfer license key file. Get it (for free) by registering'
              ' at https://surfer.nmr.mgh.harvard.edu/registration.html')
 
@@ -125,7 +125,7 @@ def get_parser():
                              ' Use `--fs-no-reconall` instead.')
 
     g_other = parser.add_argument_group('Other options')
-    g_other.add_argument('-w', '--work-dir', action='store',
+    g_other.add_argument('-w', '--work-dir', action='store', type=Path, default=Path('work'),
                          help='path where intermediate results should be stored')
     g_other.add_argument(
         '--resource-monitor', action='store_true', default=False,
@@ -166,6 +166,8 @@ def build_opts(opts):
     import psutil
     import warnings
     from multiprocessing import set_start_method, Process, Manager
+    from nipype import logging as nlogging
+
     set_start_method('forkserver')
 
     logging.addLevelName(25, 'IMPORTANT')  # Add a new level between INFO and WARNING
@@ -268,8 +270,8 @@ def build_opts(opts):
     # FreeSurfer license
     default_license = str(Path(os.getenv('FREESURFER_HOME')) / 'license.txt')
     # Precedence: --fs-license-file, $FS_LICENSE, default_license
-    license_file = opts.fs_license_file or os.getenv('FS_LICENSE', default_license)
-    if not os.path.exists(license_file):
+    license_file = Path(opts.fs_license_file or os.getenv('FS_LICENSE', default_license))
+    if not license_file.exists():
         raise RuntimeError(
             'ERROR: a valid license file is required for FreeSurfer to run. '
             'sMRIPrep looked for an existing license file at several paths, in this '
@@ -277,18 +279,15 @@ def build_opts(opts):
             'environment variable; and 3) the ``$FREESURFER_HOME/license.txt`` path. '
             'Get it (for free) by registering at https://'
             'surfer.nmr.mgh.harvard.edu/registration.html')
-    os.environ['FS_LICENSE'] = license_file
+    os.environ['FS_LICENSE'] = str(license_file)
 
     # Retrieve logging level
     log_level = int(max(25 - 5 * opts.verbose_count, logging.DEBUG))
     # Set logging
     logger.setLevel(log_level)
-
-    if True:
-        from nipype import logging as nlogging
-        nlogging.getLogger('nipype.workflow').setLevel(log_level)
-        nlogging.getLogger('nipype.interface').setLevel(log_level)
-        nlogging.getLogger('nipype.utils').setLevel(log_level)
+    nlogging.getLogger('nipype.workflow').setLevel(log_level)
+    nlogging.getLogger('nipype.interface').setLevel(log_level)
+    nlogging.getLogger('nipype.utils').setLevel(log_level)
 
     errno = 0
 
@@ -369,7 +368,7 @@ def build_opts(opts):
         errno += generate_reports(subject_list, output_dir, work_dir, run_uuid,
                                   config=pkgrf('smriprep', 'data/reports/config.json'),
                                   sentry_sdk=sentry_sdk)
-        write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
+        write_derivative_description(str(bids_dir), str(Path(output_dir) / 'smriprep'))
 
     if not opts.notrack and errno == 0:
         sentry_sdk.capture_message('sMRIPrep finished without errors', level='info')
@@ -377,12 +376,10 @@ def build_opts(opts):
 
 
 def validate_input_dir(exec_env, bids_dir, participant_label):
-    import os
     import json
     import tempfile
     import subprocess
     import logging
-    from glob import glob
 
     logger = logging.getLogger('cli')
 
@@ -437,8 +434,7 @@ def validate_input_dir(exec_env, bids_dir, participant_label):
     }
     # Limit validation only to data from requested participants
     if participant_label:
-        all_subs = set([os.path.basename(i)[4:] for i in glob(os.path.join(bids_dir,
-                                                                           "sub-*"))])
+        all_subs = set([i.name[4:] for i in bids_dir.glob("sub-*")])
         selected_subs = []
         for selected_sub in participant_label:
             if selected_sub.startswith("sub-"):
@@ -471,7 +467,7 @@ def validate_input_dir(exec_env, bids_dir, participant_label):
         temp.write(json.dumps(validator_config_dict))
         temp.flush()
         try:
-            subprocess.check_call(['bids-validator', bids_dir, '-c', temp.name])
+            subprocess.check_call(['bids-validator', str(bids_dir), '-c', temp.name])
         except FileNotFoundError:
             logger.error("bids-validator does not appear to be installed")
 
@@ -486,9 +482,6 @@ def build_workflow(opts, retval):
     ``multiprocessing.Process`` that allows smriprep to enforce
     a hard-limited memory-scope.
     """
-    import os
-    import os.path as op
-    from pathlib import Path
     from shutil import copyfile
     from os import cpu_count
     import uuid
@@ -515,8 +508,8 @@ def build_workflow(opts, retval):
     run_uuid = '%s_%s' % (strftime('%Y%m%d-%H%M%S'), uuid.uuid4())
 
     # First check that bids_dir looks like a BIDS folder
-    bids_dir = os.path.abspath(opts.bids_dir)
-    layout = BIDSLayout(bids_dir, validate=False)
+    bids_dir = opts.bids_dir.resolve()
+    layout = BIDSLayout(str(bids_dir), validate=False)
     subject_list = collect_participants(
         layout, participant_label=opts.participant_label)
 
@@ -560,26 +553,25 @@ def build_workflow(opts, retval):
             'available CPUs (--nprocs/--ncpus=%d)', omp_nthreads, nprocs)
 
     # Set up directories
-    output_dir = op.abspath(opts.output_dir)
-    log_dir = op.join(output_dir, 'smriprep', 'logs')
-    work_dir = op.abspath(opts.work_dir or 'work')  # Set work/ as default
+    output_dir = opts.output_dir.resolve()
+    log_dir = output_dir / 'smriprep' / 'logs'
+    work_dir = opts.work_dir.resolve()
 
     # Check and create output and working directories
-    os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(log_dir, exist_ok=True)
-    os.makedirs(work_dir, exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
 
     # Nipype config (logs and execution)
     ncfg.update_config({
         'logging': {
-            'log_directory': log_dir,
+            'log_directory': str(log_dir),
             'log_to_file': True
         },
         'execution': {
-            'crashdump_dir': log_dir,
+            'crashdump_dir': str(log_dir),
             'crashfile_format': 'txt',
             'get_linked_libs': False,
-            'stop_on_first_crash': opts.stop_on_first_crash or opts.work_dir is None,
+            'stop_on_first_crash': opts.stop_on_first_crash,
         },
         'monitoring': {
             'enabled': opts.resource_monitor,
@@ -593,9 +585,9 @@ def build_workflow(opts, retval):
 
     retval['return_code'] = 0
     retval['plugin_settings'] = plugin_settings
-    retval['bids_dir'] = bids_dir
-    retval['output_dir'] = output_dir
-    retval['work_dir'] = work_dir
+    retval['bids_dir'] = str(bids_dir)
+    retval['output_dir'] = str(output_dir)
+    retval['work_dir'] = str(work_dir)
     retval['subject_list'] = subject_list
     retval['run_uuid'] = run_uuid
     retval['workflow'] = None
@@ -608,7 +600,7 @@ def build_workflow(opts, retval):
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid
         retval['return_code'] = generate_reports(
-            subject_list, output_dir, work_dir, run_uuid,
+            subject_list, str(output_dir), str(work_dir), run_uuid,
             config=pkgrf('smriprep', 'data/reports/config.json'))
         return retval
 
@@ -630,8 +622,8 @@ def build_workflow(opts, retval):
         omp_nthreads=omp_nthreads,
         skull_strip_template=opts.skull_strip_template,
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
-        work_dir=work_dir,
-        output_dir=output_dir,
+        work_dir=str(work_dir),
+        output_dir=str(output_dir),
         freesurfer=opts.run_reconall,
         fs_spaces=opts.fs_output_spaces,
         template=opts.template,
@@ -639,9 +631,8 @@ def build_workflow(opts, retval):
     )
     retval['return_code'] = 0
 
-    logs_path = Path(output_dir) / 'smriprep' / 'logs'
     boilerplate = retval['workflow'].visit_desc()
-    (logs_path / 'CITATION.md').write_text(boilerplate)
+    (log_dir / 'CITATION.md').write_text(boilerplate)
     logger.log(25, 'Works derived from this sMRIPrep execution should '
                'include the following boilerplate:\n\n%s', boilerplate)
 
@@ -650,8 +641,8 @@ def build_workflow(opts, retval):
            pkgrf('smriprep', 'data/boilerplate.bib'),
            '--filter', 'pandoc-citeproc',
            '--metadata', 'pagetitle="sMRIPrep citation boilerplate"',
-           str(logs_path / 'CITATION.md'),
-           '-o', str(logs_path / 'CITATION.html')]
+           str(log_dir / 'CITATION.md'),
+           '-o', str(log_dir / 'CITATION.html')]
     try:
         check_call(cmd, timeout=10)
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
@@ -661,15 +652,15 @@ def build_workflow(opts, retval):
     # Generate LaTex file resolving citations
     cmd = ['pandoc', '-s', '--bibliography',
            pkgrf('smriprep', 'data/boilerplate.bib'),
-           '--natbib', str(logs_path / 'CITATION.md'),
-           '-o', str(logs_path / 'CITATION.tex')]
+           '--natbib', str(log_dir / 'CITATION.md'),
+           '-o', str(log_dir / 'CITATION.tex')]
     try:
         check_call(cmd, timeout=10)
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning('Could not generate CITATION.tex file:\n%s',
                        ' '.join(cmd))
     else:
-        copyfile(pkgrf('smriprep', 'data/boilerplate.bib'), str(logs_path / 'CITATION.bib'))
+        copyfile(pkgrf('smriprep', 'data/boilerplate.bib'), str(log_dir / 'CITATION.bib'))
     return retval
 
 
