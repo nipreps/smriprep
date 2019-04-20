@@ -26,6 +26,7 @@ def check_deps(workflow):
 def get_parser():
     """Build parser object"""
     from pathlib import Path
+    from collections import OrderedDict
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
     from templateflow.api import templates
@@ -79,7 +80,8 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
-        '--output-spaces', nargs='+', default=['MNI152NLin2009cAsym'], action=ParseTemplates,
+        '--output-spaces', nargs='+', default=OrderedDict([('MNI152NLin2009cAsym', {})]),
+        action=ParseTemplates,
         help='paths or keywords prescribing standard spaces to which normalize the input T1w image'
              ' (valid keywords are: %s).' % ', '.join('"%s"' % s for s in templates()))
     g_conf.add_argument(
@@ -282,6 +284,7 @@ def build_workflow(opts, retval):
     """
     from shutil import copyfile
     from os import cpu_count
+    from collections import OrderedDict
     import uuid
     from time import strftime
     from subprocess import check_call, CalledProcessError, TimeoutExpired
@@ -294,12 +297,13 @@ def build_workflow(opts, retval):
     from niworkflows.utils.bids import collect_participants
 
     output_spaces = opts.output_spaces
+
     if opts.template:
         print("""\
 The ``--template`` option has been deprecated in version 1.1.2. Your selected template \
 "%s" will be inserted at the front of the ``--output-spaces`` argument list. Please update \
 your scripts to use ``--output-spaces``.""" % opts.template)
-        output_spaces[opts.template] = {}
+        output_spaces = OrderedDict([(opts.template, {})] + list(output_spaces.items()))
 
     if opts.fs_output_spaces:
         print("""\
