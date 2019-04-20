@@ -55,13 +55,13 @@ REQUIRES = [
     'packaging',
     'pybids',
     'pyyaml',
-    'templateflow',
+    'templateflow<0.2.0a0,>=0.1.3',
 ]
 
 
 LINKS_REQUIRES = [
     'git+https://github.com/poldracklab/niworkflows.git@'
-    '93eb80e1b920d1dfbfee42cbec3b2fc2fc31b2d0#egg=niworkflows-0.8.0',
+    'b7d111c8fd36a099c74be5e7671677eedb175533#egg=niworkflows',
 ]
 
 TESTS_REQUIRES = [
