@@ -18,14 +18,14 @@ def _template(inlist):
     Return an OrderedDict with templates
 
 
-    >>> list(template(['MNI152NLin2009c']).keys())
+    >>> list(_template(['MNI152NLin2009c']).keys())
     ['MNI152NLin2009c']
 
-    >>> template(['MNI152NLin2009c', 'MNI152NLin2009c:res-2'])
+    >>> _template(['MNI152NLin2009c', 'MNI152NLin2009c:res-2'])
     OrderedDict([('MNI152NLin2009c', {})])
 
-    >>> template(['MNI152NLin2009c', 'MNI152NLin2009c:res-2',
-    ...           'MNI152NLin6Asym:res-2', 'MNI152NLin6Asym'])
+    >>> _template(['MNI152NLin2009c', 'MNI152NLin2009c:res-2',
+    ...            'MNI152NLin6Asym:res-2', 'MNI152NLin6Asym'])
     OrderedDict([('MNI152NLin2009c', {}), ('MNI152NLin6Asym', {'res': '2'})])
 
     """
