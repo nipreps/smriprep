@@ -112,9 +112,8 @@ def get_parser():
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
     g_surfs_xor.add_argument(
-        '--fs-output-spaces', required=False, action='store',
+        '--fs-output-spaces', required=False, action='store', nargs='+',
         choices=['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'],
-        nargs='+', default=['fsaverage5'],
         help="""DEPRECATED - configure Freesurfer's output spaces:
   - fsnative: individual subject surface
   - fsaverage*: FreeSurfer average meshes
@@ -310,6 +309,10 @@ The ``--fs-output-spaces`` option has been deprecated in version 1.1.2. Your sel
 surfaces "%s" will be appended to the ``--output-spaces`` argument list. Please update \
 your scripts to use ``--output-spaces``.""" % ', '.join(opts.fs_output_spaces))
         output_spaces += opts.fs_output_spaces
+
+    FS_SPACES = set(['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'])
+    if opts.run_reconall and not FS_SPACES - output_spaces:
+        output_spaces.append('fsaverage5')
 
     logger = logging.getLogger('nipype.workflow')
 

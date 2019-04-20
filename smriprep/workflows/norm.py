@@ -65,7 +65,7 @@ TemplateFlow ID: {template}] was performed through nonlinear
 registration with `antsRegistration` (ANTs {ants_ver}), using
 brain-extracted versions of both T1w reference and the T1w template.
 """.format(
-        ants_ver=ANTsInfo.version() or '<ver>',
+        ants_ver=ANTsInfo.version() or '(version unknown)',
         template=template,
         template_name=template_meta['Name'],
         template_refs=', '.join(template_refs),
