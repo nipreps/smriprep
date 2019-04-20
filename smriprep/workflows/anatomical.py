@@ -66,7 +66,7 @@ def init_anat_preproc_wf(
             num_t1w=1,
             omp_nthreads=1,
             output_dir='.',
-            output_spaces=['MNI152NLin2009cAsym', 'fsnative', 'fsaverage5'],
+            output_spaces={'MNI152NLin2009cAsym': {}, 'fsnative': {}, 'fsaverage5': {}},
             reportlets_dir='.',
             skull_strip_template='MNI152NLin2009cAsym',
         )
@@ -283,7 +283,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         debug=debug,
         omp_nthreads=omp_nthreads,
         reportlets_dir=reportlets_dir,
-        template_spec=output_spaces[0])
+        template_spec=list(output_spaces.keys())[0])
     workflow.connect([
         (inputnode, anat_norm_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.orig_t1w'),

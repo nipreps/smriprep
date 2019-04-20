@@ -29,6 +29,7 @@ def get_parser():
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
     from templateflow.api import templates
+    from .utils import ParseTemplates
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -78,7 +79,7 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
-        '--output-spaces', nargs='+', default=['MNI152NLin2009cAsym'], action='store', type=str,
+        '--output-spaces', nargs='+', default=['MNI152NLin2009cAsym'], action=ParseTemplates,
         help='paths or keywords prescribing standard spaces to which normalize the input T1w image'
              ' (valid keywords are: %s).' % ', '.join('"%s"' % s for s in templates()))
     g_conf.add_argument(
@@ -301,18 +302,24 @@ def build_workflow(opts, retval):
 The ``--template`` option has been deprecated in version 1.1.2. Your selected template \
 "%s" will be inserted at the front of the ``--output-spaces`` argument list. Please update \
 your scripts to use ``--output-spaces``.""" % opts.template)
-        output_spaces.insert(0, opts.template)
+        output_spaces[opts.template] = {}
 
     if opts.fs_output_spaces:
         print("""\
 The ``--fs-output-spaces`` option has been deprecated in version 1.1.2. Your selected output \
 surfaces "%s" will be appended to the ``--output-spaces`` argument list. Please update \
 your scripts to use ``--output-spaces``.""" % ', '.join(opts.fs_output_spaces))
-        output_spaces += opts.fs_output_spaces
+        for fs_space in opts.fs_output_spaces:
+            if fs_space not in output_spaces:
+                output_spaces[fs_space] = {}
 
     FS_SPACES = set(['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'])
-    if opts.run_reconall and not FS_SPACES - output_spaces:
-        output_spaces.append('fsaverage5')
+    if opts.run_reconall and not list(FS_SPACES.intersection(output_spaces.keys())):
+        print("""\
+Although ``--fs-no-reconall`` was not set, no FreeSurfer output space (valid values are: \
+%s) was selected. Adding default "fsaverage5" to the \
+list of output spaces.""" % ', '.join(FS_SPACES))
+        output_spaces['fsaverage5'] = {}
 
     logger = logging.getLogger('nipype.workflow')
 

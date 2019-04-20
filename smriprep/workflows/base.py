@@ -72,7 +72,7 @@ def init_smriprep_wf(
             low_mem=False,
             omp_nthreads=1,
             output_dir='.',
-            output_spaces=['MNI152NLin2009cAsym', 'fsnative', 'fsaverage5'],
+            output_spaces={'MNI152NLin2009cAsym': {}, 'fsnative': {}, 'fsaverage5': {}},
             run_uuid='testrun',
             skull_strip_fixed_seed=False,
             skull_strip_template='OASIS30ANTs',
@@ -125,7 +125,7 @@ def init_smriprep_wf(
             BIDSFreeSurferDir(
                 derivatives=output_dir,
                 freesurfer_home=os.getenv('FREESURFER_HOME'),
-                spaces=[s for s in output_spaces if s.startswith('fsaverage')] + [
+                spaces=[s for s in output_spaces.keys() if s.startswith('fsaverage')] + [
                     'fsnative'] * ('fsnative' in output_spaces)),
             name='fsdir_run_%s' % run_uuid.replace('-', '_'), run_without_submitting=True)
 
@@ -204,7 +204,7 @@ def init_single_subject_wf(
             name='single_subject_wf',
             omp_nthreads=1,
             output_dir='.',
-            output_spaces=['MNI152NLin2009cAsym', 'fsnative', 'fsaverage5'],
+            output_spaces={'MNI152NLin2009cAsym': {}, 'fsnative': {}, 'fsaverage5': {}},
             reportlets_dir='.',
             skull_strip_fixed_seed=False,
             skull_strip_template='OASIS30ANTs,
@@ -297,7 +297,7 @@ to workflows in *sMRIPrep*'s documentation]\
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
                         run_without_submitting=True)
 
-    summary = pe.Node(SubjectSummary(output_spaces=output_spaces),
+    summary = pe.Node(SubjectSummary(output_spaces=list(output_spaces.keys())),
                       name='summary', run_without_submitting=True)
 
     about = pe.Node(AboutSummary(version=__version__,
