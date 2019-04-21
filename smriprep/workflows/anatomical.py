@@ -21,12 +21,9 @@ from nipype.interfaces import (
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
-from templateflow.api import get as get_template, get_metadata
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.registration import RobustMNINormalizationRPT
 from niworkflows.interfaces.masks import ROIsPlot
-from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
     PatchedConcatenateLTA as ConcatenateLTA,
@@ -35,15 +32,15 @@ from niworkflows.interfaces.freesurfer import (
 from niworkflows.interfaces.images import TemplateDimensions, Conform
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf
+from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
 
 
 #  pylint: disable=R0914
 def init_anat_preproc_wf(
-        bids_root, freesurfer, fs_spaces, hires, longitudinal,
-        omp_nthreads, output_dir, num_t1w, reportlets_dir,
-        skull_strip_template, template,
+        bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
+        output_spaces, num_t1w, reportlets_dir, skull_strip_template,
         debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False):
     r"""
     This workflow controls the anatomical preprocessing stages of smriprep.
@@ -64,16 +61,14 @@ def init_anat_preproc_wf(
         wf = init_anat_preproc_wf(
             bids_root='.',
             freesurfer=True,
-            fs_spaces=['T1w', 'fsnative',
-                       'template', 'fsaverage5'],
             hires=True,
             longitudinal=False,
+            num_t1w=1,
             omp_nthreads=1,
             output_dir='.',
-            num_t1w=1,
+            output_spaces={'MNI152NLin2009cAsym': {}, 'fsnative': {}, 'fsaverage5': {}},
             reportlets_dir='.',
             skull_strip_template='MNI152NLin2009cAsym',
-            template='MNI152NLin2009cAsym',
         )
 
     **Parameters**
@@ -84,17 +79,11 @@ def init_anat_preproc_wf(
             Enable debugging outputs
         freesurfer : bool
             Enable FreeSurfer surface reconstruction (increases runtime by 6h, at the very least)
-        fs_spaces : list
-            List of output spaces functional images are to be resampled to.
-
-            Some pipeline components will only be instantiated for some output spaces.
-
-            Valid spaces:
-
-              - T1w
-              - template
-              - fsnative
-              - fsaverage (or other pre-existing FreeSurfer templates)
+        output_spaces : list
+            List of spatial normalization targets. Some parts of pipeline will
+            only be instantiated for some output spaces. Valid spaces:
+              - Any template identifier from TemplateFlow
+              - Path to a template folder organized following TemplateFlow's conventions
         hires : bool
             Enable sub-millimeter preprocessing in FreeSurfer
         longitudinal : bool
@@ -113,8 +102,6 @@ def init_anat_preproc_wf(
             run-to-run replicability when used with --omp-nthreads 1 (default: ``False``)
         skull_strip_template : str
             Name of ANTs skull-stripping template ('MNI152NLin2009cAsym', 'OASIS30ANTs' or 'NKI')
-        template : str
-            Name of template targeted by ``template`` output space
 
 
     **Inputs**
@@ -142,17 +129,17 @@ def init_anat_preproc_wf(
             gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF)
         t1_tpms
             List of tissue probability maps in T1w space
-        t1_2_mni
+        t1_2_tpl
             T1w template, normalized to MNI space
-        t1_2_mni_forward_transform
+        t1_2_tpl_forward_transform
             ANTs-compatible affine-and-warp transform file
-        t1_2_mni_reverse_transform
+        t1_2_tpl_reverse_transform
             ANTs-compatible affine-and-warp transform file (inverse)
-        mni_mask
+        tpl_mask
             Mask of skull-stripped template, in MNI space
-        mni_seg
+        tpl_seg
             Segmentation, resampled into MNI space
-        mni_tpms
+        tpl_tpms
             List of tissue probability maps in MNI space
         subjects_dir
             FreeSurfer SUBJECTS_DIR
@@ -171,30 +158,7 @@ def init_anat_preproc_wf(
         * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
 
     """
-
-    template_meta = get_metadata(template)
-    template_refs = ['@%s' % template.lower()]
-
-    if template_meta.get('RRID', None):
-        template_refs += ['RRID:%s' % template_meta['RRID']]
-
     workflow = Workflow(name=name)
-    workflow.__postdesc__ = """\
-Spatial normalization to the
-*{template_name}* [{template_refs}]
-was performed through nonlinear registration with `antsRegistration`
-(ANTs {ants_ver}), using brain-extracted versions of both T1w volume
-and template.
-Brain tissue segmentation of cerebrospinal fluid (CSF),
-white-matter (WM) and gray-matter (GM) was performed on
-the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
-@fsl_fast].
-""".format(
-        ants_ver=ANTsInfo.version() or '<ver>',
-        fsl_ver=fsl.FAST().version or '<ver>',
-        template_name=template_meta['Name'],
-        template_refs=', '.join(template_refs),
-    )
     desc = """Anatomical data preprocessing
 
 : """
@@ -214,11 +178,17 @@ with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
 The T1w-reference was then skull-stripped with a *Nipype* implementation of
 the `antsBrainExtraction.sh` workflow (from ANTs), using {skullstrip_tpl}
 as target template.
-""".format(skullstrip_tpl=skull_strip_template)
+Brain tissue segmentation of cerebrospinal fluid (CSF),
+white-matter (WM) and gray-matter (GM) was performed on
+the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
+@fsl_fast].
+"""
 
     workflow.__desc__ = desc.format(
+        ants_ver=ANTsInfo.version() or '(version unknown)',
+        fsl_ver=fsl.FAST().version or '(version unknown)',
         num_t1w=num_t1w,
-        ants_ver=ANTsInfo.version() or '<ver>'
+        skullstrip_tpl=skull_strip_template,
     )
 
     inputnode = pe.Node(
@@ -226,8 +196,8 @@ as target template.
         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['t1_preproc', 't1_brain', 't1_mask', 't1_seg', 't1_tpms',
-                't1_2_mni', 't1_2_mni_forward_transform', 't1_2_mni_reverse_transform',
-                'mni_mask', 'mni_seg', 'mni_tpms',
+                'warped', 'forward_transform', 'reverse_transform',
+                'tpl_mask', 'tpl_seg', 'tpl_tpms',
                 'template_transforms',
                 'subjects_dir', 'subject_id', 't1_2_fsnative_forward_transform',
                 't1_2_fsnative_reverse_transform', 'surfaces', 't1_aseg', 't1_aparc']),
@@ -308,73 +278,36 @@ as target template.
                               ('probability_maps', 't1_tpms')]),
     ])
 
-    # 6. Spatial normalization (T1w to MNI registration)
-    t1_2_mni = pe.Node(
-        RobustMNINormalizationRPT(
-            float=True,
-            generate_report=True,
-            flavor='testing' if debug else 'precise',
-        ),
-        name='t1_2_mni',
-        n_procs=omp_nthreads,
-        mem_gb=2
-    )
-
-    # Resample the brain mask and the tissue probability maps into mni space
-    mni_mask = pe.Node(
-        ApplyTransforms(dimension=3, default_value=0, float=True,
-                        interpolation='MultiLabel'),
-        name='mni_mask'
-    )
-
-    mni_seg = pe.Node(
-        ApplyTransforms(dimension=3, default_value=0, float=True,
-                        interpolation='MultiLabel'),
-        name='mni_seg'
-    )
-
-    mni_tpms = pe.MapNode(
-        ApplyTransforms(dimension=3, default_value=0, float=True,
-                        interpolation='Linear'),
-        iterfield=['input_image'],
-        name='mni_tpms'
-    )
-
-    # TODO isolate the spatial normalization workflow #############
-    ref_img = str(get_template(template, resolution=1, desc=None, suffix='T1w',
-                               extensions=['.nii', '.nii.gz']))
-
-    t1_2_mni.inputs.template = template
-    mni_mask.inputs.reference_image = ref_img
-    mni_seg.inputs.reference_image = ref_img
-    mni_tpms.inputs.reference_image = ref_img
-
+    # 6. Spatial normalization
+    anat_norm_wf, template = init_anat_norm_wf(
+        debug=debug,
+        omp_nthreads=omp_nthreads,
+        reportlets_dir=reportlets_dir,
+        template_spec=list(output_spaces.keys())[0])
     workflow.connect([
-        (inputnode, t1_2_mni, [('roi', 'lesion_mask')]),
-        (brain_extraction_wf, t1_2_mni, [
-            (('outputnode.bias_corrected', _pop), 'moving_image')]),
-        (buffernode, t1_2_mni, [('t1_mask', 'moving_mask')]),
-        (buffernode, mni_mask, [('t1_mask', 'input_image')]),
-        (t1_2_mni, mni_mask, [('composite_transform', 'transforms')]),
-        (t1_seg, mni_seg, [('tissue_class_map', 'input_image')]),
-        (t1_2_mni, mni_seg, [('composite_transform', 'transforms')]),
-        (t1_seg, mni_tpms, [('probability_maps', 'input_image')]),
-        (t1_2_mni, mni_tpms, [('composite_transform', 'transforms')]),
-        (t1_2_mni, outputnode, [
-            ('warped_image', 't1_2_mni'),
-            ('composite_transform', 't1_2_mni_forward_transform'),
-            ('inverse_composite_transform', 't1_2_mni_reverse_transform')]),
-        (mni_mask, outputnode, [('output_image', 'mni_mask')]),
-        (mni_seg, outputnode, [('output_image', 'mni_seg')]),
-        (mni_tpms, outputnode, [('output_image', 'mni_tpms')]),
+        (inputnode, anat_norm_wf, [
+            (('t1w', fix_multi_T1w_source_name), 'inputnode.orig_t1w'),
+            ('roi', 'inputnode.lesion_mask')]),
+        (brain_extraction_wf, anat_norm_wf, [
+            (('outputnode.bias_corrected', _pop), 'inputnode.moving_image')]),
+        (buffernode, anat_norm_wf, [('t1_mask', 'inputnode.moving_mask')]),
+        (t1_seg, anat_norm_wf, [
+            ('tissue_class_map', 'inputnode.moving_segmentation')]),
+        (t1_seg, anat_norm_wf, [
+            ('probability_maps', 'inputnode.moving_tpms')]),
+        (anat_norm_wf, outputnode, [
+            ('outputnode.warped', 'warped'),
+            ('outputnode.forward_transform', 'forward_transform'),
+            ('outputnode.reverse_transform', 'reverse_transform'),
+            ('outputnode.tpl_mask', 'tpl_mask'),
+            ('outputnode.tpl_seg', 'tpl_seg'),
+            ('outputnode.tpl_tpms', 'tpl_tpms')]),
     ])
-    # spatial normalization ends here ###############################
 
     seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
                       name='seg_rpt')
     anat_reports_wf = init_anat_reports_wf(
-        reportlets_dir=reportlets_dir, template=template,
-        freesurfer=freesurfer)
+        reportlets_dir=reportlets_dir, freesurfer=freesurfer)
     workflow.connect([
         (inputnode, anat_reports_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
@@ -385,7 +318,6 @@ as target template.
         (t1_seg, seg_rpt, [('tissue_class_map', 'in_rois')]),
         (outputnode, seg_rpt, [('t1_mask', 'in_mask')]),
         (seg_rpt, anat_reports_wf, [('out_report', 'inputnode.seg_report')]),
-        (t1_2_mni, anat_reports_wf, [('out_report', 'inputnode.t1_2_mni_report')]),
     ])
 
     if freesurfer:
@@ -397,25 +329,25 @@ as target template.
     anat_derivatives_wf = init_anat_derivatives_wf(
         bids_root=bids_root,
         freesurfer=freesurfer,
-        output_dir=output_dir,
         template=template,
+        output_dir=output_dir,
     )
 
     workflow.connect([
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
         (outputnode, anat_derivatives_wf, [
+            ('warped', 'inputnode.t1_2_tpl'),
+            ('forward_transform', 'inputnode.t1_2_tpl_forward_transform'),
+            ('reverse_transform', 'inputnode.t1_2_tpl_reverse_transform'),
             ('t1_template_transforms', 'inputnode.t1_template_transforms'),
             ('t1_preproc', 'inputnode.t1_preproc'),
             ('t1_mask', 'inputnode.t1_mask'),
             ('t1_seg', 'inputnode.t1_seg'),
             ('t1_tpms', 'inputnode.t1_tpms'),
-            ('t1_2_mni_forward_transform', 'inputnode.t1_2_mni_forward_transform'),
-            ('t1_2_mni_reverse_transform', 'inputnode.t1_2_mni_reverse_transform'),
-            ('t1_2_mni', 'inputnode.t1_2_mni'),
-            ('mni_mask', 'inputnode.mni_mask'),
-            ('mni_seg', 'inputnode.mni_seg'),
-            ('mni_tpms', 'inputnode.mni_tpms'),
+            ('tpl_mask', 'inputnode.tpl_mask'),
+            ('tpl_seg', 'inputnode.tpl_seg'),
+            ('tpl_tpms', 'inputnode.tpl_tpms'),
             ('t1_2_fsnative_forward_transform', 'inputnode.t1_2_fsnative_forward_transform'),
             ('surfaces', 'inputnode.surfaces'),
         ]),

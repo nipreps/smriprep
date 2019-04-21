@@ -30,10 +30,10 @@
                 "description": "This panel shows the template T1-weighted image (if several T1w images were found), with contours delineating the detected brain mask and brain tissue segmentations."
             },
             {
-                "name": "anat_preproc/t1_2_mni",
-                "file_pattern": "anat/.*t1_2_mni",
-                "title": "T1 to MNI registration",
-                "description": "Nonlinear mapping of the T1w image into MNI space. Hover on the panel with the mouse to transition between both spaces."
+                "name": "anat_preproc/t1_norm",
+                "file_pattern": "anat/.*_t1w",
+                "title": "Spatial normalization of the anatomical T1w reference",
+                "description": "Nonlinear mapping of the T1w image into standard space. Hover on the panel with the mouse to transition between both spaces."
             },
             {
                 "name": "anat_preproc/reconall",
