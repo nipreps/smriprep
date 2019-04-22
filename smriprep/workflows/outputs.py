@@ -58,7 +58,7 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
     return workflow
 
 
-def init_anat_derivatives_wf(bids_root, freesurfer, output_dir, template,
+def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
                              name='anat_derivatives_wf'):
     """
     Set up a battery of datasinks to store derivatives in the right location
@@ -67,7 +67,7 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir, template,
 
     inputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['source_files', 't1_template_transforms',
+            fields=['template', 'source_files', 't1_template_transforms',
                     't1_preproc', 't1_mask', 't1_seg', 't1_tpms',
                     't1_2_tpl_forward_transform', 't1_2_tpl_reverse_transform',
                     't1_2_tpl', 'tpl_mask', 'tpl_seg', 'tpl_tpms',
@@ -102,46 +102,40 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir, template,
     ds_t1_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
     ds_t1_tpl = pe.Node(
-        DerivativesDataSink(base_directory=output_dir,
-                            space=template, desc='preproc', keep_dtype=True),
+        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True),
         name='ds_t1_tpl', run_without_submitting=True)
     ds_t1_tpl.inputs.SkullStripped = True
 
     ds_tpl_mask = pe.Node(
-        DerivativesDataSink(base_directory=output_dir,
-                            space=template, desc='brain', suffix='mask'),
+        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask'),
         name='ds_tpl_mask', run_without_submitting=True)
     ds_tpl_mask.inputs.Type = 'Brain'
-    ds_tpl_mask.inputs.RawSources = 'tpl-{0}/tpl-{0}_res-01_desc-brain_mask.nii.gz'.format(
-        template)
 
     lut_tpl_seg = pe.Node(niu.Function(function=_apply_default_bids_lut),
                           name='lut_tpl_seg')
     ds_tpl_seg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir,
-                            space=template, suffix='dseg'),
+        DerivativesDataSink(base_directory=output_dir, suffix='dseg'),
         name='ds_tpl_seg', run_without_submitting=True)
 
     ds_tpl_tpms = pe.Node(
-        DerivativesDataSink(base_directory=output_dir,
-                            space=template, suffix='probseg'),
+        DerivativesDataSink(base_directory=output_dir, suffix='probseg'),
         name='ds_tpl_tpms', run_without_submitting=True)
     ds_tpl_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
     # Transforms
     suffix_fmt = 'from-{}_to-{}_mode-image_xfm'.format
     ds_t1_tpl_inv_warp = pe.Node(
-        DerivativesDataSink(base_directory=output_dir,
-                            suffix=suffix_fmt(template, 'T1w')),
+        DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm'),
         name='ds_t1_tpl_inv_warp', run_without_submitting=True)
 
     ds_t1_template_transforms = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir, suffix=suffix_fmt('orig', 'T1w')),
+        DerivativesDataSink(base_directory=output_dir, to='T1w',
+                            suffix='xfm', **{'from': 'orig'}),
         iterfield=['source_file', 'in_file'],
         name='ds_t1_template_transforms', run_without_submitting=True)
 
     ds_t1_tpl_warp = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix=suffix_fmt('T1w', template)),
+        DerivativesDataSink(base_directory=output_dir, suffix='xfm', **{'from': 'T1w'}),
         name='ds_t1_tpl_warp', run_without_submitting=True)
 
     lta_2_itk = pe.Node(LTAConvert(out_itk=True), name='lta_2_itk')
@@ -176,13 +170,25 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir, template,
         (t1_name, ds_t1_tpms, [('out', 'source_file')]),
         (raw_sources, ds_t1_mask, [('out', 'RawSources')]),
         # Template
-        (inputnode, ds_t1_tpl_warp, [('t1_2_tpl_forward_transform', 'in_file')]),
-        (inputnode, ds_t1_tpl_inv_warp, [('t1_2_tpl_reverse_transform', 'in_file')]),
-        (inputnode, ds_t1_tpl, [('t1_2_tpl', 'in_file')]),
-        (inputnode, ds_tpl_mask, [('tpl_mask', 'in_file')]),
+        (inputnode, ds_t1_tpl_warp, [
+            ('t1_2_tpl_forward_transform', 'in_file'),
+            ('template', 'to')]),
+        (inputnode, ds_t1_tpl_inv_warp, [
+            ('t1_2_tpl_reverse_transform', 'in_file'),
+            ('template', 'from')]),
+        (inputnode, ds_t1_tpl, [
+            ('t1_2_tpl', 'in_file'),
+            ('template', 'space')]),
+        (inputnode, ds_tpl_mask, [
+            ('tpl_mask', 'in_file'),
+            ('template', 'space'),
+            (('template', _rawsources), 'RawSources')]),
+        (inputnode, ds_tpl_seg, [('template', 'space')]),
         (inputnode, lut_tpl_seg, [('tpl_seg', 'in_file')]),
         (lut_tpl_seg, ds_tpl_seg, [('out', 'in_file')]),
-        (inputnode, ds_tpl_tpms, [('tpl_tpms', 'in_file')]),
+        (inputnode, ds_tpl_tpms, [
+            ('tpl_tpms', 'in_file'),
+            ('template', 'space')]),
         (t1_name, ds_t1_tpl_warp, [('out', 'source_file')]),
         (t1_name, ds_t1_tpl_inv_warp, [('out', 'source_file')]),
         (t1_name, ds_t1_tpl, [('out', 'source_file')]),
@@ -241,3 +247,7 @@ def _bids_relative(in_files, bids_root):
         in_files = [in_files]
     in_files = [str(Path(p).relative_to(bids_root)) for p in in_files]
     return in_files
+
+
+def _rawsources(template):
+    return 'tpl-{0}/tpl-{0}_desc-brain_mask.nii.gz'.format(template)
