@@ -1,4 +1,4 @@
 indexed_gzip>=0.8.8
 nilearn!=0.5.0,!=0.5.1
-git+https://github.com/poldracklab/niworkflows.git@b7d111c8fd36a099c74be5e7671677eedb175533#egg=niworkflows
+git+https://github.com/poldracklab/niworkflows.git@2a2586f8e450a0246e8bd7616d2d60b86f704a47#egg=niworkflows
 templateflow<0.2.0a0,>=0.1.3
