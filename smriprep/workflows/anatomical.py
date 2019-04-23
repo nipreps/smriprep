@@ -279,11 +279,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     ])
 
     # 6. Spatial normalization
-    anat_norm_wf, template = init_anat_norm_wf(
+    template = list(output_spaces.keys())[0]
+    anat_norm_wf = init_anat_norm_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
         reportlets_dir=reportlets_dir,
-        template_spec=list(output_spaces.keys())[0])
+        template=template)
     workflow.connect([
         (inputnode, anat_norm_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.orig_t1w'),
