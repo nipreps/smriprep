@@ -32,11 +32,11 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         name='inputnode')
 
     ds_t1_conform_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, suffix='conform'),
+        DerivativesDataSink(base_directory=reportlets_dir, desc='conform', keep_dtype=True),
         name='ds_t1_conform_report', run_without_submitting=True)
 
     ds_t1_seg_mask_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, suffix='seg_brainmask'),
+        DerivativesDataSink(base_directory=reportlets_dir, suffix='dseg'),
         name='ds_t1_seg_mask_report', run_without_submitting=True)
 
     workflow.connect([
@@ -48,7 +48,7 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
 
     if freesurfer:
         ds_recon_report = pe.Node(
-            DerivativesDataSink(base_directory=reportlets_dir, suffix='reconall'),
+            DerivativesDataSink(base_directory=reportlets_dir, desc='reconall', keep_dtype=True),
             name='ds_recon_report', run_without_submitting=True)
         workflow.connect([
             (inputnode, ds_recon_report, [('source_file', 'source_file'),
@@ -123,25 +123,27 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
     ds_tpl_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
     # Transforms
-    suffix_fmt = 'from-{}_to-{}_mode-image_xfm'.format
     ds_t1_tpl_inv_warp = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm'),
+        DerivativesDataSink(allowed_entities=['from', 'to'], base_directory=output_dir,
+                            to='T1w', mode='image', suffix='mode-image_xfm'),
         name='ds_t1_tpl_inv_warp', run_without_submitting=True)
 
     ds_t1_template_transforms = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir, to='T1w',
-                            suffix='xfm', **{'from': 'orig'}),
+        DerivativesDataSink(allowed_entities=['from', 'to'], base_directory=output_dir,
+                            to='T1w', suffix='mode-image_xfm', **{'from': 'orig'}),
         iterfield=['source_file', 'in_file'],
         name='ds_t1_template_transforms', run_without_submitting=True)
 
     ds_t1_tpl_warp = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='xfm', **{'from': 'T1w'}),
+        DerivativesDataSink(allowed_entities=['from', 'to'], base_directory=output_dir,
+                            suffix='mode-image_xfm', **{'from': 'T1w'}),
         name='ds_t1_tpl_warp', run_without_submitting=True)
 
     lta_2_itk = pe.Node(LTAConvert(out_itk=True), name='lta_2_itk')
 
     ds_t1_fsnative = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix=suffix_fmt('T1w', 'fsnative')),
+        DerivativesDataSink(allowed_entities=['from', 'to'], base_directory=output_dir,
+                            suffix='mode-image_xfm', **{'from': 'T1w', 'to': 'fsnative'}),
         name='ds_t1_fsnative', run_without_submitting=True)
 
     name_surfs = pe.MapNode(GiftiNameSource(pattern=r'(?P<LR>[lr])h.(?P<surf>.+)_converted.gii',

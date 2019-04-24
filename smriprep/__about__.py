@@ -60,8 +60,8 @@ REQUIRES = [
 
 
 LINKS_REQUIRES = [
-    'git+https://github.com/poldracklab/niworkflows.git@'
-    '0c09ee3d430875b86e670951575d29372812a213#egg=niworkflows',
+    'git+https://github.com/oesteban/niworkflows.git@'
+    '39928d76413e9d9d2c0e2286584d930bb3566c9a#egg=niworkflows',
 ]
 
 TESTS_REQUIRES = [
@@ -83,7 +83,6 @@ EXTRA_REQUIRES = {
     'duecredit': ['duecredit'],
     'datalad': ['datalad'],
     'resmon': ['psutil>=5.4.0'],
-    'sentry': ['sentry-sdk>=0.5.3'],
 }
 EXTRA_REQUIRES['docs'] = EXTRA_REQUIRES['doc']
 

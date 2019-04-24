@@ -261,13 +261,12 @@ def build_opts(opts):
                       str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
-        from pkg_resources import resource_filename as pkgrf
         from niworkflows.viz.reports import generate_reports
 
         from ..utils.bids import write_derivative_description
         # Generate reports phase
         errno += generate_reports(subject_list, output_dir, work_dir, run_uuid,
-                                  config=pkgrf('smriprep', 'data/reports/config.json'))
+                                  packagename='smriprep')
         write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
     sys.exit(int(errno > 0))
 

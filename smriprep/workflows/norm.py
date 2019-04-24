@@ -193,8 +193,7 @@ The following template{tpls} selected for spatial normalization:
 
     # Store report
     ds_t1_2_tpl_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir,
-                            suffix='t1w'),
+        DerivativesDataSink(base_directory=reportlets_dir, keep_dtype=True),
         name='ds_t1_2_tpl_report', run_without_submitting=True)
 
     workflow.connect([
