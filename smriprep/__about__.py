@@ -18,7 +18,6 @@ __maintainer__ = 'Oscar Esteban'
 __email__ = 'code@oscaresteban.es'
 __status__ = 'Prototype'
 __url__ = 'https://github.com/poldracklab/smriprep'
-__package__ = 'smriprep'
 __description__ = ("sMRIPrep (Structural MRI PREprocessing) pipeline")
 __longdesc__ = """\
 The workflow is based on `Nipype <https://nipype.readthedocs.io>`_ and encompases a large
@@ -61,7 +60,7 @@ REQUIRES = [
 
 LINKS_REQUIRES = [
     'git+https://github.com/oesteban/niworkflows.git@'
-    '39928d76413e9d9d2c0e2286584d930bb3566c9a#egg=niworkflows',
+    'c769ec5e03e717650565da93f13c96032598202a#egg=niworkflows',
 ]
 
 TESTS_REQUIRES = [
