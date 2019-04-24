@@ -124,26 +124,28 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
 
     # Transforms
     ds_t1_tpl_inv_warp = pe.Node(
-        DerivativesDataSink(allowed_entities=['from', 'to'], base_directory=output_dir,
-                            to='T1w', mode='image', suffix='mode-image_xfm'),
+        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+                            to='T1w', mode='image', suffix='xfm'),
         name='ds_t1_tpl_inv_warp', run_without_submitting=True)
 
+    # Please note the dictionary unpacking to provide the from argument.
+    # It is necessary because from is a protected keyword (not allowed as argument name).
     ds_t1_template_transforms = pe.MapNode(
-        DerivativesDataSink(allowed_entities=['from', 'to'], base_directory=output_dir,
-                            to='T1w', suffix='mode-image_xfm', **{'from': 'orig'}),
+        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+                            to='T1w', mode='image', suffix='xfm', **{'from': 'orig'}),
         iterfield=['source_file', 'in_file'],
         name='ds_t1_template_transforms', run_without_submitting=True)
 
     ds_t1_tpl_warp = pe.Node(
-        DerivativesDataSink(allowed_entities=['from', 'to'], base_directory=output_dir,
-                            suffix='mode-image_xfm', **{'from': 'T1w'}),
+        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+                            mode='image', suffix='xfm', **{'from': 'T1w'}),
         name='ds_t1_tpl_warp', run_without_submitting=True)
 
     lta_2_itk = pe.Node(LTAConvert(out_itk=True), name='lta_2_itk')
 
     ds_t1_fsnative = pe.Node(
-        DerivativesDataSink(allowed_entities=['from', 'to'], base_directory=output_dir,
-                            suffix='mode-image_xfm', **{'from': 'T1w', 'to': 'fsnative'}),
+        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+                            mode='image', to='fsnative', suffix='xfm', **{'from': 'T1w'}),
         name='ds_t1_fsnative', run_without_submitting=True)
 
     name_surfs = pe.MapNode(GiftiNameSource(pattern=r'(?P<LR>[lr])h.(?P<surf>.+)_converted.gii',
