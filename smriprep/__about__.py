@@ -18,7 +18,6 @@ __maintainer__ = 'Oscar Esteban'
 __email__ = 'code@oscaresteban.es'
 __status__ = 'Prototype'
 __url__ = 'https://github.com/poldracklab/smriprep'
-__package__ = 'smriprep'
 __description__ = ("sMRIPrep (Structural MRI PREprocessing) pipeline")
 __longdesc__ = """\
 The workflow is based on `Nipype <https://nipype.readthedocs.io>`_ and encompases a large
@@ -50,18 +49,16 @@ REQUIRES = [
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
     'nipype>=1.1.6',
-    'niworkflows',
+    'niworkflows<0.10.0a0,>=0.9.0a0',
     'numpy',
     'packaging',
     'pybids',
     'pyyaml',
-    'templateflow<0.2.0a0,>=0.1.3',
+    'templateflow<0.2.0a0,>=0.1.7',
 ]
 
 
 LINKS_REQUIRES = [
-    'git+https://github.com/poldracklab/niworkflows.git@'
-    'b7d111c8fd36a099c74be5e7671677eedb175533#egg=niworkflows',
 ]
 
 TESTS_REQUIRES = [
@@ -83,7 +80,6 @@ EXTRA_REQUIRES = {
     'duecredit': ['duecredit'],
     'datalad': ['datalad'],
     'resmon': ['psutil>=5.4.0'],
-    'sentry': ['sentry-sdk>=0.5.3'],
 }
 EXTRA_REQUIRES['docs'] = EXTRA_REQUIRES['doc']
 
