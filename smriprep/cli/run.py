@@ -53,9 +53,6 @@ def get_parser():
     parser.add_argument('--version', action='version', version='smriprep v{}'.format(__version__))
 
     g_bids = parser.add_argument_group('Options for filtering BIDS queries')
-    g_bids.add_argument('--skip-bids-validation', '--skip_bids_validation', action='store_true',
-                        default=False,
-                        help='assume the input dataset is BIDS compliant and skip the validation')
     g_bids.add_argument('--participant-label', '--participant_label', action='store', nargs='+',
                         help='a space delimited list of participant identifiers or a single '
                              'identifier (the sub- prefix can be removed)')
@@ -261,13 +258,13 @@ def build_opts(opts):
                       str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
-        from pkg_resources import resource_filename as pkgrf
         from niworkflows.viz.reports import generate_reports
-
         from ..utils.bids import write_derivative_description
+
+        logger.log(25, 'Writing reports for participants: %s', ', '.join(subject_list))
         # Generate reports phase
         errno += generate_reports(subject_list, output_dir, work_dir, run_uuid,
-                                  config=pkgrf('smriprep', 'data/reports/config.json'))
+                                  packagename='smriprep')
         write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
     sys.exit(int(errno > 0))
 

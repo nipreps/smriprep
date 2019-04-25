@@ -278,13 +278,17 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                               ('probability_maps', 't1_tpms')]),
     ])
 
+    seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
+                      name='seg_rpt')
+
+    vol_spaces = [k for k in output_spaces.keys()
+                  if not k.startswith('fs')]
     # 6. Spatial normalization
-    template = list(output_spaces.keys())[0]
     anat_norm_wf = init_anat_norm_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
         reportlets_dir=reportlets_dir,
-        template=template)
+        template_list=vol_spaces)
     workflow.connect([
         (inputnode, anat_norm_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.orig_t1w'),
@@ -304,9 +308,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.tpl_seg', 'tpl_seg'),
             ('outputnode.tpl_tpms', 'tpl_tpms')]),
     ])
-
-    seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
-                      name='seg_rpt')
     anat_reports_wf = init_anat_reports_wf(
         reportlets_dir=reportlets_dir, freesurfer=freesurfer)
     workflow.connect([
@@ -330,13 +331,14 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     anat_derivatives_wf = init_anat_derivatives_wf(
         bids_root=bids_root,
         freesurfer=freesurfer,
-        template=template,
         output_dir=output_dir,
     )
 
     workflow.connect([
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
+        (anat_norm_wf, anat_derivatives_wf, [
+            ('outputnode.template', 'inputnode.template')]),
         (outputnode, anat_derivatives_wf, [
             ('warped', 'inputnode.t1_2_tpl'),
             ('forward_transform', 'inputnode.t1_2_tpl_forward_transform'),

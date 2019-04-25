@@ -101,9 +101,6 @@ ENV PATH=$ANTSPATH:$PATH
 # Installing SVGO
 RUN npm install -g svgo
 
-# Installing bids-validator
-RUN npm install -g bids-validator@1.1.0
-
 # Installing and setting up miniconda
 RUN curl -sSLO https://repo.continuum.io/miniconda/Miniconda3-4.5.11-Linux-x86_64.sh && \
     bash Miniconda3-4.5.11-Linux-x86_64.sh -b -p /usr/local/miniconda && \
