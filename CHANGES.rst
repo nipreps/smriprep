@@ -1,3 +1,16 @@
+0.2.0 (April 24, 2019)
+======================
+
+This new release of sMRIPrep adds the possibility of specifying several
+spatial normalization targets via the ``--output-spaces`` option drafted
+in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/1588>`__.
+
+* ENH: Pull list of spatial normalization templates from TemplateFlow (#68) @oesteban
+* ENH: CLI uses ``pathlib.Path`` when possible (#73) @oesteban
+* ENH: Create a spatial normalization workflow (#72) @oesteban
+* ENH: Several improvements over the new spatial normalization workflow (#74) @oesteban
+* ENH: Support for multiple ``--output-spaces`` (#75) @oesteban
+
 0.1.1 (March 22, 2019)
 ======================
 
