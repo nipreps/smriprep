@@ -258,7 +258,7 @@ def build_opts(opts):
                       str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
-        from niworkflows.viz.reports import generate_reports
+        from niworkflows.reports import generate_reports
         from ..utils.bids import write_derivative_description
 
         logger.log(25, 'Writing reports for participants: %s', ', '.join(subject_list))
@@ -418,7 +418,7 @@ list of output spaces.""" % ', '.join(FS_SPACES))
 
     # Called with reports only
     if opts.reports_only:
-        from niworkflows.viz.reports import generate_reports
+        from niworkflows.reports import generate_reports
 
         logger.log(25, 'Running --reports-only on participants %s', ', '.join(subject_list))
         if opts.run_uuid is not None:
