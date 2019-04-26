@@ -417,7 +417,7 @@ jobs:
                 poldracklab/smriprep:latest \
                 /tmp/data/ds054 /tmp/ds054/derivatives participant \
                 -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
-                --output_spaces MNI152Lin MNI152NLin2009c \
+                --output-spaces MNI152Lin MNI152NLin2009cAsym \
                 --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
                 --fs-license-file /tmp/fslicense/license.txt
       - save_cache:

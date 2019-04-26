@@ -26,7 +26,6 @@ def check_deps(workflow):
 def get_parser():
     """Build parser object"""
     from pathlib import Path
-    from collections import OrderedDict
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
     from templateflow.api import templates
