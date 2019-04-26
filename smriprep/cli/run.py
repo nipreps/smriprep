@@ -77,8 +77,7 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
-        '--output-spaces', nargs='+', default=OrderedDict([('MNI152NLin2009cAsym', {})]),
-        action=ParseTemplates,
+        '--output-spaces', nargs='+', action=ParseTemplates,
         help='paths or keywords prescribing standard spaces to which normalize the input T1w image'
              ' (valid keywords are: %s).' % ', '.join('"%s"' % s for s in templates()))
     g_conf.add_argument(
@@ -279,6 +278,7 @@ def build_workflow(opts, retval):
     ``multiprocessing.Process`` that allows smriprep to enforce
     a hard-limited memory-scope.
     """
+    import sys
     from shutil import copyfile
     from os import cpu_count
     from collections import OrderedDict
@@ -293,20 +293,25 @@ def build_workflow(opts, retval):
     from ..workflows.base import init_smriprep_wf
     from niworkflows.utils.bids import collect_participants
 
-    output_spaces = opts.output_spaces
+    # Set the default template to 'MNI152NLin2009c'
+    output_spaces = opts.output_spaces or OrderedDict([('MNI152NLin2009cAsym', {})])
 
     if opts.template:
         print("""\
 The ``--template`` option has been deprecated in version 1.1.2. Your selected template \
 "%s" will be inserted at the front of the ``--output-spaces`` argument list. Please update \
-your scripts to use ``--output-spaces``.""" % opts.template)
-        output_spaces = OrderedDict([(opts.template, {})] + list(output_spaces.items()))
+your scripts to use ``--output-spaces``.""" % opts.template, file=sys.stderr)
+        deprecated_tpl_arg = [(opts.template, {})]
+        # If output_spaces is not set, just replate the default - append otherwise
+        if opts.output_spaces is not None:
+            deprecated_tpl_arg += list(output_spaces.items())
+        output_spaces = OrderedDict(deprecated_tpl_arg)
 
     if opts.fs_output_spaces:
         print("""\
 The ``--fs-output-spaces`` option has been deprecated in version 1.1.2. Your selected output \
 surfaces "%s" will be appended to the ``--output-spaces`` argument list. Please update \
-your scripts to use ``--output-spaces``.""" % ', '.join(opts.fs_output_spaces))
+your scripts to use ``--output-spaces``.""" % ', '.join(opts.fs_output_spaces), file=sys.stderr)
         for fs_space in opts.fs_output_spaces:
             if fs_space not in output_spaces:
                 output_spaces[fs_space] = {}
@@ -316,7 +321,7 @@ your scripts to use ``--output-spaces``.""" % ', '.join(opts.fs_output_spaces))
         print("""\
 Although ``--fs-no-reconall`` was not set, no FreeSurfer output space (valid values are: \
 %s) was selected. Adding default "fsaverage5" to the \
-list of output spaces.""" % ', '.join(FS_SPACES))
+list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
         output_spaces['fsaverage5'] = {}
 
     logger = logging.getLogger('nipype.workflow')
