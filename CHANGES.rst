@@ -1,4 +1,4 @@
-0.2.0 (April 24, 2019)
+0.2.0 (April 25, 2019)
 ======================
 
 This new release of sMRIPrep adds the possibility of specifying several
@@ -10,6 +10,7 @@ in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/15
 * ENH: Create a spatial normalization workflow (#72) @oesteban
 * ENH: Several improvements over the new spatial normalization workflow (#74) @oesteban
 * ENH: Support for multiple ``--output-spaces`` (#75) @oesteban
+* FIX: Solved problems in report generation (#76) @oesteban
 
 0.1.1 (March 22, 2019)
 ======================
