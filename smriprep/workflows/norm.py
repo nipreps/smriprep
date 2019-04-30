@@ -45,30 +45,33 @@ def init_anat_norm_wf(
     **Parameters**
 
         debug : bool
-            Apply sloppy arguments to speed up processing. Use with caution, registration
-            processes will be very inaccurate.
+            Apply sloppy arguments to speed up processing. Use with caution,
+            registration processes will be very inaccurate.
         omp_nthreads : int
             Maximum number of threads an individual process may use.
         reportlets_dir : str
             Directory in which to save reportlets.
         template_list : list of str
-            List of TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``) that specifies the target
-            template for spatial normalization. In the future, this parameter should accept
-            also paths to custom/private templates with TemplateFlow's organization.
+            List of TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``) that
+            specifies the target template for spatial normalization. In the
+            future, this parameter should accept also paths to custom/private
+            templates with TemplateFlow's organization.
 
     **Inputs**
 
         moving_image
             The input image that will be normalized to standard space.
         moving_mask
-            A precise brain mask separating skull/skin/fat from brain structures.
+            A precise brain mask separating skull/skin/fat from brain
+            structures.
         moving_segmentation
             A brain tissue segmentation of the ``moving_image``.
         moving_tpms
-            tissue probability maps (TPMs) corresponding to the ``moving_segmentation``.
+            tissue probability maps (TPMs) corresponding to the
+            ``moving_segmentation``.
         lesion_mask
-            (optional) A mask to exclude regions from the cost-function input domain
-            to enable standardization of lesioned brains.
+            (optional) A mask to exclude regions from the cost-function
+            input domain to enable standardization of lesioned brains.
         orig_t1w
             The original T1w image from the BIDS structure.
 
@@ -83,11 +86,13 @@ def init_anat_norm_wf(
         tpl_mask
             The ``moving_mask`` in template space (matches ``warped`` output).
         tpl_seg
-            The ``moving_segmentation`` in template space (matches ``warped`` output).
+            The ``moving_segmentation`` in template space (matches ``warped``
+            output).
         tpl_tpms
             The ``moving_tpms`` in template space (matches ``warped`` output).
         template
-            The input parameter ``template`` for further use in nodes depending on this
+            The input parameter ``template`` for further use in nodes depending
+            on this
             workflow.
 
     """

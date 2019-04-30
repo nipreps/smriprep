@@ -60,6 +60,7 @@ def init_smriprep_wf(
         :simple_form: yes
 
         import os
+        from collections import OrderedDict
         from pybids import BIDSLayout
         os.environ['FREESURFER_HOME'] = os.getcwd()
         from smriprep.workflows.base import init_smriprep_wf
@@ -72,7 +73,8 @@ def init_smriprep_wf(
             low_mem=False,
             omp_nthreads=1,
             output_dir='.',
-            output_spaces={'MNI152NLin2009cAsym': {}, 'fsnative': {}, 'fsaverage5': {}},
+            output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
+                                       ('fsaverage5', {})]),
             run_uuid='testrun',
             skull_strip_fixed_seed=False,
             skull_strip_template='OASIS30ANTs',
@@ -99,11 +101,12 @@ def init_smriprep_wf(
             Maximum number of threads an individual process may use
         output_dir : str
             Directory in which to save derivatives
-        output_spaces : list
+        output_spaces : OrderedDict
             List of spatial normalization targets. Some parts of pipeline will
             only be instantiated for some output spaces. Valid spaces:
               - Any template identifier from TemplateFlow
-              - Path to a template folder organized following TemplateFlow's conventions
+              - Path to a template folder organized following TemplateFlow's
+                conventions
         run_uuid : str
             Unique identifier for execution instance
         skull_strip_fixed_seed : bool
@@ -114,7 +117,8 @@ def init_smriprep_wf(
         subject_list : list
             List of subject labels
         work_dir : str
-            Directory in which to store workflow execution state and temporary files
+            Directory in which to store workflow execution state and
+            temporary files
 
     """
     smriprep_wf = Workflow(name='smriprep_wf')
@@ -192,6 +196,7 @@ def init_single_subject_wf(
         :graph2use: orig
         :simple_form: yes
 
+        from collections import OrderedDict
         from smriprep.workflows.base import init_single_subject_wf
         from bids import BIDSLayout
         wf = init_single_subject_wf(
@@ -204,7 +209,8 @@ def init_single_subject_wf(
             name='single_subject_wf',
             omp_nthreads=1,
             output_dir='.',
-            output_spaces={'MNI152NLin2009cAsym': {}, 'fsnative': {}, 'fsaverage5': {}},
+            output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
+                                       ('fsaverage5', {})]),
             reportlets_dir='.',
             skull_strip_fixed_seed=False,
             skull_strip_template='OASIS30ANTs,
@@ -233,11 +239,12 @@ def init_single_subject_wf(
             Maximum number of threads an individual process may use
         output_dir : str
             Directory in which to save derivatives
-        output_spaces : list
+        output_spaces : OrderedDict
             List of spatial normalization targets. Some parts of pipeline will
             only be instantiated for some output spaces. Valid spaces:
               - Any template identifier from TemplateFlow
-              - Path to a template folder organized following TemplateFlow's conventions
+              - Path to a template folder organized following TemplateFlow's
+                conventions
         reportlets_dir : str
             Directory in which to save reportlets
         skull_strip_fixed_seed : bool
