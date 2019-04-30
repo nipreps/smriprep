@@ -45,30 +45,33 @@ def init_anat_norm_wf(
     **Parameters**
 
         debug : bool
-            Apply sloppy arguments to speed up processing. Use with caution, registration
-            processes will be very inaccurate.
+            Apply sloppy arguments to speed up processing. Use with caution,
+            registration processes will be very inaccurate.
         omp_nthreads : int
             Maximum number of threads an individual process may use.
         reportlets_dir : str
             Directory in which to save reportlets.
         template_list : list of str
-            List of TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``) that specifies the target
-            template for spatial normalization. In the future, this parameter should accept
-            also paths to custom/private templates with TemplateFlow's organization.
+            List of TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``) that
+            specifies the target template for spatial normalization. In the
+            future, this parameter should accept also paths to custom/private
+            templates with TemplateFlow's organization.
 
     **Inputs**
 
         moving_image
             The input image that will be normalized to standard space.
         moving_mask
-            A precise brain mask separating skull/skin/fat from brain structures.
+            A precise brain mask separating skull/skin/fat from brain
+            structures.
         moving_segmentation
             A brain tissue segmentation of the ``moving_image``.
         moving_tpms
-            tissue probability maps (TPMs) corresponding to the ``moving_segmentation``.
+            tissue probability maps (TPMs) corresponding to the
+            ``moving_segmentation``.
         lesion_mask
-            (optional) A mask to exclude regions from the cost-function input domain
-            to enable standardization of lesioned brains.
+            (optional) A mask to exclude regions from the cost-function
+            input domain to enable standardization of lesioned brains.
         orig_t1w
             The original T1w image from the BIDS structure.
 
@@ -83,11 +86,13 @@ def init_anat_norm_wf(
         tpl_mask
             The ``moving_mask`` in template space (matches ``warped`` output).
         tpl_seg
-            The ``moving_segmentation`` in template space (matches ``warped`` output).
+            The ``moving_segmentation`` in template space (matches ``warped``
+            output).
         tpl_tpms
             The ``moving_tpms`` in template space (matches ``warped`` output).
         template
-            The input parameter ``template`` for further use in nodes depending on this
+            The input parameter ``template`` for further use in nodes depending
+            on this
             workflow.
 
     """
@@ -135,10 +140,9 @@ The following template{tpls} selected for spatial normalization:
         'lesion_mask', 'orig_t1w', 'template']),
         name='inputnode')
     inputnode.iterables = [('template', template_list)]
-    outputnode = pe.Node(niu.IdentityInterface(
-        fields=['warped', 'forward_transform', 'reverse_transform',
-                'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']),
-        name='outputnode')
+    out_fields = ['warped', 'forward_transform', 'reverse_transform',
+                  'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']
+    poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
 
     fixed_tpl = pe.Node(niu.Function(function=_templateflow_ds),
                         name='fixed_tpl', run_without_submitting=True)
@@ -181,14 +185,14 @@ The following template{tpls} selected for spatial normalization:
         (registration, tpl_seg, [('composite_transform', 'transforms')]),
         (inputnode, tpl_tpms, [('moving_tpms', 'input_image')]),
         (registration, tpl_tpms, [('composite_transform', 'transforms')]),
-        (registration, outputnode, [
+        (registration, poutputnode, [
             ('warped_image', 'warped'),
             ('composite_transform', 'forward_transform'),
             ('inverse_composite_transform', 'reverse_transform')]),
-        (tpl_mask, outputnode, [('output_image', 'tpl_mask')]),
-        (tpl_seg, outputnode, [('output_image', 'tpl_seg')]),
-        (tpl_tpms, outputnode, [('output_image', 'tpl_tpms')]),
-        (inputnode, outputnode, [('template', 'template')]),
+        (tpl_mask, poutputnode, [('output_image', 'tpl_mask')]),
+        (tpl_seg, poutputnode, [('output_image', 'tpl_seg')]),
+        (tpl_tpms, poutputnode, [('output_image', 'tpl_tpms')]),
+        (inputnode, poutputnode, [('template', 'template')]),
     ])
 
     # Store report
@@ -202,6 +206,14 @@ The following template{tpls} selected for spatial normalization:
             ('orig_t1w', 'source_file')]),
         (registration, ds_t1_2_tpl_report, [('out_report', 'in_file')]),
     ])
+
+    # Provide synchronized output
+    outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
+                             name='outputnode', joinsource='inputnode')
+    workflow.connect([
+        (poutputnode, outputnode, [(f, f) for f in out_fields]),
+    ])
+
     return workflow
 
 

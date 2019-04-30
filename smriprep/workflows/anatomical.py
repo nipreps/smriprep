@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-Anatomical reference preprocessing workflows
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""Anatomical reference preprocessing workflows.
 
 .. autofunction:: init_anat_preproc_wf
 
@@ -37,26 +34,27 @@ from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
 
 
-#  pylint: disable=R0914
+# pylint: disable=R0914
 def init_anat_preproc_wf(
         bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
         output_spaces, num_t1w, reportlets_dir, skull_strip_template,
         debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False):
-    r"""
+    """
     This workflow controls the anatomical preprocessing stages of smriprep.
 
     This includes:
 
-     - Creation of a structural template
-     - Skull-stripping and bias correction
-     - Tissue segmentation
-     - Normalization
-     - Surface reconstruction with FreeSurfer
+      - Creation of a structural template
+      - Skull-stripping and bias correction
+      - Tissue segmentation
+      - Normalization
+      - Surface reconstruction with FreeSurfer
 
     .. workflow::
         :graph2use: orig
         :simple_form: yes
 
+        from collections import OrderedDict
         from smriprep.workflows.anatomical import init_anat_preproc_wf
         wf = init_anat_preproc_wf(
             bids_root='.',
@@ -66,10 +64,12 @@ def init_anat_preproc_wf(
             num_t1w=1,
             omp_nthreads=1,
             output_dir='.',
-            output_spaces={'MNI152NLin2009cAsym': {}, 'fsnative': {}, 'fsaverage5': {}},
+            output_spaces=OrderedDict([
+                ('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
             reportlets_dir='.',
             skull_strip_template='MNI152NLin2009cAsym',
         )
+
 
     **Parameters**
 
@@ -78,12 +78,16 @@ def init_anat_preproc_wf(
         debug : bool
             Enable debugging outputs
         freesurfer : bool
-            Enable FreeSurfer surface reconstruction (increases runtime by 6h, at the very least)
+            Enable FreeSurfer surface reconstruction (increases runtime by 6h,
+            at the very least)
         output_spaces : list
             List of spatial normalization targets. Some parts of pipeline will
             only be instantiated for some output spaces. Valid spaces:
+
               - Any template identifier from TemplateFlow
-              - Path to a template folder organized following TemplateFlow's conventions
+              - Path to a template folder organized following TemplateFlow's
+                conventions
+
         hires : bool
             Enable sub-millimeter preprocessing in FreeSurfer
         longitudinal : bool
@@ -99,9 +103,11 @@ def init_anat_preproc_wf(
             Directory in which to save reportlets
         skull_strip_fixed_seed : bool
             Do not use a random seed for skull-stripping - will ensure
-            run-to-run replicability when used with --omp-nthreads 1 (default: ``False``)
+            run-to-run replicability when used with --omp-nthreads 1
+            (default: ``False``).
         skull_strip_template : str
-            Name of ANTs skull-stripping template ('MNI152NLin2009cAsym', 'OASIS30ANTs' or 'NKI')
+            Name of ANTs skull-stripping template (``'MNI152NLin2009cAsym'``,
+            ``'OASIS30ANTs'`` or ``'NKI'``)
 
 
     **Inputs**
@@ -146,9 +152,11 @@ def init_anat_preproc_wf(
         subject_id
             FreeSurfer subject ID
         t1_2_fsnative_forward_transform
-            LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
+            LTA-style affine matrix translating from T1w to
+            FreeSurfer-conformed subject space
         t1_2_fsnative_reverse_transform
-            LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+            LTA-style affine matrix translating from FreeSurfer-conformed
+            subject space to T1w
         surfaces
             GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
 
@@ -196,7 +204,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
         fields=['t1_preproc', 't1_brain', 't1_mask', 't1_seg', 't1_tpms',
-                'warped', 'forward_transform', 'reverse_transform',
+                'template', 'warped', 'forward_transform', 'reverse_transform',
+                'joint_template', 'joint_forward_transform', 'joint_reverse_transform',
                 'tpl_mask', 'tpl_seg', 'tpl_tpms',
                 'template_transforms',
                 'subjects_dir', 'subject_id', 't1_2_fsnative_forward_transform',
@@ -301,12 +310,17 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (t1_seg, anat_norm_wf, [
             ('probability_maps', 'inputnode.moving_tpms')]),
         (anat_norm_wf, outputnode, [
-            ('outputnode.warped', 'warped'),
-            ('outputnode.forward_transform', 'forward_transform'),
-            ('outputnode.reverse_transform', 'reverse_transform'),
-            ('outputnode.tpl_mask', 'tpl_mask'),
-            ('outputnode.tpl_seg', 'tpl_seg'),
-            ('outputnode.tpl_tpms', 'tpl_tpms')]),
+            ('poutputnode.warped', 'warped'),
+            ('poutputnode.template', 'template'),
+            ('poutputnode.forward_transform', 'forward_transform'),
+            ('poutputnode.reverse_transform', 'reverse_transform'),
+            ('poutputnode.tpl_mask', 'tpl_mask'),
+            ('poutputnode.tpl_seg', 'tpl_seg'),
+            ('poutputnode.tpl_tpms', 'tpl_tpms'),
+            ('outputnode.template', 'joint_template'),
+            ('outputnode.forward_transform', 'joint_forward_transform'),
+            ('outputnode.reverse_transform', 'joint_reverse_transform'),
+        ]),
     ])
     anat_reports_wf = init_anat_reports_wf(
         reportlets_dir=reportlets_dir, freesurfer=freesurfer)
@@ -338,7 +352,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
         (anat_norm_wf, anat_derivatives_wf, [
-            ('outputnode.template', 'inputnode.template')]),
+            ('poutputnode.template', 'inputnode.template')]),
         (outputnode, anat_derivatives_wf, [
             ('warped', 'inputnode.t1_2_tpl'),
             ('forward_transform', 'inputnode.t1_2_tpl_forward_transform'),
@@ -368,7 +382,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
 
 def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_template_wf'):
-    r"""
+    """
     This workflow generates a canonically oriented structural template from
     input T1w images.
 
@@ -378,7 +392,8 @@ def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_templa
         :simple_form: yes
 
         from smriprep.workflows.anatomical import init_anat_template_wf
-        wf = init_anat_template_wf(longitudinal=False, omp_nthreads=1, num_t1w=1)
+        wf = init_anat_template_wf(
+            longitudinal=False, omp_nthreads=1, num_t1w=1)
 
     **Parameters**
 
@@ -404,7 +419,8 @@ def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_templa
         t1_template
             Structural template, defining T1w space
         template_transforms
-            List of affine transforms from ``t1_template`` to original T1w images
+            List of affine transforms from ``t1_template`` to original
+            T1w images
         out_report
             Conformation report
     """
