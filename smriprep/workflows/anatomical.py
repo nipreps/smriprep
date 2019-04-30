@@ -310,16 +310,17 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (t1_seg, anat_norm_wf, [
             ('probability_maps', 'inputnode.moving_tpms')]),
         (anat_norm_wf, outputnode, [
-            ('outputnode.warped', 'warped'),
-            ('outputnode.template', 'template'),
-            ('outputnode.forward_transform', 'forward_transform'),
-            ('outputnode.reverse_transform', 'reverse_transform'),
-            ('jointoutput.template', 'joint_template'),
-            ('jointoutput.forward_transform', 'joint_forward_transform'),
-            ('jointoutput.reverse_transform', 'joint_reverse_transform'),
-            ('outputnode.tpl_mask', 'tpl_mask'),
-            ('outputnode.tpl_seg', 'tpl_seg'),
-            ('outputnode.tpl_tpms', 'tpl_tpms')]),
+            ('poutputnode.warped', 'warped'),
+            ('poutputnode.template', 'template'),
+            ('poutputnode.forward_transform', 'forward_transform'),
+            ('poutputnode.reverse_transform', 'reverse_transform'),
+            ('poutputnode.tpl_mask', 'tpl_mask'),
+            ('poutputnode.tpl_seg', 'tpl_seg'),
+            ('poutputnode.tpl_tpms', 'tpl_tpms'),
+            ('outputnode.template', 'joint_template'),
+            ('outputnode.forward_transform', 'joint_forward_transform'),
+            ('outputnode.reverse_transform', 'joint_reverse_transform'),
+        ]),
     ])
     anat_reports_wf = init_anat_reports_wf(
         reportlets_dir=reportlets_dir, freesurfer=freesurfer)
@@ -351,7 +352,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
         (anat_norm_wf, anat_derivatives_wf, [
-            ('outputnode.template', 'inputnode.template')]),
+            ('poutputnode.template', 'inputnode.template')]),
         (outputnode, anat_derivatives_wf, [
             ('warped', 'inputnode.t1_2_tpl'),
             ('forward_transform', 'inputnode.t1_2_tpl_forward_transform'),

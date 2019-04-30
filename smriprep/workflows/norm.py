@@ -140,16 +140,9 @@ The following template{tpls} selected for spatial normalization:
         'lesion_mask', 'orig_t1w', 'template']),
         name='inputnode')
     inputnode.iterables = [('template', template_list)]
-    outputnode = pe.Node(niu.IdentityInterface(
-        fields=['warped', 'forward_transform', 'reverse_transform',
-                'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']),
-        name='outputnode')
-    jointoutput = pe.JoinNode(niu.IdentityInterface(
-        fields=['warped', 'forward_transform', 'reverse_transform',
-                'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']),
-        name='jointoutput', joinsource='inputnode',
-        joinfield=['warped', 'forward_transform', 'reverse_transform',
-                   'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template'])
+    out_fields = ['warped', 'forward_transform', 'reverse_transform',
+                  'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']
+    poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
 
     fixed_tpl = pe.Node(niu.Function(function=_templateflow_ds),
                         name='fixed_tpl', run_without_submitting=True)
@@ -192,22 +185,14 @@ The following template{tpls} selected for spatial normalization:
         (registration, tpl_seg, [('composite_transform', 'transforms')]),
         (inputnode, tpl_tpms, [('moving_tpms', 'input_image')]),
         (registration, tpl_tpms, [('composite_transform', 'transforms')]),
-        (registration, outputnode, [
+        (registration, poutputnode, [
             ('warped_image', 'warped'),
             ('composite_transform', 'forward_transform'),
             ('inverse_composite_transform', 'reverse_transform')]),
-        (tpl_mask, outputnode, [('output_image', 'tpl_mask')]),
-        (tpl_seg, outputnode, [('output_image', 'tpl_seg')]),
-        (tpl_tpms, outputnode, [('output_image', 'tpl_tpms')]),
-        (inputnode, outputnode, [('template', 'template')]),
-        (registration, jointoutput, [
-            ('warped_image', 'warped'),
-            ('composite_transform', 'forward_transform'),
-            ('inverse_composite_transform', 'reverse_transform')]),
-        (tpl_mask, jointoutput, [('output_image', 'tpl_mask')]),
-        (tpl_seg, jointoutput, [('output_image', 'tpl_seg')]),
-        (tpl_tpms, jointoutput, [('output_image', 'tpl_tpms')]),
-        (inputnode, jointoutput, [('template', 'template')]),
+        (tpl_mask, poutputnode, [('output_image', 'tpl_mask')]),
+        (tpl_seg, poutputnode, [('output_image', 'tpl_seg')]),
+        (tpl_tpms, poutputnode, [('output_image', 'tpl_tpms')]),
+        (inputnode, poutputnode, [('template', 'template')]),
     ])
 
     # Store report
@@ -221,6 +206,14 @@ The following template{tpls} selected for spatial normalization:
             ('orig_t1w', 'source_file')]),
         (registration, ds_t1_2_tpl_report, [('out_report', 'in_file')]),
     ])
+
+    # Provide synchronized output
+    outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
+                             name='outputnode', joinsource='inputnode')
+    workflow.connect([
+        (poutputnode, outputnode, [(f, f) for f in out_fields]),
+    ])
+
     return workflow
 
 
