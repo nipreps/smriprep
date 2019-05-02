@@ -80,45 +80,52 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
     raw_sources.inputs.bids_root = bids_root
 
     ds_t1_preproc = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True),
+        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
+                            compress=True),
         name='ds_t1_preproc', run_without_submitting=True)
     ds_t1_preproc.inputs.SkullStripped = False
 
     ds_t1_mask = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask'),
+        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
+                            compress=True),
         name='ds_t1_mask', run_without_submitting=True)
     ds_t1_mask.inputs.Type = 'Brain'
 
     lut_t1_seg = pe.Node(niu.Function(function=_apply_default_bids_lut),
                          name='lut_t1_seg')
     ds_t1_seg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='dseg'),
+        DerivativesDataSink(base_directory=output_dir, suffix='dseg',
+                            compress=True),
         name='ds_t1_seg', run_without_submitting=True)
 
     ds_t1_tpms = pe.Node(
         DerivativesDataSink(base_directory=output_dir,
-                            suffix='probseg'),
+                            suffix='probseg', compress=True),
         name='ds_t1_tpms', run_without_submitting=True)
     ds_t1_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
     ds_t1_tpl = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True),
+        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
+                            compress=True),
         name='ds_t1_tpl', run_without_submitting=True)
     ds_t1_tpl.inputs.SkullStripped = True
 
     ds_tpl_mask = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask'),
+        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
+                            compress=True),
         name='ds_tpl_mask', run_without_submitting=True)
     ds_tpl_mask.inputs.Type = 'Brain'
 
     lut_tpl_seg = pe.Node(niu.Function(function=_apply_default_bids_lut),
                           name='lut_tpl_seg')
     ds_tpl_seg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='dseg'),
+        DerivativesDataSink(base_directory=output_dir, suffix='dseg',
+                            compress=True),
         name='ds_tpl_seg', run_without_submitting=True)
 
     ds_tpl_tpms = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='probseg'),
+        DerivativesDataSink(base_directory=output_dir, suffix='probseg',
+                            compress=True),
         name='ds_tpl_tpms', run_without_submitting=True)
     ds_tpl_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
@@ -203,13 +210,12 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
 
     if freesurfer:
         ds_t1_fsaseg = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg'),
+            DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg',
+                                compress=True),
             name='ds_t1_fsaseg', run_without_submitting=True)
         ds_t1_fsparc = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg'),
-            name='ds_t1_fsparc', run_without_submitting=True)
-        ds_t1_fsparc = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg'),
+            DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg',
+                                compress=True),
             name='ds_t1_fsparc', run_without_submitting=True)
 
         workflow.connect([
