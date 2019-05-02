@@ -242,7 +242,7 @@ def build_opts(opts):
     # Clean up master process before running workflow, which may create forks
     gc.collect()
     try:
-        smriprep_wf.run(**plugin_settings)
+        smriprep_wf.run(updatehash=opts.sloppy, **plugin_settings)
     except RuntimeError:
         errno = 1
     else:
