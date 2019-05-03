@@ -1,10 +1,13 @@
-0.2.0 (April 25, 2019)
-======================
+0.2.0 (May 3, 2019)
+===================
 
 This new release of sMRIPrep adds the possibility of specifying several
 spatial normalization targets via the ``--output-spaces`` option drafted
 in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/1588>`__.
 
+* ENH: Force compression of derivative NIfTI volumes (#80) @effigies
+* DOC/STY: Fix documentation build, simplify (non)parametric output nodes (#79) @oesteban
+* FIX: Resolve behavior when deprecated ``--template`` is given (#77) @oesteban
 * ENH: Pull list of spatial normalization templates from TemplateFlow (#68) @oesteban
 * ENH: CLI uses ``pathlib.Path`` when possible (#73) @oesteban
 * ENH: Create a spatial normalization workflow (#72) @oesteban
