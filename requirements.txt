@@ -1,4 +1,4 @@
 indexed_gzip>=0.8.8
 nilearn!=0.5.0,!=0.5.1
-git+https://github.com/oesteban/niworkflows.git@ff46cb11f27e7b8f9033087ffd291e0b90651b49#egg=niworkflows
+git+https://github.com/oesteban/niworkflows.git@9c225461c5b2929df6fce7647ed8bc34b42c7fd0#egg=niworkflows
 templateflow<0.2.0a0,>=0.1.7
