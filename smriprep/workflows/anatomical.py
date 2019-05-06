@@ -26,7 +26,7 @@ from niworkflows.interfaces.freesurfer import (
     PatchedConcatenateLTA as ConcatenateLTA,
     PatchedLTAConvert as LTAConvert,
 )
-from niworkflows.interfaces.images import TemplateDimensions, Conform
+from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf
 from .norm import init_anat_norm_wf
@@ -218,6 +218,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     anat_template_wf = init_anat_template_wf(longitudinal=longitudinal, omp_nthreads=omp_nthreads,
                                              num_t1w=num_t1w)
 
+    anat_validate = pe.Node(ValidateImage(), name='anat_validate',
+                            run_without_submitting=True)
+
     # 3. Skull-stripping
     # Bias field correction is handled in skull strip workflows.
     brain_extraction_wf = init_brain_extraction_wf(
@@ -228,8 +231,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     workflow.connect([
         (inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')]),
-        (anat_template_wf, brain_extraction_wf, [
-            ('outputnode.t1_template', 'inputnode.in_files')]),
+        (anat_template_wf, anat_validate, [
+            ('outputnode.t1_template', 'in_file')]),
+        (anat_validate, brain_extraction_wf, [
+            ('out_file', 'inputnode.in_files')]),
         (brain_extraction_wf, outputnode, [
             ('outputnode.bias_corrected', 't1_preproc')]),
         (anat_template_wf, outputnode, [
@@ -249,7 +254,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 ('flair', 'inputnode.flair'),
                 ('subjects_dir', 'inputnode.subjects_dir'),
                 ('subject_id', 'inputnode.subject_id')]),
-            (anat_template_wf, surface_recon_wf, [('outputnode.t1_template', 'inputnode.t1w')]),
+            (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
             (brain_extraction_wf, surface_recon_wf, [
                 (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
                 ('outputnode.out_segm', 'inputnode.ants_segs'),
