@@ -48,7 +48,7 @@ REQUIRES = [
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
     'nipype>=1.1.6',
-    'niworkflows',
+    'niworkflows<0.10.0a0,>=0.9.2',
     'numpy',
     'packaging',
     'pybids',
@@ -58,8 +58,6 @@ REQUIRES = [
 
 
 LINKS_REQUIRES = [
-    'git+https://github.com/poldracklab/niworkflows.git@'
-    'fe6f301fcffb6397eefb4d268b19586c8ff2c951#egg=niworkflows',
 ]
 
 TESTS_REQUIRES = [
