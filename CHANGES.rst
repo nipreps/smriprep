@@ -1,3 +1,10 @@
+0.2.1 (May 6, 2019)
+===================
+
+Hotfix release improving the reliability of the brain extraction workflow.
+
+* FIX: Keep header consistency along anatomical workflow (#83) @oesteban
+
 0.2.0 (May 3, 2019)
 ===================
 
