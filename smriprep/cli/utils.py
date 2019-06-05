@@ -35,11 +35,32 @@ def _template(inlist):
 
     templates = []
     for item in reversed(inlist):
-        item = item.split(':')
-        tpl_arg = (item[0], {})
-        for i in item[1:]:
-            modifier = i.split('-', 1)
-            tpl_arg[1][modifier[0]] = modifier[1] if len(modifier) == 2 else None
-        templates.append(tpl_arg)
+        templates.append(output_space(item))
 
     return OrderedDict(reversed(OrderedDict(templates).items()))
+
+
+def output_space(value):
+    """Parse one element of ``--output-spaces``.
+
+    >>> output_space('MNI152NLin2009cAsym')
+    ('MNI152NLin2009cAsym', {})
+
+    >>> output_space('MNI152NLin2009cAsym:native')
+    ('MNI152NLin2009cAsym', {'native': True})
+
+    >>> output_space('MNI152NLin2009cAsym:res-2')
+    ('MNI152NLin2009cAsym', {'res': '2'})
+
+    >>> output_space('MNIInfant:res-2:cohort-1')
+    ('MNIInfant', {'res': '2', 'cohort': '1'})
+
+    """
+    tpl_args = value.split(':')
+    template = tpl_args[0]
+    spec = {}
+    for modifier in tpl_args[1:]:
+        mitems = modifier.split('-', 1)
+        spec[mitems[0]] = len(mitems) == 1 or mitems[1]
+
+    return template, spec

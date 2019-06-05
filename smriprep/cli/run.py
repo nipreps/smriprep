@@ -29,7 +29,7 @@ def get_parser():
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
     from templateflow.api import templates
-    from .utils import ParseTemplates
+    from .utils import ParseTemplates, output_space as _output_space
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -89,9 +89,9 @@ def get_parser():
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
-    g_ants.add_argument('--skull-strip-template', action='store', default='OASIS30ANTs',
-                        choices=['OASIS30ANTs', 'NKI', 'MNI152NLin2009cAsym'],
-                        help='select ANTs skull-stripping template (default: OASIS30ANTs))')
+    g_ants.add_argument(
+        '--skull-strip-template', action='store', default='OASIS30ANTs', type=_output_space,
+        help='select a template for skull-stripping with antsBrainExtraction')
     g_ants.add_argument('--skull-strip-fixed-seed', action='store_true',
                         help='do not use a random seed for skull-stripping - will ensure '
                              'run-to-run replicability when used with --omp-nthreads 1')
