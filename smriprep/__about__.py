@@ -53,7 +53,7 @@ REQUIRES = [
     'packaging',
     'pybids',
     'pyyaml',
-    'templateflow<0.2.0a0,>=0.1.7',
+    'templateflow<0.4.0a0,>=0.3.0',
 ]
 
 
