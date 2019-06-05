@@ -67,7 +67,7 @@ def init_anat_preproc_wf(
             output_spaces=OrderedDict([
                 ('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
             reportlets_dir='.',
-            skull_strip_template='MNI152NLin2009cAsym',
+            skull_strip_template=('MNI152NLin2009cAsym', {}),
         )
 
 
@@ -105,9 +105,8 @@ def init_anat_preproc_wf(
             Do not use a random seed for skull-stripping - will ensure
             run-to-run replicability when used with --omp-nthreads 1
             (default: ``False``).
-        skull_strip_template : str
-            Name of ANTs skull-stripping template (``'MNI152NLin2009cAsym'``,
-            ``'OASIS30ANTs'`` or ``'NKI'``)
+        skull_strip_template : tuple
+            Name of ANTs skull-stripping template and specifications.
 
 
     **Inputs**
@@ -196,7 +195,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         ants_ver=ANTsInfo.version() or '(version unknown)',
         fsl_ver=fsl.FAST().version or '(version unknown)',
         num_t1w=num_t1w,
-        skullstrip_tpl=skull_strip_template,
+        skullstrip_tpl=skull_strip_template[0],
     )
 
     inputnode = pe.Node(
@@ -224,7 +223,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # 3. Skull-stripping
     # Bias field correction is handled in skull strip workflows.
     brain_extraction_wf = init_brain_extraction_wf(
-        in_template=skull_strip_template,
+        in_template=skull_strip_template[0],
+        template_spec=skull_strip_template[1],
         atropos_use_random_seed=not skull_strip_fixed_seed,
         omp_nthreads=omp_nthreads,
         normalization_quality='precise' if not debug else 'testing')

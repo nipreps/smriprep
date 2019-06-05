@@ -77,7 +77,7 @@ def init_smriprep_wf(
                                        ('fsaverage5', {})]),
             run_uuid='testrun',
             skull_strip_fixed_seed=False,
-            skull_strip_template='OASIS30ANTs',
+            skull_strip_template=('OASIS30ANTs', {}),
             subject_list=['smripreptest'],
             work_dir='.',
         )
@@ -112,8 +112,9 @@ def init_smriprep_wf(
         skull_strip_fixed_seed : bool
             Do not use a random seed for skull-stripping - will ensure
             run-to-run replicability when used with --omp-nthreads 1
-        skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
+        skull_strip_template : tuple
+            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI'),
+            and dictionary with template specifications (e.g., {'res': '2'})
         subject_list : list
             List of subject labels
         work_dir : str
@@ -213,7 +214,7 @@ def init_single_subject_wf(
                                        ('fsaverage5', {})]),
             reportlets_dir='.',
             skull_strip_fixed_seed=False,
-            skull_strip_template='OASIS30ANTs,
+            skull_strip_template=('OASIS30ANTs', {}),
             subject_id='test',
         )
 
@@ -250,8 +251,9 @@ def init_single_subject_wf(
         skull_strip_fixed_seed : bool
             Do not use a random seed for skull-stripping - will ensure
             run-to-run replicability when used with --omp-nthreads 1
-        skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
+        skull_strip_template : tuple
+            Name of ANTs skull-stripping template (e.g., 'OASIS30ANTs') and
+            dictionary of template specifications.
         subject_id : str
             List of subject labels
 
