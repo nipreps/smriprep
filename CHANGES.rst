@@ -1,3 +1,10 @@
+0.2.2 (June 5, 2019)
+====================
+
+Enable latest templates added to TemplateFlow.
+
+* PIN: templateflow-0.3.0, which includes infant/pediatric templates (#88) @oesteban
+
 0.2.1 (May 6, 2019)
 ===================
 
