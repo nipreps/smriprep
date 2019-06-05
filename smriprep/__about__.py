@@ -48,12 +48,12 @@ REQUIRES = [
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
     'nipype>=1.1.6',
-    'niworkflows<0.10.0a0,>=0.9.2',
+    'niworkflows<0.10.0a0,>=0.9.4',
     'numpy',
     'packaging',
     'pybids',
     'pyyaml',
-    'templateflow<0.2.0a0,>=0.1.7',
+    'templateflow<0.4.0a0,>=0.3.0',
 ]
 
 
