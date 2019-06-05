@@ -1,3 +1,10 @@
+0.2.3 (June 5, 2019)
+====================
+
+Enable CLI to set pediatric and infant templates for skull-stripping.
+
+* ENH: Allow template modifiers (a la ``--output-spaces``) in skull-stripping (#89) @oesteban
+
 0.2.2 (June 5, 2019)
 ====================
 
