@@ -26,6 +26,7 @@ def init_anat_norm_wf(
     omp_nthreads,
     reportlets_dir,
     template_list,
+    template_specs=None,
 ):
     """
     An individual spatial normalization workflow using ``antsRegistration``.
@@ -97,6 +98,9 @@ def init_anat_norm_wf(
 
     """
 
+    if not isinstance(template_list, (list, tuple)):
+        template_list = [template_list]
+
     templateflow = templates()
     if any(template not in templateflow for template in template_list):
         raise NotImplementedError(
@@ -119,6 +123,13 @@ The following template{tpls} selected for spatial normalization:
         targets_id=', '.join(template_list),
         tpls=(' was', 's were')[len(template_list) != 1]
     )
+
+    if not template_specs:
+        template_specs = [{}] * len(template_list)
+
+    if len(template_list) != len(template_specs):
+        raise RuntimeError('Number of templates (%d) doesn\'t match the number of specs '
+                           '(%d) provided.' % (len(template_list), len(template_specs)))
 
     # Append template citations to description
     for template in template_list:
@@ -144,8 +155,10 @@ The following template{tpls} selected for spatial normalization:
                   'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']
     poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
 
-    fixed_tpl = pe.Node(niu.Function(function=_templateflow_ds),
-                        name='fixed_tpl', run_without_submitting=True)
+    tpl_specs = pe.Node(niu.Function(function=_select_specs),
+                        name='tpl_specs', run_without_submitting=True)
+    tpl_specs.inputs.template_list = template_list
+    tpl_specs.inputs.template_specs = template_specs
 
     # With the improvements from poldracklab/niworkflows#342 this truncation is now necessary
     trunc_mov = pe.Node(ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
@@ -168,16 +181,17 @@ The following template{tpls} selected for spatial normalization:
                           iterfield=['input_image'], name='tpl_tpms')
 
     workflow.connect([
-        (inputnode, fixed_tpl, [('template', 'template')]),
+        (inputnode, tpl_specs, [('template', 'template')]),
         (inputnode, registration, [('template', 'template')]),
         (inputnode, trunc_mov, [('moving_image', 'op1')]),
         (inputnode, registration, [
             ('moving_mask', 'moving_mask'),
             ('lesion_mask', 'lesion_mask')]),
         (inputnode, tpl_mask, [('moving_mask', 'input_image')]),
-        (fixed_tpl, tpl_mask, [('out', 'reference_image')]),
-        (fixed_tpl, tpl_seg, [('out', 'reference_image')]),
-        (fixed_tpl, tpl_tpms, [('out', 'reference_image')]),
+        (tpl_specs, registration, [('out', 'template_spec')]),
+        (registration, tpl_mask, [('reference_image', 'reference_image')]),
+        (registration, tpl_seg, [('reference_image', 'reference_image')]),
+        (registration, tpl_tpms, [('reference_image', 'reference_image')]),
         (trunc_mov, registration, [
             ('output_image', 'moving_image')]),
         (registration, tpl_mask, [('composite_transform', 'transforms')]),
@@ -217,8 +231,5 @@ The following template{tpls} selected for spatial normalization:
     return workflow
 
 
-def _templateflow_ds(template, resolution=1, desc=None, suffix='T1w',
-                     extensions=('.nii', '.nii.gz')):
-    from templateflow.api import get as get_template
-    return str(get_template(template, resolution=resolution, desc=desc,
-                            suffix=suffix, extensions=extensions))
+def _select_specs(template, template_list, template_specs):
+    return template_specs[template_list.index(template)]
