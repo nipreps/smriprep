@@ -16,8 +16,9 @@ from nipype.interfaces.ants.base import Info as ANTsInfo
 from templateflow.api import get_metadata, templates
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.ants import ImageMath
-from niworkflows.interfaces.registration import RobustMNINormalizationRPT
+from niworkflows.interfaces.mni import RobustMNINormalization
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
+from niworkflows.interfaces import SimpleBeforeAfter
 from ..interfaces import DerivativesDataSink
 
 
@@ -26,6 +27,7 @@ def init_anat_norm_wf(
     omp_nthreads,
     reportlets_dir,
     template_list,
+    template_specs=None,
 ):
     """
     An individual spatial normalization workflow using ``antsRegistration``.
@@ -97,6 +99,9 @@ def init_anat_norm_wf(
 
     """
 
+    if not isinstance(template_list, (list, tuple)):
+        template_list = [template_list]
+
     templateflow = templates()
     if any(template not in templateflow for template in template_list):
         raise NotImplementedError(
@@ -119,6 +124,13 @@ The following template{tpls} selected for spatial normalization:
         targets_id=', '.join(template_list),
         tpls=(' was', 's were')[len(template_list) != 1]
     )
+
+    if not template_specs:
+        template_specs = [{}] * len(template_list)
+
+    if len(template_list) != len(template_specs):
+        raise RuntimeError('Number of templates (%d) doesn\'t match the number of specs '
+                           '(%d) provided.' % (len(template_list), len(template_specs)))
 
     # Append template citations to description
     for template in template_list:
@@ -144,19 +156,26 @@ The following template{tpls} selected for spatial normalization:
                   'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']
     poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
 
-    fixed_tpl = pe.Node(niu.Function(function=_templateflow_ds),
-                        name='fixed_tpl', run_without_submitting=True)
+    tpl_specs = pe.Node(niu.Function(function=_select_specs),
+                        name='tpl_specs', run_without_submitting=True)
+    tpl_specs.inputs.template_list = template_list
+    tpl_specs.inputs.template_specs = template_specs
+
+    tpl_select = pe.Node(niu.Function(function=_get_template),
+                         name='tpl_select', run_without_submitting=True)
 
     # With the improvements from poldracklab/niworkflows#342 this truncation is now necessary
     trunc_mov = pe.Node(ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
                         name='trunc_mov')
 
-    registration = pe.Node(RobustMNINormalizationRPT(
-        float=True, generate_report=True,
-        flavor=['precise', 'testing'][debug],
+    registration = pe.Node(RobustMNINormalization(
+        float=True, flavor=['precise', 'testing'][debug],
     ), name='registration', n_procs=omp_nthreads, mem_gb=2)
 
-    # Resample the brain mask and the tissue probability maps into template space
+    # Resample T1w-space inputs
+    tpl_moving = pe.Node(ApplyTransforms(
+        dimension=3, default_value=0, float=True,
+        interpolation='LanczosWindowedSinc'), name='tpl_moving')
     tpl_mask = pe.Node(ApplyTransforms(dimension=3, default_value=0, float=True,
                                        interpolation='MultiLabel'), name='tpl_mask')
 
@@ -164,47 +183,76 @@ The following template{tpls} selected for spatial normalization:
                                       interpolation='MultiLabel'), name='tpl_seg')
 
     tpl_tpms = pe.MapNode(ApplyTransforms(dimension=3, default_value=0, float=True,
-                                          interpolation='BSpline'),
+                                          interpolation='Gaussian'),
                           iterfield=['input_image'], name='tpl_tpms')
 
     workflow.connect([
-        (inputnode, fixed_tpl, [('template', 'template')]),
+        (inputnode, tpl_specs, [('template', 'template')]),
+        (inputnode, tpl_select, [('template', 'template')]),
         (inputnode, registration, [('template', 'template')]),
         (inputnode, trunc_mov, [('moving_image', 'op1')]),
         (inputnode, registration, [
             ('moving_mask', 'moving_mask'),
             ('lesion_mask', 'lesion_mask')]),
+        (inputnode, tpl_moving, [('moving_image', 'input_image')]),
         (inputnode, tpl_mask, [('moving_mask', 'input_image')]),
-        (fixed_tpl, tpl_mask, [('out', 'reference_image')]),
-        (fixed_tpl, tpl_seg, [('out', 'reference_image')]),
-        (fixed_tpl, tpl_tpms, [('out', 'reference_image')]),
+        (tpl_specs, tpl_select, [('out', 'template_spec')]),
+        (tpl_specs, registration, [(('out', _drop_res), 'template_spec')]),
+        (tpl_select, tpl_moving, [('out', 'reference_image')]),
+        (tpl_select, tpl_mask, [('out', 'reference_image')]),
+        (tpl_select, tpl_seg, [('out', 'reference_image')]),
+        (tpl_select, tpl_tpms, [('out', 'reference_image')]),
         (trunc_mov, registration, [
             ('output_image', 'moving_image')]),
+        (registration, tpl_moving, [('composite_transform', 'transforms')]),
         (registration, tpl_mask, [('composite_transform', 'transforms')]),
         (inputnode, tpl_seg, [('moving_segmentation', 'input_image')]),
         (registration, tpl_seg, [('composite_transform', 'transforms')]),
         (inputnode, tpl_tpms, [('moving_tpms', 'input_image')]),
         (registration, tpl_tpms, [('composite_transform', 'transforms')]),
         (registration, poutputnode, [
-            ('warped_image', 'warped'),
             ('composite_transform', 'forward_transform'),
             ('inverse_composite_transform', 'reverse_transform')]),
+        (tpl_moving, poutputnode, [('output_image', 'warped')]),
         (tpl_mask, poutputnode, [('output_image', 'tpl_mask')]),
         (tpl_seg, poutputnode, [('output_image', 'tpl_seg')]),
         (tpl_tpms, poutputnode, [('output_image', 'tpl_tpms')]),
         (inputnode, poutputnode, [('template', 'template')]),
     ])
 
-    # Store report
+    # Generate and store report
+    msk_select = pe.Node(niu.Function(
+        function=_get_template, input_names=['template', 'template_spec',
+                                             'suffix', 'desc']),
+        name='msk_select', run_without_submitting=True)
+    msk_select.inputs.desc = 'brain'
+    msk_select.inputs.suffix = 'mask'
+
+    norm_msk = pe.Node(niu.Function(
+        function=_rpt_masks, output_names=['before', 'after'],
+        input_names=['mask_file', 'before', 'after', 'after_mask']),
+        name='norm_msk')
+    norm_rpt = pe.Node(SimpleBeforeAfter(), name='norm_rpt', mem_gb=0.1)
+    norm_rpt.inputs.after_label = 'Participant'  # after
+
     ds_t1_2_tpl_report = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir, keep_dtype=True),
         name='ds_t1_2_tpl_report', run_without_submitting=True)
 
     workflow.connect([
+        (inputnode, msk_select, [('template', 'template')]),
+        (inputnode, norm_rpt, [('template', 'before_label')]),
+        (tpl_mask, norm_msk, [('output_image', 'after_mask')]),
+        (tpl_specs, msk_select, [('out', 'template_spec')]),
+        (msk_select, norm_msk, [('out', 'mask_file')]),
+        (tpl_select, norm_msk, [('out', 'before')]),
+        (tpl_moving, norm_msk, [('output_image', 'after')]),
+        (norm_msk, norm_rpt, [('before', 'before'),
+                              ('after', 'after')]),
         (inputnode, ds_t1_2_tpl_report, [
             ('template', 'space'),
             ('orig_t1w', 'source_file')]),
-        (registration, ds_t1_2_tpl_report, [('out_report', 'in_file')]),
+        (norm_rpt, ds_t1_2_tpl_report, [('out_report', 'in_file')]),
     ])
 
     # Provide synchronized output
@@ -217,8 +265,34 @@ The following template{tpls} selected for spatial normalization:
     return workflow
 
 
-def _templateflow_ds(template, resolution=1, desc=None, suffix='T1w',
-                     extensions=('.nii', '.nii.gz')):
-    from templateflow.api import get as get_template
-    return str(get_template(template, resolution=resolution, desc=desc,
-                            suffix=suffix, extensions=extensions))
+def _rpt_masks(mask_file, before, after, after_mask=None):
+    from os.path import abspath
+    import nibabel as nb
+    msk = nb.load(mask_file).get_fdata() > 0
+    bnii = nb.load(before)
+    nb.Nifti1Image(bnii.get_fdata() * msk,
+                   bnii.affine, bnii.header).to_filename('before.nii.gz')
+    if after_mask is not None:
+        msk = nb.load(after_mask).get_fdata() > 0
+
+    anii = nb.load(after)
+    nb.Nifti1Image(anii.get_fdata() * msk,
+                   anii.affine, anii.header).to_filename('after.nii.gz')
+    return abspath('before.nii.gz'), abspath('after.nii.gz')
+
+
+def _select_specs(template, template_list, template_specs):
+    return template_specs[template_list.index(template)]
+
+
+def _get_template(template, template_spec, suffix='T1w', desc=None):
+    from niworkflows.utils.misc import get_template_specs
+    template_spec['suffix'] = suffix
+    template_spec['desc'] = desc
+    return get_template_specs(template, template_spec=template_spec)[0]
+
+
+def _drop_res(in_dict):
+    in_dict.pop('res', None)
+    in_dict.pop('resoluton', None)
+    return in_dict

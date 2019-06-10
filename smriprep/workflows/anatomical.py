@@ -302,7 +302,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         debug=debug,
         omp_nthreads=omp_nthreads,
         reportlets_dir=reportlets_dir,
-        template_list=vol_spaces)
+        template_list=vol_spaces,
+        template_specs=[output_spaces[k] for k in vol_spaces])
     workflow.connect([
         (inputnode, anat_norm_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.orig_t1w'),
