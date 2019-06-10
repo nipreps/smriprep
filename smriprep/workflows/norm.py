@@ -229,7 +229,8 @@ The following template{tpls} selected for spatial normalization:
     msk_select.inputs.suffix = 'mask'
 
     norm_msk = pe.Node(niu.Function(
-        function=_rpt_masks, output_names=['before', 'after']),
+        function=_rpt_masks, output_names=['before', 'after'],
+        input_names=['mask_file', 'before', 'after', 'after_mask']),
         name='norm_msk')
     norm_rpt = pe.Node(SimpleBeforeAfter(), name='norm_rpt', mem_gb=0.1)
     norm_rpt.inputs.after_label = 'Participant'  # after
@@ -241,6 +242,7 @@ The following template{tpls} selected for spatial normalization:
     workflow.connect([
         (inputnode, msk_select, [('template', 'template')]),
         (inputnode, norm_rpt, [('template', 'before_label')]),
+        (tpl_mask, norm_msk, [('output_image', 'after_mask')]),
         (tpl_specs, msk_select, [('out', 'template_spec')]),
         (msk_select, norm_msk, [('out', 'mask_file')]),
         (tpl_select, norm_msk, [('out', 'before')]),
@@ -263,13 +265,16 @@ The following template{tpls} selected for spatial normalization:
     return workflow
 
 
-def _rpt_masks(mask_file, before, after):
+def _rpt_masks(mask_file, before, after, after_mask=None):
     from os.path import abspath
     import nibabel as nb
     msk = nb.load(mask_file).get_fdata() > 0
     bnii = nb.load(before)
     nb.Nifti1Image(bnii.get_fdata() * msk,
                    bnii.affine, bnii.header).to_filename('before.nii.gz')
+    if after_mask is not None:
+        msk = nb.load(after_mask).get_fdata() > 0
+
     anii = nb.load(after)
     nb.Nifti1Image(anii.get_fdata() * msk,
                    anii.affine, anii.header).to_filename('after.nii.gz')
