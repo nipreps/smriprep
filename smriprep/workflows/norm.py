@@ -16,7 +16,7 @@ from nipype.interfaces.ants.base import Info as ANTsInfo
 from templateflow.api import get_metadata, templates
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.ants import ImageMath
-from niworkflows.interfaces.registration import RobustMNINormalizationRPT
+from niworkflows.interfaces.mni import RobustMNINormalization
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces import SimpleBeforeAfter
 from ..interfaces import DerivativesDataSink
@@ -168,9 +168,8 @@ The following template{tpls} selected for spatial normalization:
     trunc_mov = pe.Node(ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
                         name='trunc_mov')
 
-    registration = pe.Node(RobustMNINormalizationRPT(
-        float=True, generate_report=True,
-        flavor=['precise', 'testing'][debug],
+    registration = pe.Node(RobustMNINormalization(
+        float=True, flavor=['precise', 'testing'][debug],
     ), name='registration', n_procs=omp_nthreads, mem_gb=2)
 
     # Resample T1w-space inputs
