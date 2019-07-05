@@ -156,10 +156,13 @@ The following template{tpls} selected for spatial normalization:
                   'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']
     poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
 
-    tpl_specs = pe.Node(niu.Function(function=_select_specs),
-                        name='tpl_specs', run_without_submitting=True)
+    tpl_specs = pe.Node(niu.Function(
+        function=_select_specs,
+        input_names=['template_list', 'template_specs', 'force_res']),
+        name='tpl_specs', run_without_submitting=True)
     tpl_specs.inputs.template_list = template_list
     tpl_specs.inputs.template_specs = template_specs
+    tpl_specs.inputs.force_res = 1
 
     tpl_select = pe.Node(niu.Function(function=_get_template),
                          name='tpl_select', run_without_submitting=True)
@@ -281,8 +284,14 @@ def _rpt_masks(mask_file, before, after, after_mask=None):
     return abspath('before.nii.gz'), abspath('after.nii.gz')
 
 
-def _select_specs(template, template_list, template_specs):
-    return template_specs[template_list.index(template)]
+def _select_specs(template, template_list, template_specs, force_res=None):
+    out_spec = template_specs[template_list.index(template)]
+    if force_res is not None:
+        out_spec.pop('res', None)
+        out_spec.pop('resoluton', None)
+        out_spec['res'] = force_res
+
+    return out_spec
 
 
 def _get_template(template, template_spec, suffix='T1w', desc=None):
