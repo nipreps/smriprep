@@ -103,11 +103,11 @@ def init_anat_norm_wf(
         template_list = [template_list]
 
     templateflow = templates()
-    if any(template not in templateflow for template in template_list):
-        raise NotImplementedError(
-            'This is embarrassing - custom templates are not (yet) supported.'
-            'Please make sure none of the options already available via TemplateFlow '
-            'fit your needs.')
+    missing_tpls = [template for template in template_list if template not in templateflow]
+    if missing_tpls:
+        raise ValueError("""\
+One or more templates were not found (%s). Please make sure TemplateFlow is \
+correctly installed and contains the given template identifiers.""" % ', '.join(missing_tpls))
 
     workflow = Workflow('anat_norm_wf')
 
@@ -222,8 +222,8 @@ The following template{tpls} selected for spatial normalization:
 
     # Generate and store report
     msk_select = pe.Node(niu.Function(
-        function=_get_template, input_names=['template', 'template_spec',
-                                             'suffix', 'desc']),
+        function=_get_template,
+        input_names=['template', 'template_spec', 'suffix', 'desc']),
         name='msk_select', run_without_submitting=True)
     msk_select.inputs.desc = 'brain'
     msk_select.inputs.suffix = 'mask'
