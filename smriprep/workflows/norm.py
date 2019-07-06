@@ -158,7 +158,7 @@ The following template{tpls} selected for spatial normalization:
 
     tpl_specs = pe.Node(niu.Function(
         function=_select_specs,
-        input_names=['template_list', 'template_specs', 'force_res']),
+        input_names=['template', 'template_list', 'template_specs', 'force_res']),
         name='tpl_specs', run_without_submitting=True)
     tpl_specs.inputs.template_list = template_list
     tpl_specs.inputs.template_specs = template_specs
