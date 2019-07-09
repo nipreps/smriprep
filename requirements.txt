@@ -1,4 +1,4 @@
 indexed_gzip>=0.8.8
 nilearn!=0.5.0,!=0.5.1
-niworkflows<0.10.0a0,>=0.9.6rc1
+niworkflows<0.10.0a0,>=0.9.6rc3
 templateflow<0.4.0a0,>=0.3.0
