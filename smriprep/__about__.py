@@ -48,12 +48,12 @@ REQUIRES = [
     'matplotlib>=2.2.0',
     'nibabel>=2.2.1',
     'nipype>=1.1.6',
-    'niworkflows @ git+https://github.com/effigies/niworkflows.git@132e326be80b48c458d1d61858c9c2b5ba4e5135',
+    'niworkflows @ git+https://github.com/effigies/niworkflows.git@f14002c206483f69e080c156fdf41669b025ba2b',
     'numpy',
     'packaging',
-    'pybids',
+    'pybids @ git+https://github.com/bids-standard/pybids.git@33c7b423bf52828f66512a996c62a432c78ab731',
     'pyyaml',
-    'templateflow<0.4.0a0,>=0.3.0',
+    'templateflow ~= 0.4.1rc1',
 ]
 
 
