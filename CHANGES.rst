@@ -1,3 +1,12 @@
+0.2.4 (TBD)
+===========
+
+Several minor improvements on TemplateFlow integration.
+
+* ENH: Use proper resolution in anatomical outputs (#92) @oesteban
+* ENH: Indicate what templates were not found in TemplateFlow (#91) @oesteban
+* ENH: Pass template specs on to registration workflow (#90) @oesteban
+
 0.2.3 (June 5, 2019)
 ====================
 
