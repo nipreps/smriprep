@@ -1,5 +1,5 @@
-0.2.4 (TBD)
-===========
+0.2.4 (July 9, 2019)
+====================
 
 Several minor improvements on TemplateFlow integration.
 
