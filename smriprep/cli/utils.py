@@ -52,8 +52,8 @@ def output_space(value):
     >>> output_space('MNI152NLin2009cAsym:res-2')
     ('MNI152NLin2009cAsym', {'res': '2'})
 
-    >>> output_space('MNIInfant:res-2:cohort-1')
-    ('MNIInfant', {'res': '2', 'cohort': '1'})
+    >>> output_space('MNIInfant:res-2:cohort-1') == ('MNIInfant', {'res': '2', 'cohort': '1'})
+    True
 
     """
     tpl_args = value.split(':')
