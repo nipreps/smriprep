@@ -11,15 +11,6 @@ as well as for open-source software distribution.
 
 from .__about__ import (  # noqa
     __version__,
-    __author__,
     __copyright__,
     __credits__,
-    __license__,
-    __maintainer__,
-    __email__,
-    __status__,
-    __url__,
-    __package__,
-    __description__,
-    __longdesc__
 )

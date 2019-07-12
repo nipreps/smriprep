@@ -12,12 +12,11 @@ def write_derivative_description(bids_dir, deriv_dir):
 
     .. testsetup::
 
+    >>> from pkg_resources import resource_filename
     >>> from pathlib import Path
-    >>> from inspect import getfile, currentframe
     >>> from tempfile import TemporaryDirectory
     >>> tmpdir = TemporaryDirectory()
-    >>> root_dir = Path(getfile(currentframe())).resolve().parent
-    >>> bids_dir = root_dir / 'data' / 'tests'
+    >>> bids_dir = resource_filename('smriprep', 'data/tests')
     >>> deriv_desc = Path(tmpdir.name) / 'dataset_description.json'
 
     .. doctest::

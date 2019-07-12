@@ -160,14 +160,12 @@ jobs:
   test_pytest:
     machine:
       image: circleci/classic:201711-01
-    working_directory: /tmp/src/smriprep
+    working_directory: /home/circleci/src/smriprep
     steps:
-      - checkout:
-          path: /home/circleci/src/smriprep
+      - checkout
       - run:
           name: Check whether build should be skipped
           command: |
-            cd /home/circleci/src/smriprep
             if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?tests\]' )" != "" ]]; then
               echo "Skipping pytest job"
               circleci step halt
@@ -178,31 +176,19 @@ jobs:
           name: Check PyPi preconditions
           command: |
             pyenv global 3.5.2
-            virtualenv venv
-            pip install "setuptools>=27.0" twine future docutils
+            pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
             python setup.py check -r -s
             python setup.py sdist
+            twine check dist/*.tar.gz
       - run:
-          name: Load Docker image layer cache
+          name: Install sMRIPrep
           no_output_timeout: 30m
-          command: |
-            docker info
-            set +o pipefail
-            if [ -f /tmp/cache/docker.tar.gz ]; then
-              sudo apt update && sudo apt -y install pigz
-              pigz -d --stdout /tmp/cache/docker.tar.gz | docker load
-              docker images
-            fi
+          command: pip install ".[test]"
       - run:
           name: Run sMRIPrep tests
           no_output_timeout: 2h
           command: |
-            mkdir -p /tmp/data/reports && \
-            docker run -ti --rm=false \
-              -v /tmp/data:/tmp/data \
-              --entrypoint="py.test" poldracklab/smriprep:latest \
-              /src/smriprep/ \
-              -svx --doctest-modules --ignore=/src/smriprep/docs --ignore=setup.py
+            python -m pytest -svx --doctest-modules smriprep
       # - run:
       #     name: Test smriprep-wrapper (Python 2)
       #     command: |
@@ -487,8 +473,6 @@ workflows:
               only: /.*/
 
       - test_pytest:
-          requires:
-            - build
           filters:
             branches:
               ignore:
