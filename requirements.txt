@@ -1,5 +1,5 @@
 indexed_gzip>=0.8.8
 nilearn!=0.5.0,!=0.5.1
-niworkflows @ git+https://github.com/effigies/niworkflows.git@cc49ba3cb498f738f02b48fc6f8d9de132367f1a
-pybids @ git+https://github.com/bids-standard/pybids.git@33c7b423bf52828f66512a996c62a432c78ab731
+niworkflows ~= 0.10.0
+pybids ~= 0.9.2
 templateflow ~= 0.4.1rc1
