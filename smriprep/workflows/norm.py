@@ -239,7 +239,7 @@ The following template{tpls} selected for spatial normalization:
     norm_rpt.inputs.after_label = 'Participant'  # after
 
     ds_t1_2_tpl_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, keep_dtype=True),
+        DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w'),
         name='ds_t1_2_tpl_report', run_without_submitting=True)
 
     workflow.connect([
