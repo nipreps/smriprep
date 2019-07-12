@@ -1,3 +1,12 @@
+0.3.0 (July 12, 2019)
+=====================
+
+Minor release to allow dependent tools to upgrade to PyBIDS 0.9 series (minimum 0.9.2).
+We've also moved to a ``setup.cfg``-based setup to standardize configuration.
+
+* MAINT: Move to setup.cfg + pyproject.toml (#98) @effigies
+* MAINT: Use PyBIDS 0.9.x via niworkflows PR (#94) @effigies
+
 0.2.4 (July 9, 2019)
 ====================
 
