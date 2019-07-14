@@ -171,10 +171,13 @@ jobs:
               circleci step halt
             fi
       - run:
-          name: Check PyPi preconditions
+          name: Setup Python environment
           command: |
             pyenv global 3.5.2
             pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+      - run:
+          name: Check PyPi preconditions
+          command: |
             python setup.py sdist
             twine check dist/*.tar.gz
       - run:
@@ -184,8 +187,7 @@ jobs:
       - run:
           name: Run sMRIPrep tests
           no_output_timeout: 2h
-          command: |
-            python -m pytest -svx --doctest-modules smriprep
+          command: python -m pytest -svx --doctest-modules smriprep
       # - run:
       #     name: Test smriprep-wrapper (Python 2)
       #     command: |
@@ -253,10 +255,13 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Check PyPi preconditions
+          name: Setup Python environment
           command: |
             pyenv global 3.5.2
             pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+      - run:
+          name: Check PyPi preconditions
+          command: |
             python setup.py sdist
             twine check dist/*.tar.gz
       - run:
