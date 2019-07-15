@@ -439,7 +439,7 @@ jobs:
           command: pip install -r requirements.txt && pip install sphinx
       - run:
           name: generate api docs
-          command: sphinx-apidoc -of ./docs/_sources/ ./smriprep/
+          command: sphinx-apidoc -o ./docs/_sources/ ./smriprep/
       - run:
           name: generate docs
           command: cd docs && make html
