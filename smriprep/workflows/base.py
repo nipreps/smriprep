@@ -3,7 +3,7 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
-fMRIprep base processing workflows
+sMRIPrep base processing workflows
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: init_smriprep_wf
@@ -32,12 +32,24 @@ from ..__about__ import __version__
 from .anatomical import init_anat_preproc_wf
 
 
-def init_smriprep_wf(layout, subject_list, run_uuid, work_dir, output_dir,
-                     debug, low_mem, longitudinal, omp_nthreads,
-                     skull_strip_template, skull_strip_fixed_seed,
-                     freesurfer, fs_spaces, template, hires):
+def init_smriprep_wf(
+    debug,
+    freesurfer,
+    hires,
+    layout,
+    longitudinal,
+    low_mem,
+    omp_nthreads,
+    output_dir,
+    output_spaces,
+    run_uuid,
+    skull_strip_fixed_seed,
+    skull_strip_template,
+    subject_list,
+    work_dir,
+):
     """
-    This workflow organizes the execution of FMRIPREP, with a sub-workflow for
+    This workflow organizes the execution of sMRIPrep, with a sub-workflow for
     each subject.
 
     If FreeSurfer's recon-all is to be run, a FreeSurfer derivatives folder is
@@ -48,118 +60,66 @@ def init_smriprep_wf(layout, subject_list, run_uuid, work_dir, output_dir,
         :simple_form: yes
 
         import os
+        from collections import OrderedDict
         from pybids import BIDSLayout
         os.environ['FREESURFER_HOME'] = os.getcwd()
         from smriprep.workflows.base import init_smriprep_wf
-        wf = init_smriprep_wf(layout=BIDSLayout('.', validate=False),
-                              subject_list=['smripreptest'],
-                              task_id='',
-                              echo_idx=None,
-                              run_uuid='X',
-                              work_dir='.',
-                              output_dir='.',
-                              ignore=[],
-                              debug=False,
-                              low_mem=False,
-                              anat_only=False,
-                              longitudinal=False,
-                              t2s_coreg=False,
-                              omp_nthreads=1,
-                              skull_strip_template='OASIS30ANTs',
-                              skull_strip_fixed_seed=False,
-                              freesurfer=True,
-                              fs_spaces=['T1w', 'fsnative',
-                                            'template', 'fsaverage5'],
-                              template='MNI152NLin2009cAsym',
-                              medial_surface_nan=False,
-                              cifti_output=False,
-                              hires=True,
-                              use_bbr=True,
-                              bold2t1w_dof=9,
-                              fmap_bspline=False,
-                              fmap_demean=True,
-                              use_syn=True,
-                              force_syn=True,
-                              use_aroma=False,
-                              ignore_aroma_err=False,
-                              aroma_melodic_dim=-200)
-
+        wf = init_smriprep_wf(
+            debug=False,
+            freesurfer=True,
+            hires=True,
+            layout=BIDSLayout('.', validate=False),
+            longitudinal=False,
+            low_mem=False,
+            omp_nthreads=1,
+            output_dir='.',
+            output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
+                                       ('fsaverage5', {})]),
+            run_uuid='testrun',
+            skull_strip_fixed_seed=False,
+            skull_strip_template=('OASIS30ANTs', {}),
+            subject_list=['smripreptest'],
+            work_dir='.',
+        )
 
     Parameters
 
-        layout : BIDSLayout object
-            BIDS dataset layout
-        subject_list : list
-            List of subject labels
-        task_id : str or None
-            Task ID of BOLD series to preprocess, or ``None`` to preprocess all
-        echo_idx : int or None
-            Index of echo to preprocess in multiecho BOLD series,
-            or ``None`` to preprocess all
-        run_uuid : str
-            Unique identifier for execution instance
-        work_dir : str
-            Directory in which to store workflow execution state and temporary files
-        output_dir : str
-            Directory in which to save derivatives
-        ignore : list
-            Preprocessing steps to skip (may include "slicetiming", "fieldmaps")
         debug : bool
             Enable debugging outputs
-        low_mem : bool
-            Write uncompressed .nii files in some cases to reduce memory usage
-        anat_only : bool
-            Disable functional workflows
+        freesurfer : bool
+            Enable FreeSurfer surface reconstruction (may increase runtime)
+        hires : bool
+            Enable sub-millimeter preprocessing in FreeSurfer
+        layout : BIDSLayout object
+            BIDS dataset layout
         longitudinal : bool
             Treat multiple sessions as longitudinal (may increase runtime)
             See sub-workflows for specific differences
-        t2s_coreg : bool
-            For multi-echo EPI, use the calculated T2*-map for T2*-driven coregistration
+        low_mem : bool
+            Write uncompressed .nii files in some cases to reduce memory usage
         omp_nthreads : int
             Maximum number of threads an individual process may use
-        skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
+        output_dir : str
+            Directory in which to save derivatives
+        output_spaces : OrderedDict
+            List of spatial normalization targets. Some parts of pipeline will
+            only be instantiated for some output spaces. Valid spaces:
+              - Any template identifier from TemplateFlow
+              - Path to a template folder organized following TemplateFlow's
+                conventions
+        run_uuid : str
+            Unique identifier for execution instance
         skull_strip_fixed_seed : bool
             Do not use a random seed for skull-stripping - will ensure
             run-to-run replicability when used with --omp-nthreads 1
-        freesurfer : bool
-            Enable FreeSurfer surface reconstruction (may increase runtime)
-        fs_spaces : list
-            List of output spaces functional images are to be resampled to.
-            Some parts of pipeline will only be instantiated for some output spaces.
-
-            Valid spaces:
-
-             - T1w
-             - template
-             - fsnative
-             - fsaverage (or other pre-existing FreeSurfer templates)
-        template : str
-            Name of template targeted by ``template`` output space
-        medial_surface_nan : bool
-            Replace medial wall values with NaNs on functional GIFTI files
-        cifti_output : bool
-            Generate bold CIFTI file in output spaces
-        hires : bool
-            Enable sub-millimeter preprocessing in FreeSurfer
-        use_bbr : bool or None
-            Enable/disable boundary-based registration refinement.
-            If ``None``, test BBR result for distortion before accepting.
-        bold2t1w_dof : 6, 9 or 12
-            Degrees-of-freedom for BOLD-T1w registration
-        fmap_bspline : bool
-            **Experimental**: Fit B-Spline field using least-squares
-        fmap_demean : bool
-            Demean voxel-shift map during unwarp
-        use_syn : bool
-            **Experimental**: Enable ANTs SyN-based susceptibility distortion correction (SDC).
-            If fieldmaps are present and enabled, this is not run, by default.
-        force_syn : bool
-            **Temporary**: Always run SyN-based SDC
-        use_aroma : bool
-            Perform ICA-AROMA on MNI-resampled functional series
-        ignore_aroma_err : bool
-            Do not fail on ICA-AROMA errors
+        skull_strip_template : tuple
+            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI'),
+            and dictionary with template specifications (e.g., {'res': '2'})
+        subject_list : list
+            List of subject labels
+        work_dir : str
+            Directory in which to store workflow execution state and
+            temporary files
 
     """
     smriprep_wf = Workflow(name='smriprep_wf')
@@ -170,27 +130,27 @@ def init_smriprep_wf(layout, subject_list, run_uuid, work_dir, output_dir,
             BIDSFreeSurferDir(
                 derivatives=output_dir,
                 freesurfer_home=os.getenv('FREESURFER_HOME'),
-                spaces=fs_spaces),
-            name='fsdir_run_' + run_uuid.replace('-', '_'), run_without_submitting=True)
+                spaces=[s for s in output_spaces.keys() if s.startswith('fsaverage')] + [
+                    'fsnative'] * ('fsnative' in output_spaces)),
+            name='fsdir_run_%s' % run_uuid.replace('-', '_'), run_without_submitting=True)
 
     reportlets_dir = os.path.join(work_dir, 'reportlets')
     for subject_id in subject_list:
         single_subject_wf = init_single_subject_wf(
-            layout=layout,
-            subject_id=subject_id,
-            name="single_subject_" + subject_id + "_wf",
-            reportlets_dir=reportlets_dir,
-            output_dir=output_dir,
             debug=debug,
-            low_mem=low_mem,
-            longitudinal=longitudinal,
-            omp_nthreads=omp_nthreads,
-            skull_strip_template=skull_strip_template,
-            skull_strip_fixed_seed=skull_strip_fixed_seed,
             freesurfer=freesurfer,
-            fs_spaces=fs_spaces,
-            template=template,
             hires=hires,
+            layout=layout,
+            longitudinal=longitudinal,
+            low_mem=low_mem,
+            name="single_subject_%s_wf" % subject_id,
+            omp_nthreads=omp_nthreads,
+            output_dir=output_dir,
+            output_spaces=output_spaces,
+            reportlets_dir=reportlets_dir,
+            skull_strip_fixed_seed=skull_strip_fixed_seed,
+            skull_strip_template=skull_strip_template,
+            subject_id=subject_id,
         )
 
         single_subject_wf.config['execution']['crashdump_dir'] = (
@@ -207,10 +167,22 @@ def init_smriprep_wf(layout, subject_list, run_uuid, work_dir, output_dir,
     return smriprep_wf
 
 
-def init_single_subject_wf(layout, subject_id, name, reportlets_dir, output_dir,
-                           debug, low_mem, longitudinal, omp_nthreads,
-                           skull_strip_template, skull_strip_fixed_seed,
-                           freesurfer, fs_spaces, template, hires):
+def init_single_subject_wf(
+    debug,
+    freesurfer,
+    hires,
+    layout,
+    longitudinal,
+    low_mem,
+    name,
+    omp_nthreads,
+    output_dir,
+    output_spaces,
+    reportlets_dir,
+    skull_strip_fixed_seed,
+    skull_strip_template,
+    subject_id,
+):
     """
     This workflow organizes the preprocessing pipeline for a single subject.
     It collects and reports information about the subject, and prepares
@@ -225,116 +197,65 @@ def init_single_subject_wf(layout, subject_id, name, reportlets_dir, output_dir,
         :graph2use: orig
         :simple_form: yes
 
+        from collections import OrderedDict
         from smriprep.workflows.base import init_single_subject_wf
         from bids import BIDSLayout
-        wf = init_single_subject_wf(layout=BIDSLayout('.', validate=False),
-                                    subject_id='test',
-                                    task_id='',
-                                    echo_idx=None,
-                                    name='single_subject_wf',
-                                    reportlets_dir='.',
-                                    output_dir='.',
-                                    ignore=[],
-                                    debug=False,
-                                    low_mem=False,
-                                    anat_only=False,
-                                    longitudinal=False,
-                                    t2s_coreg=False,
-                                    omp_nthreads=1,
-                                    skull_strip_template='OASIS30ANTs',
-                                    skull_strip_fixed_seed=False,
-                                    freesurfer=True,
-                                    template='MNI152NLin2009cAsym',
-                                    fs_spaces=['T1w', 'fsnative',
-                                                  'template', 'fsaverage5'],
-                                    medial_surface_nan=False,
-                                    cifti_output=False,
-                                    hires=True,
-                                    use_bbr=True,
-                                    bold2t1w_dof=9,
-                                    fmap_bspline=False,
-                                    fmap_demean=True,
-                                    use_syn=True,
-                                    force_syn=True,
-                                    use_aroma=False,
-                                    aroma_melodic_dim=-200,
-                                    ignore_aroma_err=False)
+        wf = init_single_subject_wf(
+            debug=False,
+            freesurfer=True,
+            hires=True,
+            layout=BIDSLayout('.', validate=False),
+            longitudinal=False,
+            low_mem=False,
+            name='single_subject_wf',
+            omp_nthreads=1,
+            output_dir='.',
+            output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
+                                       ('fsaverage5', {})]),
+            reportlets_dir='.',
+            skull_strip_fixed_seed=False,
+            skull_strip_template=('OASIS30ANTs', {}),
+            subject_id='test',
+        )
+
 
     Parameters
 
-        layout : BIDSLayout object
-            BIDS dataset layout
-        subject_id : str
-            List of subject labels
-        task_id : str or None
-            Task ID of BOLD series to preprocess, or ``None`` to preprocess all
-        echo_idx : int or None
-            Index of echo to preprocess in multiecho BOLD series,
-            or ``None`` to preprocess all
-        name : str
-            Name of workflow
-        ignore : list
-            Preprocessing steps to skip (may include "slicetiming", "fieldmaps")
         debug : bool
             Enable debugging outputs
-        low_mem : bool
-            Write uncompressed .nii files in some cases to reduce memory usage
-        anat_only : bool
-            Disable functional workflows
+        freesurfer : bool
+            Enable FreeSurfer surface reconstruction (may increase runtime)
+        hires : bool
+            Enable sub-millimeter preprocessing in FreeSurfer
+        layout : BIDSLayout object
+            BIDS dataset layout
         longitudinal : bool
             Treat multiple sessions as longitudinal (may increase runtime)
             See sub-workflows for specific differences
-        t2s_coreg : bool
-            For multi-echo EPI, use the calculated T2*-map for T2*-driven coregistration
+        low_mem : bool
+            Write uncompressed .nii files in some cases to reduce memory usage
+        name : str
+            Name of workflow
         omp_nthreads : int
             Maximum number of threads an individual process may use
-        skull_strip_template : str
-            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI')
+        output_dir : str
+            Directory in which to save derivatives
+        output_spaces : OrderedDict
+            List of spatial normalization targets. Some parts of pipeline will
+            only be instantiated for some output spaces. Valid spaces:
+              - Any template identifier from TemplateFlow
+              - Path to a template folder organized following TemplateFlow's
+                conventions
+        reportlets_dir : str
+            Directory in which to save reportlets
         skull_strip_fixed_seed : bool
             Do not use a random seed for skull-stripping - will ensure
             run-to-run replicability when used with --omp-nthreads 1
-        reportlets_dir : str
-            Directory in which to save reportlets
-        output_dir : str
-            Directory in which to save derivatives
-        freesurfer : bool
-            Enable FreeSurfer surface reconstruction (may increase runtime)
-        fs_spaces : list
-            List of output spaces functional images are to be resampled to.
-            Some parts of pipeline will only be instantiated for some output spaces.
-
-            Valid spaces:
-
-             - T1w
-             - template
-             - fsnative
-             - fsaverage (or other pre-existing FreeSurfer templates)
-        template : str
-            Name of template targeted by ``template`` output space
-        medial_surface_nan : bool
-            Replace medial wall values with NaNs on functional GIFTI files
-        cifti_output : bool
-            Generate bold CIFTI file in output spaces
-        hires : bool
-            Enable sub-millimeter preprocessing in FreeSurfer
-        use_bbr : bool or None
-            Enable/disable boundary-based registration refinement.
-            If ``None``, test BBR result for distortion before accepting.
-        bold2t1w_dof : 6, 9 or 12
-            Degrees-of-freedom for BOLD-T1w registration
-        fmap_bspline : bool
-            **Experimental**: Fit B-Spline field using least-squares
-        fmap_demean : bool
-            Demean voxel-shift map during unwarp
-        use_syn : bool
-            **Experimental**: Enable ANTs SyN-based susceptibility distortion correction (SDC).
-            If fieldmaps are present and enabled, this is not run, by default.
-        force_syn : bool
-            **Temporary**: Always run SyN-based SDC
-        use_aroma : bool
-            Perform ICA-AROMA on MNI-resampled functional series
-        ignore_aroma_err : bool
-            Do not fail on ICA-AROMA errors
+        skull_strip_template : tuple
+            Name of ANTs skull-stripping template (e.g., 'OASIS30ANTs') and
+            dictionary of template specifications.
+        subject_id : str
+            List of subject labels
 
     Inputs
 
@@ -385,7 +306,7 @@ to workflows in *sMRIPrep*'s documentation]\
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
                         run_without_submitting=True)
 
-    summary = pe.Node(SubjectSummary(fs_spaces=fs_spaces, template=template),
+    summary = pe.Node(SubjectSummary(output_spaces=list(output_spaces.keys())),
                       name='summary', run_without_submitting=True)
 
     about = pe.Node(AboutSummary(version=__version__,
@@ -394,30 +315,29 @@ to workflows in *sMRIPrep*'s documentation]\
 
     ds_report_summary = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir,
-                            suffix='summary'),
+                            desc='summary', keep_dtype=True),
         name='ds_report_summary', run_without_submitting=True)
 
     ds_report_about = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir,
-                            suffix='about'),
+                            desc='about', keep_dtype=True),
         name='ds_report_about', run_without_submitting=True)
 
     # Preprocessing of T1w (includes registration to MNI)
     anat_preproc_wf = init_anat_preproc_wf(
-        name="anat_preproc_wf",
         bids_root=layout.root,
-        skull_strip_template=skull_strip_template,
-        skull_strip_fixed_seed=skull_strip_fixed_seed,
-        fs_spaces=fs_spaces,
-        template=template,
         debug=debug,
-        longitudinal=longitudinal,
-        omp_nthreads=omp_nthreads,
         freesurfer=freesurfer,
         hires=hires,
-        reportlets_dir=reportlets_dir,
-        output_dir=output_dir,
+        longitudinal=longitudinal,
+        name="anat_preproc_wf",
         num_t1w=len(subject_data['t1w']),
+        omp_nthreads=omp_nthreads,
+        output_dir=output_dir,
+        output_spaces=output_spaces,
+        reportlets_dir=reportlets_dir,
+        skull_strip_fixed_seed=skull_strip_fixed_seed,
+        skull_strip_template=skull_strip_template,
     )
 
     workflow.connect([

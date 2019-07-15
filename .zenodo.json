@@ -1,0 +1,73 @@
+{
+  "title": "sMRIPrep: Structural MRI PREProcessing workflows",
+  "description": "<p>A BIDS-App to preprocess anatomical (T1w, T2w and FLAIR) data, providing workflows for reuse in NIPreps (NeuroImaging PREProcesssing tools) such as fMRIPrep.</p>",
+  "creators": [
+    {
+      "affiliation": "Department of Psychology, Stanford University, CA, USA",
+      "name": "Esteban, Oscar",
+      "orcid": "0000-0001-8435-6191"
+    },
+    {
+      "affiliation": "Department of Psychology, Stanford University, CA, USA",
+      "name": "Markiewicz, Christopher J.",
+      "orcid": "0000-0002-6533-164X"
+    },
+    {
+      "name": "Blair, Ross",
+      "affiliation": "Department of Psychology, Stanford University, CA, USA",
+      "orcid": "0000-0003-3007-1056"
+    },
+    {
+      "affiliation": "Department of Psychology, Stanford University, CA, USA",
+      "name": "Poldrack, Russell A.",
+      "orcid": "0000-0001-6755-0259"
+    },
+    {
+      "affiliation": "Department of Psychology, Stanford University, CA, USA",
+      "name": "Gorgolewski, Krzysztof J.",
+      "orcid": "0000-0003-3321-7583"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Lurie, Daniel J.",
+      "affiliation": "Department of Psychology, University of California, Berkeley, CA, USA",
+      "orcid": "0000-0001-8012-6399",
+      "type": "Researcher"
+    },
+    {
+      "affiliation": "McGovern Institute for Brain Research, MIT, MA, USA",
+      "name": "Goncalves, Mathias",
+      "orcid": "0000-0002-7252-7771",
+      "type": "Researcher"
+    },
+    {
+      "affiliation": "McGovern Institute for Brain Research (MIT), and Department of Otolaryngology (Harvard Medical School), MA, USA",
+      "name": "Ghosh, Satrajit",
+      "orcid": "0000-0002-5312-6729",
+      "type": "Researcher"
+    }
+  ],
+  "keywords": [
+    "neuroimaging",
+    "workflow",
+    "pipeline",
+    "preprocessing",
+    "MRI",
+    "BIDS"
+  ],
+  "license": "apache-2.0",
+  "related_identifiers": [
+    {
+      "identifier": "https://fmriprep.org",
+      "relation": "isPartOf",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.1038/s41592-018-0235-4",
+      "relation": "isPartOf",
+      "scheme": "doi"
+    }
+  ],
+  "upload_type": "software"
+}

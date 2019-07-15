@@ -4,3 +4,4 @@ include smriprep/_version.py
 include smriprep/data/reports/*
 include smriprep/data/boilerplate.bib
 include smriprep/data/itkIdentityTransform.txt
+include VERSION

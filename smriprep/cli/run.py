@@ -25,9 +25,11 @@ def check_deps(workflow):
 
 def get_parser():
     """Build parser object"""
-    from os.path import abspath
+    from pathlib import Path
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
+    from templateflow.api import templates
+    from .utils import ParseTemplates, output_space as _output_space
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -36,10 +38,10 @@ def get_parser():
     # Arguments as specified by BIDS-Apps
     # required, positional arguments
     # IMPORTANT: they must go directly with the parser object
-    parser.add_argument('bids_dir', action='store',
+    parser.add_argument('bids_dir', action='store', type=Path,
                         help='the root folder of a BIDS valid dataset (sub-XXXXX folders should '
                              'be found at the top level in this folder).')
-    parser.add_argument('output_dir', action='store',
+    parser.add_argument('output_dir', action='store', type=Path,
                         help='the output path for the outcomes of preprocessing and visual '
                              'reports')
     parser.add_argument('analysis_level', choices=['participant'],
@@ -50,9 +52,6 @@ def get_parser():
     parser.add_argument('--version', action='version', version='smriprep v{}'.format(__version__))
 
     g_bids = parser.add_argument_group('Options for filtering BIDS queries')
-    g_bids.add_argument('--skip-bids-validation', '--skip_bids_validation', action='store_true',
-                        default=False,
-                        help='assume the input dataset is BIDS compliant and skip the validation')
     g_bids.add_argument('--participant-label', '--participant_label', action='store', nargs='+',
                         help='a space delimited list of participant identifiers or a single '
                              'identifier (the sub- prefix can be removed)')
@@ -77,19 +76,22 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
+        '--output-spaces', nargs='+', action=ParseTemplates,
+        help='paths or keywords prescribing standard spaces to which normalize the input T1w image'
+             ' (valid keywords are: %s).' % ', '.join('"%s"' % s for s in templates()))
+    g_conf.add_argument(
         '--longitudinal', action='store_true',
         help='treat dataset as longitudinal - may increase runtime')
     g_conf.add_argument(
-        '--template', '--spatial-normalization-target',
-        choices=['MNI152NLin2009cAsym', 'MNI152Lin', 'OASIS30ANTs', 'NKI', 'PNC'],
-        required=False, action='store', nargs='+', default='MNI152NLin2009cAsym',
-        help='spatial normalization targets (one or more TemplateFlow Identifiers')
+        '--template', '--spatial-normalization-target', action='store', type=str,
+        choices=[tpl for tpl in templates() if not tpl.startswith('fs')],
+        help='DEPRECATED: spatial normalization target (one TemplateFlow Identifier)')
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
-    g_ants.add_argument('--skull-strip-template', action='store', default='OASIS30ANTs',
-                        choices=['OASIS30ANTs', 'NKI', 'MNI152NLin2009cAsym'],
-                        help='select ANTs skull-stripping template (default: OASIS30ANTs))')
+    g_ants.add_argument(
+        '--skull-strip-template', action='store', default='OASIS30ANTs', type=_output_space,
+        help='select a template for skull-stripping with antsBrainExtraction')
     g_ants.add_argument('--skull-strip-fixed-seed', action='store_true',
                         help='do not use a random seed for skull-stripping - will ensure '
                              'run-to-run replicability when used with --omp-nthreads 1')
@@ -97,7 +99,7 @@ def get_parser():
     # FreeSurfer options
     g_fs = parser.add_argument_group('Specific options for FreeSurfer preprocessing')
     g_fs.add_argument(
-        '--fs-license-file', metavar='PATH', type=abspath,
+        '--fs-license-file', metavar='PATH', type=Path,
         help='Path to FreeSurfer license key file. Get it (for free) by registering'
              ' at https://surfer.nmr.mgh.harvard.edu/registration.html')
 
@@ -108,14 +110,13 @@ def get_parser():
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
     g_surfs_xor.add_argument(
-        '--fs-output-spaces', required=False, action='store',
+        '--fs-output-spaces', required=False, action='store', nargs='+',
         choices=['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'],
-        nargs='+', default=['fsaverage5'],
-        help='configure Freesurfer\'s output spaces:\n'
-             ' - fsnative: individual subject surface\n'
-             ' - fsaverage*: FreeSurfer average meshes\n'
-             'this argument can be single value or a space delimited list,\n'
-             'for example: --fs-output-spaces fsnative fsaverage fsaverage5'
+        help="""DEPRECATED - configure Freesurfer's output spaces:
+  - fsnative: individual subject surface
+  - fsaverage*: FreeSurfer average meshes
+this argument can be single value or a space delimited list,
+for example: --fs-output-spaces fsnative fsaverage fsaverage5."""
     )
     g_surfs_xor.add_argument('--fs-no-reconall', '--no-freesurfer',
                              action='store_false', dest='run_reconall',
@@ -124,7 +125,7 @@ def get_parser():
                              ' Use `--fs-no-reconall` instead.')
 
     g_other = parser.add_argument_group('Other options')
-    g_other.add_argument('-w', '--work-dir', action='store',
+    g_other.add_argument('-w', '--work-dir', action='store', type=Path, default=Path('work'),
                          help='path where intermediate results should be stored')
     g_other.add_argument(
         '--resource-monitor', action='store_true', default=False,
@@ -156,15 +157,14 @@ def get_parser():
 def build_opts(opts):
     """Entry point"""
     import os
-    from os import cpu_count
     from pathlib import Path
     import logging
     import sys
     import gc
-    import re
-    import psutil
     import warnings
     from multiprocessing import set_start_method, Process, Manager
+    from nipype import logging as nlogging
+
     set_start_method('forkserver')
 
     logging.addLevelName(25, 'IMPORTANT')  # Add a new level between INFO and WARNING
@@ -175,100 +175,12 @@ def build_opts(opts):
         logger.warning('Captured warning (%s): %s', category, message)
 
     warnings.showwarning = _warn_redirect
-    exec_env = os.name
-
-    # special variable set in the container
-    if os.getenv('IS_DOCKER_8395080871'):
-        exec_env = 'singularity'
-        if 'docker' in Path('/proc/1/cgroup').read_text():
-            exec_env = 'docker'
-            if os.getenv('DOCKER_VERSION_8395080871'):
-                exec_env = 'smriprep-docker'
-
-    sentry_sdk = None
-    if not opts.notrack:
-        import sentry_sdk
-        from ..__about__ import __version__
-        environment = "prod"
-        release = __version__
-        if not __version__:
-            environment = "dev"
-            release = "dev"
-        elif bool(int(os.getenv('SMRIPREP_DEV', 0))) or ('+' in __version__):
-            environment = "dev"
-
-        def before_send(event, hints):
-            # Filtering log messages about crashed nodes
-            if 'logentry' in event and 'message' in event['logentry']:
-                msg = event['logentry']['message']
-                if msg.startswith("could not run node:"):
-                    return None
-                elif msg.startswith("Saving crash info to "):
-                    return None
-                elif re.match("Node .+ failed to run on host .+", msg):
-                    return None
-
-            if 'breadcrumbs' in event and isinstance(event['breadcrumbs'], list):
-                fingerprints_to_propagate = ['no-disk-space', 'memory-error', 'permission-denied',
-                                             'keyboard-interrupt']
-                for bc in event['breadcrumbs']:
-                    msg = bc.get('message', 'empty-msg')
-                    if msg in fingerprints_to_propagate:
-                        event['fingerprint'] = [msg]
-                        break
-
-            return event
-
-        sentry_sdk.init("https://d5a16b0c38d84d1584dfc93b9fb1ade6@sentry.io/1137693",
-                        release=release,
-                        environment=environment,
-                        before_send=before_send)
-        with sentry_sdk.configure_scope() as scope:
-            scope.set_tag('exec_env', exec_env)
-
-            if exec_env == 'smriprep-docker':
-                scope.set_tag('docker_version', os.getenv('DOCKER_VERSION_8395080871'))
-
-            free_mem_at_start = round(psutil.virtual_memory().free / 1024**3, 1)
-            scope.set_tag('free_mem_at_start', free_mem_at_start)
-            scope.set_tag('cpu_count', cpu_count())
-
-            # Memory policy may have a large effect on types of errors experienced
-            overcommit_memory = Path('/proc/sys/vm/overcommit_memory')
-            if overcommit_memory.exists():
-                policy = {'0': 'heuristic',
-                          '1': 'always',
-                          '2': 'never'}.get(overcommit_memory.read_text().strip(), 'unknown')
-                scope.set_tag('overcommit_memory', policy)
-                if policy == 'never':
-                    overcommit_kbytes = Path('/proc/sys/vm/overcommit_memory')
-                    kb = overcommit_kbytes.read_text().strip()
-                    if kb != '0':
-                        limit = '{}kB'.format(kb)
-                    else:
-                        overcommit_ratio = Path('/proc/sys/vm/overcommit_ratio')
-                        limit = '{}%'.format(overcommit_ratio.read_text().strip())
-                    scope.set_tag('overcommit_limit', limit)
-                else:
-                    scope.set_tag('overcommit_limit', 'n/a')
-            else:
-                scope.set_tag('overcommit_memory', 'n/a')
-                scope.set_tag('overcommit_limit', 'n/a')
-
-            for k, v in vars(opts).items():
-                scope.set_tag(k, v)
-
-    # Validate inputs
-    if not opts.skip_bids_validation:
-        print("Making sure the input data is BIDS compliant (warnings can be ignored in most "
-              "cases).")
-        validate_input_dir(exec_env, opts.bids_dir, opts.participant_label)
 
     # FreeSurfer license
     default_license = str(Path(os.getenv('FREESURFER_HOME')) / 'license.txt')
     # Precedence: --fs-license-file, $FS_LICENSE, default_license
-    license_file = opts.fs_license_file or os.getenv('FS_LICENSE', default_license)
-    if not os.path.exists(license_file):
+    license_file = Path(opts.fs_license_file or os.getenv('FS_LICENSE', default_license))
+    if not license_file.exists():
         raise RuntimeError(
             'ERROR: a valid license file is required for FreeSurfer to run. '
             'sMRIPrep looked for an existing license file at several paths, in this '
@@ -276,18 +188,15 @@ def build_opts(opts):
             'environment variable; and 3) the ``$FREESURFER_HOME/license.txt`` path. '
             'Get it (for free) by registering at https://'
             'surfer.nmr.mgh.harvard.edu/registration.html')
-    os.environ['FS_LICENSE'] = license_file
+    os.environ['FS_LICENSE'] = str(license_file)
 
     # Retrieve logging level
     log_level = int(max(25 - 5 * opts.verbose_count, logging.DEBUG))
     # Set logging
     logger.setLevel(log_level)
-
-    if True:
-        from nipype import logging as nlogging
-        nlogging.getLogger('nipype.workflow').setLevel(log_level)
-        nlogging.getLogger('nipype.interface').setLevel(log_level)
-        nlogging.getLogger('nipype.utils').setLevel(log_level)
+    nlogging.getLogger('nipype.workflow').setLevel(log_level)
+    nlogging.getLogger('nipype.interface').setLevel(log_level)
+    nlogging.getLogger('nipype.utils').setLevel(log_level)
 
     errno = 0
 
@@ -308,11 +217,6 @@ def build_opts(opts):
         work_dir = retval['work_dir']
         subject_list = retval['subject_list']
         run_uuid = retval['run_uuid']
-        if not opts.notrack:
-            with sentry_sdk.configure_scope() as scope:
-                scope.set_tag('run_uuid', run_uuid)
-                scope.set_tag('npart', len(subject_list))
-
         retcode = retval['return_code']
 
     if smriprep_wf is None:
@@ -327,11 +231,6 @@ def build_opts(opts):
     if opts.boilerplate:
         sys.exit(int(retcode > 0))
 
-    # Sentry tracking
-    if not opts.notrack:
-        sentry_sdk.add_breadcrumb(message='sMRIPrep started', level='info')
-        sentry_sdk.capture_message('sMRIPrep started', level='info')
-
     # Check workflow for missing commands
     missing = check_deps(smriprep_wf)
     if missing:
@@ -344,135 +243,28 @@ def build_opts(opts):
     gc.collect()
     try:
         smriprep_wf.run(**plugin_settings)
-    except RuntimeError as e:
+    except RuntimeError:
         errno = 1
-        if "Workflow did not execute cleanly" not in str(e):
-            sentry_sdk.capture_exception(e)
-            raise
     else:
         if opts.run_reconall:
             from templateflow import api
             from niworkflows.utils.misc import _copy_any
-            dseg_tsv = str(api.get('fsaverage', suffix='dseg', extensions=['.tsv']))
+            dseg_tsv = str(api.get('fsaverage', suffix='dseg', extension=['.tsv']))
             _copy_any(dseg_tsv,
                       str(Path(output_dir) / 'smriprep' / 'desc-aseg_dseg.tsv'))
             _copy_any(dseg_tsv,
                       str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
-        from pkg_resources import resource_filename as pkgrf
-        from niworkflows.viz.reports import generate_reports
-
+        from niworkflows.reports import generate_reports
         from ..utils.bids import write_derivative_description
+
+        logger.log(25, 'Writing reports for participants: %s', ', '.join(subject_list))
         # Generate reports phase
         errno += generate_reports(subject_list, output_dir, work_dir, run_uuid,
-                                  config=pkgrf('smriprep', 'data/reports/config.json'),
-                                  sentry_sdk=sentry_sdk)
+                                  packagename='smriprep')
         write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
-
-    if not opts.notrack and errno == 0:
-        sentry_sdk.capture_message('sMRIPrep finished without errors', level='info')
     sys.exit(int(errno > 0))
-
-
-def validate_input_dir(exec_env, bids_dir, participant_label):
-    import os
-    import json
-    import tempfile
-    import subprocess
-    import logging
-    from glob import glob
-
-    logger = logging.getLogger('cli')
-
-    # Ignore issues and warnings that should not influence sMRIPrep
-    validator_config_dict = {
-        "ignore": [
-            "EVENTS_COLUMN_ONSET",
-            "EVENTS_COLUMN_DURATION",
-            "TSV_EQUAL_ROWS",
-            "TSV_EMPTY_CELL",
-            "TSV_IMPROPER_NA",
-            "VOLUME_COUNT_MISMATCH",
-            "BVAL_MULTIPLE_ROWS",
-            "BVEC_NUMBER_ROWS",
-            "DWI_MISSING_BVAL",
-            "INCONSISTENT_SUBJECTS",
-            "INCONSISTENT_PARAMETERS",
-            "BVEC_ROW_LENGTH",
-            "B_FILE",
-            "PARTICIPANT_ID_COLUMN",
-            "PARTICIPANT_ID_MISMATCH",
-            "TASK_NAME_MUST_DEFINE",
-            "PHENOTYPE_SUBJECTS_MISSING",
-            "STIMULUS_FILE_MISSING",
-            "DWI_MISSING_BVEC",
-            "EVENTS_TSV_MISSING",
-            "TSV_IMPROPER_NA",
-            "ACQTIME_FMT",
-            "Participants age 89 or higher",
-            "DATASET_DESCRIPTION_JSON_MISSING",
-            "FILENAME_COLUMN",
-            "WRONG_NEW_LINE",
-            "MISSING_TSV_COLUMN_CHANNELS",
-            "MISSING_TSV_COLUMN_IEEG_CHANNELS",
-            "MISSING_TSV_COLUMN_IEEG_ELECTRODES",
-            "UNUSED_STIMULUS",
-            "CHANNELS_COLUMN_SFREQ",
-            "CHANNELS_COLUMN_LOWCUT",
-            "CHANNELS_COLUMN_HIGHCUT",
-            "CHANNELS_COLUMN_NOTCH",
-            "CUSTOM_COLUMN_WITHOUT_DESCRIPTION",
-            "ACQTIME_FMT",
-            "SUSPICIOUSLY_LONG_EVENT_DESIGN",
-            "SUSPICIOUSLY_SHORT_EVENT_DESIGN",
-            "MALFORMED_BVEC",
-            "MALFORMED_BVAL",
-            "MISSING_TSV_COLUMN_EEG_ELECTRODES",
-            "MISSING_SESSION"
-        ],
-        "error": ["NO_T1W"],
-        "ignoredFiles": ['/dataset_description.json', '/participants.tsv']
-    }
-    # Limit validation only to data from requested participants
-    if participant_label:
-        all_subs = set([os.path.basename(i)[4:] for i in glob(os.path.join(bids_dir,
-                                                                           "sub-*"))])
-        selected_subs = []
-        for selected_sub in participant_label:
-            if selected_sub.startswith("sub-"):
-                selected_subs.append(selected_sub[4:])
-            else:
-                selected_subs.append(selected_sub)
-        selected_subs = set(selected_subs)
-        bad_labels = selected_subs.difference(all_subs)
-        if bad_labels:
-            error_msg = 'Data for requested participant(s) label(s) not found. Could ' \
-                        'not find data for participant(s): %s. Please verify the requested ' \
-                        'participant labels.'
-            if exec_env == 'docker':
-                error_msg += ' This error can be caused by the input data not being ' \
-                             'accessible inside the docker container. Please make sure all ' \
-                             'volumes are mounted properly (see https://docs.docker.com/' \
-                             'engine/reference/commandline/run/#mount-volume--v---read-only)'
-            if exec_env == 'singularity':
-                error_msg += ' This error can be caused by the input data not being ' \
-                             'accessible inside the singularity container. Please make sure ' \
-                             'all paths are mapped properly (see https://www.sylabs.io/' \
-                             'guides/3.0/user-guide/bind_paths_and_mounts.html)'
-            raise RuntimeError(error_msg % ','.join(bad_labels))
-
-        ignored_subs = all_subs.difference(selected_subs)
-        if ignored_subs:
-            for sub in ignored_subs:
-                validator_config_dict["ignoredFiles"].append("/sub-%s/**" % sub)
-    with tempfile.NamedTemporaryFile('w+') as temp:
-        temp.write(json.dumps(validator_config_dict))
-        temp.flush()
-        try:
-            subprocess.check_call(['bids-validator', bids_dir, '-c', temp.name])
-        except FileNotFoundError:
-            logger.error("bids-validator does not appear to be installed")
 
 
 def build_workflow(opts, retval):
@@ -485,11 +277,10 @@ def build_workflow(opts, retval):
     ``multiprocessing.Process`` that allows smriprep to enforce
     a hard-limited memory-scope.
     """
-    import os
-    import os.path as op
-    from pathlib import Path
+    import sys
     from shutil import copyfile
     from os import cpu_count
+    from collections import OrderedDict
     import uuid
     from time import strftime
     from subprocess import check_call, CalledProcessError, TimeoutExpired
@@ -500,6 +291,37 @@ def build_workflow(opts, retval):
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
     from niworkflows.utils.bids import collect_participants
+
+    # Set the default template to 'MNI152NLin2009c'
+    output_spaces = opts.output_spaces or OrderedDict([('MNI152NLin2009cAsym', {})])
+
+    if opts.template:
+        print("""\
+The ``--template`` option has been deprecated in version 1.1.2. Your selected template \
+"%s" will be inserted at the front of the ``--output-spaces`` argument list. Please update \
+your scripts to use ``--output-spaces``.""" % opts.template, file=sys.stderr)
+        deprecated_tpl_arg = [(opts.template, {})]
+        # If output_spaces is not set, just replate the default - append otherwise
+        if opts.output_spaces is not None:
+            deprecated_tpl_arg += list(output_spaces.items())
+        output_spaces = OrderedDict(deprecated_tpl_arg)
+
+    if opts.fs_output_spaces:
+        print("""\
+The ``--fs-output-spaces`` option has been deprecated in version 1.1.2. Your selected output \
+surfaces "%s" will be appended to the ``--output-spaces`` argument list. Please update \
+your scripts to use ``--output-spaces``.""" % ', '.join(opts.fs_output_spaces), file=sys.stderr)
+        for fs_space in opts.fs_output_spaces:
+            if fs_space not in output_spaces:
+                output_spaces[fs_space] = {}
+
+    FS_SPACES = set(['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'])
+    if opts.run_reconall and not list(FS_SPACES.intersection(output_spaces.keys())):
+        print("""\
+Although ``--fs-no-reconall`` was not set, no FreeSurfer output space (valid values are: \
+%s) was selected. Adding default "fsaverage5" to the \
+list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
+        output_spaces['fsaverage5'] = {}
 
     logger = logging.getLogger('nipype.workflow')
 
@@ -514,8 +336,8 @@ def build_workflow(opts, retval):
     run_uuid = '%s_%s' % (strftime('%Y%m%d-%H%M%S'), uuid.uuid4())
 
     # First check that bids_dir looks like a BIDS folder
-    bids_dir = os.path.abspath(opts.bids_dir)
-    layout = BIDSLayout(bids_dir, validate=False)
+    bids_dir = opts.bids_dir.resolve()
+    layout = BIDSLayout(str(bids_dir), validate=False)
     subject_list = collect_participants(
         layout, participant_label=opts.participant_label)
 
@@ -559,26 +381,25 @@ def build_workflow(opts, retval):
             'available CPUs (--nprocs/--ncpus=%d)', omp_nthreads, nprocs)
 
     # Set up directories
-    output_dir = op.abspath(opts.output_dir)
-    log_dir = op.join(output_dir, 'smriprep', 'logs')
-    work_dir = op.abspath(opts.work_dir or 'work')  # Set work/ as default
+    output_dir = opts.output_dir.resolve()
+    log_dir = output_dir / 'smriprep' / 'logs'
+    work_dir = opts.work_dir.resolve()
 
     # Check and create output and working directories
-    os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(log_dir, exist_ok=True)
-    os.makedirs(work_dir, exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
 
     # Nipype config (logs and execution)
     ncfg.update_config({
         'logging': {
-            'log_directory': log_dir,
+            'log_directory': str(log_dir),
             'log_to_file': True
         },
         'execution': {
-            'crashdump_dir': log_dir,
+            'crashdump_dir': str(log_dir),
             'crashfile_format': 'txt',
             'get_linked_libs': False,
-            'stop_on_first_crash': opts.stop_on_first_crash or opts.work_dir is None,
+            'stop_on_first_crash': opts.stop_on_first_crash,
         },
         'monitoring': {
             'enabled': opts.resource_monitor,
@@ -592,22 +413,22 @@ def build_workflow(opts, retval):
 
     retval['return_code'] = 0
     retval['plugin_settings'] = plugin_settings
-    retval['bids_dir'] = bids_dir
-    retval['output_dir'] = output_dir
-    retval['work_dir'] = work_dir
+    retval['bids_dir'] = str(bids_dir)
+    retval['output_dir'] = str(output_dir)
+    retval['work_dir'] = str(work_dir)
     retval['subject_list'] = subject_list
     retval['run_uuid'] = run_uuid
     retval['workflow'] = None
 
     # Called with reports only
     if opts.reports_only:
-        from niworkflows.viz.reports import generate_reports
+        from niworkflows.reports import generate_reports
 
         logger.log(25, 'Running --reports-only on participants %s', ', '.join(subject_list))
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid
         retval['return_code'] = generate_reports(
-            subject_list, output_dir, work_dir, run_uuid,
+            subject_list, str(output_dir), str(work_dir), run_uuid,
             config=pkgrf('smriprep', 'data/reports/config.json'))
         return retval
 
@@ -620,27 +441,25 @@ def build_workflow(opts, retval):
     )
 
     retval['workflow'] = init_smriprep_wf(
-        layout=layout,
-        subject_list=subject_list,
-        run_uuid=run_uuid,
         debug=opts.sloppy,
-        low_mem=opts.low_mem,
-        longitudinal=opts.longitudinal,
-        omp_nthreads=omp_nthreads,
-        skull_strip_template=opts.skull_strip_template,
-        skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
-        work_dir=work_dir,
-        output_dir=output_dir,
         freesurfer=opts.run_reconall,
-        fs_spaces=opts.fs_output_spaces,
-        template=opts.template,
         hires=opts.hires,
+        layout=layout,
+        longitudinal=opts.longitudinal,
+        low_mem=opts.low_mem,
+        omp_nthreads=omp_nthreads,
+        output_dir=str(output_dir),
+        output_spaces=output_spaces,
+        run_uuid=run_uuid,
+        skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
+        skull_strip_template=opts.skull_strip_template,
+        subject_list=subject_list,
+        work_dir=str(work_dir),
     )
     retval['return_code'] = 0
 
-    logs_path = Path(output_dir) / 'smriprep' / 'logs'
     boilerplate = retval['workflow'].visit_desc()
-    (logs_path / 'CITATION.md').write_text(boilerplate)
+    (log_dir / 'CITATION.md').write_text(boilerplate)
     logger.log(25, 'Works derived from this sMRIPrep execution should '
                'include the following boilerplate:\n\n%s', boilerplate)
 
@@ -649,8 +468,8 @@ def build_workflow(opts, retval):
            pkgrf('smriprep', 'data/boilerplate.bib'),
            '--filter', 'pandoc-citeproc',
            '--metadata', 'pagetitle="sMRIPrep citation boilerplate"',
-           str(logs_path / 'CITATION.md'),
-           '-o', str(logs_path / 'CITATION.html')]
+           str(log_dir / 'CITATION.md'),
+           '-o', str(log_dir / 'CITATION.html')]
     try:
         check_call(cmd, timeout=10)
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
@@ -660,15 +479,15 @@ def build_workflow(opts, retval):
     # Generate LaTex file resolving citations
     cmd = ['pandoc', '-s', '--bibliography',
            pkgrf('smriprep', 'data/boilerplate.bib'),
-           '--natbib', str(logs_path / 'CITATION.md'),
-           '-o', str(logs_path / 'CITATION.tex')]
+           '--natbib', str(log_dir / 'CITATION.md'),
+           '-o', str(log_dir / 'CITATION.tex')]
     try:
         check_call(cmd, timeout=10)
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning('Could not generate CITATION.tex file:\n%s',
                        ' '.join(cmd))
     else:
-        copyfile(pkgrf('smriprep', 'data/boilerplate.bib'), str(logs_path / 'CITATION.bib'))
+        copyfile(pkgrf('smriprep', 'data/boilerplate.bib'), str(log_dir / 'CITATION.bib'))
     return retval
 
 

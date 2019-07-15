@@ -1,3 +1,65 @@
+0.3.0 (July 12, 2019)
+=====================
+
+Minor release to allow dependent tools to upgrade to PyBIDS 0.9 series (minimum 0.9.2).
+We've also moved to a ``setup.cfg``-based setup to standardize configuration.
+
+* MAINT: Move to setup.cfg + pyproject.toml (#98) @effigies
+* MAINT: Use PyBIDS 0.9.x via niworkflows PR (#94) @effigies
+
+0.2.4 (July 9, 2019)
+====================
+
+Several minor improvements on TemplateFlow integration.
+
+* ENH: Use proper resolution in anatomical outputs (#92) @oesteban
+* ENH: Indicate what templates were not found in TemplateFlow (#91) @oesteban
+* ENH: Pass template specs on to registration workflow (#90) @oesteban
+
+0.2.3 (June 5, 2019)
+====================
+
+Enable CLI to set pediatric and infant templates for skull-stripping.
+
+* ENH: Allow template modifiers (a la ``--output-spaces``) in skull-stripping (#89) @oesteban
+
+0.2.2 (June 5, 2019)
+====================
+
+Enable latest templates added to TemplateFlow.
+
+* PIN: templateflow-0.3.0, which includes infant/pediatric templates (#88) @oesteban
+
+0.2.1 (May 6, 2019)
+===================
+
+Hotfix release improving the reliability of the brain extraction workflow.
+
+* FIX: Keep header consistency along anatomical workflow (#83) @oesteban
+
+0.2.0 (May 3, 2019)
+===================
+
+This new release of sMRIPrep adds the possibility of specifying several
+spatial normalization targets via the ``--output-spaces`` option drafted
+in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/1588>`__.
+
+* ENH: Force compression of derivative NIfTI volumes (#80) @effigies
+* DOC/STY: Fix documentation build, simplify (non)parametric output nodes (#79) @oesteban
+* FIX: Resolve behavior when deprecated ``--template`` is given (#77) @oesteban
+* ENH: Pull list of spatial normalization templates from TemplateFlow (#68) @oesteban
+* ENH: CLI uses ``pathlib.Path`` when possible (#73) @oesteban
+* ENH: Create a spatial normalization workflow (#72) @oesteban
+* ENH: Several improvements over the new spatial normalization workflow (#74) @oesteban
+* ENH: Support for multiple ``--output-spaces`` (#75) @oesteban
+* FIX: Solved problems in report generation (#76) @oesteban
+
+0.1.1 (March 22, 2019)
+======================
+
+* [ENH] Pure Nipype brain extraction workflow (#57) @oesteban
+* [ENH] Write metadata for anatomical outputs (#62) @oesteban
+
 0.1.0 (March 05, 2019)
 ======================
 

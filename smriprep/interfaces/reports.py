@@ -13,17 +13,17 @@ from pathlib import Path
 import time
 
 from nipype.interfaces.base import (
-    traits, TraitedSpec, BaseInterfaceInputSpec,
+    TraitedSpec, BaseInterfaceInputSpec,
     File, Directory, InputMultiObject, Str, isdefined,
     SimpleInterface)
 from nipype.interfaces import freesurfer as fs
 
 
-SUBJECT_TEMPLATE = """\t<ul class="elem-desc">
+SUBJECT_TEMPLATE = """\
+\t<ul class="elem-desc">
 \t\t<li>Subject ID: {subject_id}</li>
 \t\t<li>Structural images: {n_t1s:d} T1-weighted {t2w}</li>
-\t\t<li>Surface spaces: {fs_spaces}</li>
-{template}\
+\t\t<li>Standard spaces: {output_spaces}</li>
 \t\t<li>FreeSurfer reconstruction: {freesurfer_status}</li>
 \t</ul>
 """
@@ -51,14 +51,16 @@ class SummaryInterface(SimpleInterface):
         self._results['out_report'] = str(path)
         return runtime
 
+    def _generate_segment(self):
+        raise NotImplementedError
+
 
 class SubjectSummaryInputSpec(BaseInterfaceInputSpec):
     t1w = InputMultiObject(File(exists=True), desc='T1w structural images')
     t2w = InputMultiObject(File(exists=True), desc='T2w structural images')
     subjects_dir = Directory(desc='FreeSurfer subjects directory')
     subject_id = Str(desc='Subject ID')
-    fs_spaces = traits.List(desc='Target spaces')
-    template = InputMultiObject(Str, desc='Template space')
+    output_spaces = InputMultiObject(Str, desc='list of standard spaces')
 
 
 class SubjectSummaryOutputSpec(SummaryOutputSpec):
@@ -77,11 +79,6 @@ class SubjectSummary(SummaryInterface):
         return super(SubjectSummary, self)._run_interface(runtime)
 
     def _generate_segment(self):
-        if isdefined(self.inputs.template):
-            template = "\t\t<li>Volume standard spaces: {}</li>\n".format(
-                ', '.join(self.inputs.template) if isinstance(self.inputs.template, list)
-                else self.inputs.template)
-
         if not isdefined(self.inputs.subjects_dir):
             freesurfer_status = 'Not run'
         else:
@@ -101,8 +98,7 @@ class SubjectSummary(SummaryInterface):
         return SUBJECT_TEMPLATE.format(subject_id=self.inputs.subject_id,
                                        n_t1s=len(self.inputs.t1w),
                                        t2w=t2w_seg,
-                                       template=template,
-                                       fs_spaces=', '.join(self.inputs.fs_spaces),
+                                       output_spaces=', '.join(self.inputs.output_spaces),
                                        freesurfer_status=freesurfer_status)
 
 
