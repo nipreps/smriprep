@@ -170,14 +170,14 @@ jobs:
               echo "Skipping pytest job"
               circleci step halt
             fi
-      - attach_workspace:
-          at: /tmp
       - run:
-          name: Check PyPi preconditions
+          name: Setup Python environment
           command: |
             pyenv global 3.5.2
             pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
-            python setup.py check -r -s
+      - run:
+          name: Check PyPi preconditions
+          command: |
             python setup.py sdist
             twine check dist/*.tar.gz
       - run:
@@ -187,8 +187,7 @@ jobs:
       - run:
           name: Run sMRIPrep tests
           no_output_timeout: 2h
-          command: |
-            python -m pytest -svx --doctest-modules smriprep
+          command: python -m pytest -svx --doctest-modules smriprep
       # - run:
       #     name: Test smriprep-wrapper (Python 2)
       #     command: |
@@ -252,23 +251,23 @@ jobs:
   deploy_pypi:
     machine:
       image: circleci/classic:201711-01
-    working_directory: /tmp/src/smriprep
+    working_directory: /home/circleci/src/smriprep
     steps:
-      - attach_workspace:
-          at: /tmp
+      - checkout
+      - run:
+          name: Setup Python environment
+          command: |
+            pyenv global 3.5.2
+            pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+      - run:
+          name: Check PyPi preconditions
+          command: |
+            python setup.py sdist
+            twine check dist/*.tar.gz
       - run:
           name: Deploy to PyPi
           command: |
-            pyenv global 3.5.2
-            virtualenv venv
-            pip install "setuptools>=27.0" twine future docutils
-            echo "${CIRCLE_TAG}" > smriprep/VERSION
-            echo "include smriprep/VERSION" >> MANIFEST.in
-            python setup.py check -r -s
-            python setup.py sdist
-            twine upload dist/*
-            cd wrapper && python setup.py sdist
-            twine upload dist/*
+            twine upload dist/*.tar.gz
 
   ds005:
     machine:
