@@ -489,9 +489,9 @@ workflows:
               only: /.*/
 
       - build_docs:
-          requires:
-            - deploy_docker
-            - deploy_pypi
+          #requires:
+          #  - deploy_docker
+          #  - deploy_pypi
           filters:
             branches:
               ignore:
@@ -504,6 +504,8 @@ workflows:
       - deploy_docs:
           requires:
             - build_docs
+            - deploy_docker
+            - deploy_pypi
           filters:
             branches:
               ignore:
