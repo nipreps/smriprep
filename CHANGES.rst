@@ -1,3 +1,10 @@
+0.3.1 (July 21, 2019)
+=====================
+
+Minor release to update pinnings of niworkflows and TemplateFlow client.
+
+* PIN: niworkflows-0.10.1 and templateflow-0.4.1
+
 0.3.0 (July 12, 2019)
 =====================
 
