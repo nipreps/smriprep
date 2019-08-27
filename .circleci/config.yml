@@ -436,7 +436,7 @@ jobs:
       - checkout
       - run:
           name: Install deps
-          command: pip install -r requirements.txt && -r docs_requirements.txt pip
+          command: pip install -r requirements.txt && pip install -r docs_requirements.txt
       - run:
           name: generate api docs
           command: sphinx-apidoc -o ./docs/_sources/ ./smriprep/
