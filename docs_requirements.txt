@@ -1,0 +1,3 @@
+Sphinx>=2.1.2
+git+https://github.com/rwblair/sphinxcontrib-versioning.git
+sphinxcontrib-apidoc
