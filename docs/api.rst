@@ -1,6 +1,7 @@
 api
 ===
 
+text
 .. toctree::
     :maxdepth: 4
 

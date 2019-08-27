@@ -436,7 +436,7 @@ jobs:
       - checkout
       - run:
           name: Install deps
-          command: pip install -r requirements.txt && pip install sphinx
+          command: pip install -r requirements.txt && pip install sphinx && pip install git+https://github.com/rwblair/sphinxcontrib-versioning.git
       - run:
           name: generate api docs
           command: sphinx-apidoc -o ./docs/_sources/ ./smriprep/
