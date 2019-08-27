@@ -33,6 +33,7 @@ release = '0.1.1'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
+    'sphinxcontrib.apidoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
@@ -177,6 +178,11 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+
+apidoc_module_dir = '../smriprep'
+apidoc_output_dir = 'api'
+apidoc_excluded_paths = ['tests']
+apidoc_separate_modules = True
 
 # -- Options for intersphinx extension ---------------------------------------
 
