@@ -8,4 +8,4 @@ Contents
     :maxdepth: 2
 
     changes
-    api
+    api/smriprep
