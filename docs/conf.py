@@ -22,8 +22,8 @@ sys.path.insert(0, os.path.abspath('../wrapper'))
 # -- Project information -----------------------------------------------------
 
 project = 'sMRIPrep'
-copyright = '2019, The SMRIPrep Developers'
-author = 'The SMRIPrep Developers'
+copyright = '20199, The sMRIPrep Developers'
+author = 'The sMRIPrep Developers'
 
 # The short X.Y version
 version = u'version'
@@ -105,7 +105,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'SMRIPrepdoc'
+htmlhelp_basename = 'sMRIPrepdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -132,8 +132,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'SMRIPrep.tex', 'SMRIPrep Documentation',
-     'The SMRIPrep Developers', 'manual'),
+    (master_doc, 'sMRIPrep.tex', 'sMRIPrep Documentation',
+     'The sMRIPrep Developers', 'manual'),
 ]
 
 
@@ -142,7 +142,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'smriprep', 'SMRIPrep Documentation',
+    (master_doc, 'sMRIprep', 'sMRIPrep Documentation',
      [author], 1)
 ]
 
@@ -153,8 +153,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'SMRIPrep', 'SMRIPrep Documentation',
-     author, 'SMRIPrep', 'One line description of project.',
+    (master_doc, 'sMRIPrep', 'sMRIPrep Documentation',
+     author, 'sMRIPrep', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -179,7 +179,7 @@ epub_exclude_files = ['search.html']
 
 # -- Extension configuration -------------------------------------------------
 
-apidoc_module_dir = '../smriprep'
+apidoc_module_dir = '../sMRIprep'
 apidoc_output_dir = 'api'
 apidoc_excluded_paths = ['tests']
 apidoc_separate_modules = True

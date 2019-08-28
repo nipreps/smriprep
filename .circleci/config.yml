@@ -436,7 +436,7 @@ jobs:
       - checkout
       - run:
           name: Install Graphviz
-          command: sudo apt update && sudo apt -y install graphviz
+          command: apt update && apt -y install graphviz
       - run:
           name: Install deps
           command: pip install -r requirements.txt && pip install -r docs/requirements.txt
