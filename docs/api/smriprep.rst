@@ -1,4 +1,4 @@
-smriprep package
+Software API for developers
 ===========================
 
 Subpackages
