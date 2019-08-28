@@ -26,9 +26,9 @@ copyright = '2019, The SMRIPrep Developers'
 author = 'The SMRIPrep Developers'
 
 # The short X.Y version
-version = '0.1.1'
+version = u'version'
 # The full version, including alpha/beta/rc tags
-release = '0.1.1'
+release = u'version'
 
 
 # -- General configuration ---------------------------------------------------

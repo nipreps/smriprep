@@ -512,7 +512,7 @@ workflows:
                 - /ds005\/.*/
                 - /ds054\/.*/
             tags:
-              only: /^v.*/
+              only: /.*/
 
       - update_cache:
           requires:
