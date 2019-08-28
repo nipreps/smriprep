@@ -436,7 +436,7 @@ jobs:
       - checkout
       - run:
           name: Install deps
-          command: pip install -r requirements.txt && pip install -r docs_requirements.txt
+          command: pip install -r requirements.txt && pip install -r docs/requirements.txt
       - run:
           name: Generate Docs
           command: sphinx-versioning -vv build -r ci_doc_deploy ./docs ./docs/_build/html/

@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('../wrapper'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'SMRIPrep'
+project = 'sMRIPrep'
 copyright = '2019, The SMRIPrep Developers'
 author = 'The SMRIPrep Developers'
 

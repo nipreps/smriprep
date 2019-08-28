@@ -1,5 +1,5 @@
-Module contents
----------------
+Software API for developers
+===========================
 
 .. automodule:: smriprep
    :members:
