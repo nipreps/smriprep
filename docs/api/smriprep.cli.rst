@@ -1,9 +1,0 @@
-smriprep.cli package
-====================
-
-
-
-.. automodule:: smriprep.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
