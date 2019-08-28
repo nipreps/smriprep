@@ -8,9 +8,6 @@ This pipeline is developed by the Poldrack lab at Stanford University
 the Center for Reproducible Neuroscience (http://reproducibility.stanford.edu/),
 as well as for open-source software distribution.
 
-Subpackages
------------
-
 .. toctree::
 
    smriprep.cli
