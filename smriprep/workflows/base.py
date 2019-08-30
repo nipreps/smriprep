@@ -1,13 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
-sMRIPrep base processing workflows
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autofunction:: init_smriprep_wf
-.. autofunction:: init_single_subject_wf
+sMRIPrep base processing workflows.
 
 """
 
@@ -83,6 +77,7 @@ def init_smriprep_wf(
         )
 
     Parameters
+    ----------
 
         debug : bool
             Enable debugging outputs

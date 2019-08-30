@@ -183,7 +183,7 @@ apidoc_module_dir = '../smriprep'
 apidoc_output_dir = 'api'
 apidoc_excluded_paths = ['tests']
 apidoc_separate_modules = True
-apidoc_extra_args = ['--templatedir=_templates/apidoc/']
+apidoc_extra_args = ['--templatedir=_templates/apidoc/', '--no-headings', '--module-first']
 
 # -- Options for intersphinx extension ---------------------------------------
 
