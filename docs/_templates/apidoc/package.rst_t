@@ -14,5 +14,3 @@
 {%- endmacro %}
 
 {{- [pkgname, "package"] | join(" ") | e | heading }}
-
-{{ toctree(subpackages) }}
