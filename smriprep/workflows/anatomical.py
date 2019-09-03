@@ -335,8 +335,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
         (anat_template_wf, anat_reports_wf, [
             ('outputnode.out_report', 'inputnode.t1_conform_report')]),
-        (anat_template_wf, seg_rpt, [
-            ('outputnode.t1_template', 'in_file')]),
+        (brain_extraction_wf, seg_rpt, [
+            (('outputnode.bias_corrected', _pop), 'in_file')]),
         (t1_seg, seg_rpt, [('tissue_class_map', 'in_rois')]),
         (outputnode, seg_rpt, [('t1_mask', 'in_mask')]),
         (seg_rpt, anat_reports_wf, [('out_report', 'inputnode.seg_report')]),
