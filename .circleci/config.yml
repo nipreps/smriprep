@@ -432,6 +432,8 @@ jobs:
   build_docs:
     docker:
       - image: python:latest
+    environment:
+      - FSLOUTPUTTYPE: NIFTI
     steps:
       - checkout
       - run:
