@@ -19,7 +19,7 @@ sMRIPrep: Structural MRI PREProcessing pipeline
 About
 -----
 
-.. image:: https://github.com/oesteban/smriprep/raw/c3ae3ad030191ad2a33a49096fbe23c8b199d4ba/docs/_resources/workflow.svg
+.. image:: https://github.com/oesteban/smriprep/raw/a21163ae23785a8f91caad5db5ece982392e12cb/docs/_resources/workflow.png
 
 
 *sMRIPrep* is a structural magnetic resonance imaging (sMRI) data
