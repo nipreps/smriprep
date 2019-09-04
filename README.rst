@@ -19,9 +19,6 @@ sMRIPrep: Structural MRI PREProcessing pipeline
 About
 -----
 
-.. image:: https://github.com/oesteban/smriprep/raw/a21163ae23785a8f91caad5db5ece982392e12cb/docs/_resources/workflow.png
-
-
 *sMRIPrep* is a structural magnetic resonance imaging (sMRI) data
 preprocessing pipeline that is designed to provide an easily accessible,
 state-of-the-art interface that is robust to variations in scan acquisition
@@ -59,7 +56,7 @@ Principles
    automatic fashion.
 3. **"Glass box"** philosophy - Automation should not mean that one should not
    visually inspect the results or understand the methods.
-   Thus, ``fmriprep`` provides visual reports for each subject, detailing the
+   Thus, *sMRIPrep* provides visual reports for each subject, detailing the
    accuracy of the most important processing steps.
    This, combined with the documentation, can help researchers to understand
    the process and decide which subjects should be kept for the group level
