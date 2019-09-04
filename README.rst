@@ -1,21 +1,76 @@
-smriprep: A Robust Preprocessing Pipeline for Structural MRI Data
-=================================================================
+sMRIPrep: Structural MRI PREProcessing pipeline
+===============================================
 
-This pipeline is developed by the `Poldrack lab at Stanford University
-<https://poldracklab.stanford.edu/>`_ for use at the `Center for Reproducible
-Neuroscience (CRN) <http://reproducibility.stanford.edu/>`_, as well as for
-open-source software distribution.
+.. image:: https://img.shields.io/badge/docker-poldracklab/smriprep-brightgreen.svg?logo=docker&style=flat
+  :target: https://hub.docker.com/r/poldracklab/smriprep/tags/
+  :alt: Docker image available!
 
-This package is called directly from `fMRIPrep <https://github.com/poldracklab/fmriprep>`_.
+.. image:: https://circleci.com/gh/poldracklab/smriprep/tree/master.svg?style=shield
+  :target: https://circleci.com/gh/poldracklab/smriprep/tree/master
 
-The workflow is based on `Nipype <https://nipype.readthedocs.io>`_ and encompases a large
-set of tools from well-known neuroimaging packages, including
+.. image:: https://img.shields.io/pypi/v/smriprep.svg
+  :target: https://pypi.python.org/pypi/smriprep/
+  :alt: Latest Version
+  
+.. image:: https://img.shields.io/badge/doi-10.1038%2Fs41592--018--0235--4-blue.svg
+  :target: https://doi.org/10.1038/s41592-018-0235-4
+  :alt: Published in Nature Methods
+
+About
+-----
+
+.. image:: https://github.com/oesteban/smriprep/raw/master/docs/_resources/workflow.svg
+
+
+*sMRIPrep* is a structural magnetic resonance imaging (sMRI) data
+preprocessing pipeline that is designed to provide an easily accessible,
+state-of-the-art interface that is robust to variations in scan acquisition
+protocols and that requires minimal user input, while providing easily
+interpretable and comprehensive error and output reporting.
+It performs basic processing steps (subject-wise averaging, B1 field correction,
+spatial normalization, segmentation, skullstripping etc.) providing
+outputs that can be easily connected to subsequent tools such as
+`fMRIPrep <https://github.com/poldracklab/fmriprep>`_ or 
+`dMRIPrep <https://github.com/nipreps/dmriprep>`_.
+
+The workflow is based on `Nipype <https://nipype.readthedocs.io>`_ and encompases
+a combination of tools from well-known software packages, including
 `FSL <https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/>`_,
 `ANTs <https://stnava.github.io/ANTs/>`_,
 `FreeSurfer <https://surfer.nmr.mgh.harvard.edu/>`_,
 and `AFNI <https://afni.nimh.nih.gov/>`_.
-This pipeline was designed to provide the best software implementation for each state of
-preprocessing, and will be updated as newer and better neuroimaging software becomes
-available.
+
+More information and documentation can be found at
+https://fmriprep.readthedocs.io/.
 
 Support is provided on `neurostars.org <https://neurostars.org/tags/smriprep>`_.
+
+Principles
+----------
+
+*sMRIPrep* is built around three principles:
+
+1. **Robustness** - The pipeline adapts the preprocessing steps depending on
+   the input dataset and should provide results as good as possible
+   independently of scanner make, scanning parameters or presence of additional
+   correction scans (such as fieldmaps).
+2. **Ease of use** - Thanks to dependence on the BIDS standard, manual
+   parameter input is reduced to a minimum, allowing the pipeline to run in an
+   automatic fashion.
+3. **"Glass box"** philosophy - Automation should not mean that one should not
+   visually inspect the results or understand the methods.
+   Thus, ``fmriprep`` provides visual reports for each subject, detailing the
+   accuracy of the most important processing steps.
+   This, combined with the documentation, can help researchers to understand
+   the process and decide which subjects should be kept for the group level
+   analysis.
+
+
+Acknowledgements
+----------------
+
+Please acknowledge this work by mentioning explicitly the name of this software
+(sMRIPrep) and the version, along with a link to the `GitHub repository
+<https://github.com/poldracklab/smriprep>`__ or the Zenodo reference
+(doi:`10.5281/zenodo.2650521 <https://doi.org/10.5281/zenodo.2650521>`_).
+For more details, please see :ref:`citation`.
