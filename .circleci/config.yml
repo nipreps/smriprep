@@ -371,10 +371,10 @@ jobs:
           at: /tmp
       - restore_cache:
           keys:
-            - ds054-anat-v4-{{ .Branch }}-{{ epoch }}
-            - ds054-anat-v4-{{ .Branch }}
-            - ds054-anat-v4-master
-            - ds054-anat-v4-
+            - ds054-anat-v5-{{ .Branch }}-{{ epoch }}
+            - ds054-anat-v5-{{ .Branch }}
+            - ds054-anat-v5-master
+            - ds054-anat-v5-
       - run:
           name: Setting up test
           command: |
@@ -409,7 +409,7 @@ jobs:
                 --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
                 --fs-license-file /tmp/fslicense/license.txt
       - save_cache:
-         key: ds054-anat-v4-{{ .Branch }}-{{ epoch }}
+         key: ds054-anat-v5-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/ds054/work
       - run:
