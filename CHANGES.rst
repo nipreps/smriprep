@@ -1,3 +1,10 @@
+0.3.2 (September 9, 2019)
+=========================
+
+Bugfix patch-release
+
+* FIX: Render INU-corrected T1w in Segmentation reportlet (#102) @oesteban
+
 0.3.1 (July 21, 2019)
 =====================
 
