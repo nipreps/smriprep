@@ -277,7 +277,7 @@ def init_single_subject_wf(
             't1w': ['/completely/made/up/path/sub-01_T1w.nii.gz'],
         }
     else:
-        subject_data = collect_data(layout, subject_id)[0]
+        subject_data = collect_data(layout, subject_id, bids_filters=bids_filters)[0]
 
     if not subject_data['t1w']:
         raise Exception("No T1w images found for participant {}. "
@@ -307,7 +307,7 @@ to workflows in *sMRIPrep*'s documentation]\
     inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']),
                         name='inputnode')
 
-    bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True, output_query=bids_filters),
+    bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True),
                       name='bidssrc')
 
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',

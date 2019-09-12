@@ -293,7 +293,6 @@ def build_workflow(opts, retval):
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
     from niworkflows.utils.bids import collect_participants
-    from nipype.interfaces.base import Undefined
 
     # Set the default template to 'MNI152NLin2009c'
     output_spaces = opts.output_spaces or OrderedDict([('MNI152NLin2009cAsym', {})])
@@ -345,7 +344,7 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
         layout, participant_label=opts.participant_label)
 
     bids_filters_file = opts.bids_filters.resolve()
-    bids_filters = json.load(open(bids_filters_file)) if bids_filters_file else Undefined
+    bids_filters = json.load(open(bids_filters_file)) if bids_filters_file else None
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
