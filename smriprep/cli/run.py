@@ -55,7 +55,7 @@ def get_parser():
     g_bids.add_argument('--participant-label', '--participant_label', action='store', nargs='+',
                         help='a space delimited list of participant identifiers or a single '
                              'identifier (the sub- prefix can be removed)')
-    g_bids.add_argument('bids_filters', action='store', type=Path,
+    g_bids.add_argument('--bids_filters', action='store', type=Path,
                         help='the path to a JSON file describing custom BIDS input filter')
 
     g_perfm = parser.add_argument_group('Options to handle performance')
@@ -345,7 +345,7 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
         layout, participant_label=opts.participant_label)
 
     bids_filters_file = opts.bids_filters.resolve()
-    bids_filters = json.load(bids_filters_file) if bids_filters_file else Undefined
+    bids_filters = json.load(open(bids_filters_file)) if bids_filters_file else Undefined
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:

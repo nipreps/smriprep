@@ -47,6 +47,7 @@ def init_smriprep_wf(
     skull_strip_template,
     subject_list,
     work_dir,
+    bids_filters,
 ):
     """
     This workflow organizes the execution of sMRIPrep, with a sub-workflow for
@@ -120,6 +121,8 @@ def init_smriprep_wf(
         work_dir : str
             Directory in which to store workflow execution state and
             temporary files
+        bids_filters : dict
+            For BIDSDataGrabber output_query
 
     """
     smriprep_wf = Workflow(name='smriprep_wf')
@@ -151,6 +154,7 @@ def init_smriprep_wf(
             skull_strip_fixed_seed=skull_strip_fixed_seed,
             skull_strip_template=skull_strip_template,
             subject_id=subject_id,
+            bids_filters=bids_filters,
         )
 
         single_subject_wf.config['execution']['crashdump_dir'] = (
@@ -182,6 +186,7 @@ def init_single_subject_wf(
     skull_strip_fixed_seed,
     skull_strip_template,
     subject_id,
+    bids_filters,
 ):
     """
     This workflow organizes the preprocessing pipeline for a single subject.
@@ -256,6 +261,8 @@ def init_single_subject_wf(
             dictionary of template specifications.
         subject_id : str
             List of subject labels
+        bids_filters : dict
+            For BIDSDataGrabber output_query
 
     Inputs
 
@@ -300,7 +307,7 @@ to workflows in *sMRIPrep*'s documentation]\
     inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']),
                         name='inputnode')
 
-    bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True),
+    bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True, output_query=bids_filters),
                       name='bidssrc')
 
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
