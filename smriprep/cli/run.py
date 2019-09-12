@@ -55,6 +55,8 @@ def get_parser():
     g_bids.add_argument('--participant-label', '--participant_label', action='store', nargs='+',
                         help='a space delimited list of participant identifiers or a single '
                              'identifier (the sub- prefix can be removed)')
+    g_bids.add_argument('bids_filters', action='store', type=Path,
+                        help='the path to a JSON file describing custom BIDS input filter')
 
     g_perfm = parser.add_argument_group('Options to handle performance')
     g_perfm.add_argument('--nprocs', '--ncpus', '--nthreads', '--n_cpus', '-n-cpus',
@@ -291,6 +293,7 @@ def build_workflow(opts, retval):
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
     from niworkflows.utils.bids import collect_participants
+    from nipype.interfaces.base import Undefined
 
     # Set the default template to 'MNI152NLin2009c'
     output_spaces = opts.output_spaces or OrderedDict([('MNI152NLin2009cAsym', {})])
@@ -340,6 +343,9 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
     layout = BIDSLayout(str(bids_dir), validate=False)
     subject_list = collect_participants(
         layout, participant_label=opts.participant_label)
+
+    bids_filters_file = opts.bids_filters.resolve()
+    bids_filters = json.load(bids_filters_file) if bids_filters_file else Undefined
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
@@ -455,6 +461,7 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
         skull_strip_template=opts.skull_strip_template,
         subject_list=subject_list,
         work_dir=str(work_dir),
+        bids_filters=bids_filters,
     )
     retval['return_code'] = 0
 
