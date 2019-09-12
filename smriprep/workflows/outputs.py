@@ -54,7 +54,7 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
     return workflow
 
 
-def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
+def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
                              name='anat_derivatives_wf'):
     """Set up a battery of datasinks to store derivatives in the right location."""
     workflow = Workflow(name=name)
@@ -129,14 +129,6 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
                             to='T1w', mode='image', suffix='xfm'),
         name='ds_t1w_tpl_inv_warp', run_without_submitting=True)
 
-    # Please note the dictionary unpacking to provide the from argument.
-    # It is necessary because from is a protected keyword (not allowed as argument name).
-    ds_t1w_ref_xfms = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
-                            to='T1w', mode='image', suffix='xfm', **{'from': 'orig'}),
-        iterfield=['source_file', 'in_file'],
-        name='ds_t1w_ref_xfms', run_without_submitting=True)
-
     ds_t1w_tpl_warp = pe.Node(
         DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
                             mode='image', suffix='xfm', **{'from': 'T1w'}),
@@ -144,6 +136,8 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
 
     lta2itk = pe.Node(LTAConvert(out_itk=True), name='lta2itk')
 
+    # Please note the dictionary unpacking to provide the from argument.
+    # It is necessary because from is a protected keyword (not allowed as argument name).
     ds_t1w_fsnative = pe.Node(
         DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
                             mode='image', to='fsnative', suffix='xfm', **{'from': 'T1w'}),
@@ -162,8 +156,6 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
     workflow.connect([
         (inputnode, t1w_name, [('source_files', 'in_files')]),
         (inputnode, raw_sources, [('source_files', 'in_files')]),
-        (inputnode, ds_t1w_ref_xfms, [('source_files', 'source_file'),
-                                      ('t1w_ref_xfms', 'in_file')]),
         (inputnode, ds_t1w_preproc, [('t1w_preproc', 'in_file')]),
         (inputnode, ds_t1w_mask, [('t1w_mask', 'in_file')]),
         (inputnode, lut_t1w_dseg, [('t1w_dseg', 'in_file')]),
@@ -201,6 +193,17 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
         (t1w_name, ds_std_dseg, [('out', 'source_file')]),
         (t1w_name, ds_std_tpms, [('out', 'source_file')]),
     ])
+
+    if num_t1w > 1:
+        ds_t1w_ref_xfms = pe.MapNode(
+            DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+                                to='T1w', mode='image', suffix='xfm', **{'from': 'orig'}),
+            iterfield=['source_file', 'in_file'],
+            name='ds_t1w_ref_xfms', run_without_submitting=True)
+        workflow.connect([
+            (inputnode, ds_t1w_ref_xfms, [('source_files', 'source_file'),
+                                          ('t1w_ref_xfms', 'in_file')]),
+        ])
 
     if freesurfer:
         ds_t1w_fsaseg = pe.Node(
