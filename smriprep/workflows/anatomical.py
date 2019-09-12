@@ -3,6 +3,7 @@
 """Anatomical reference preprocessing workflows."""
 from pkg_resources import resource_filename as pkgr
 
+from nipype import logging
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
     utility as niu,
@@ -27,6 +28,8 @@ from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
 
+LOGGER = logging.getLogger('nipype.workflow')
+
 
 def init_anat_preproc_wf(
         bids_root,
@@ -41,6 +44,7 @@ def init_anat_preproc_wf(
         skull_strip_template,
         spaces,
         debug=False,
+        existing_derivatives=None,
         name='anat_preproc_wf',
         skull_strip_fixed_seed=False,
 ):
@@ -180,7 +184,53 @@ def init_anat_preproc_wf(
 : """
     desc += """\
 A total of {num_t1w} T1-weighted (T1w) images were found within the input
-BIDS dataset.
+BIDS dataset.""".format(num_t1w=num_t1w)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['t1w', 't2w', 'roi', 'flair', 'subjects_dir', 'subject_id']),
+        name='inputnode')
+    outputnode = pe.Node(niu.IdentityInterface(
+        fields=[
+            't1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',  # T1w space
+            'std_t1w_preproc', 'std_mask', 'std_dseg', 'std_tpms',  # Standard spaces
+            'template', 'anat2std_xfm', 'std2anat_xfm',  # Standard spaces (misc)
+            'subjects_dir', 'subject_id', 'surfaces',  # Freesurfer
+            't1w_aseg', 't1w_aparc', 't1w2fsnative_xfm', 'fsnative2t1w_xfm',  # Freesurfer
+        ]),
+        name='outputnode')
+
+    if existing_derivatives is not None:
+        _needed_inputs = ['t1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',
+                          'std_t1w_preproc', 'std_mask', 'std_dseg', 'std_tpms',
+                          'template', 'anat2std_xfm', 'std2anat_xfm']
+        if freesurfer:
+            _needed_inputs += ['surfaces', 't1w_aseg', 't1w_aparc', 't1w2fsnative_xfm']
+
+        missing = set(_needed_inputs) - set(existing_derivatives.keys())
+        if missing:
+            LOGGER.warning("Failed to set prior derivatives. Missing fields: %s.",
+                           ', '.join(missing))
+        else:
+            LOGGER.log(25, "Anatomical workflow will reuse prior derivatives found in the "
+                       "output folder (%s).", output_dir)
+            desc += """
+Anatomical preprocessing was reused from previously existing derivative objects.\n"""
+            workflow.__desc__ = desc
+
+            for field in _needed_inputs:
+                setattr(outputnode.inputs, field, existing_derivatives[field])
+
+            if freesurfer:
+                workflow.connect([
+                    (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
+                                             ('subject_id', 'subject_id')]),
+                ])
+            else:  # need to add manually
+                workflow.add_nodes([inputnode, outputnode])
+            return workflow
+
+    # The workflow is not cached.
+    desc += """
 All of them were corrected for intensity non-uniformity (INU)
 """ if num_t1w > 1 else """\
 The T1-weighted (T1w) image was corrected for intensity non-uniformity (INU)
@@ -360,9 +410,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('std_mask', 'inputnode.std_mask'),
             ('std_dseg', 'inputnode.std_dseg'),
             ('std_tpms', 'inputnode.std_tpms'),
-            ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
-            ('surfaces', 'inputnode.surfaces'),
         ]),
     ])
 
@@ -410,6 +457,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (surface_recon_wf, anat_derivatives_wf, [
             ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
             ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
+        ]),
+        (outputnode, anat_derivatives_wf, [
+            ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('surfaces', 'inputnode.surfaces'),
         ]),
     ])
 

@@ -1,14 +1,85 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-Utilities to handle BIDS inputs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-"""
+"""Utilities to handle BIDS inputs."""
+from collections import defaultdict
+
+
+def collect_derivatives(layout, subject_id, output_spaces, freesurfer):
+    """Gather existing derivatives and compose a cache."""
+    if not layout.get(scope='derivatives'):
+        raise ValueError('Derivatives folder seems empty.')
+
+    common_entities = {
+        'subject': subject_id,
+        'datatype': 'anat',
+        'extension': ['.nii', '.nii.gz'],
+        'return_type': 'file',
+    }
+    spaces = layout.get_spaces(datatype='anat')
+    derivs_cache = {
+        'template': [s for s in output_spaces if s in spaces],
+        't1w_preproc': layout.get(
+            desc='preproc', suffix='T1w', space=None, **common_entities)[0],
+        't1w_mask': layout.get(
+            desc='brain', suffix='mask', space=None, **common_entities)[0],
+        't1w_dseg': layout.get(
+            desc=None, suffix='dseg', space=None, **common_entities)[0],
+        't1w_tpms': layout.get(
+            desc=None, label=['CSF', 'WM', 'GM'], suffix='probseg', space=None,
+            **common_entities),
+    }
+
+    if derivs_cache['template']:
+        derivs_cache = defaultdict(list, derivs_cache)
+
+    for space in derivs_cache['template']:
+        derivs_cache['std_t1w_preproc'] += layout.get(
+            desc='preproc', space=space, suffix='T1w', **common_entities)
+        derivs_cache['std_mask'] += layout.get(
+            desc='brain', suffix='mask', space=space, **common_entities)
+        derivs_cache['std_dseg'] += layout.get(
+            desc=None, suffix='dseg', space=space, **common_entities)
+        derivs_cache['std_tpms'] += layout.get(
+            desc=None, label=['CSF', 'WM', 'GM'], suffix='probseg', space=space,
+            **common_entities)
+
+        # Retrieve spatial transforms
+        xfm_query = common_entities.copy()
+        xfm_query.update({'from': 'T1w', 'to': space, 'extension': '.h5',
+                          'suffix': 'xfm', 'mode': 'image'})
+        derivs_cache['anat2std_xfm'] += layout.get(**xfm_query)
+
+        xfm_query.update({'to': 'T1w', 'from': space})
+        derivs_cache['std2anat_xfm'] += layout.get(**xfm_query)
+
+    derivs_cache = dict(derivs_cache)  # Back to a standard dictionary
+
+    if freesurfer:
+        derivs_cache['t1w_aseg'] = layout.get(
+            desc='aseg', suffix='dseg', space=None, **common_entities)[0]
+        derivs_cache['t1w_aparc'] = layout.get(
+            desc='aparcaseg', suffix='dseg', space=None, **common_entities)[0]
+
+        fs_query = common_entities.copy()
+        fs_query.update({'from': 'T1w', 'to': 'fsnative', 'extension': '.txt',
+                         'suffix': 'xfm', 'mode': 'image'})
+        derivs_cache['t1w2fsnative_xfm'] = layout.get(**fs_query)[0]
+        fs_query.update({'from': 'fsnative', 'to': 'T1w'})
+        derivs_cache['fsnative2t1w_xfm'] = layout.get(**fs_query)[0]
+
+        common_entities['extension'] = '.surf.gii'
+        derivs_cache['surfaces'] = layout.get(**common_entities)
+
+    for k, v in derivs_cache.items():
+        if not v:
+            raise ValueError('Empty entry "%s" found in the collected derivatives.' % k)
+
+    return derivs_cache
 
 
 def write_derivative_description(bids_dir, deriv_dir):
-    """Write a ``dataset_description.json`` for the derivatives
-    folder.
+    """
+    Write a ``dataset_description.json`` for the derivatives folder.
 
     .. testsetup::
 
