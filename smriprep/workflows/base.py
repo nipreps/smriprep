@@ -24,6 +24,7 @@ from .anatomical import init_anat_preproc_wf
 
 def init_smriprep_wf(
     debug,
+    force_build,
     freesurfer,
     fs_subjects_dir,
     hires,
@@ -59,6 +60,7 @@ def init_smriprep_wf(
             from niworkflows.utils.spaces import SpatialReferences, Reference
             wf = init_smriprep_wf(
                 debug=False,
+                force_build=True,
                 freesurfer=True,
                 fs_subjects_dir=None,
                 hires=True,
@@ -80,6 +82,8 @@ def init_smriprep_wf(
     ----------
     debug : :obj:`bool`
         Enable debugging outputs
+    force_build : :obj:`bool`
+        Do not fast-track the workflow by searching for existing derivatives.
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
     fs_subjects_dir : os.PathLike or None
@@ -134,6 +138,7 @@ def init_smriprep_wf(
         single_subject_wf = init_single_subject_wf(
             debug=debug,
             freesurfer=freesurfer,
+            force_build=force_build,
             hires=hires,
             layout=layout,
             longitudinal=longitudinal,
@@ -166,6 +171,7 @@ def init_smriprep_wf(
 def init_single_subject_wf(
     debug,
     freesurfer,
+    force_build,
     hires,
     layout,
     longitudinal,
@@ -295,6 +301,16 @@ to workflows in *sMRIPrep*'s documentation]\
 
 """
 
+    deriv_cache = None
+    if not force_build:
+        from ..utils.bids import collect_derivatives
+        deriv_cache = {}
+        layout.add_derivatives(os.path.join(output_dir, 'smriprep'))
+        try:
+            deriv_cache = collect_derivatives(layout, subject_id, output_spaces, freesurfer)
+        except (IndexError, ValueError):
+            pass
+
     inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']),
                         name='inputnode')
 
@@ -325,6 +341,7 @@ to workflows in *sMRIPrep*'s documentation]\
     anat_preproc_wf = init_anat_preproc_wf(
         bids_root=layout.root,
         debug=debug,
+        existing_derivatives=deriv_cache,
         freesurfer=freesurfer,
         hires=hires,
         longitudinal=longitudinal,

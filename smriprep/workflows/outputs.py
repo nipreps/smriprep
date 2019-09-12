@@ -279,7 +279,6 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         (t1w_name, ds_t1w_fsaseg, [('out', 'source_file')]),
         (t1w_name, ds_t1w_fsparc, [('out', 'source_file')]),
     ])
-
     return workflow
 
 

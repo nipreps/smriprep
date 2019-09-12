@@ -362,6 +362,18 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+      - restore_cache:
+          keys:
+            - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v6-{{ .Branch }}
+            - ds005-anat-v6-master
+            - ds005-anat-v6-
+      - restore_cache:
+          keys:
+            - testdata-v1-{{ .Branch }}-{{ epoch }}
+            - testdata-v1-{{ .Branch }}
+            - testdata-v1-
+
       - run:
           name: Setting up test
           command: |
@@ -499,6 +511,20 @@ jobs:
                 -exec sh -c 'rm -f {}; touch {}' \;
       - store_artifacts:
           path: /tmp/ds005
+
+      - run:
+          name: Check fast track using existing derivatives
+          no_output_timeout: 5m
+          command: |
+            docker run --rm=false -it -v /tmp:/tmp \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                poldracklab/smriprep:latest \
+                /tmp/data/ds005 /tmp/ds005/derivatives participant \
+                 -w /tmp/data/ds005/work \
+                --skull-strip-template MNI152NLin2009cAsym:res-2 \
+                --sloppy --write-graph --mem-gb 4 \
+                --ncpus 2 --omp-nthreads 2 -vv \
+                --fs-license-file /tmp/fslicense/license.txt
 
   ds054:
     machine:
@@ -657,6 +683,20 @@ jobs:
                 -exec sh -c 'rm -f {}; touch {}' \;
       - store_artifacts:
           path: /tmp/ds054
+
+      - run:
+          name: Check fast track using existing derivatives (with --fs-no-reconall)
+          no_output_timeout: 5m
+          command: |
+            docker run --rm=false -it -v /tmp:/tmp \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                poldracklab/smriprep:latest \
+                /tmp/data/ds054 /tmp/ds054/derivatives participant \
+                -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
+                --skull-strip-template OASIS30ANTs:res-1 \
+                --output-spaces MNI152Lin MNI152NLin2009cAsym \
+                --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
+                --fs-license-file /tmp/fslicense/license.txt
 
   build_docs:
     docker:
