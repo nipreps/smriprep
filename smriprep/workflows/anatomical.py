@@ -1,6 +1,7 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""Anatomical reference preprocessing workflows.
+"""
+Anatomical reference preprocessing workflows.
 
 .. autofunction:: init_anat_preproc_wf
 
@@ -40,15 +41,15 @@ def init_anat_preproc_wf(
         output_spaces, num_t1w, reportlets_dir, skull_strip_template,
         debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False):
     """
-    This workflow controls the anatomical preprocessing stages of smriprep.
+    Stage the anatomical preprocessing steps of *sMRIPrep*.
 
     This includes:
 
-      - Creation of a structural template
-      - Skull-stripping and bias correction
-      - Tissue segmentation
-      - Normalization
-      - Surface reconstruction with FreeSurfer
+      - T1w reference: realigning and then averaging T1w images.
+      - Brain extraction and INU (bias field) correction.
+      - Brain tissue segmentation.
+      - Spatial normalization to standard spaces.
+      - Surface reconstruction with FreeSurfer_.
 
     .. workflow::
         :graph2use: orig
@@ -123,37 +124,39 @@ def init_anat_preproc_wf(
 
     **Outputs**
 
-        t1_preproc
-            Bias-corrected structural template, defining T1w space
-        t1_brain
-            Skull-stripped ``t1_preproc``
-        t1_mask
-            Mask of the skull-stripped template image
-        t1_seg
-            Segmentation of preprocessed structural image, including
-            gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF)
-        t1_tpms
-            List of tissue probability maps in T1w space
-        t1_2_tpl
-            T1w template, normalized to MNI space
-        t1_2_tpl_forward_transform
-            ANTs-compatible affine-and-warp transform file
-        t1_2_tpl_reverse_transform
-            ANTs-compatible affine-and-warp transform file (inverse)
-        tpl_mask
+        t1w_preproc
+            The T1w reference map, which is calculated as the average of bias-corrected
+            and preprocessed T1w images, defining the anatomical space.
+        t1w_brain
+            Skull-stripped ``t1w_preproc``
+        t1w_mask
+            Brain (binary) mask estimated by brain extraction.
+        t1w_dseg
+            Brain tissue segmentation of the preprocessed structural image, including
+            gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
+        t1w_tpms
+            List of tissue probability maps corresponding to ``t1w_dseg``.
+        std_t1w
+            T1w reference resampled in one or more standard spaces.
+        std_mask
             Mask of skull-stripped template, in MNI space
-        tpl_seg
+        std_dseg
             Segmentation, resampled into MNI space
-        tpl_tpms
+        std_tpms
             List of tissue probability maps in MNI space
         subjects_dir
             FreeSurfer SUBJECTS_DIR
+        anat2std_xfm
+            Nonlinear spatial transform to resample imaging data given in anatomical space
+            into standard space.
+        std2anat_xfm
+            Inverse transform of the above.
         subject_id
             FreeSurfer subject ID
-        t1_2_fsnative_forward_transform
+        t1w2fsnative_xfm
             LTA-style affine matrix translating from T1w to
             FreeSurfer-conformed subject space
-        t1_2_fsnative_reverse_transform
+        fsnative2t1w_xfm
             LTA-style affine matrix translating from FreeSurfer-conformed
             subject space to T1w
         surfaces
@@ -202,17 +205,17 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         niu.IdentityInterface(fields=['t1w', 't2w', 'roi', 'flair', 'subjects_dir', 'subject_id']),
         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['t1_preproc', 't1_brain', 't1_mask', 't1_seg', 't1_tpms',
-                'template', 'warped', 'forward_transform', 'reverse_transform',
-                'joint_template', 'joint_forward_transform', 'joint_reverse_transform',
-                'tpl_mask', 'tpl_seg', 'tpl_tpms',
-                'template_transforms',
-                'subjects_dir', 'subject_id', 't1_2_fsnative_forward_transform',
-                't1_2_fsnative_reverse_transform', 'surfaces', 't1_aseg', 't1_aparc']),
+        fields=['t1w_preproc', 't1w_brain', 't1w_mask', 't1w_dseg', 't1w_tpms',
+                'template', 'std_t1w', 'anat2std_xfm', 'std2anat_xfm',
+                'joint_template', 'joint_anat2std_xfm', 'joint_std2anat_xfm',
+                'std_mask', 'std_dseg', 'std_tpms',
+                't1w_realign_xfm',
+                'subjects_dir', 'subject_id', 't1w2fsnative_xfm',
+                'fsnative2t1w_xfm', 'surfaces', 't1w_aseg', 't1w_aparc']),
         name='outputnode')
 
     buffernode = pe.Node(niu.IdentityInterface(
-        fields=['t1_brain', 't1_mask']), name='buffernode')
+        fields=['t1w_brain', 't1w_mask']), name='buffernode')
 
     anat_template_wf = init_anat_template_wf(longitudinal=longitudinal, omp_nthreads=omp_nthreads,
                                              num_t1w=num_t1w)
@@ -232,15 +235,15 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     workflow.connect([
         (inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')]),
         (anat_template_wf, anat_validate, [
-            ('outputnode.t1_template', 'in_file')]),
+            ('outputnode.t1w_ref', 'in_file')]),
         (anat_validate, brain_extraction_wf, [
             ('out_file', 'inputnode.in_files')]),
         (brain_extraction_wf, outputnode, [
-            ('outputnode.bias_corrected', 't1_preproc')]),
+            ('outputnode.bias_corrected', 't1w_preproc')]),
         (anat_template_wf, outputnode, [
-            ('outputnode.template_transforms', 't1_template_transforms')]),
-        (buffernode, outputnode, [('t1_brain', 't1_brain'),
-                                  ('t1_mask', 't1_mask')]),
+            ('outputnode.t1w_realign_xfm', 't1w_ref_xfms')]),
+        (buffernode, outputnode, [('t1w_brain', 't1w_brain'),
+                                  ('t1w_mask', 't1w_mask')]),
     ])
 
     # 4. Surface reconstruction
@@ -266,30 +269,30 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (surface_recon_wf, outputnode, [
                 ('outputnode.subjects_dir', 'subjects_dir'),
                 ('outputnode.subject_id', 'subject_id'),
-                ('outputnode.t1_2_fsnative_forward_transform', 't1_2_fsnative_forward_transform'),
-                ('outputnode.t1_2_fsnative_reverse_transform', 't1_2_fsnative_reverse_transform'),
+                ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
                 ('outputnode.surfaces', 'surfaces'),
-                ('outputnode.out_aseg', 't1_aseg'),
-                ('outputnode.out_aparc', 't1_aparc')]),
-            (applyrefined, buffernode, [('out_file', 't1_brain')]),
+                ('outputnode.out_aseg', 't1w_aseg'),
+                ('outputnode.out_aparc', 't1w_aparc')]),
+            (applyrefined, buffernode, [('out_file', 't1w_brain')]),
             (surface_recon_wf, buffernode, [
-                ('outputnode.out_brainmask', 't1_mask')]),
+                ('outputnode.out_brainmask', 't1w_mask')]),
         ])
     else:
         workflow.connect([
             (brain_extraction_wf, buffernode, [
-                (('outputnode.out_file', _pop), 't1_brain'),
-                ('outputnode.out_mask', 't1_mask')]),
+                (('outputnode.out_file', _pop), 't1w_brain'),
+                ('outputnode.out_mask', 't1w_mask')]),
         ])
 
     # 5. Segmentation
-    t1_seg = pe.Node(fsl.FAST(segments=True, no_bias=True, probability_maps=True),
-                     name='t1_seg', mem_gb=3)
+    t1w_dseg = pe.Node(fsl.FAST(segments=True, no_bias=True, probability_maps=True),
+                       name='t1w_dseg', mem_gb=3)
 
     workflow.connect([
-        (buffernode, t1_seg, [('t1_brain', 'in_files')]),
-        (t1_seg, outputnode, [('tissue_class_map', 't1_seg'),
-                              ('probability_maps', 't1_tpms')]),
+        (buffernode, t1w_dseg, [('t1w_brain', 'in_files')]),
+        (t1w_dseg, outputnode, [('tissue_class_map', 't1w_dseg'),
+                                ('probability_maps', 't1w_tpms')]),
     ])
 
     seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
@@ -310,22 +313,22 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('roi', 'inputnode.lesion_mask')]),
         (brain_extraction_wf, anat_norm_wf, [
             (('outputnode.bias_corrected', _pop), 'inputnode.moving_image')]),
-        (buffernode, anat_norm_wf, [('t1_mask', 'inputnode.moving_mask')]),
-        (t1_seg, anat_norm_wf, [
+        (buffernode, anat_norm_wf, [('t1w_mask', 'inputnode.moving_mask')]),
+        (t1w_dseg, anat_norm_wf, [
             ('tissue_class_map', 'inputnode.moving_segmentation')]),
-        (t1_seg, anat_norm_wf, [
+        (t1w_dseg, anat_norm_wf, [
             ('probability_maps', 'inputnode.moving_tpms')]),
         (anat_norm_wf, outputnode, [
-            ('poutputnode.warped', 'warped'),
+            ('poutputnode.standardized', 'std_t1w'),
             ('poutputnode.template', 'template'),
-            ('poutputnode.forward_transform', 'forward_transform'),
-            ('poutputnode.reverse_transform', 'reverse_transform'),
-            ('poutputnode.tpl_mask', 'tpl_mask'),
-            ('poutputnode.tpl_seg', 'tpl_seg'),
-            ('poutputnode.tpl_tpms', 'tpl_tpms'),
+            ('poutputnode.anat2std_xfm', 'anat2std_xfm'),
+            ('poutputnode.std2anat_xfm', 'std2anat_xfm'),
+            ('poutputnode.std_mask', 'std_mask'),
+            ('poutputnode.std_dseg', 'std_dseg'),
+            ('poutputnode.std_tpms', 'std_tpms'),
             ('outputnode.template', 'joint_template'),
-            ('outputnode.forward_transform', 'joint_forward_transform'),
-            ('outputnode.reverse_transform', 'joint_reverse_transform'),
+            ('outputnode.anat2std_xfm', 'joint_anat2std_xfm'),
+            ('outputnode.std2anat_xfm', 'joint_std2anat_xfm'),
         ]),
     ])
     anat_reports_wf = init_anat_reports_wf(
@@ -334,11 +337,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (inputnode, anat_reports_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
         (anat_template_wf, anat_reports_wf, [
-            ('outputnode.out_report', 'inputnode.t1_conform_report')]),
+            ('outputnode.out_report', 'inputnode.t1w_conform_report')]),
         (brain_extraction_wf, seg_rpt, [
             ('outputnode.bias_corrected', 'in_file')]),
-        (t1_seg, seg_rpt, [('tissue_class_map', 'in_rois')]),
-        (outputnode, seg_rpt, [('t1_mask', 'in_mask')]),
+        (t1w_dseg, seg_rpt, [('tissue_class_map', 'in_rois')]),
+        (outputnode, seg_rpt, [('t1w_mask', 'in_mask')]),
         (seg_rpt, anat_reports_wf, [('out_report', 'inputnode.seg_report')]),
     ])
 
@@ -360,18 +363,18 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (anat_norm_wf, anat_derivatives_wf, [
             ('poutputnode.template', 'inputnode.template')]),
         (outputnode, anat_derivatives_wf, [
-            ('warped', 'inputnode.t1_2_tpl'),
-            ('forward_transform', 'inputnode.t1_2_tpl_forward_transform'),
-            ('reverse_transform', 'inputnode.t1_2_tpl_reverse_transform'),
-            ('t1_template_transforms', 'inputnode.t1_template_transforms'),
-            ('t1_preproc', 'inputnode.t1_preproc'),
-            ('t1_mask', 'inputnode.t1_mask'),
-            ('t1_seg', 'inputnode.t1_seg'),
-            ('t1_tpms', 'inputnode.t1_tpms'),
-            ('tpl_mask', 'inputnode.tpl_mask'),
-            ('tpl_seg', 'inputnode.tpl_seg'),
-            ('tpl_tpms', 'inputnode.tpl_tpms'),
-            ('t1_2_fsnative_forward_transform', 'inputnode.t1_2_fsnative_forward_transform'),
+            ('std_t1w', 'inputnode.std_t1w'),
+            ('anat2std_xfm', 'inputnode.anat2std_xfm'),
+            ('std2anat_xfm', 'inputnode.std2anat_xfm'),
+            ('t1w_ref_xfms', 'inputnode.t1w_ref_xfms'),
+            ('t1w_preproc', 'inputnode.t1w_preproc'),
+            ('t1w_mask', 'inputnode.t1w_mask'),
+            ('t1w_dseg', 'inputnode.t1w_dseg'),
+            ('t1w_tpms', 'inputnode.t1w_tpms'),
+            ('std_mask', 'inputnode.std_mask'),
+            ('std_dseg', 'inputnode.std_dseg'),
+            ('std_tpms', 'inputnode.std_tpms'),
+            ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
             ('surfaces', 'inputnode.surfaces'),
         ]),
     ])
@@ -379,8 +382,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     if freesurfer:
         workflow.connect([
             (surface_recon_wf, anat_derivatives_wf, [
-                ('outputnode.out_aseg', 'inputnode.t1_fs_aseg'),
-                ('outputnode.out_aparc', 'inputnode.t1_fs_aparc'),
+                ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
+                ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
             ]),
         ])
 
@@ -389,9 +392,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
 def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_template_wf'):
     """
-    This workflow generates a canonically oriented structural template from
-    input T1w images.
-
+    Generate a canonically-oriented, structural template from input T1w images.
 
     .. workflow::
         :graph2use: orig
@@ -413,24 +414,20 @@ def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_templa
         name : str, optional
             Workflow name (default: anat_template_wf)
 
-
     **Inputs**
 
         t1w
             List of T1-weighted structural images
 
-
     **Outputs**
 
-        t1_template
+        t1w_ref
             Structural template, defining T1w space
-        template_transforms
-            List of affine transforms from ``t1_template`` to original
-            T1w images
+        t1w_realign_xfm
+            List of affine transforms from ``t1w_ref`` to original T1w images
         out_report
             Conformation report
     """
-
     workflow = Workflow(name=name)
 
     if num_t1w > 1:
@@ -442,37 +439,37 @@ A T1w-reference map was computed after registration of
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['t1w']), name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=['t1_template', 't1w_valid_list', 'template_transforms', 'out_report']),
+        fields=['t1w_ref', 't1w_valid_list', 't1w_realign_xfm', 'out_report']),
         name='outputnode')
 
     # 0. Reorient T1w image(s) to RAS and resample to common voxel space
-    t1_template_dimensions = pe.Node(TemplateDimensions(), name='t1_template_dimensions')
-    t1_conform = pe.MapNode(Conform(), iterfield='in_file', name='t1_conform')
+    t1w_ref_dimensions = pe.Node(TemplateDimensions(), name='t1w_ref_dimensions')
+    t1w_conform = pe.MapNode(Conform(), iterfield='in_file', name='t1w_conform')
 
     workflow.connect([
-        (inputnode, t1_template_dimensions, [('t1w', 't1w_list')]),
-        (t1_template_dimensions, t1_conform, [
+        (inputnode, t1w_ref_dimensions, [('t1w', 't1w_list')]),
+        (t1w_ref_dimensions, t1w_conform, [
             ('t1w_valid_list', 'in_file'),
             ('target_zooms', 'target_zooms'),
             ('target_shape', 'target_shape')]),
-        (t1_template_dimensions, outputnode, [('out_report', 'out_report'),
-                                              ('t1w_valid_list', 't1w_valid_list')]),
+        (t1w_ref_dimensions, outputnode, [('out_report', 'out_report'),
+                                          ('t1w_valid_list', 't1w_valid_list')]),
     ])
 
     if num_t1w == 1:
         get1st = pe.Node(niu.Select(index=[0]), name='get1st')
-        outputnode.inputs.template_transforms = [pkgr('smriprep', 'data/itkIdentityTransform.txt')]
+        outputnode.inputs.t1w_realign_xfm = [pkgr('smriprep', 'data/itkIdentityTransform.txt')]
 
         workflow.connect([
-            (t1_conform, get1st, [('out_file', 'inlist')]),
-            (get1st, outputnode, [('out', 't1_template')]),
+            (t1w_conform, get1st, [('out_file', 'inlist')]),
+            (get1st, outputnode, [('out', 't1w_ref')]),
         ])
 
         return workflow
 
-    t1_conform_xfm = pe.MapNode(LTAConvert(in_lta='identity.nofile', out_lta=True),
-                                iterfield=['source_file', 'target_file'],
-                                name='t1_conform_xfm')
+    t1w_conform_xfm = pe.MapNode(LTAConvert(in_lta='identity.nofile', out_lta=True),
+                                 iterfield=['source_file', 'target_file'],
+                                 name='t1w_conform_xfm')
 
     # 1. Template (only if several T1w images)
     # 1a. Correct for bias field: the bias field is an additive factor
@@ -484,7 +481,7 @@ A T1w-reference map was computed after registration of
         iterfield='input_image', name='n4_correct',
         n_procs=1)  # n_procs=1 for reproducibility
     # StructuralReference is fs.RobustTemplate if > 1 volume, copying otherwise
-    t1_merge = pe.Node(
+    t1w_merge = pe.Node(
         StructuralReference(auto_detect_sensitivity=True,
                             initial_timepoint=1,      # For deterministic behavior
                             intensity_scaling=True,   # 7-DOF (rigid + intensity)
@@ -494,10 +491,10 @@ A T1w-reference map was computed after registration of
                             transform_outputs=True,
                             ),
         mem_gb=2 * num_t1w - 1,
-        name='t1_merge')
+        name='t1w_merge')
 
     # 2. Reorient template to RAS, if needed (mri_robust_template may set to LIA)
-    t1_reorient = pe.Node(image.Reorient(), name='t1_reorient')
+    t1w_reorient = pe.Node(image.Reorient(), name='t1w_reorient')
 
     concat_affines = pe.MapNode(
         ConcatenateLTA(out_type='RAS2RAS', invert_out=True),
@@ -510,21 +507,21 @@ A T1w-reference map was computed after registration of
         return min(len(in_list), maximum)
 
     workflow.connect([
-        (t1_template_dimensions, t1_conform_xfm, [('t1w_valid_list', 'source_file')]),
-        (t1_conform, t1_conform_xfm, [('out_file', 'target_file')]),
-        (t1_conform, n4_correct, [('out_file', 'input_image')]),
-        (t1_conform, t1_merge, [
+        (t1w_ref_dimensions, t1w_conform_xfm, [('t1w_valid_list', 'source_file')]),
+        (t1w_conform, t1w_conform_xfm, [('out_file', 'target_file')]),
+        (t1w_conform, n4_correct, [('out_file', 'input_image')]),
+        (t1w_conform, t1w_merge, [
             (('out_file', _set_threads, omp_nthreads), 'num_threads'),
             (('out_file', add_suffix, '_template'), 'out_file')]),
-        (n4_correct, t1_merge, [('output_image', 'in_files')]),
-        (t1_merge, t1_reorient, [('out_file', 'in_file')]),
+        (n4_correct, t1w_merge, [('output_image', 'in_files')]),
+        (t1w_merge, t1w_reorient, [('out_file', 'in_file')]),
         # Combine orientation and template transforms
-        (t1_conform_xfm, concat_affines, [('out_lta', 'in_lta1')]),
-        (t1_merge, concat_affines, [('transform_outputs', 'in_lta2')]),
+        (t1w_conform_xfm, concat_affines, [('out_lta', 'in_lta1')]),
+        (t1w_merge, concat_affines, [('transform_outputs', 'in_lta2')]),
         (concat_affines, lta_to_itk, [('out_file', 'in_lta')]),
         # Output
-        (t1_reorient, outputnode, [('out_file', 't1_template')]),
-        (lta_to_itk, outputnode, [('out_itk', 'template_transforms')]),
+        (t1w_reorient, outputnode, [('out_file', 't1w_ref')]),
+        (lta_to_itk, outputnode, [('out_itk', 't1w_realign_xfm')]),
     ])
 
     return workflow
