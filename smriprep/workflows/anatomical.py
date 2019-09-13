@@ -35,7 +35,6 @@ from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
 
 
-# pylint: disable=R0914
 def init_anat_preproc_wf(
         bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
         output_spaces, num_t1w, reportlets_dir, skull_strip_template,
@@ -217,14 +216,14 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     buffernode = pe.Node(niu.IdentityInterface(
         fields=['t1w_brain', 't1w_mask']), name='buffernode')
 
+    # 1. Anatomical reference generation - average input T1w images.
     anat_template_wf = init_anat_template_wf(longitudinal=longitudinal, omp_nthreads=omp_nthreads,
                                              num_t1w=num_t1w)
 
     anat_validate = pe.Node(ValidateImage(), name='anat_validate',
                             run_without_submitting=True)
 
-    # 3. Skull-stripping
-    # Bias field correction is handled in skull strip workflows.
+    # 2. Brain-extraction and INU (bias field) correction.
     brain_extraction_wf = init_brain_extraction_wf(
         in_template=skull_strip_template[0],
         template_spec=skull_strip_template[1],
@@ -232,60 +231,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         omp_nthreads=omp_nthreads,
         normalization_quality='precise' if not debug else 'testing')
 
-    workflow.connect([
-        (inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')]),
-        (anat_template_wf, anat_validate, [
-            ('outputnode.t1w_ref', 'in_file')]),
-        (anat_validate, brain_extraction_wf, [
-            ('out_file', 'inputnode.in_files')]),
-        (brain_extraction_wf, outputnode, [
-            ('outputnode.bias_corrected', 't1w_preproc')]),
-        (anat_template_wf, outputnode, [
-            ('outputnode.t1w_realign_xfm', 't1w_ref_xfms')]),
-        (buffernode, outputnode, [('t1w_brain', 't1w_brain'),
-                                  ('t1w_mask', 't1w_mask')]),
-    ])
-
-    # 4. Surface reconstruction
-    if freesurfer:
-        surface_recon_wf = init_surface_recon_wf(name='surface_recon_wf',
-                                                 omp_nthreads=omp_nthreads, hires=hires)
-        applyrefined = pe.Node(fsl.ApplyMask(), name='applyrefined')
-        workflow.connect([
-            (inputnode, surface_recon_wf, [
-                ('t2w', 'inputnode.t2w'),
-                ('flair', 'inputnode.flair'),
-                ('subjects_dir', 'inputnode.subjects_dir'),
-                ('subject_id', 'inputnode.subject_id')]),
-            (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
-            (brain_extraction_wf, surface_recon_wf, [
-                (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
-                ('outputnode.out_segm', 'inputnode.ants_segs'),
-                (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
-            (brain_extraction_wf, applyrefined, [
-                (('outputnode.bias_corrected', _pop), 'in_file')]),
-            (surface_recon_wf, applyrefined, [
-                ('outputnode.out_brainmask', 'mask_file')]),
-            (surface_recon_wf, outputnode, [
-                ('outputnode.subjects_dir', 'subjects_dir'),
-                ('outputnode.subject_id', 'subject_id'),
-                ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
-                ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
-                ('outputnode.surfaces', 'surfaces'),
-                ('outputnode.out_aseg', 't1w_aseg'),
-                ('outputnode.out_aparc', 't1w_aparc')]),
-            (applyrefined, buffernode, [('out_file', 't1w_brain')]),
-            (surface_recon_wf, buffernode, [
-                ('outputnode.out_brainmask', 't1w_mask')]),
-        ])
-    else:
-        workflow.connect([
-            (brain_extraction_wf, buffernode, [
-                (('outputnode.out_file', _pop), 't1w_brain'),
-                ('outputnode.out_mask', 't1w_mask')]),
-        ])
-
-    # 5. Segmentation
+    # 3. Brain tissue segmentation
     t1w_dseg = pe.Node(fsl.FAST(segments=True, no_bias=True, probability_maps=True),
                        name='t1w_dseg', mem_gb=3)
 
@@ -298,16 +244,30 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
                       name='seg_rpt')
 
+    # 4. Spatial normalization
     vol_spaces = [k for k in output_spaces.keys()
                   if not k.startswith('fs')]
-    # 6. Spatial normalization
     anat_norm_wf = init_anat_norm_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
         reportlets_dir=reportlets_dir,
         template_list=vol_spaces,
         template_specs=[output_spaces[k] for k in vol_spaces])
+
     workflow.connect([
+        # Step 1.
+        (inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')]),
+        (anat_template_wf, anat_validate, [
+            ('outputnode.t1w_ref', 'in_file')]),
+        (anat_validate, brain_extraction_wf, [
+            ('out_file', 'inputnode.in_files')]),
+        (brain_extraction_wf, outputnode, [
+            ('outputnode.bias_corrected', 't1w_preproc')]),
+        (anat_template_wf, outputnode, [
+            ('outputnode.t1w_realign_xfm', 't1w_ref_xfms')]),
+        (buffernode, outputnode, [('t1w_brain', 't1w_brain'),
+                                  ('t1w_mask', 't1w_mask')]),
+        # Steps 2, 3 and 4
         (inputnode, anat_norm_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.orig_t1w'),
             ('roi', 'inputnode.lesion_mask')]),
@@ -331,9 +291,19 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.std2anat_xfm', 'joint_std2anat_xfm'),
         ]),
     ])
+
+    # Write outputs ############################################3
     anat_reports_wf = init_anat_reports_wf(
         reportlets_dir=reportlets_dir, freesurfer=freesurfer)
+
+    anat_derivatives_wf = init_anat_derivatives_wf(
+        bids_root=bids_root,
+        freesurfer=freesurfer,
+        output_dir=output_dir,
+    )
+
     workflow.connect([
+        # Connect reportlets
         (inputnode, anat_reports_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
         (anat_template_wf, anat_reports_wf, [
@@ -343,21 +313,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (t1w_dseg, seg_rpt, [('tissue_class_map', 'in_rois')]),
         (outputnode, seg_rpt, [('t1w_mask', 'in_mask')]),
         (seg_rpt, anat_reports_wf, [('out_report', 'inputnode.seg_report')]),
-    ])
-
-    if freesurfer:
-        workflow.connect([
-            (surface_recon_wf, anat_reports_wf, [
-                ('outputnode.out_report', 'inputnode.recon_report')]),
-        ])
-
-    anat_derivatives_wf = init_anat_derivatives_wf(
-        bids_root=bids_root,
-        freesurfer=freesurfer,
-        output_dir=output_dir,
-    )
-
-    workflow.connect([
+        # Connect derivatives
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
         (anat_norm_wf, anat_derivatives_wf, [
@@ -379,20 +335,58 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         ]),
     ])
 
-    if freesurfer:
+    if not freesurfer:  # Flag --fs-no-reconall is set - return
         workflow.connect([
-            (surface_recon_wf, anat_derivatives_wf, [
-                ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-                ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-            ]),
+            (brain_extraction_wf, buffernode, [
+                (('outputnode.out_file', _pop), 't1w_brain'),
+                ('outputnode.out_mask', 't1w_mask')]),
         ])
+        return workflow
+
+    # 5. Surface reconstruction (--fs-no-reconall not set)
+    surface_recon_wf = init_surface_recon_wf(name='surface_recon_wf',
+                                             omp_nthreads=omp_nthreads, hires=hires)
+    applyrefined = pe.Node(fsl.ApplyMask(), name='applyrefined')
+    workflow.connect([
+        (inputnode, surface_recon_wf, [
+            ('t2w', 'inputnode.t2w'),
+            ('flair', 'inputnode.flair'),
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id')]),
+        (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
+        (brain_extraction_wf, surface_recon_wf, [
+            (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
+            ('outputnode.out_segm', 'inputnode.ants_segs'),
+            (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
+        (brain_extraction_wf, applyrefined, [
+            (('outputnode.bias_corrected', _pop), 'in_file')]),
+        (surface_recon_wf, applyrefined, [
+            ('outputnode.out_brainmask', 'mask_file')]),
+        (surface_recon_wf, outputnode, [
+            ('outputnode.subjects_dir', 'subjects_dir'),
+            ('outputnode.subject_id', 'subject_id'),
+            ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
+            ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+            ('outputnode.surfaces', 'surfaces'),
+            ('outputnode.out_aseg', 't1w_aseg'),
+            ('outputnode.out_aparc', 't1w_aparc')]),
+        (applyrefined, buffernode, [('out_file', 't1w_brain')]),
+        (surface_recon_wf, buffernode, [
+            ('outputnode.out_brainmask', 't1w_mask')]),
+        (surface_recon_wf, anat_reports_wf, [
+            ('outputnode.out_report', 'inputnode.recon_report')]),
+        (surface_recon_wf, anat_derivatives_wf, [
+            ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
+            ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
+        ]),
+    ])
 
     return workflow
 
 
 def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_template_wf'):
     """
-    Generate a canonically-oriented, structural template from input T1w images.
+    Generate a canonically-oriented, structural average from all input T1w images.
 
     .. workflow::
         :graph2use: orig
@@ -405,7 +399,7 @@ def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_templa
     **Parameters**
 
         longitudinal : bool
-            Create unbiased structural template, regardless of number of inputs
+            Create unbiased structural average, regardless of number of inputs
             (may increase runtime)
         omp_nthreads : int
             Maximum number of threads an individual process may use
@@ -422,9 +416,9 @@ def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_templa
     **Outputs**
 
         t1w_ref
-            Structural template, defining T1w space
+            Structural reference averaging input T1w images, defining the T1w space.
         t1w_realign_xfm
-            List of affine transforms from ``t1w_ref`` to original T1w images
+            List of affine transforms to realign input T1w images
         out_report
             Conformation report
     """
