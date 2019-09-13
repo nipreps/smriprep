@@ -1,10 +1,7 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
-sMRIPrep base processing workflows
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*sMRIPrep* base processing workflows.
 
 .. autofunction:: init_smriprep_wf
 .. autofunction:: init_single_subject_wf
@@ -49,8 +46,7 @@ def init_smriprep_wf(
     work_dir,
 ):
     """
-    This workflow organizes the execution of sMRIPrep, with a sub-workflow for
-    each subject.
+    Create the execution graph of *sMRIPrep*, with a sub-workflow for each subject.
 
     If FreeSurfer's recon-all is to be run, a FreeSurfer derivatives folder is
     created and populated with any needed template subjects.
@@ -82,7 +78,7 @@ def init_smriprep_wf(
             work_dir='.',
         )
 
-    Parameters
+    **Parameters**
 
         debug : bool
             Enable debugging outputs
@@ -184,6 +180,8 @@ def init_single_subject_wf(
     subject_id,
 ):
     """
+    Create a single subject workflow.
+
     This workflow organizes the preprocessing pipeline for a single subject.
     It collects and reports information about the subject, and prepares
     sub-workflows to perform anatomical and functional preprocessing.
@@ -219,7 +217,7 @@ def init_single_subject_wf(
         )
 
 
-    Parameters
+    **Parameters**
 
         debug : bool
             Enable debugging outputs
@@ -257,7 +255,7 @@ def init_single_subject_wf(
         subject_id : str
             List of subject labels
 
-    Inputs
+    **Inputs**
 
         subjects_dir
             FreeSurfer SUBJECTS_DIR

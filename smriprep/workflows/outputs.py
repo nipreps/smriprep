@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
-Writting outputs
-----------------
+Writting outputs.
 
 .. autofunction:: init_anat_reports_wf
 .. autofunction:: init_anat_derivatives_wf
@@ -21,29 +19,27 @@ from ..interfaces import DerivativesDataSink
 
 def init_anat_reports_wf(reportlets_dir, freesurfer,
                          name='anat_reports_wf'):
-    """
-    Set up a battery of datasinks to store reports in the right location
-    """
+    """Set up a battery of datasinks to store reports in the right location."""
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['source_file', 't1_conform_report', 'seg_report', 'recon_report']),
+            fields=['source_file', 't1w_conform_report', 'seg_report', 'recon_report']),
         name='inputnode')
 
-    ds_t1_conform_report = pe.Node(
+    ds_t1w_conform_report = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir, desc='conform', keep_dtype=True),
-        name='ds_t1_conform_report', run_without_submitting=True)
+        name='ds_t1w_conform_report', run_without_submitting=True)
 
-    ds_t1_seg_mask_report = pe.Node(
+    ds_t1w_dseg_mask_report = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir, suffix='dseg'),
-        name='ds_t1_seg_mask_report', run_without_submitting=True)
+        name='ds_t1w_dseg_mask_report', run_without_submitting=True)
 
     workflow.connect([
-        (inputnode, ds_t1_conform_report, [('source_file', 'source_file'),
-                                           ('t1_conform_report', 'in_file')]),
-        (inputnode, ds_t1_seg_mask_report, [('source_file', 'source_file'),
-                                            ('seg_report', 'in_file')]),
+        (inputnode, ds_t1w_conform_report, [('source_file', 'source_file'),
+                                            ('t1w_conform_report', 'in_file')]),
+        (inputnode, ds_t1w_dseg_mask_report, [('source_file', 'source_file'),
+                                              ('seg_report', 'in_file')]),
     ])
 
     if freesurfer:
@@ -60,100 +56,98 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
 
 def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
                              name='anat_derivatives_wf'):
-    """
-    Set up a battery of datasinks to store derivatives in the right location
-    """
+    """Set up a battery of datasinks to store derivatives in the right location."""
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['template', 'source_files', 't1_template_transforms',
-                    't1_preproc', 't1_mask', 't1_seg', 't1_tpms',
-                    't1_2_tpl_forward_transform', 't1_2_tpl_reverse_transform',
-                    't1_2_tpl', 'tpl_mask', 'tpl_seg', 'tpl_tpms',
-                    't1_2_fsnative_forward_transform', 'surfaces',
-                    't1_fs_aseg', 't1_fs_aparc']),
+            fields=['template', 'source_files', 't1w_ref_xfms',
+                    't1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',
+                    'anat2std_xfm', 'std2anat_xfm',
+                    'std_t1w', 'std_mask', 'std_dseg', 'std_tpms',
+                    't1w2fsnative_xfm', 'surfaces',
+                    't1w_fs_aseg', 't1w_fs_aparc']),
         name='inputnode')
 
-    t1_name = pe.Node(niu.Function(function=fix_multi_T1w_source_name), name='t1_name')
+    t1w_name = pe.Node(niu.Function(function=fix_multi_T1w_source_name), name='t1w_name')
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
-    ds_t1_preproc = pe.Node(
+    ds_t1w_preproc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
                             compress=True),
-        name='ds_t1_preproc', run_without_submitting=True)
-    ds_t1_preproc.inputs.SkullStripped = False
+        name='ds_t1w_preproc', run_without_submitting=True)
+    ds_t1w_preproc.inputs.SkullStripped = False
 
-    ds_t1_mask = pe.Node(
+    ds_t1w_mask = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
                             compress=True),
-        name='ds_t1_mask', run_without_submitting=True)
-    ds_t1_mask.inputs.Type = 'Brain'
+        name='ds_t1w_mask', run_without_submitting=True)
+    ds_t1w_mask.inputs.Type = 'Brain'
 
-    lut_t1_seg = pe.Node(niu.Function(function=_apply_default_bids_lut),
-                         name='lut_t1_seg')
-    ds_t1_seg = pe.Node(
+    lut_t1w_dseg = pe.Node(niu.Function(function=_apply_default_bids_lut),
+                           name='lut_t1w_dseg')
+    ds_t1w_dseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='dseg',
                             compress=True),
-        name='ds_t1_seg', run_without_submitting=True)
+        name='ds_t1w_dseg', run_without_submitting=True)
 
-    ds_t1_tpms = pe.Node(
+    ds_t1w_tpms = pe.Node(
         DerivativesDataSink(base_directory=output_dir,
                             suffix='probseg', compress=True),
-        name='ds_t1_tpms', run_without_submitting=True)
-    ds_t1_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
+        name='ds_t1w_tpms', run_without_submitting=True)
+    ds_t1w_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
-    ds_t1_tpl = pe.Node(
+    ds_t1w_tpl = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
                             compress=True),
-        name='ds_t1_tpl', run_without_submitting=True)
-    ds_t1_tpl.inputs.SkullStripped = True
+        name='ds_t1w_tpl', run_without_submitting=True)
+    ds_t1w_tpl.inputs.SkullStripped = True
 
-    ds_tpl_mask = pe.Node(
+    ds_std_mask = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
                             compress=True),
-        name='ds_tpl_mask', run_without_submitting=True)
-    ds_tpl_mask.inputs.Type = 'Brain'
+        name='ds_std_mask', run_without_submitting=True)
+    ds_std_mask.inputs.Type = 'Brain'
 
-    lut_tpl_seg = pe.Node(niu.Function(function=_apply_default_bids_lut),
-                          name='lut_tpl_seg')
-    ds_tpl_seg = pe.Node(
+    lut_std_dseg = pe.Node(niu.Function(function=_apply_default_bids_lut),
+                           name='lut_std_dseg')
+    ds_std_dseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='dseg',
                             compress=True),
-        name='ds_tpl_seg', run_without_submitting=True)
+        name='ds_std_dseg', run_without_submitting=True)
 
-    ds_tpl_tpms = pe.Node(
+    ds_std_tpms = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='probseg',
                             compress=True),
-        name='ds_tpl_tpms', run_without_submitting=True)
-    ds_tpl_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
+        name='ds_std_tpms', run_without_submitting=True)
+    ds_std_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
 
     # Transforms
-    ds_t1_tpl_inv_warp = pe.Node(
+    ds_t1w_tpl_inv_warp = pe.Node(
         DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
                             to='T1w', mode='image', suffix='xfm'),
-        name='ds_t1_tpl_inv_warp', run_without_submitting=True)
+        name='ds_t1w_tpl_inv_warp', run_without_submitting=True)
 
     # Please note the dictionary unpacking to provide the from argument.
     # It is necessary because from is a protected keyword (not allowed as argument name).
-    ds_t1_template_transforms = pe.MapNode(
+    ds_t1w_ref_xfms = pe.MapNode(
         DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
                             to='T1w', mode='image', suffix='xfm', **{'from': 'orig'}),
         iterfield=['source_file', 'in_file'],
-        name='ds_t1_template_transforms', run_without_submitting=True)
+        name='ds_t1w_ref_xfms', run_without_submitting=True)
 
-    ds_t1_tpl_warp = pe.Node(
+    ds_t1w_tpl_warp = pe.Node(
         DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
                             mode='image', suffix='xfm', **{'from': 'T1w'}),
-        name='ds_t1_tpl_warp', run_without_submitting=True)
+        name='ds_t1w_tpl_warp', run_without_submitting=True)
 
-    lta_2_itk = pe.Node(LTAConvert(out_itk=True), name='lta_2_itk')
+    lta2itk = pe.Node(LTAConvert(out_itk=True), name='lta2itk')
 
-    ds_t1_fsnative = pe.Node(
+    ds_t1w_fsnative = pe.Node(
         DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
                             mode='image', to='fsnative', suffix='xfm', **{'from': 'T1w'}),
-        name='ds_t1_fsnative', run_without_submitting=True)
+        name='ds_t1w_fsnative', run_without_submitting=True)
 
     name_surfs = pe.MapNode(GiftiNameSource(pattern=r'(?P<LR>[lr])h.(?P<surf>.+)_converted.gii',
                                             template='hemi-{LR}_{surf}.surf'),
@@ -166,70 +160,70 @@ def init_anat_derivatives_wf(bids_root, freesurfer, output_dir,
         iterfield=['in_file', 'suffix'], name='ds_surfs', run_without_submitting=True)
 
     workflow.connect([
-        (inputnode, t1_name, [('source_files', 'in_files')]),
+        (inputnode, t1w_name, [('source_files', 'in_files')]),
         (inputnode, raw_sources, [('source_files', 'in_files')]),
-        (inputnode, ds_t1_template_transforms, [('source_files', 'source_file'),
-                                                ('t1_template_transforms', 'in_file')]),
-        (inputnode, ds_t1_preproc, [('t1_preproc', 'in_file')]),
-        (inputnode, ds_t1_mask, [('t1_mask', 'in_file')]),
-        (inputnode, lut_t1_seg, [('t1_seg', 'in_file')]),
-        (inputnode, ds_t1_tpms, [('t1_tpms', 'in_file')]),
-        (lut_t1_seg, ds_t1_seg, [('out', 'in_file')]),
-        (t1_name, ds_t1_preproc, [('out', 'source_file')]),
-        (t1_name, ds_t1_mask, [('out', 'source_file')]),
-        (t1_name, ds_t1_seg, [('out', 'source_file')]),
-        (t1_name, ds_t1_tpms, [('out', 'source_file')]),
-        (raw_sources, ds_t1_mask, [('out', 'RawSources')]),
+        (inputnode, ds_t1w_ref_xfms, [('source_files', 'source_file'),
+                                      ('t1w_ref_xfms', 'in_file')]),
+        (inputnode, ds_t1w_preproc, [('t1w_preproc', 'in_file')]),
+        (inputnode, ds_t1w_mask, [('t1w_mask', 'in_file')]),
+        (inputnode, lut_t1w_dseg, [('t1w_dseg', 'in_file')]),
+        (inputnode, ds_t1w_tpms, [('t1w_tpms', 'in_file')]),
+        (lut_t1w_dseg, ds_t1w_dseg, [('out', 'in_file')]),
+        (t1w_name, ds_t1w_preproc, [('out', 'source_file')]),
+        (t1w_name, ds_t1w_mask, [('out', 'source_file')]),
+        (t1w_name, ds_t1w_dseg, [('out', 'source_file')]),
+        (t1w_name, ds_t1w_tpms, [('out', 'source_file')]),
+        (raw_sources, ds_t1w_mask, [('out', 'RawSources')]),
         # Template
-        (inputnode, ds_t1_tpl_warp, [
-            ('t1_2_tpl_forward_transform', 'in_file'),
+        (inputnode, ds_t1w_tpl_warp, [
+            ('anat2std_xfm', 'in_file'),
             ('template', 'to')]),
-        (inputnode, ds_t1_tpl_inv_warp, [
-            ('t1_2_tpl_reverse_transform', 'in_file'),
+        (inputnode, ds_t1w_tpl_inv_warp, [
+            ('std2anat_xfm', 'in_file'),
             ('template', 'from')]),
-        (inputnode, ds_t1_tpl, [
-            ('t1_2_tpl', 'in_file'),
+        (inputnode, ds_t1w_tpl, [
+            ('std_t1w', 'in_file'),
             ('template', 'space')]),
-        (inputnode, ds_tpl_mask, [
-            ('tpl_mask', 'in_file'),
+        (inputnode, ds_std_mask, [
+            ('std_mask', 'in_file'),
             ('template', 'space'),
             (('template', _rawsources), 'RawSources')]),
-        (inputnode, ds_tpl_seg, [('template', 'space')]),
-        (inputnode, lut_tpl_seg, [('tpl_seg', 'in_file')]),
-        (lut_tpl_seg, ds_tpl_seg, [('out', 'in_file')]),
-        (inputnode, ds_tpl_tpms, [
-            ('tpl_tpms', 'in_file'),
+        (inputnode, ds_std_dseg, [('template', 'space')]),
+        (inputnode, lut_std_dseg, [('std_dseg', 'in_file')]),
+        (lut_std_dseg, ds_std_dseg, [('out', 'in_file')]),
+        (inputnode, ds_std_tpms, [
+            ('std_tpms', 'in_file'),
             ('template', 'space')]),
-        (t1_name, ds_t1_tpl_warp, [('out', 'source_file')]),
-        (t1_name, ds_t1_tpl_inv_warp, [('out', 'source_file')]),
-        (t1_name, ds_t1_tpl, [('out', 'source_file')]),
-        (t1_name, ds_tpl_mask, [('out', 'source_file')]),
-        (t1_name, ds_tpl_seg, [('out', 'source_file')]),
-        (t1_name, ds_tpl_tpms, [('out', 'source_file')]),
+        (t1w_name, ds_t1w_tpl_warp, [('out', 'source_file')]),
+        (t1w_name, ds_t1w_tpl_inv_warp, [('out', 'source_file')]),
+        (t1w_name, ds_t1w_tpl, [('out', 'source_file')]),
+        (t1w_name, ds_std_mask, [('out', 'source_file')]),
+        (t1w_name, ds_std_dseg, [('out', 'source_file')]),
+        (t1w_name, ds_std_tpms, [('out', 'source_file')]),
     ])
 
     if freesurfer:
-        ds_t1_fsaseg = pe.Node(
+        ds_t1w_fsaseg = pe.Node(
             DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg',
                                 compress=True),
-            name='ds_t1_fsaseg', run_without_submitting=True)
-        ds_t1_fsparc = pe.Node(
+            name='ds_t1w_fsaseg', run_without_submitting=True)
+        ds_t1w_fsparc = pe.Node(
             DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg',
                                 compress=True),
-            name='ds_t1_fsparc', run_without_submitting=True)
+            name='ds_t1w_fsparc', run_without_submitting=True)
 
         workflow.connect([
-            (inputnode, lta_2_itk, [('t1_2_fsnative_forward_transform', 'in_lta')]),
-            (t1_name, ds_t1_fsnative, [('out', 'source_file')]),
-            (lta_2_itk, ds_t1_fsnative, [('out_itk', 'in_file')]),
+            (inputnode, lta2itk, [('t1w2fsnative_xfm', 'in_lta')]),
+            (t1w_name, ds_t1w_fsnative, [('out', 'source_file')]),
+            (lta2itk, ds_t1w_fsnative, [('out_itk', 'in_file')]),
             (inputnode, name_surfs, [('surfaces', 'in_file')]),
             (inputnode, ds_surfs, [('surfaces', 'in_file')]),
-            (t1_name, ds_surfs, [('out', 'source_file')]),
+            (t1w_name, ds_surfs, [('out', 'source_file')]),
             (name_surfs, ds_surfs, [('out_name', 'suffix')]),
-            (inputnode, ds_t1_fsaseg, [('t1_fs_aseg', 'in_file')]),
-            (inputnode, ds_t1_fsparc, [('t1_fs_aparc', 'in_file')]),
-            (t1_name, ds_t1_fsaseg, [('out', 'source_file')]),
-            (t1_name, ds_t1_fsparc, [('out', 'source_file')]),
+            (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file')]),
+            (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file')]),
+            (t1w_name, ds_t1w_fsaseg, [('out', 'source_file')]),
+            (t1w_name, ds_t1w_fsparc, [('out', 'source_file')]),
         ])
 
     return workflow

@@ -1,8 +1,7 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
-Spatial normalization workflows
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Spatial normalization workflows.
 
 .. autofunction:: init_anat_norm_wf
 
@@ -30,7 +29,7 @@ def init_anat_norm_wf(
     template_specs=None,
 ):
     """
-    An individual spatial normalization workflow using ``antsRegistration``.
+    Build an individual spatial normalization workflow using ``antsRegistration``.
 
     .. workflow ::
         :graph2use: orig
@@ -79,26 +78,25 @@ def init_anat_norm_wf(
 
     **Outputs**
 
-        warped
+        standardized
             The T1w after spatial normalization, in template space.
-        forward_transform
+        anat2std_xfm
             The T1w-to-template transform.
-        reverse_transform
+        std2anat_xfm
             The template-to-T1w transform.
-        tpl_mask
-            The ``moving_mask`` in template space (matches ``warped`` output).
-        tpl_seg
-            The ``moving_segmentation`` in template space (matches ``warped``
+        std_mask
+            The ``moving_mask`` in template space (matches ``standardized`` output).
+        std_dseg
+            The ``moving_segmentation`` in template space (matches ``standardized``
             output).
-        tpl_tpms
-            The ``moving_tpms`` in template space (matches ``warped`` output).
+        std_tpms
+            The ``moving_tpms`` in template space (matches ``standardized`` output).
         template
             The input parameter ``template`` for further use in nodes depending
             on this
             workflow.
 
     """
-
     if not isinstance(template_list, (list, tuple)):
         template_list = [template_list]
 
@@ -152,8 +150,8 @@ The following template{tpls} selected for spatial normalization:
         'lesion_mask', 'orig_t1w', 'template']),
         name='inputnode')
     inputnode.iterables = [('template', template_list)]
-    out_fields = ['warped', 'forward_transform', 'reverse_transform',
-                  'tpl_mask', 'tpl_seg', 'tpl_tpms', 'template']
+    out_fields = ['standardized', 'anat2std_xfm', 'std2anat_xfm',
+                  'std_mask', 'std_dseg', 'std_tpms', 'template']
     poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
 
     tpl_specs = pe.Node(niu.Function(
@@ -179,15 +177,15 @@ The following template{tpls} selected for spatial normalization:
     tpl_moving = pe.Node(ApplyTransforms(
         dimension=3, default_value=0, float=True,
         interpolation='LanczosWindowedSinc'), name='tpl_moving')
-    tpl_mask = pe.Node(ApplyTransforms(dimension=3, default_value=0, float=True,
-                                       interpolation='MultiLabel'), name='tpl_mask')
+    std_mask = pe.Node(ApplyTransforms(dimension=3, default_value=0, float=True,
+                                       interpolation='MultiLabel'), name='std_mask')
 
-    tpl_seg = pe.Node(ApplyTransforms(dimension=3, default_value=0, float=True,
-                                      interpolation='MultiLabel'), name='tpl_seg')
+    std_dseg = pe.Node(ApplyTransforms(dimension=3, default_value=0, float=True,
+                                       interpolation='MultiLabel'), name='std_dseg')
 
-    tpl_tpms = pe.MapNode(ApplyTransforms(dimension=3, default_value=0, float=True,
+    std_tpms = pe.MapNode(ApplyTransforms(dimension=3, default_value=0, float=True,
                                           interpolation='Gaussian'),
-                          iterfield=['input_image'], name='tpl_tpms')
+                          iterfield=['input_image'], name='std_tpms')
 
     workflow.connect([
         (inputnode, tpl_specs, [('template', 'template')]),
@@ -198,28 +196,28 @@ The following template{tpls} selected for spatial normalization:
             ('moving_mask', 'moving_mask'),
             ('lesion_mask', 'lesion_mask')]),
         (inputnode, tpl_moving, [('moving_image', 'input_image')]),
-        (inputnode, tpl_mask, [('moving_mask', 'input_image')]),
+        (inputnode, std_mask, [('moving_mask', 'input_image')]),
         (tpl_specs, tpl_select, [('out', 'template_spec')]),
         (tpl_specs, registration, [(('out', _drop_res), 'template_spec')]),
         (tpl_select, tpl_moving, [('out', 'reference_image')]),
-        (tpl_select, tpl_mask, [('out', 'reference_image')]),
-        (tpl_select, tpl_seg, [('out', 'reference_image')]),
-        (tpl_select, tpl_tpms, [('out', 'reference_image')]),
+        (tpl_select, std_mask, [('out', 'reference_image')]),
+        (tpl_select, std_dseg, [('out', 'reference_image')]),
+        (tpl_select, std_tpms, [('out', 'reference_image')]),
         (trunc_mov, registration, [
             ('output_image', 'moving_image')]),
         (registration, tpl_moving, [('composite_transform', 'transforms')]),
-        (registration, tpl_mask, [('composite_transform', 'transforms')]),
-        (inputnode, tpl_seg, [('moving_segmentation', 'input_image')]),
-        (registration, tpl_seg, [('composite_transform', 'transforms')]),
-        (inputnode, tpl_tpms, [('moving_tpms', 'input_image')]),
-        (registration, tpl_tpms, [('composite_transform', 'transforms')]),
+        (registration, std_mask, [('composite_transform', 'transforms')]),
+        (inputnode, std_dseg, [('moving_segmentation', 'input_image')]),
+        (registration, std_dseg, [('composite_transform', 'transforms')]),
+        (inputnode, std_tpms, [('moving_tpms', 'input_image')]),
+        (registration, std_tpms, [('composite_transform', 'transforms')]),
         (registration, poutputnode, [
-            ('composite_transform', 'forward_transform'),
-            ('inverse_composite_transform', 'reverse_transform')]),
-        (tpl_moving, poutputnode, [('output_image', 'warped')]),
-        (tpl_mask, poutputnode, [('output_image', 'tpl_mask')]),
-        (tpl_seg, poutputnode, [('output_image', 'tpl_seg')]),
-        (tpl_tpms, poutputnode, [('output_image', 'tpl_tpms')]),
+            ('composite_transform', 'anat2std_xfm'),
+            ('inverse_composite_transform', 'std2anat_xfm')]),
+        (tpl_moving, poutputnode, [('output_image', 'standardized')]),
+        (std_mask, poutputnode, [('output_image', 'std_mask')]),
+        (std_dseg, poutputnode, [('output_image', 'std_dseg')]),
+        (std_tpms, poutputnode, [('output_image', 'std_tpms')]),
         (inputnode, poutputnode, [('template', 'template')]),
     ])
 
@@ -238,24 +236,24 @@ The following template{tpls} selected for spatial normalization:
     norm_rpt = pe.Node(SimpleBeforeAfter(), name='norm_rpt', mem_gb=0.1)
     norm_rpt.inputs.after_label = 'Participant'  # after
 
-    ds_t1_2_tpl_report = pe.Node(
+    ds_std_t1w_report = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w'),
-        name='ds_t1_2_tpl_report', run_without_submitting=True)
+        name='ds_std_t1w_report', run_without_submitting=True)
 
     workflow.connect([
         (inputnode, msk_select, [('template', 'template')]),
         (inputnode, norm_rpt, [('template', 'before_label')]),
-        (tpl_mask, norm_msk, [('output_image', 'after_mask')]),
+        (std_mask, norm_msk, [('output_image', 'after_mask')]),
         (tpl_specs, msk_select, [('out', 'template_spec')]),
         (msk_select, norm_msk, [('out', 'mask_file')]),
         (tpl_select, norm_msk, [('out', 'before')]),
         (tpl_moving, norm_msk, [('output_image', 'after')]),
         (norm_msk, norm_rpt, [('before', 'before'),
                               ('after', 'after')]),
-        (inputnode, ds_t1_2_tpl_report, [
+        (inputnode, ds_std_t1w_report, [
             ('template', 'space'),
             ('orig_t1w', 'source_file')]),
-        (norm_rpt, ds_t1_2_tpl_report, [('out_report', 'in_file')]),
+        (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
     ])
 
     # Provide synchronized output
