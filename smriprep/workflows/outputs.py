@@ -175,17 +175,17 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
             ('template', 'from')]),
         (inputnode, ds_t1w_tpl, [
             ('std_t1w', 'in_file'),
-            ('template', 'space')]),
+            (('template', _get_name), 'space')]),
         (inputnode, ds_std_mask, [
             ('std_mask', 'in_file'),
-            ('template', 'space'),
+            (('template', _get_name), 'space'),
             (('template', _rawsources), 'RawSources')]),
-        (inputnode, ds_std_dseg, [('template', 'space')]),
+        (inputnode, ds_std_dseg, [(('template', _get_name), 'space')]),
         (inputnode, lut_std_dseg, [('std_dseg', 'in_file')]),
         (lut_std_dseg, ds_std_dseg, [('out', 'in_file')]),
         (inputnode, ds_std_tpms, [
             ('std_tpms', 'in_file'),
-            ('template', 'space')]),
+            (('template', _get_name), 'space')]),
         (t1w_name, ds_t1w_tpl_warp, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpl_inv_warp, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpl, [('out', 'source_file')]),
@@ -257,4 +257,10 @@ def _bids_relative(in_files, bids_root):
 
 
 def _rawsources(template):
+    if isinstance(template, tuple):
+        template = template[0]
     return 'tpl-{0}/tpl-{0}_desc-brain_mask.nii.gz'.format(template)
+
+
+def _get_name(in_tuple):
+    return in_tuple[0]
