@@ -33,7 +33,7 @@ def collect_derivatives(layout, subject_id, output_spaces, freesurfer):
         derivs_cache = defaultdict(list, derivs_cache)
 
     for space in derivs_cache['template']:
-        derivs_cache['std_t1w_preproc'] += layout.get(
+        derivs_cache['std_t1w'] += layout.get(
             desc='preproc', space=space, suffix='T1w', **common_entities)
         derivs_cache['std_mask'] += layout.get(
             desc='brain', suffix='mask', space=space, **common_entities)
