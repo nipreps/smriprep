@@ -118,10 +118,22 @@ jobs:
          paths:
             - /tmp/docker
 
+      - run:
+          name: Check --force-build (requires repo checkout)
+          command: |
+            touch /tmp/.force
+            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+                echo "--force-build" > /tmp/.force
+            fi
+            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[force[ _-]build\]' )" != "" ]]; then
+                echo "--force-build" > /tmp/.force
+            fi
+
       - persist_to_workspace:
           root: /tmp
           paths:
             - src/smriprep
+            - .force
 
   get_data:
     docker:
@@ -437,7 +449,7 @@ jobs:
                 -w /tmp/ds005/work \
                 --skull-strip-template MNI152NLin2009cAsym:res-2 \
                 --sloppy --write-graph --mem-gb 4 \
-                --ncpus 2 --omp-nthreads 2 -vv \
+                --ncpus 2 --omp-nthreads 2 -vv $( cat /tmp/.force ) \
                 --fs-license-file /tmp/fslicense/license.txt \
                 --fs-subjects-dir /tmp/ds005/freesurfer
       - run:
@@ -614,7 +626,7 @@ jobs:
                 -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
                 --skull-strip-template OASIS30ANTs:res-1 \
                 --output-spaces MNI152Lin MNI152NLin2009cAsym \
-                --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
+                --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv $( cat /tmp/.force ) \
                 --fs-license-file /tmp/fslicense/license.txt
       - run:
           name: Combine coverage
