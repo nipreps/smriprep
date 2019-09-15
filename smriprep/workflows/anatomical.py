@@ -251,8 +251,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         debug=debug,
         omp_nthreads=omp_nthreads,
         reportlets_dir=reportlets_dir,
-        template_list=vol_spaces,
-        template_specs=[output_spaces[k] for k in vol_spaces])
+        templates=[(v, output_spaces[v]) for v in vol_spaces],
+    )
 
     workflow.connect([
         # Step 1.
