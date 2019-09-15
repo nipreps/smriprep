@@ -177,6 +177,9 @@ def init_anat_preproc_wf(
     * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
 
     """
+    vol_spaces = [k for k in output_spaces.keys()
+                  if not k.startswith('fs')]
+
     workflow = Workflow(name=name)
     num_t1w = len(t1w)
     desc = """Anatomical data preprocessing
@@ -192,17 +195,36 @@ BIDS dataset.""".format(num_t1w=num_t1w)
     outputnode = pe.Node(niu.IdentityInterface(
         fields=[
             't1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',  # T1w space
-            'std_t1w_preproc', 'std_mask', 'std_dseg', 'std_tpms',  # Standard spaces
+            'std_t1w', 'std_mask', 'std_dseg', 'std_tpms',  # Standard spaces
             'template', 'anat2std_xfm', 'std2anat_xfm',  # Standard spaces (misc)
             'subjects_dir', 'subject_id', 'surfaces',  # Freesurfer
             't1w_aseg', 't1w_aparc', 't1w2fsnative_xfm', 'fsnative2t1w_xfm',  # Freesurfer
         ]),
         name='outputnode')
 
+    # Connect reportlets workflows
+    anat_reports_wf = init_anat_reports_wf(
+        freesurfer=freesurfer,
+        reportlets_dir=reportlets_dir,
+    )
+    workflow.connect([
+        # Connect reportlets
+        (inputnode, anat_reports_wf, [
+            (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
+        (outputnode, anat_reports_wf, [
+            ('t1w_preproc', 'inputnode.t1w_preproc'),
+            ('t1w_mask', 'inputnode.t1w_mask'),
+            ('t1w_dseg', 'inputnode.t1w_dseg')]),
+        (inputnode, anat_reports_wf, [
+            (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
+        (outputnode, anat_reports_wf, [
+            ('std_t1w', 'inputnode.std_t1w'),
+            ('std_mask', 'inputnode.std_mask')]),
+    ])
+
     if existing_derivatives is not None:
-        _needed_inputs = ['t1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',
-                          'std_t1w_preproc', 'std_mask', 'std_dseg', 'std_tpms',
-                          'template', 'anat2std_xfm', 'std2anat_xfm']
+        _needed_inputs = ['t1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms']
+
         if freesurfer:
             _needed_inputs += ['surfaces', 't1w_aseg', 't1w_aparc', 't1w2fsnative_xfm']
 
@@ -220,13 +242,24 @@ Anatomical preprocessing was reused from previously existing derivative objects.
             for field in _needed_inputs:
                 setattr(outputnode.inputs, field, existing_derivatives[field])
 
+            anat_reports_wf.get_node('inputnode').iterables = [
+                ('template', [(v, output_spaces[v]) for v in vol_spaces])]
+
+            t1w_ref_dimensions = pe.Node(TemplateDimensions(),
+                                         name='t1w_ref_dimensions')
+            workflow.connect([
+                (inputnode, t1w_ref_dimensions, [('t1w', 't1w_list')]),
+                (t1w_ref_dimensions, anat_reports_wf, [
+                    ('out_report', 'inputnode.t1w_conform_report')]),
+            ])
             if freesurfer:
                 workflow.connect([
                     (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
                                              ('subject_id', 'subject_id')]),
+                    (inputnode, anat_reports_wf, [
+                        ('subjects_dir', 'inputnode.subjects_dir'),
+                        ('subject_id', 'inputnode.subject_id')]),
                 ])
-            else:  # need to add manually
-                workflow.add_nodes([inputnode, outputnode])
             return workflow
 
     # The workflow is not cached.
@@ -342,6 +375,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.t1w_realign_xfm', 't1w_ref_xfms')]),
         (buffernode, outputnode, [('t1w_brain', 't1w_brain'),
                                   ('t1w_mask', 't1w_mask')]),
+        (anat_template_wf, anat_reports_wf, [
+            ('outputnode.out_report', 'inputnode.t1w_conform_report')]),
         # Steps 2, 3 and 4
         (inputnode, anat_norm_wf, [
             (('t1w', fix_multi_T1w_source_name), 'inputnode.orig_t1w'),
@@ -365,12 +400,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.anat2std_xfm', 'joint_anat2std_xfm'),
             ('outputnode.std2anat_xfm', 'joint_std2anat_xfm'),
         ]),
+        (anat_norm_wf, anat_reports_wf, [
+            ('poutputnode.template', 'inputnode.template')]),
     ])
 
     # Write outputs ############################################3
-    anat_reports_wf = init_anat_reports_wf(
-        reportlets_dir=reportlets_dir, freesurfer=freesurfer)
-
     anat_derivatives_wf = init_anat_derivatives_wf(
         bids_root=bids_root,
         freesurfer=freesurfer,
@@ -379,20 +413,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     )
 
     workflow.connect([
-        # Connect reportlets
-        (inputnode, anat_reports_wf, [
-            (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
-        (anat_template_wf, anat_reports_wf, [
-            ('outputnode.out_report', 'inputnode.t1w_conform_report')]),
-        (outputnode, anat_reports_wf, [
-            ('t1w_preproc', 'inputnode.t1w_preproc'),
-            ('t1w_dseg', 'inputnode.t1w_dseg'),
-            ('t1w_mask', 'inputnode.t1w_mask'),
-            ('std_t1w', 'inputnode.std_t1w'),
-            ('std_mask', 'inputnode.std_mask')]),
-        (anat_norm_wf, anat_reports_wf, [
-            ('poutputnode.template', 'inputnode.template'),
-            ('poutputnode.template_spec', 'inputnode.template_spec')]),
         # Connect derivatives
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),

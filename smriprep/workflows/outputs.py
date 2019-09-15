@@ -11,7 +11,7 @@ from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
 from ..interfaces import DerivativesDataSink
 
 
-def init_anat_reports_wf(reportlets_dir, freesurfer,
+def init_anat_reports_wf(freesurfer, reportlets_dir,
                          name='anat_reports_wf'):
     """Set up a battery of datasinks to store reports in the right location."""
     from niworkflows.interfaces import SimpleBeforeAfter
@@ -46,7 +46,6 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
                               ('t1w_mask', 'in_mask'),
                               ('t1w_dseg', 'in_rois')]),
         (seg_rpt, ds_t1w_dseg_mask_report, [('out_report', 'in_file')]),
-
     ])
 
     # Generate reportlets showing spatial normalization
