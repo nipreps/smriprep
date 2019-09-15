@@ -143,7 +143,7 @@ The following template{tpls} selected for spatial normalization:
                   'std_mask', 'std_dseg', 'std_tpms', 'template']
     poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
 
-    tf_select = pe.Node(TemplateFlowSelect(resolution=1),
+    tf_select = pe.Node(TemplateFlowSelect(resolution=1 + debug),
                         name='tf_select', run_without_submitting=True)
 
     # With the improvements from poldracklab/niworkflows#342 this truncation is now necessary

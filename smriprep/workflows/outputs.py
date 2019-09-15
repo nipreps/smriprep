@@ -169,10 +169,10 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         # Template
         (inputnode, ds_t1w_tpl_warp, [
             ('anat2std_xfm', 'in_file'),
-            ('template', 'to')]),
+            (('template', _get_name), 'to')]),
         (inputnode, ds_t1w_tpl_inv_warp, [
             ('std2anat_xfm', 'in_file'),
-            ('template', 'from')]),
+            (('template', _get_name), 'from')]),
         (inputnode, ds_t1w_tpl, [
             ('std_t1w', 'in_file'),
             (('template', _get_name), 'space')]),
