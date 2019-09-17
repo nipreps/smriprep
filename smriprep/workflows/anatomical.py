@@ -332,6 +332,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('std_dseg', 'inputnode.std_dseg'),
             ('std_tpms', 'inputnode.std_tpms'),
             ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
             ('surfaces', 'inputnode.surfaces'),
         ]),
     ])
