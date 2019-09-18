@@ -28,9 +28,8 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
 
     inputfields = ['source_file', 't1w_conform_report',
                    't1w_preproc', 't1w_dseg', 't1w_mask',
-                   'template', 'std_t1w', 'std_mask']
-    if freesurfer:
-        inputfields += ['subject_id', 'subjects_dir']
+                   'template', 'std_t1w', 'std_mask',
+                   'subject_id', 'subjects_dir']
     inputnode = pe.Node(niu.IdentityInterface(fields=inputfields),
                         name='inputnode')
 
