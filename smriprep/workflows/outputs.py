@@ -65,7 +65,7 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
                     't1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',
                     'anat2std_xfm', 'std2anat_xfm',
                     'std_t1w', 'std_mask', 'std_dseg', 'std_tpms',
-                    't1w2fsnative_xfm', 'surfaces',
+                    't1w2fsnative_xfm', 'fsnative2t1w_xfm', 'surfaces',
                     't1w_fs_aseg', 't1w_fs_aparc']),
         name='inputnode')
 
@@ -134,25 +134,6 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
                             mode='image', suffix='xfm', **{'from': 'T1w'}),
         name='ds_t1w_tpl_warp', run_without_submitting=True)
 
-    lta2itk = pe.Node(LTAConvert(out_itk=True), name='lta2itk')
-
-    # Please note the dictionary unpacking to provide the from argument.
-    # It is necessary because from is a protected keyword (not allowed as argument name).
-    ds_t1w_fsnative = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
-                            mode='image', to='fsnative', suffix='xfm', **{'from': 'T1w'}),
-        name='ds_t1w_fsnative', run_without_submitting=True)
-
-    name_surfs = pe.MapNode(GiftiNameSource(pattern=r'(?P<LR>[lr])h.(?P<surf>.+)_converted.gii',
-                                            template='hemi-{LR}_{surf}.surf'),
-                            iterfield='in_file',
-                            name='name_surfs',
-                            run_without_submitting=True)
-
-    ds_surfs = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir),
-        iterfield=['in_file', 'suffix'], name='ds_surfs', run_without_submitting=True)
-
     workflow.connect([
         (inputnode, t1w_name, [('source_files', 'in_files')]),
         (inputnode, raw_sources, [('source_files', 'in_files')]),
@@ -195,6 +176,8 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
     ])
 
     if num_t1w > 1:
+        # Please note the dictionary unpacking to provide the from argument.
+        # It is necessary because from is a protected keyword (not allowed as argument name).
         ds_t1w_ref_xfms = pe.MapNode(
             DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
                                 to='T1w', mode='image', suffix='xfm', **{'from': 'orig'}),
@@ -205,29 +188,54 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
                                           ('t1w_ref_xfms', 'in_file')]),
         ])
 
-    if freesurfer:
-        ds_t1w_fsaseg = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg',
-                                compress=True),
-            name='ds_t1w_fsaseg', run_without_submitting=True)
-        ds_t1w_fsparc = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg',
-                                compress=True),
-            name='ds_t1w_fsparc', run_without_submitting=True)
+    if not freesurfer:
+        return workflow
 
-        workflow.connect([
-            (inputnode, lta2itk, [('t1w2fsnative_xfm', 'in_lta')]),
-            (t1w_name, ds_t1w_fsnative, [('out', 'source_file')]),
-            (lta2itk, ds_t1w_fsnative, [('out_itk', 'in_file')]),
-            (inputnode, name_surfs, [('surfaces', 'in_file')]),
-            (inputnode, ds_surfs, [('surfaces', 'in_file')]),
-            (t1w_name, ds_surfs, [('out', 'source_file')]),
-            (name_surfs, ds_surfs, [('out_name', 'suffix')]),
-            (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file')]),
-            (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file')]),
-            (t1w_name, ds_t1w_fsaseg, [('out', 'source_file')]),
-            (t1w_name, ds_t1w_fsparc, [('out', 'source_file')]),
-        ])
+    # FS native space transforms
+    lta2itk_fwd = pe.Node(LTAConvert(out_itk=True), name='lta2itk_fwd')
+    lta2itk_inv = pe.Node(LTAConvert(out_itk=True), name='lta2itk_inv')
+    ds_t1w_fsnative = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+                            mode='image', to='fsnative', suffix='xfm', **{'from': 'T1w'}),
+        name='ds_t1w_fsnative', run_without_submitting=True)
+    ds_fsnative_t1w = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+                            mode='image', to='T1w', suffix='xfm', **{'from': 'fsnative'}),
+        name='ds_fsnative_t1w', run_without_submitting=True)
+    # Surfaces
+    name_surfs = pe.MapNode(GiftiNameSource(
+        pattern=r'(?P<LR>[lr])h.(?P<surf>.+)_converted.gii',
+        template='hemi-{LR}_{surf}.surf'),
+        iterfield='in_file', name='name_surfs', run_without_submitting=True)
+    ds_surfs = pe.MapNode(
+        DerivativesDataSink(base_directory=output_dir),
+        iterfield=['in_file', 'suffix'], name='ds_surfs', run_without_submitting=True)
+    # Parcellations
+    ds_t1w_fsaseg = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg',
+                            compress=True),
+        name='ds_t1w_fsaseg', run_without_submitting=True)
+    ds_t1w_fsparc = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg',
+                            compress=True),
+        name='ds_t1w_fsparc', run_without_submitting=True)
+
+    workflow.connect([
+        (inputnode, lta2itk_fwd, [('t1w2fsnative_xfm', 'in_lta')]),
+        (inputnode, lta2itk_inv, [('fsnative2t1w_xfm', 'in_lta')]),
+        (t1w_name, ds_t1w_fsnative, [('out', 'source_file')]),
+        (lta2itk_fwd, ds_t1w_fsnative, [('out_itk', 'in_file')]),
+        (t1w_name, ds_fsnative_t1w, [('out', 'source_file')]),
+        (lta2itk_inv, ds_fsnative_t1w, [('out_itk', 'in_file')]),
+        (inputnode, name_surfs, [('surfaces', 'in_file')]),
+        (inputnode, ds_surfs, [('surfaces', 'in_file')]),
+        (t1w_name, ds_surfs, [('out', 'source_file')]),
+        (name_surfs, ds_surfs, [('out_name', 'suffix')]),
+        (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file')]),
+        (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file')]),
+        (t1w_name, ds_t1w_fsaseg, [('out', 'source_file')]),
+        (t1w_name, ds_t1w_fsparc, [('out', 'source_file')]),
+    ])
 
     return workflow
 
