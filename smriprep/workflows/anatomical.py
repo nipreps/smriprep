@@ -21,7 +21,6 @@ from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.masks import ROIsPlot
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
     PatchedConcatenateLTA as ConcatenateLTA,
@@ -241,16 +240,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                                 ('probability_maps', 't1w_tpms')]),
     ])
 
-    seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
-                      name='seg_rpt')
-
     # 4. Spatial normalization
     vol_spaces = [k for k in output_spaces.keys()
                   if not k.startswith('fs')]
     anat_norm_wf = init_anat_norm_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
-        reportlets_dir=reportlets_dir,
         templates=[(v, output_spaces[v]) for v in vol_spaces],
     )
 
@@ -309,11 +304,14 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
         (anat_template_wf, anat_reports_wf, [
             ('outputnode.out_report', 'inputnode.t1w_conform_report')]),
-        (brain_extraction_wf, seg_rpt, [
-            ('outputnode.bias_corrected', 'in_file')]),
-        (t1w_dseg, seg_rpt, [('tissue_class_map', 'in_rois')]),
-        (outputnode, seg_rpt, [('t1w_mask', 'in_mask')]),
-        (seg_rpt, anat_reports_wf, [('out_report', 'inputnode.seg_report')]),
+        (outputnode, anat_reports_wf, [
+            ('t1w_preproc', 'inputnode.t1w_preproc'),
+            ('t1w_dseg', 'inputnode.t1w_dseg'),
+            ('t1w_mask', 'inputnode.t1w_mask'),
+            ('std_t1w', 'inputnode.std_t1w'),
+            ('std_mask', 'inputnode.std_mask')]),
+        (anat_norm_wf, anat_reports_wf, [
+            ('poutputnode.template', 'inputnode.template')]),
         # Connect derivatives
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
@@ -376,7 +374,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (surface_recon_wf, buffernode, [
             ('outputnode.out_brainmask', 't1w_mask')]),
         (surface_recon_wf, anat_reports_wf, [
-            ('outputnode.out_report', 'inputnode.recon_report')]),
+            ('outputnode.subject_id', 'inputnode.subject_id'),
+            ('outputnode.subjects_dir', 'inputnode.subjects_dir')]),
         (surface_recon_wf, anat_derivatives_wf, [
             ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
             ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),

@@ -27,7 +27,6 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
-from niworkflows.interfaces.segmentation import ReconAllRPT
 from niworkflows.interfaces.surf import NormalizeSurf
 
 
@@ -144,8 +143,6 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
             FreeSurfer's aseg segmentation, in native T1w space
         out_aparc
             FreeSurfer's aparc+aseg segmentation, in native T1w space
-        out_report
-            Reportlet visualizing quality of surface alignment
 
     **Subworkflows**
 
@@ -169,7 +166,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         niu.IdentityInterface(
             fields=['subjects_dir', 'subject_id', 't1w2fsnative_xfm',
                     'fsnative2t1w_xfm', 'surfaces', 'out_brainmask',
-                    'out_aseg', 'out_aparc', 'out_report']),
+                    'out_aseg', 'out_aparc']),
         name='outputnode')
 
     recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
@@ -245,8 +242,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
         # Output
         (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
-                                           ('outputnode.subject_id', 'subject_id'),
-                                           ('outputnode.out_report', 'out_report')]),
+                                           ('outputnode.subject_id', 'subject_id')]),
         (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
         (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
         (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
@@ -312,8 +308,6 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
             FreeSurfer SUBJECTS_DIR
         subject_id
             FreeSurfer subject ID
-        out_report
-            Reportlet visualizing quality of surface alignment
 
     """
     workflow = Workflow(name=name)
@@ -325,7 +319,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
 
     outputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['subjects_dir', 'subject_id', 'out_report']),
+            fields=['subjects_dir', 'subject_id']),
         name='outputnode')
 
     autorecon2_vol = pe.Node(
@@ -353,12 +347,6 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     autorecon3.inputs.hemi = ['lh', 'rh']
     autorecon3.interface._always_run = True
 
-    # Only generate the report once; should be nothing to do
-    recon_report = pe.Node(
-        ReconAllRPT(directive='autorecon3', generate_report=True),
-        name='recon_report', mem_gb=5)
-    recon_report.interface._always_run = True
-
     def _dedup(in_list):
         vals = set(in_list)
         if len(vals) > 1:
@@ -377,9 +365,6 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
                                        (('subject_id', _dedup), 'subject_id')]),
         (autorecon3, outputnode, [(('subjects_dir', _dedup), 'subjects_dir'),
                                   (('subject_id', _dedup), 'subject_id')]),
-        (autorecon3, recon_report, [(('subjects_dir', _dedup), 'subjects_dir'),
-                                    (('subject_id', _dedup), 'subject_id')]),
-        (recon_report, outputnode, [('out_report', 'out_report')]),
     ])
 
     return workflow

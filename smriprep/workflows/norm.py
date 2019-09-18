@@ -17,15 +17,12 @@ from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.ants import ImageMath
 from niworkflows.interfaces.mni import RobustMNINormalization
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
-from niworkflows.interfaces import SimpleBeforeAfter
-from ..interfaces import DerivativesDataSink
 from ..interfaces.templateflow import TemplateFlowSelect
 
 
 def init_anat_norm_wf(
     debug,
     omp_nthreads,
-    reportlets_dir,
     templates,
 ):
     """
@@ -39,7 +36,6 @@ def init_anat_norm_wf(
         wf = init_anat_norm_wf(
             debug=False,
             omp_nthreads=1,
-            reportlets_dir='.',
             template_list=['MNI152NLin2009cAsym', 'MNI152NLin6Asym'],
         )
 
@@ -50,8 +46,6 @@ def init_anat_norm_wf(
             registration processes will be very inaccurate.
         omp_nthreads : int
             Maximum number of threads an individual process may use.
-        reportlets_dir : str
-            Directory in which to save reportlets.
         templates : list of tuples
             List of tuples containing TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``)
             and corresponding specs, which specify target templates
@@ -201,31 +195,6 @@ The following template{tpls} selected for spatial normalization:
         (inputnode, poutputnode, [('template', 'template')]),
     ])
 
-    norm_msk = pe.Node(niu.Function(
-        function=_rpt_masks, output_names=['before', 'after'],
-        input_names=['mask_file', 'before', 'after', 'after_mask']),
-        name='norm_msk')
-    norm_rpt = pe.Node(SimpleBeforeAfter(), name='norm_rpt', mem_gb=0.1)
-    norm_rpt.inputs.after_label = 'Participant'  # after
-
-    ds_std_t1w_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w'),
-        name='ds_std_t1w_report', run_without_submitting=True)
-
-    workflow.connect([
-        (inputnode, norm_rpt, [(('template', _get_name), 'before_label')]),
-        (std_mask, norm_msk, [('output_image', 'after_mask')]),
-        (tf_select, norm_msk, [('brain_mask', 'mask_file')]),
-        (tf_select, norm_msk, [('t1w_file', 'before')]),
-        (tpl_moving, norm_msk, [('output_image', 'after')]),
-        (norm_msk, norm_rpt, [('before', 'before'),
-                              ('after', 'after')]),
-        (inputnode, ds_std_t1w_report, [
-            (('template', _get_name), 'space'),
-            ('orig_t1w', 'source_file')]),
-        (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
-    ])
-
     # Provide synchronized output
     outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
                              name='outputnode', joinsource='inputnode')
@@ -234,22 +203,6 @@ The following template{tpls} selected for spatial normalization:
     ])
 
     return workflow
-
-
-def _rpt_masks(mask_file, before, after, after_mask=None):
-    from os.path import abspath
-    import nibabel as nb
-    msk = nb.load(mask_file).get_fdata() > 0
-    bnii = nb.load(before)
-    nb.Nifti1Image(bnii.get_fdata() * msk,
-                   bnii.affine, bnii.header).to_filename('before.nii.gz')
-    if after_mask is not None:
-        msk = nb.load(after_mask).get_fdata() > 0
-
-    anii = nb.load(after)
-    nb.Nifti1Image(anii.get_fdata() * msk,
-                   anii.affine, anii.header).to_filename('after.nii.gz')
-    return abspath('before.nii.gz'), abspath('after.nii.gz')
 
 
 def _get_name(in_tuple):

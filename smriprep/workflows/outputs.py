@@ -20,12 +20,21 @@ from ..interfaces import DerivativesDataSink
 def init_anat_reports_wf(reportlets_dir, freesurfer,
                          name='anat_reports_wf'):
     """Set up a battery of datasinks to store reports in the right location."""
+    from niworkflows.interfaces import SimpleBeforeAfter
+    from niworkflows.interfaces.masks import ROIsPlot
+    from ..interfaces.templateflow import TemplateFlowSelect
+
     workflow = Workflow(name=name)
 
-    inputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=['source_file', 't1w_conform_report', 'seg_report', 'recon_report']),
-        name='inputnode')
+    inputfields = ['source_file', 't1w_conform_report',
+                   't1w_preproc', 't1w_dseg', 't1w_mask',
+                   'template', 'std_t1w', 'std_mask',
+                   'subject_id', 'subjects_dir']
+    inputnode = pe.Node(niu.IdentityInterface(fields=inputfields),
+                        name='inputnode')
+
+    seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
+                      name='seg_rpt')
 
     ds_t1w_conform_report = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir, desc='conform', keep_dtype=True),
@@ -38,17 +47,57 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
     workflow.connect([
         (inputnode, ds_t1w_conform_report, [('source_file', 'source_file'),
                                             ('t1w_conform_report', 'in_file')]),
-        (inputnode, ds_t1w_dseg_mask_report, [('source_file', 'source_file'),
-                                              ('seg_report', 'in_file')]),
+        (inputnode, ds_t1w_dseg_mask_report, [('source_file', 'source_file')]),
+        (inputnode, seg_rpt, [('t1w_preproc', 'in_file'),
+                              ('t1w_mask', 'in_mask'),
+                              ('t1w_dseg', 'in_rois')]),
+        (seg_rpt, ds_t1w_dseg_mask_report, [('out_report', 'in_file')]),
+
+    ])
+
+    # Generate reportlets showing spatial normalization
+    tf_select = pe.Node(TemplateFlowSelect(resolution=1),
+                        name='tf_select', run_without_submitting=True)
+    norm_msk = pe.Node(niu.Function(
+        function=_rpt_masks, output_names=['before', 'after'],
+        input_names=['mask_file', 'before', 'after', 'after_mask']),
+        name='norm_msk')
+    norm_rpt = pe.Node(SimpleBeforeAfter(), name='norm_rpt', mem_gb=0.1)
+    norm_rpt.inputs.after_label = 'Participant'  # after
+
+    ds_std_t1w_report = pe.Node(
+        DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w'),
+        name='ds_std_t1w_report', run_without_submitting=True)
+
+    workflow.connect([
+        (inputnode, tf_select, [(('template', _get_name), 'template'),
+                                (('template', _get_spec), 'template_spec')]),
+        (inputnode, norm_rpt, [(('template', _get_name), 'before_label')]),
+        (inputnode, norm_msk, [('std_t1w', 'after'),
+                               ('std_mask', 'after_mask')]),
+        (tf_select, norm_msk, [('t1w_file', 'before'),
+                               ('brain_mask', 'mask_file')]),
+        (norm_msk, norm_rpt, [('before', 'before'),
+                              ('after', 'after')]),
+        (inputnode, ds_std_t1w_report, [
+            (('template', _get_name), 'space'),
+            ('source_file', 'source_file')]),
+        (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
     ])
 
     if freesurfer:
+        from ..interfaces.reports import FSSurfaceReport
+        recon_report = pe.Node(FSSurfaceReport(), name='recon_report')
+        recon_report.interface._always_run = True
+
         ds_recon_report = pe.Node(
             DerivativesDataSink(base_directory=reportlets_dir, desc='reconall', keep_dtype=True),
             name='ds_recon_report', run_without_submitting=True)
         workflow.connect([
-            (inputnode, ds_recon_report, [('source_file', 'source_file'),
-                                          ('recon_report', 'in_file')])
+            (inputnode, recon_report, [('subjects_dir', 'subjects_dir'),
+                                       ('subject_id', 'subject_id')]),
+            (recon_report, ds_recon_report, [('out_report', 'in_file')]),
+            (inputnode, ds_recon_report, [('source_file', 'source_file')])
         ])
 
     return workflow
@@ -270,5 +319,25 @@ def _rawsources(template):
     return 'tpl-{0}/tpl-{0}_desc-brain_mask.nii.gz'.format(template)
 
 
+def _rpt_masks(mask_file, before, after, after_mask=None):
+    from os.path import abspath
+    import nibabel as nb
+    msk = nb.load(mask_file).get_fdata() > 0
+    bnii = nb.load(before)
+    nb.Nifti1Image(bnii.get_fdata() * msk,
+                   bnii.affine, bnii.header).to_filename('before.nii.gz')
+    if after_mask is not None:
+        msk = nb.load(after_mask).get_fdata() > 0
+
+    anii = nb.load(after)
+    nb.Nifti1Image(anii.get_fdata() * msk,
+                   anii.affine, anii.header).to_filename('after.nii.gz')
+    return abspath('before.nii.gz'), abspath('after.nii.gz')
+
+
 def _get_name(in_tuple):
     return in_tuple[0]
+
+
+def _get_spec(in_tuple):
+    return in_tuple[1]
