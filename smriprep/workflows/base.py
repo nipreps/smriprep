@@ -55,7 +55,7 @@ def init_smriprep_wf(
 
         import os
         from collections import OrderedDict
-        from bids import BIDSLayout
+        BIDSLayout = namedtuple('BIDSLayout', ['root'])
         os.environ['FREESURFER_HOME'] = os.getcwd()
         from smriprep.workflows.base import init_smriprep_wf
         wf = init_smriprep_wf(
@@ -193,7 +193,7 @@ def init_single_subject_wf(
 
         from collections import OrderedDict
         from smriprep.workflows.base import init_single_subject_wf
-        from bids import BIDSLayout
+        BIDSLayout = namedtuple('BIDSLayout', ['root'])
         wf = init_single_subject_wf(
             debug=False,
             freesurfer=True,
