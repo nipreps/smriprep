@@ -1,3 +1,18 @@
+0.3.2 (September 9, 2019)
+=========================
+
+Bugfix patch-release
+
+* FIX: Render INU-corrected T1w in Segmentation reportlet (#102) @oesteban
+
+0.3.1 (July 21, 2019)
+=====================
+
+Minor release to update pinnings of niworkflows and TemplateFlow client.
+
+* PIN: niworkflows-0.10.1 and templateflow-0.4.1
+* CI: Fix PyPI deployment (#99) @effigies
+
 0.3.0 (July 12, 2019)
 =====================
 
