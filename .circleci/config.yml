@@ -441,6 +441,9 @@ jobs:
           name: Install deps
           command: pip install -r requirements.txt && pip install -r docs/requirements.txt
       - run:
+          name: Build only this commit
+          command: sphinx-build -W ./docs ./docs/_build/html
+      - run:
           name: Generate Docs
           command: sphinx-versioning -vv build -r ci_doc_deploy ./docs ./docs/_build/html/
       - persist_to_workspace:

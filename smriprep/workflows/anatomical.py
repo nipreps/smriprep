@@ -47,7 +47,7 @@ def init_anat_preproc_wf(
       - Brain extraction and INU (bias field) correction.
       - Brain tissue segmentation.
       - Spatial normalization to standard spaces.
-      - Surface reconstruction with FreeSurfer_.
+      - Surface reconstruction with FreeSurfer.
 
     .. workflow::
         :graph2use: orig
