@@ -76,8 +76,7 @@ def init_smriprep_wf(
             work_dir='.',
         )
 
-    Parameters
-    ----------
+    **Parameters**
 
         debug : bool
             Enable debugging outputs
@@ -99,9 +98,9 @@ def init_smriprep_wf(
         output_spaces : OrderedDict
             List of spatial normalization targets. Some parts of pipeline will
             only be instantiated for some output spaces. Valid spaces:
-              - Any template identifier from TemplateFlow
-              - Path to a template folder organized following TemplateFlow's
-                conventions
+            - Any template identifier from TemplateFlow
+            - Path to a template folder organized following TemplateFlow's
+            conventions
         run_uuid : str
             Unique identifier for execution instance
         skull_strip_fixed_seed : bool
@@ -214,7 +213,7 @@ def init_single_subject_wf(
         )
 
 
-    Parameters
+    **Parameters**
 
         debug : bool
             Enable debugging outputs
@@ -238,9 +237,9 @@ def init_single_subject_wf(
         output_spaces : OrderedDict
             List of spatial normalization targets. Some parts of pipeline will
             only be instantiated for some output spaces. Valid spaces:
-              - Any template identifier from TemplateFlow
-              - Path to a template folder organized following TemplateFlow's
-                conventions
+            - Any template identifier from TemplateFlow
+            - Path to a template folder organized following TemplateFlow's
+            conventions
         reportlets_dir : str
             Directory in which to save reportlets
         skull_strip_fixed_seed : bool

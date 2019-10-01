@@ -67,7 +67,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'api/modules.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
@@ -183,7 +183,8 @@ apidoc_module_dir = '../smriprep'
 apidoc_output_dir = 'api'
 apidoc_excluded_paths = ['tests']
 apidoc_separate_modules = True
-apidoc_extra_args = ['--templatedir=_templates/apidoc/', '--no-headings', '--module-first', '-d 1']
+# apidoc_extra_args = ['--templatedir=_templates/apidoc/', '--no-headings', '--module-first', '-d 1']
+apidoc_extra_args = ['--module-first', '-d 1', '-T']
 
 # -- Options for intersphinx extension ---------------------------------------
 
