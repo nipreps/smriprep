@@ -54,7 +54,7 @@ def init_smriprep_wf(
         :simple_form: yes
 
         import os
-        from collections import OrderedDict
+        from collections import OrderedDict, namedtuple
         BIDSLayout = namedtuple('BIDSLayout', ['root'])
         os.environ['FREESURFER_HOME'] = os.getcwd()
         from smriprep.workflows.base import init_smriprep_wf
@@ -191,7 +191,7 @@ def init_single_subject_wf(
         :graph2use: orig
         :simple_form: yes
 
-        from collections import OrderedDict
+        from collections import OrderedDict, namedtuple
         from smriprep.workflows.base import init_single_subject_wf
         BIDSLayout = namedtuple('BIDSLayout', ['root'])
         wf = init_single_subject_wf(
