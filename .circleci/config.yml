@@ -182,7 +182,7 @@ jobs:
       - run:
           name: Install sMRIPrep
           no_output_timeout: 30m
-          command: pip install ".[test]"
+          command: pip install --user ".[test]"
       - run:
           name: Run sMRIPrep tests
           no_output_timeout: 2h
