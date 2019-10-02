@@ -1,5 +1,5 @@
 Sphinx>=2.1.2
-git+https://github.com/rwblair/sphinxcontrib-versioning.git@v2.2.2#egg=sphinx-versioning
+git+https://github.com/rwblair/sphinxcontrib-versioning.git@39b40b0b84bf872fc398feff05344051bbce0f63#egg=sphinx-versioning
 sphinxcontrib-apidoc
 # workflows autodocs were failing without pytest
 pytest
