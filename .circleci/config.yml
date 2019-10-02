@@ -173,7 +173,8 @@ jobs:
       - run:
           name: Setup Python environment
           command: |
-            pyenv global 3.6.9
+            pyenv install 3.6.3
+            pyenv global 3.6.3
             pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
       - run:
           name: Check PyPi preconditions
