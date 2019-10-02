@@ -158,8 +158,8 @@ jobs:
             - /tmp/ds005/derivatives/freesurfer
 
   test_pytest:
-    machine:
-      image: circleci/classic:201711-01
+    docker:
+      - image: circleci/python:latest
     working_directory: /home/circleci/src/smriprep
     steps:
       - checkout
@@ -173,8 +173,6 @@ jobs:
       - run:
           name: Setup Python environment
           command: |
-            pyenv install 3.6.3
-            pyenv global 3.6.3
             pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
       - run:
           name: Check PyPi preconditions
