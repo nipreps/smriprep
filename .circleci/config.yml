@@ -173,7 +173,7 @@ jobs:
       - run:
           name: Setup Python environment
           command: |
-            pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
       - run:
           name: Check PyPi preconditions
           command: |
