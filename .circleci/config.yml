@@ -440,14 +440,11 @@ jobs:
           name: Install deps
           command: pip install -r requirements.txt && pip install -r docs/requirements.txt
       - run:
-          name: cd to doc dir
-          command: cd ./docs
-      - run:
           name: Build only this commit
-          command: make html SPHINXOPTS="-W" BUILDDIR="_build/no_version_html"
+          command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
       - run:
           name: Generate Docs
-          command: make versioned
+          command: make -C docs versioned
       - persist_to_workspace:
           root: docs/_build
           paths: html
