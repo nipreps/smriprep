@@ -432,6 +432,14 @@ jobs:
     environment:
       - FSLOUTPUTTYPE: NIFTI
     steps:
+      - restore_cache:
+          keys:
+            - docs-v1-{{ .Branch }}-{{ .Revision }}
+            - docs-v1-{{ .Branch }}-
+            - docs-v1-master
+            - docs-v1-
+          paths:
+            - "./docs/_build/_html
       - checkout
       - run:
           name: Install Graphviz
@@ -445,6 +453,10 @@ jobs:
       - run:
           name: Generate Docs
           command: make -f ./docs/Makefile versioned
+      - save_cache:
+          key: docs-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - "./docs/_build/_html
       - persist_to_workspace:
           root: docs/_build
           paths: html
