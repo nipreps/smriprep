@@ -428,7 +428,7 @@ jobs:
 
   build_docs:
     docker:
-      - image: python:latest
+      - image: python:3.7.4
     environment:
       - FSLOUTPUTTYPE: NIFTI
     steps:
@@ -441,10 +441,10 @@ jobs:
           command: pip install -r requirements.txt && pip install -r docs/requirements.txt
       - run:
           name: Build only this commit
-          command: sphinx-build -W ./docs ./docs/_build/no_version_html
+          command: make html SPHINXOPTS="-W" BUILDDIR="_build/no_version_html"
       - run:
           name: Generate Docs
-          command: sphinx-versioning -vv build -r ci_doc_deploy ./docs ./docs/_build/html/
+          command: make versioned
       - persist_to_workspace:
           root: docs/_build
           paths: html
