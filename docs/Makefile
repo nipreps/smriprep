@@ -225,4 +225,4 @@ pseudoxml:
 
 .PHONY: versioned
 versioned:
-	sphinx-versioning -vv -l conf.py build -r ci_doc_deploy . $(BUILDDIR)/html/
+	sphinx-versioning -vv -l ./docs/conf.py build -r ci_doc_deploy ./docs/ docs/$(BUILDDIR)/html/

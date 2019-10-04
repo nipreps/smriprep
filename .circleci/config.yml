@@ -444,7 +444,7 @@ jobs:
           command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
       - run:
           name: Generate Docs
-          command: make -C docs versioned
+          command: make -f ./docs/Makefile versioned
       - persist_to_workspace:
           root: docs/_build
           paths: html

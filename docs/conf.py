@@ -78,7 +78,7 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -183,7 +183,7 @@ apidoc_module_dir = '../smriprep'
 apidoc_output_dir = 'api'
 apidoc_excluded_paths = ['tests']
 apidoc_separate_modules = True
-# apidoc_extra_args = ['--templatedir=_templates/apidoc/', '--no-headings', '--module-first', '-d 1']
+# apidoc_extra_args = ['--templatedir=_templates/apidoc/', '--no-headings', '--module-first', '-d 1', '-T']
 apidoc_extra_args = ['--module-first', '-d 1', '-T']
 
 # -- Options for intersphinx extension ---------------------------------------
