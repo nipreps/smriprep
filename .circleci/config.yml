@@ -439,7 +439,7 @@ jobs:
             - docs-v1-master
             - docs-v1-
           paths:
-            - "./docs/_build/_html
+            - ./docs/_build/_html
       - checkout
       - run:
           name: Install Graphviz
