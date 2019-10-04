@@ -456,7 +456,7 @@ jobs:
       - save_cache:
           key: docs-v1-{{ .Branch }}-{{ .Revision }}
           paths:
-            - "./docs/_build/_html
+            - ./docs/_build/_html
       - persist_to_workspace:
           root: docs/_build
           paths: html
