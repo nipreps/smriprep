@@ -440,6 +440,9 @@ jobs:
           name: Install deps
           command: pip install -r requirements.txt && pip install -r docs/requirements.txt
       - run:
+          name: cd to doc dir
+          command: cd ./docs
+      - run:
           name: Build only this commit
           command: make html SPHINXOPTS="-W" BUILDDIR="_build/no_version_html"
       - run:
