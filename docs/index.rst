@@ -1,4 +1,3 @@
-
 .. include:: links.rst
 .. include:: ../README.rst
 
