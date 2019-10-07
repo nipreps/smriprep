@@ -5,7 +5,6 @@ Anatomical reference preprocessing workflows.
 
 .. autofunction:: init_anat_preproc_wf
 
-.. include:: ../links.rst
 """
 
 from pkg_resources import resource_filename as pkgr
@@ -49,6 +48,8 @@ def init_anat_preproc_wf(
       - Brain tissue segmentation.
       - Spatial normalization to standard spaces.
       - Surface reconstruction with FreeSurfer_.
+
+    .. include:: ../links.rst
 
     .. workflow::
         :graph2use: orig
