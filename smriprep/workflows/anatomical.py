@@ -106,7 +106,7 @@ def init_anat_preproc_wf(
         bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
         output_spaces, num_t1w, reportlets_dir, skull_strip_template,
         debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False,
-        skip_brain_extraction=True):
+        skip_brain_extraction=False):
     """
     This workflow controls the anatomical preprocessing stages of smriprep.
 
