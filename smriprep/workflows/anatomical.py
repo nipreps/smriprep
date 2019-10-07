@@ -7,6 +7,7 @@
 """
 
 from pkg_resources import resource_filename as pkgr
+from multiprocessing import cpu_count
 
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
@@ -18,6 +19,7 @@ from nipype.interfaces import (
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
+from nipype.interfaces.ants.registration import Registration
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.masks import ROIsPlot
@@ -27,18 +29,84 @@ from niworkflows.interfaces.freesurfer import (
     PatchedLTAConvert as LTAConvert,
 )
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
+from niworkflows.interfaces.utils import CopyXForm
+from niworkflows.interfaces.ants import ThresholdImage
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
 
+from packaging.version import parse as parseversion, Version
+from warnings import warn
+
+
+def init_n4_only_wf(name='n4_only_wf', omp_nthreads=None):
+    wf = pe.Workflow(name)
+
+    if omp_nthreads is None or omp_nthreads < 1:
+        omp_nthreads = cpu_count()
+
+    inputnode = pe.Node(niu.IdentityInterface(fields=['in_files', 'in_mask']),
+                        name='inputnode')
+
+    outputnode = pe.Node(niu.IdentityInterface(
+        fields=['out_file', 'out_mask', 'bias_corrected', 'bias_image',
+                'out_segm', 'out_tpms']),
+        name='outputnode')
+
+    # Create brain mask (out_mask)
+    thr_brainmask = pe.MapNode(ThresholdImage(
+        dimension=3, th_low=0.00001, th_high=1e10, inside_value=1,
+        outside_value=0), name='thr_brainmask', iterfield=['input_image'])
+
+    # INU correction (output_image -> bias_corrected, out_file)
+    inu_n4 = pe.MapNode(
+        N4BiasFieldCorrection(
+            dimension=3, save_bias=True, copy_header=True,
+            n_iterations=[50] * 5, convergence_threshold=1e-7, shrink_factor=4,
+            bspline_fitting_distance=200),
+        n_procs=omp_nthreads, name='inu_n4_final', iterfield=['input_image'])
+
+    # Tolerate missing ANTs at construction time
+    _ants_version = Registration().version
+
+    if _ants_version and parseversion(_ants_version) >= Version('2.1.0'):
+        inu_n4.inputs.rescale_intensities = True
+    else:
+        warn("""\
+Found ANTs version %s, which is too old. Please consider upgrading to 2.1.0 or \
+greater so that the --rescale-intensities option is available with \
+N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
+
+    copy_xform = pe.Node(CopyXForm(
+        fields=['out_mask', 'out_file', 'bias_corrected', 'bias_image']),
+        name='copy_xform', run_without_submitting=True)
+
+    wf.connect([
+        (inputnode, inu_n4, [('in_files', 'input_image')]),
+        (inputnode, copy_xform, [(('in_files', _pop), 'hdr_file')]),
+        (inputnode, thr_brainmask, [('in_files', 'input_image')]),
+        (thr_brainmask, copy_xform, [('output_image', 'out_mask')]),
+        (inu_n4, copy_xform, [('output_image', 'out_file')]),
+        (inu_n4, copy_xform, [('output_image', 'bias_corrected')]),
+        (inu_n4, copy_xform, [('bias_image', 'bias_image')]),
+        (copy_xform, outputnode, [
+            ('out_file', 'out_file'),
+            ('out_mask', 'out_mask'),
+            ('bias_corrected', 'bias_corrected'),
+            ('bias_image', 'bias_image')]),
+    ])
+
+    return wf
+
 
 # pylint: disable=R0914
 def init_anat_preproc_wf(
         bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
         output_spaces, num_t1w, reportlets_dir, skull_strip_template,
-        debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False):
+        debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False,
+        skip_brain_extraction=True):
     """
     This workflow controls the anatomical preprocessing stages of smriprep.
 
@@ -220,14 +288,18 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     anat_validate = pe.Node(ValidateImage(), name='anat_validate',
                             run_without_submitting=True)
 
-    # 3. Skull-stripping
-    # Bias field correction is handled in skull strip workflows.
-    brain_extraction_wf = init_brain_extraction_wf(
-        in_template=skull_strip_template[0],
-        template_spec=skull_strip_template[1],
-        atropos_use_random_seed=not skull_strip_fixed_seed,
-        omp_nthreads=omp_nthreads,
-        normalization_quality='precise' if not debug else 'testing')
+    # 3. Brain-extraction and INU (bias field) correction.
+    if not skip_brain_extraction:
+        brain_extraction_wf = init_brain_extraction_wf(
+            in_template=skull_strip_template[0],
+            template_spec=skull_strip_template[1],
+            atropos_use_random_seed=not skull_strip_fixed_seed,
+            omp_nthreads=omp_nthreads,
+            normalization_quality='precise' if not debug else 'testing')
+    else:
+        brain_extraction_wf = init_n4_only_wf(
+            omp_nthreads=omp_nthreads
+        )
 
     workflow.connect([
         (inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')]),
