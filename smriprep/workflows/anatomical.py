@@ -109,7 +109,7 @@ def init_anat_preproc_wf(
         debug=False,
         name='anat_preproc_wf',
         skull_strip_fixed_seed=False,
-        skip_brain_extraction=True,
+        skip_brain_extraction=False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
