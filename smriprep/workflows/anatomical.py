@@ -19,7 +19,6 @@ from nipype.interfaces import (
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
-from nipype.interfaces.ants.registration import Registration
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.masks import ROIsPlot
@@ -68,7 +67,7 @@ def init_n4_only_wf(name='n4_only_wf', omp_nthreads=None):
         n_procs=omp_nthreads, name='inu_n4_final', iterfield=['input_image'])
 
     # Tolerate missing ANTs at construction time
-    _ants_version = Registration().version
+    _ants_version = N4BiasFieldCorrection().version
 
     if _ants_version and parseversion(_ants_version) >= Version('2.1.0'):
         inu_n4.inputs.rescale_intensities = True
