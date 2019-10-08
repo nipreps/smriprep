@@ -8,6 +8,7 @@
 
 from pkg_resources import resource_filename as pkgr
 from multiprocessing import cpu_count
+from collections import OrderedDict
 
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
@@ -31,7 +32,9 @@ from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateI
 from niworkflows.interfaces.utils import CopyXForm
 from niworkflows.interfaces.nibabel import Binarize
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
-from niworkflows.anat.ants import init_brain_extraction_wf
+from niworkflows.anat.ants import (
+    init_brain_extraction_wf, init_atropos_wf, ATROPOS_MODELS
+    )
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
@@ -40,7 +43,84 @@ from packaging.version import parse as parseversion, Version
 from warnings import warn
 
 
-def init_n4_only_wf(name='n4_only_wf', omp_nthreads=None):
+def init_n4_only_wf(name='n4_only_wf',
+                    omp_nthreads=None,
+                    mem_gb=3.0,
+                    bids_suffix='T1w',
+                    atropos_refine=True,
+                    atropos_use_random_seed=True,
+                    atropos_model=None,):
+    """
+    An alternative workflow to "init_brain_extraction_wf", for anatomical
+    images which have already been brain extracted.
+
+
+      1. Creates brain mask assuming all zero voxels are outside the brain
+      2. Applies N4 bias field correction
+      3. (Optional) apply ATROPOS and massage its outputs
+      4. Use results from 3 to refine N4 bias field correction
+
+
+    .. workflow::
+        :graph2use: orig
+        :simple_form: yes
+        from smriprep.workflows.anatomical import init_n4_only_wf
+        wf = init_n4_only_wf()
+
+
+    **Parameters**
+
+        omp_nthreads : int
+            Maximum number of threads an individual process may use
+        mem_gb : float
+            Estimated peak memory consumption of the most hungry nodes
+        bids_suffix : str
+            Sequence type of the first input image. For a list of acceptable values
+            see https://bids-specification.readthedocs.io/en/latest/\
+04-modality-specific-files/01-magnetic-resonance-imaging-data.html#anatomy-imaging-data
+        atropos_refine : bool
+            Enables or disables the whole ATROPOS sub-workflow
+        atropos_use_random_seed : bool
+            Whether ATROPOS should generate a random seed based on the
+            system's clock
+        atropos_model : tuple or None
+            Allows to specify a particular segmentation model, overwriting
+            the defaults based on ``bids_suffix``
+        name : str, optional
+            Workflow name (default: antsBrainExtraction)
+
+
+    **Inputs**
+
+        in_files
+            List of input anatomical images to be bias corrected,
+            typically T1-weighted.
+            If a list of anatomical images is provided, subsequently
+            specified images are used during the segmentation process.
+            However, only the first image is used in the registration
+            of priors.
+            Our suggestion would be to specify the T1w as the first image.
+
+
+    **Outputs**
+
+
+        out_file
+            :abbr:`INU (intensity non-uniformity)`-corrected ``in_files``
+        out_mask
+            Calculated brain mask
+        bias_corrected
+            Same as "out_file", provided for consistency with brain extraction
+        bias_image
+            The :abbr:`INU (intensity non-uniformity)` field estimated for each
+            input in ``in_files``
+        out_segm
+            Output segmentation by ATROPOS
+        out_tpms
+            Output :abbr:`TPMs (tissue probability maps)` by ATROPOS
+
+
+    """
     wf = pe.Workflow(name)
 
     if omp_nthreads is None or omp_nthreads < 1:
@@ -54,12 +134,12 @@ def init_n4_only_wf(name='n4_only_wf', omp_nthreads=None):
                 'out_segm', 'out_tpms']),
         name='outputnode')
 
-    # Create brain mask (out_mask)
+    # Create brain mask
     thr_brainmask = pe.MapNode(Binarize(
         thresh_low=0), iterfield=['input_image'])
 
-    # INU correction (output_image -> bias_corrected, out_file)
-    inu_n4 = pe.MapNode(
+    # INU correction
+    inu_n4_final = pe.MapNode(
         N4BiasFieldCorrection(
             dimension=3, save_bias=True, copy_header=True,
             n_iterations=[50] * 5, convergence_threshold=1e-7, shrink_factor=4,
@@ -70,31 +150,61 @@ def init_n4_only_wf(name='n4_only_wf', omp_nthreads=None):
     _ants_version = N4BiasFieldCorrection().version
 
     if _ants_version and parseversion(_ants_version) >= Version('2.1.0'):
-        inu_n4.inputs.rescale_intensities = True
+        inu_n4_final.inputs.rescale_intensities = True
     else:
         warn("""\
 Found ANTs version %s, which is too old. Please consider upgrading to 2.1.0 or \
 greater so that the --rescale-intensities option is available with \
 N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
 
-    copy_xform = pe.Node(CopyXForm(
-        fields=['out_mask', 'out_file', 'bias_corrected', 'bias_image']),
-        name='copy_xform', run_without_submitting=True)
-
     wf.connect([
-        (inputnode, inu_n4, [('in_files', 'input_image')]),
-        (inputnode, copy_xform, [(('in_files', _pop), 'hdr_file')]),
+        (inputnode, inu_n4_final, [('in_files', 'input_image')]),
         (inputnode, thr_brainmask, [('in_files', 'input_image')]),
-        (thr_brainmask, copy_xform, [('output_image', 'out_mask')]),
-        (inu_n4, copy_xform, [('output_image', 'out_file')]),
-        (inu_n4, copy_xform, [('output_image', 'bias_corrected')]),
-        (inu_n4, copy_xform, [('bias_image', 'bias_image')]),
-        (copy_xform, outputnode, [
-            ('out_file', 'out_file'),
-            ('out_mask', 'out_mask'),
-            ('bias_corrected', 'bias_corrected'),
-            ('bias_image', 'bias_image')]),
+        (thr_brainmask, outputnode, [('output_image', 'out_mask')]),
+        (inu_n4_final, outputnode, [('output_image', 'out_file')]),
+        (inu_n4_final, outputnode, [('output_image', 'bias_corrected')]),
+        (inu_n4_final, outputnode, [('bias_image', 'bias_image')])
     ])
+
+    # If atropos refine, do in4 twice
+    if atropos_refine:
+        atropos_model = atropos_model or list(
+            ATROPOS_MODELS[bids_suffix].values())
+        atropos_wf = init_atropos_wf(
+            use_random_seed=atropos_use_random_seed,
+            omp_nthreads=omp_nthreads,
+            mem_gb=mem_gb,
+            in_segmentation_model=atropos_model,
+        )
+        sel_wm = pe.Node(niu.Select(index=atropos_model[-1] - 1), name='sel_wm',
+                         run_without_submitting=True)
+
+        inu_n4 = pe.MapNode(
+            N4BiasFieldCorrection(
+                dimension=3, save_bias=False, copy_header=True,
+                n_iterations=[50] * 4, convergence_threshold=1e-7,
+                shrink_factor=4, bspline_fitting_distance=200),
+            n_procs=omp_nthreads, name='inu_n4', iterfield=['input_image'])
+
+        copy_xform = pe.Node(CopyXForm(
+            fields=['out_mask', 'out_file', 'bias_corrected', 'bias_image']),
+            name='copy_xform', run_without_submitting=True)
+
+        wf.connect([
+            (inputnode, copy_xform, [(('in_files', _pop), 'hdr_file')]),
+            (inputnode, inu_n4, [('in_files', 'input_image')]),
+            (inu_n4, atropos_wf, [
+                ('output_image', 'inputnode.in_files')]),
+            (thr_brainmask, atropos_wf, [
+                ('output_image', 'inputnode.in_mask')]),
+            (thr_brainmask, atropos_wf, [
+                ('output_image', 'inputnode.in_mask_dilated')]),  # Dilate?
+            (atropos_wf, sel_wm, [('outputnode.out_tpms', 'inlist')]),
+            (sel_wm, inu_n4_final, [('out', 'weight_image')]),
+            (atropos_wf, outputnode, [
+                ('outputnode.out_segm', 'out_segm'),
+                ('outputnode.out_tpms', 'out_tpms')]),
+        ])
 
     return wf
 
