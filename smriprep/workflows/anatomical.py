@@ -30,7 +30,7 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
 from niworkflows.interfaces.utils import CopyXForm
-from niworkflows.interfaces.ants import ThresholdImage
+from niworkflows.interfaces.nibabel import Binarize
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf
 from .norm import init_anat_norm_wf
@@ -56,9 +56,8 @@ def init_n4_only_wf(name='n4_only_wf', omp_nthreads=None):
         name='outputnode')
 
     # Create brain mask (out_mask)
-    thr_brainmask = pe.MapNode(ThresholdImage(
-        dimension=3, th_low=0.00001, th_high=1e10, inside_value=1,
-        outside_value=0), name='thr_brainmask', iterfield=['input_image'])
+    thr_brainmask = pe.MapNode(Binarize(
+        thresh_low=0), iterfield=['input_image'])
 
     # INU correction (output_image -> bias_corrected, out_file)
     inu_n4 = pe.MapNode(
