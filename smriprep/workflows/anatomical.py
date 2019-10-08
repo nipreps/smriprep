@@ -3,7 +3,6 @@
 """Anatomical reference preprocessing workflows."""
 from pkg_resources import resource_filename as pkgr
 from multiprocessing import cpu_count
-from collections import OrderedDict
 
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
@@ -43,7 +42,7 @@ def init_n4_only_wf(name='n4_only_wf',
                     bids_suffix='T1w',
                     atropos_refine=True,
                     atropos_use_random_seed=True,
-                    atropos_model=None,):
+                    atropos_model=None):
     """
     An alternative workflow to "init_brain_extraction_wf", for anatomical
     images which have already been brain extracted.
@@ -407,7 +406,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             normalization_quality='precise' if not debug else 'testing')
     else:
         brain_extraction_wf = init_n4_only_wf(
-            omp_nthreads=omp_nthreads
+            omp_nthreads=omp_nthreads,
+            atropos_use_random_seed=not skull_strip_fixed_seed
         )
 
     # 3. Brain tissue segmentation
