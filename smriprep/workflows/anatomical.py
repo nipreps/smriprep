@@ -128,8 +128,8 @@ def init_n4_only_wf(name='n4_only_wf',
         name='outputnode')
 
     # Create brain mask
-    thr_brainmask = pe.MapNode(Binarize(
-        thresh_low=0), iterfield=['input_image'])
+    thr_brainmask = pe.MapNode(
+        Binarize(thresh_low=0), iterfield=['input_image'])
 
     # INU correction
     inu_n4_final = pe.MapNode(
@@ -179,12 +179,7 @@ N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
                 shrink_factor=4, bspline_fitting_distance=200),
             n_procs=omp_nthreads, name='inu_n4', iterfield=['input_image'])
 
-        copy_xform = pe.Node(CopyXForm(
-            fields=['out_mask', 'out_file', 'bias_corrected', 'bias_image']),
-            name='copy_xform', run_without_submitting=True)
-
         wf.connect([
-            (inputnode, copy_xform, [(('in_files', _pop), 'hdr_file')]),
             (inputnode, inu_n4, [('in_files', 'input_image')]),
             (inu_n4, atropos_wf, [
                 ('output_image', 'inputnode.in_files')]),
