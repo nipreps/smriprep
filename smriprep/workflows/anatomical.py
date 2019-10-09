@@ -129,7 +129,7 @@ def init_n4_only_wf(name='n4_only_wf',
 
     # Create brain mask
     thr_brainmask = pe.MapNode(
-        Binarize(thresh_low=0), iterfield=['input_image'])
+        Binarize(thresh_low=0), name='binarize', iterfield=['input_image'])
 
     # INU correction
     inu_n4_final = pe.MapNode(
@@ -153,7 +153,7 @@ N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
     wf.connect([
         (inputnode, inu_n4_final, [('in_files', 'input_image')]),
         (inputnode, thr_brainmask, [('in_files', 'input_image')]),
-        (thr_brainmask, outputnode, [('output_image', 'out_mask')]),
+        (thr_brainmask, outputnode, [('out_mask', 'out_mask')]),
         (inu_n4_final, outputnode, [('output_image', 'out_file')]),
         (inu_n4_final, outputnode, [('output_image', 'bias_corrected')]),
         (inu_n4_final, outputnode, [('bias_image', 'bias_image')])
@@ -184,9 +184,9 @@ N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
             (inu_n4, atropos_wf, [
                 ('output_image', 'inputnode.in_files')]),
             (thr_brainmask, atropos_wf, [
-                ('output_image', 'inputnode.in_mask')]),
+                ('out_mask', 'inputnode.in_mask')]),
             (thr_brainmask, atropos_wf, [
-                ('output_image', 'inputnode.in_mask_dilated')]),  # Dilate?
+                ('out_mask', 'inputnode.in_mask_dilated')]),  # Dilate?
             (atropos_wf, sel_wm, [('outputnode.out_tpms', 'inlist')]),
             (sel_wm, inu_n4_final, [('out', 'weight_image')]),
             (atropos_wf, outputnode, [
