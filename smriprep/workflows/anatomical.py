@@ -29,6 +29,7 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
 from niworkflows.interfaces.nibabel import Binarize
+from niworkflows.interfaces.utils import CopyXForm
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import (
     init_brain_extraction_wf, init_atropos_wf, ATROPOS_MODELS, _pop
@@ -155,13 +156,19 @@ Found ANTs version %s, which is too old. Please consider upgrading to 2.1.0 or \
 greater so that the --rescale-intensities option is available with \
 N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
 
+    copy_xform = pe.Node(CopyXForm(
+        fields=['out_file', 'bias_image']),
+        name='copy_xform', run_without_submitting=True)
+
     wf.connect([
         (inputnode, inu_n4_final, [('in_files', 'input_image')]),
         (inputnode, thr_brainmask, [(('in_files', _pop), 'input_image')]),
         (thr_brainmask, outputnode, [('output_image', 'out_mask')]),
-        (inu_n4_final, outputnode, [('output_image', 'out_file')]),
-        (inu_n4_final, outputnode, [('output_image', 'bias_corrected')]),
-        (inu_n4_final, outputnode, [('bias_image', 'bias_image')])
+        (inu_n4_final, copy_xform, [('output_image', 'out_file')]),
+        (inu_n4_final, copy_xform, [('bias_image', 'bias_image')])
+        (copy_xform, outputnode, [('out_file', 'out_file')]),
+        (copy_xform, outputnode, [('out_file', 'bias_corrected')]),
+        (copy_xform, outputnode, [('bias_image', 'bias_image')])
     ])
 
     # If atropos refine, do in4 twice
