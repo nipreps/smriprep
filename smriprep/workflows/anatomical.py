@@ -165,7 +165,7 @@ N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
         (inputnode, thr_brainmask, [(('in_files', _pop), 'input_image')]),
         (thr_brainmask, outputnode, [('output_image', 'out_mask')]),
         (inu_n4_final, copy_xform, [('output_image', 'out_file')]),
-        (inu_n4_final, copy_xform, [('bias_image', 'bias_image')])
+        (inu_n4_final, copy_xform, [('bias_image', 'bias_image')]),
         (copy_xform, outputnode, [('out_file', 'out_file')]),
         (copy_xform, outputnode, [('out_file', 'bias_corrected')]),
         (copy_xform, outputnode, [('bias_image', 'bias_image')])
