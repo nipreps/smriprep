@@ -271,8 +271,11 @@ jobs:
           name: Build sMRIPrep distributions
           command: python setup.py sdist bdist_wheel
       - run:
+          name: Build smriprep-docker
+          command: cd wrapper && python setup.py sdist bdist_wheel
+      - run:
           name: Check packages
-          command: twine check dist/*
+          command: twine check dist/* wrapper/dist/*
 
   deploy_pypi:
     docker:
@@ -288,12 +291,15 @@ jobs:
           name: Build sMRIPrep distributions
           command: python setup.py sdist bdist_wheel
       - run:
+          name: Build smriprep-docker
+          command: cd wrapper && python setup.py sdist bdist_wheel
+      - run:
           name: Check packages
-          command: twine check dist/*
+          command: twine check dist/* wrapper/dist/*
       - run:
           name: Deploy to PyPi
           command: |
-            twine upload dist/*
+            twine upload dist/* wrapper/dist/*
 
   ds005:
     machine:
