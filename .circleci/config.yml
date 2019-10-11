@@ -426,6 +426,65 @@ jobs:
       - store_artifacts:
           path: /tmp/ds054
 
+  build_docs:
+    docker:
+      - image: python:3.7.4
+    environment:
+      - FSLOUTPUTTYPE: NIFTI
+    steps:
+      - restore_cache:
+          keys:
+            - docs-v1-{{ .Branch }}-{{ .Revision }}
+            - docs-v1-{{ .Branch }}-
+            - docs-v1-master
+            - docs-v1-
+          paths:
+            - ./docs/_build/_html
+      - checkout
+      - run:
+          name: Install Graphviz
+          command: apt update && apt -y install graphviz
+      - run:
+          name: Install deps
+          command: pip install -r requirements.txt && pip install -r docs/requirements.txt
+      - run:
+          name: Build only this commit
+          command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
+      - run:
+          name: Generate Docs
+          command: make -f ./docs/Makefile versioned
+      - save_cache:
+          key: docs-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ./docs/_build/_html
+      - persist_to_workspace:
+          root: docs/_build
+          paths: html
+      - store_artifacts:
+          path: ./docs/_build/html
+
+  deploy_docs:
+    docker:
+      - image: node:8.10.0
+    steps:
+      - checkout
+      - attach_workspace:
+          at: docs/_build
+      - run:
+          name: Disable jekyll builds
+          command: touch docs/_build/html/.nojekyll
+      - run:
+          name: Install and configure dependencies
+          command: |
+            npm install -g --silent gh-pages@2.0.1
+            git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
+            git config user.name "ci-build"
+      - add_ssh_keys:
+          fingerprints:
+            - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
+      - run:
+          name: Deploy docs to gh-pages branch
+          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/_build/html
 
 workflows:
   version: 2
@@ -445,17 +504,32 @@ workflows:
             tags:
               only: /.*/
 
-      # - build_docs:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         ignore:
-      #           - /tests?\/.*/
-      #           - /ds005\/.*/
-      #           - /ds054\/.*/
-      #       tags:
-      #         only: /.*/
+      - build_docs:
+          #requires:
+          #  - deploy_docker
+          #  - deploy_pypi
+          filters:
+            branches:
+              ignore:
+                - /tests?\/.*/
+                - /ds005\/.*/
+                - /ds054\/.*/
+            tags:
+              only: /.*/
+
+      - deploy_docs:
+          requires:
+            - build_docs
+            - deploy_docker
+            - deploy_pypi
+          filters:
+            branches:
+              ignore:
+                - /tests?\/.*/
+                - /ds005\/.*/
+                - /ds054\/.*/
+            tags:
+              only: /.*/
 
       - update_cache:
           requires:

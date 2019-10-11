@@ -3,7 +3,7 @@
 """
 Surface preprocessing workflows.
 
-**sMRIPrep** uses FreeSurfer_ to reconstruct surfaces from T1w/T2w
+**sMRIPrep** uses FreeSurfer to reconstruct surfaces from T1w/T2w
 structural images.
 
 .. autofunction:: init_surface_recon_wf
