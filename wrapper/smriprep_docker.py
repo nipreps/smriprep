@@ -22,8 +22,8 @@ from warnings import warn
 
 __version__ = '99.99.99'
 __copyright__ = 'Copyright 2019, Center for Reproducible Neuroscience, Stanford University'
-__credits__ = ['Craig Moodie', 'Ross Blair', 'Oscar Esteban', 'Chris Gorgolewski',
-               'Shoshana Berleant', 'Christopher J. Markiewicz', 'Russell A. Poldrack']
+__credits__ = ['Oscar Esteban', 'Chris Gorgolewski', 'Christopher J. Markiewicz',
+               'Russell A. Poldrack']
 __bugreports__ = 'https://github.com/poldracklab/smriprep/issues'
 
 
