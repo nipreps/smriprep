@@ -6,6 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
+CURBRANCH     = master
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -225,4 +226,4 @@ pseudoxml:
 
 .PHONY: versioned
 versioned:
-	sphinx-versioning -vv -l ./docs/conf.py build -r master ./docs/ docs/$(BUILDDIR)/html/
+	sphinx-versioning -vv -l ./docs/conf.py build -r $(CURBRANCH) ./docs/ docs/$(BUILDDIR)/html/

@@ -450,9 +450,18 @@ jobs:
       - run:
           name: Build only this commit
           command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
+      - store_artifacts:
+          path: ./docs/_build/no_version_html
       - run:
-          name: Generate Docs
-          command: make -f ./docs/Makefile versioned
+          name: Generate Versioned Docs
+          command: |
+            force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -v -i -E '\[docs[ _]?version\]' )"
+            if [[ "x${CIRCLE_TAG}${force_versioned}" = "x" ]] || [[ "${CIRCLE_BRANCH}" = "master" ]]; then
+              echo "Not a tag or master branch - skipping versioned docs."
+              circleci step halt
+            else
+              make -f ./docs/Makefile versioned CURBRANCH=$(git branch | grep \* | cut -d ' ' -f2)
+            fi
       - save_cache:
           key: docs-v1-{{ .Branch }}-{{ .Revision }}
           paths:
@@ -505,9 +514,6 @@ workflows:
               only: /.*/
 
       - build_docs:
-          #requires:
-          #  - deploy_docker
-          #  - deploy_pypi
           filters:
             branches:
               ignore:
@@ -524,10 +530,8 @@ workflows:
             - deploy_pypi
           filters:
             branches:
-              ignore:
-                - /tests?\/.*/
-                - /ds005\/.*/
-                - /ds054\/.*/
+              only:
+                - /master/
             tags:
               only: /.*/
 
