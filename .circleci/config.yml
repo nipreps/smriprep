@@ -446,7 +446,7 @@ jobs:
           command: apt update && apt -y install graphviz
       - run:
           name: Install deps
-          command: pip install -r requirements.txt && pip install -r docs/requirements.txt
+          command: pip install -r docs/requirements.txt
       - run:
           name: Build only this commit
           command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
