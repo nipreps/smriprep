@@ -7,4 +7,4 @@ pydotplus
 sphinx-argparse
 sphinx>=2.1.2
 sphinx_rtd_theme
-sphinxcontrib-apidoc
+sphinxcontrib-apidoc  ~= 0.3.0

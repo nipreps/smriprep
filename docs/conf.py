@@ -14,10 +14,10 @@
 #
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.append(os.path.abspath('sphinxext'))
 sys.path.insert(0, os.path.abspath('../wrapper'))
-
 
 # -- Project information -----------------------------------------------------
 
@@ -190,3 +190,7 @@ apidoc_extra_args = ['--module-first', '-d 1', '-T']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# -- Options for versioning extension ----------------------------------------
+scv_show_banner = True
+
