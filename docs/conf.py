@@ -14,21 +14,25 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+from packaging.version import Version
+
+from smriprep import (
+    __package__ as _package,
+    __version__ as _version,
+    __copyright__ as _copyright,
+)
 sys.path.append(os.path.abspath('sphinxext'))
 sys.path.insert(0, os.path.abspath('../wrapper'))
 
-
 # -- Project information -----------------------------------------------------
-
-project = 'smriprep'
-copyright = '2019, The sMRIPrep Developers'
+project = _package
+copyright = _copyright
 author = 'The sMRIPrep Developers'
 
 # The short X.Y version
-version = u'version'
+version = Version(_version).base_version
 # The full version, including alpha/beta/rc tags
-release = u'version'
+release = _version
 
 
 # -- General configuration ---------------------------------------------------
@@ -190,3 +194,6 @@ apidoc_extra_args = ['--module-first', '-d 1', '-T']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# -- Options for versioning extension ----------------------------------------
+scv_show_banner = True

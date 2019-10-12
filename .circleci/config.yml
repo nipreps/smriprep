@@ -46,9 +46,6 @@ jobs:
               echo "the command ``git fetch --tags --verbose`` and push"
               echo "them to your fork with ``git push origin --tags``"
             fi
-            # sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" wrapper/smriprep_docker.py
-            # sed -i -E "s/(var version = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" docs/citing.rst
-            # sed -i "s/title = {sMRIPrep}/title = {sMRIPrep ${CIRCLE_TAG:-$THISVERSION}}/" smriprep/data/boilerplate.bib
             # Build docker image
             e=1 && for i in {1..5}; do
               docker build \
@@ -441,6 +438,11 @@ jobs:
           paths:
             - ./docs/_build/_html
       - checkout
+      # - run:
+      #     name: Set up version
+      #     command: |
+      #       THISVERSION=$( python get_version.py )
+      #       sed -i -E "s/'version'/'${CIRCLE_TAG:-$THISVERSION}'/" docs/conf.py
       - run:
           name: Install Graphviz
           command: apt update && apt -y install graphviz
@@ -455,8 +457,8 @@ jobs:
       - run:
           name: Generate Versioned Docs
           command: |
-            force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -v -i -E '\[docs[ _]?version\]' )"
-            if [[ "x${CIRCLE_TAG}${force_versioned}" = "x" ]] || [[ "${CIRCLE_BRANCH}" = "master" ]]; then
+            force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[docs?[ _]?versions?\]' )"
+            if [[ "x${CIRCLE_TAG}" = "x" && "${CIRCLE_BRANCH}" != "master" && "x${force_versioned}" = "x" ]]; then
               echo "Not a tag or master branch - skipping versioned docs."
               circleci step halt
             else
