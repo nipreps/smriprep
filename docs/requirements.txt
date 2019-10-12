@@ -1,6 +1,7 @@
 git+https://github.com/rwblair/sphinxcontrib-versioning.git@39b40b0b84bf872fc398feff05344051bbce0f63#egg=sphinx-versioning
 nbsphinx
 nipype>=1.3.0rc1
+niworkflows ~= 0.10.4
 pydot>=1.2.3
 pydotplus
 sphinx-argparse
