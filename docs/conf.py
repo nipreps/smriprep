@@ -15,9 +15,16 @@
 import os
 import sys
 
+
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.append(os.path.abspath('sphinxext'))
 sys.path.insert(0, os.path.abspath('../wrapper'))
+
+# sys.path.insert(0, os.path.join(os.path.dirname(__file__), pardir))
+from smriprep._version import get_versions
+revision = get_versions()['version']
+version = get_versions()['version']
+del get_versions
 
 # -- Project information -----------------------------------------------------
 
@@ -26,9 +33,9 @@ copyright = '2019, The sMRIPrep Developers'
 author = 'The sMRIPrep Developers'
 
 # The short X.Y version
-version = u'version'
+# version = u'version'
 # The full version, including alpha/beta/rc tags
-release = u'version'
+# release = u'version'
 
 
 # -- General configuration ---------------------------------------------------
