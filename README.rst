@@ -38,7 +38,7 @@ a combination of tools from well-known software packages, including
 and `AFNI <https://afni.nimh.nih.gov/>`_.
 
 More information and documentation can be found at
-https://fmriprep.readthedocs.io/.
+https://poldracklab.github.io/smriprep/.
 
 Support is provided on `neurostars.org <https://neurostars.org/tags/smriprep>`_.
 
