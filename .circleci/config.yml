@@ -455,11 +455,6 @@ jobs:
           paths:
             - ./docs/_build/_html
       - checkout
-      # - run:
-      #     name: Set up version
-      #     command: |
-      #       THISVERSION=$( python get_version.py )
-      #       sed -i -E "s/'version'/'${CIRCLE_TAG:-$THISVERSION}'/" docs/conf.py
       - run:
           name: Install Graphviz
           command: apt update && apt -y install graphviz
