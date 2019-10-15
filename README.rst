@@ -30,6 +30,8 @@ outputs that can be easily connected to subsequent tools such as
 `fMRIPrep <https://github.com/poldracklab/fmriprep>`_ or 
 `dMRIPrep <https://github.com/nipreps/dmriprep>`_.
 
+.. image:: https://github.com/oesteban/smriprep/raw/033a6b4a54ecbd9051c45df979619cda69847cd1/docs/_resources/workflow.png
+
 The workflow is based on `Nipype <https://nipype.readthedocs.io>`_ and encompases
 a combination of tools from well-known software packages, including
 `FSL <https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/>`_,
