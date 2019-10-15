@@ -72,4 +72,3 @@ Please acknowledge this work by mentioning explicitly the name of this software
 (sMRIPrep) and the version, along with a link to the `GitHub repository
 <https://github.com/poldracklab/smriprep>`__ or the Zenodo reference
 (doi:`10.5281/zenodo.2650521 <https://doi.org/10.5281/zenodo.2650521>`_).
-For more details, please see :ref:`citation`.
