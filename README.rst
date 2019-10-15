@@ -16,8 +16,6 @@ sMRIPrep: Structural MRI PREProcessing pipeline
   :target: https://doi.org/10.1038/s41592-018-0235-4
   :alt: Published in Nature Methods
 
-About
------
 
 *sMRIPrep* is a structural magnetic resonance imaging (sMRI) data
 preprocessing pipeline that is designed to provide an easily accessible,
@@ -41,7 +39,6 @@ and `AFNI <https://afni.nimh.nih.gov/>`_.
 
 More information and documentation can be found at
 https://poldracklab.github.io/smriprep/.
-
 Support is provided on `neurostars.org <https://neurostars.org/tags/smriprep>`_.
 
 Principles
