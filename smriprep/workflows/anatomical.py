@@ -163,7 +163,7 @@ N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
     wf.connect([
         (inputnode, inu_n4_final, [('in_files', 'input_image')]),
         (inputnode, thr_brainmask, [(('in_files', _pop), 'in_file')]),
-        (thr_brainmask, outputnode, [('out_file', 'out_mask')]),
+        (thr_brainmask, outputnode, [('out_mask', 'out_mask')]),
         (inputnode, copy_xform, [(('in_files', _pop), 'hdr_file')]),
         (inu_n4_final, copy_xform, [('output_image', 'out_file')]),
         (inu_n4_final, copy_xform, [('bias_image', 'bias_image')]),
