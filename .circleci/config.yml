@@ -46,9 +46,6 @@ jobs:
               echo "the command ``git fetch --tags --verbose`` and push"
               echo "them to your fork with ``git push origin --tags``"
             fi
-            # sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" wrapper/smriprep_docker.py
-            # sed -i -E "s/(var version = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" docs/citing.rst
-            # sed -i "s/title = {sMRIPrep}/title = {sMRIPrep ${CIRCLE_TAG:-$THISVERSION}}/" smriprep/data/boilerplate.bib
             # Build docker image
             e=1 && for i in {1..5}; do
               docker build \
@@ -458,18 +455,32 @@ jobs:
           paths:
             - ./docs/_build/_html
       - checkout
+      # - run:
+      #     name: Set up version
+      #     command: |
+      #       THISVERSION=$( python get_version.py )
+      #       sed -i -E "s/'version'/'${CIRCLE_TAG:-$THISVERSION}'/" docs/conf.py
       - run:
           name: Install Graphviz
           command: apt update && apt -y install graphviz
       - run:
           name: Install deps
-          command: pip install -r requirements.txt && pip install -r docs/requirements.txt
+          command: pip install -r docs/requirements.txt
       - run:
           name: Build only this commit
           command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
+      - store_artifacts:
+          path: ./docs/_build/no_version_html
       - run:
-          name: Generate Docs
-          command: make -f ./docs/Makefile versioned
+          name: Generate Versioned Docs
+          command: |
+            force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[docs?[ _]?versions?\]' )"
+            if [[ "x${CIRCLE_TAG}" = "x" && "${CIRCLE_BRANCH}" != "master" && "x${force_versioned}" = "x" ]]; then
+              echo "Not a tag or master branch - skipping versioned docs."
+              circleci step halt
+            else
+              make -f ./docs/Makefile versioned CURBRANCH=$(git branch | grep \* | cut -d ' ' -f2)
+            fi
       - save_cache:
           key: docs-v1-{{ .Branch }}-{{ .Revision }}
           paths:
@@ -522,9 +533,6 @@ workflows:
               only: /.*/
 
       - build_docs:
-          #requires:
-          #  - deploy_docker
-          #  - deploy_pypi
           filters:
             branches:
               ignore:
@@ -541,10 +549,8 @@ workflows:
             - deploy_pypi
           filters:
             branches:
-              ignore:
-                - /tests?\/.*/
-                - /ds005\/.*/
-                - /ds054\/.*/
+              only:
+                - /master/
             tags:
               only: /.*/
 
