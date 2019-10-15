@@ -469,7 +469,9 @@ jobs:
       - run:
           name: Generate Versioned Docs
           command: |
+            set +e
             force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[docs?[ _]?versions?\]' )"
+            set -e
             if [[ "x${CIRCLE_TAG}" = "x" && "${CIRCLE_BRANCH}" != "master" && "x${force_versioned}" = "x" ]]; then
               echo "Not a tag or master branch - skipping versioned docs."
               circleci step halt
