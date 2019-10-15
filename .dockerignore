@@ -12,6 +12,8 @@ smriprep.egg-info/**/*
 smriprep.egg-info
 .eggs/**/*
 .eggs
+pip-wheel-metadata/**/*
+pip-wheel-metadata
 
 # housekeeping tools
 get_version.py

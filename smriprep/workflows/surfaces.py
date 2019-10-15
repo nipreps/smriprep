@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
-Surface preprocessing workflows
--------------------------------
+Surface preprocessing workflows.
 
-``smriprep`` uses FreeSurfer_ to reconstruct surfaces from T1w/T2w
+**sMRIPrep** uses FreeSurfer_ to reconstruct surfaces from T1w/T2w
 structural images.
 
 .. autofunction:: init_surface_recon_wf
@@ -29,13 +27,12 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
-from niworkflows.interfaces.segmentation import ReconAllRPT
 from niworkflows.interfaces.surf import NormalizeSurf
 
 
 def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
     r"""
-    This workflow reconstructs anatomical surfaces using FreeSurfer's ``recon-all``.
+    Reconstruct anatomical surfaces using FreeSurfer's ``recon-all``.
 
     Reconstruction is performed in three phases.
     The first phase initializes the subject with T1w and T2w (if available)
@@ -133,9 +130,9 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
             FreeSurfer SUBJECTS_DIR
         subject_id
             FreeSurfer subject ID
-        t1_2_fsnative_forward_transform
+        t1w2fsnative_xfm
             LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
-        t1_2_fsnative_reverse_transform
+        fsnative2t1w_xfm
             LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
         surfaces
             GIFTI surfaces for gray/white matter boundary, pial surface,
@@ -146,15 +143,12 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
             FreeSurfer's aseg segmentation, in native T1w space
         out_aparc
             FreeSurfer's aparc+aseg segmentation, in native T1w space
-        out_report
-            Reportlet visualizing quality of surface alignment
 
     **Subworkflows**
 
         * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
         * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
     """
-
     workflow = Workflow(name=name)
     workflow.__desc__ = """\
 Brain surfaces were reconstructed using `recon-all` [FreeSurfer {fs_ver},
@@ -170,9 +164,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                     'subjects_dir', 'subject_id']), name='inputnode')
     outputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['subjects_dir', 'subject_id', 't1_2_fsnative_forward_transform',
-                    't1_2_fsnative_reverse_transform', 'surfaces', 'out_brainmask',
-                    'out_aseg', 'out_aparc', 'out_report']),
+            fields=['subjects_dir', 'subject_id', 't1w2fsnative_xfm',
+                    'fsnative2t1w_xfm', 'surfaces', 'out_brainmask',
+                    'out_aseg', 'out_aparc']),
         name='outputnode')
 
     recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
@@ -187,10 +181,10 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name='skull_strip_extern')
 
-    fsnative_2_t1_xfm = pe.Node(RobustRegister(auto_sens=True, est_int_scale=True),
-                                name='fsnative_2_t1_xfm')
-    t1_2_fsnative_xfm = pe.Node(LTAConvert(out_lta=True, invert=True),
-                                name='t1_2_fsnative_xfm')
+    fsnative2t1w_xfm = pe.Node(RobustRegister(auto_sens=True, est_int_scale=True),
+                               name='fsnative2t1w_xfm')
+    t1w2fsnative_xfm = pe.Node(LTAConvert(out_lta=True, invert=True),
+                               name='t1w2fsnative_xfm')
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
     gifti_surface_wf = init_gifti_surface_wf()
@@ -228,11 +222,11 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                                              ('use_flair', 'inputnode.use_FLAIR')]),
         # Construct transform from FreeSurfer conformed image to sMRIPrep
         # reoriented image
-        (inputnode, fsnative_2_t1_xfm, [('t1w', 'target_file')]),
-        (autorecon1, fsnative_2_t1_xfm, [('T1', 'source_file')]),
-        (fsnative_2_t1_xfm, gifti_surface_wf, [
-            ('out_reg_file', 'inputnode.t1_2_fsnative_reverse_transform')]),
-        (fsnative_2_t1_xfm, t1_2_fsnative_xfm, [('out_reg_file', 'in_lta')]),
+        (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
+        (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
+        (fsnative2t1w_xfm, gifti_surface_wf, [
+            ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
+        (fsnative2t1w_xfm, t1w2fsnative_xfm, [('out_reg_file', 'in_lta')]),
         # Refine ANTs mask, deriving new mask from FS' aseg
         (inputnode, refine, [('corrected_t1', 'in_anat'),
                              ('ants_segs', 'in_ants')]),
@@ -248,11 +242,10 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
         # Output
         (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
-                                           ('outputnode.subject_id', 'subject_id'),
-                                           ('outputnode.out_report', 'out_report')]),
+                                           ('outputnode.subject_id', 'subject_id')]),
         (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
-        (t1_2_fsnative_xfm, outputnode, [('out_lta', 't1_2_fsnative_forward_transform')]),
-        (fsnative_2_t1_xfm, outputnode, [('out_reg_file', 't1_2_fsnative_reverse_transform')]),
+        (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
+        (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
         (refine, outputnode, [('out_file', 'out_brainmask')]),
         (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
         (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
@@ -263,8 +256,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
 def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     r"""
-    This workflow resumes recon-all execution, assuming the `-autorecon1` stage
-    has been completed.
+    Resume recon-all execution, assuming the `-autorecon1` stage has been completed.
 
     In order to utilize resources efficiently, this is broken down into five
     sub-stages; after the first stage, the second and third stages may be run
@@ -316,8 +308,6 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
             FreeSurfer SUBJECTS_DIR
         subject_id
             FreeSurfer subject ID
-        out_report
-            Reportlet visualizing quality of surface alignment
 
     """
     workflow = Workflow(name=name)
@@ -329,7 +319,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
 
     outputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['subjects_dir', 'subject_id', 'out_report']),
+            fields=['subjects_dir', 'subject_id']),
         name='outputnode')
 
     autorecon2_vol = pe.Node(
@@ -357,12 +347,6 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     autorecon3.inputs.hemi = ['lh', 'rh']
     autorecon3.interface._always_run = True
 
-    # Only generate the report once; should be nothing to do
-    recon_report = pe.Node(
-        ReconAllRPT(directive='autorecon3', generate_report=True),
-        name='recon_report', mem_gb=5)
-    recon_report.interface._always_run = True
-
     def _dedup(in_list):
         vals = set(in_list)
         if len(vals) > 1:
@@ -381,9 +365,6 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
                                        (('subject_id', _dedup), 'subject_id')]),
         (autorecon3, outputnode, [(('subjects_dir', _dedup), 'subjects_dir'),
                                   (('subject_id', _dedup), 'subject_id')]),
-        (autorecon3, recon_report, [(('subjects_dir', _dedup), 'subjects_dir'),
-                                    (('subject_id', _dedup), 'subject_id')]),
-        (recon_report, outputnode, [('out_report', 'out_report')]),
     ])
 
     return workflow
@@ -391,7 +372,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
 
 def init_gifti_surface_wf(name='gifti_surface_wf'):
     r"""
-    This workflow prepares GIFTI surfaces from a FreeSurfer subjects directory
+    Prepare GIFTI surfaces from a FreeSurfer subjects directory.
 
     If midthickness (or graymid) surfaces do not exist, they are generated and
     saved to the subject directory as ``lh/rh.midthickness``.
@@ -414,7 +395,7 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
             FreeSurfer SUBJECTS_DIR
         subject_id
             FreeSurfer subject ID
-        t1_2_fsnative_reverse_transform
+        fsnative2t1w_xfm
             LTA formatted affine transform file (inverse)
 
     **Outputs**
@@ -427,7 +408,7 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(niu.IdentityInterface(['subjects_dir', 'subject_id',
-                                               't1_2_fsnative_reverse_transform']),
+                                               'fsnative2t1w_xfm']),
                         name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(['surfaces']), name='outputnode')
 
@@ -443,8 +424,8 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
 
     surface_list = pe.Node(niu.Merge(4, ravel_inputs=True),
                            name='surface_list', run_without_submitting=True)
-    fs_2_gii = pe.MapNode(fs.MRIsConvert(out_datatype='gii'),
-                          iterfield='in_file', name='fs_2_gii')
+    fs2gii = pe.MapNode(fs.MRIsConvert(out_datatype='gii'),
+                        iterfield='in_file', name='fs2gii')
     fix_surfs = pe.MapNode(NormalizeSurf(), iterfield='in_file', name='fix_surfs')
 
     workflow.connect([
@@ -461,9 +442,9 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
                                       ('pial', 'in2'),
                                       ('inflated', 'in3')]),
         (save_midthickness, surface_list, [('out_file', 'in4')]),
-        (surface_list, fs_2_gii, [('out', 'in_file')]),
-        (fs_2_gii, fix_surfs, [('converted', 'in_file')]),
-        (inputnode, fix_surfs, [('t1_2_fsnative_reverse_transform', 'transform_file')]),
+        (surface_list, fs2gii, [('out', 'in_file')]),
+        (fs2gii, fix_surfs, [('converted', 'in_file')]),
+        (inputnode, fix_surfs, [('fsnative2t1w_xfm', 'transform_file')]),
         (fix_surfs, outputnode, [('out_file', 'surfaces')]),
     ])
     return workflow
@@ -471,8 +452,7 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
 
 def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
     """
-    Get a segmentation from FreeSurfer conformed space into native T1w space
-
+    Get a segmentation from FreeSurfer conformed space into native T1w space.
 
     .. workflow::
         :graph2use: orig

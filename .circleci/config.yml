@@ -158,8 +158,8 @@ jobs:
             - /tmp/ds005/derivatives/freesurfer
 
   test_pytest:
-    machine:
-      image: circleci/classic:201711-01
+    docker:
+      - image: circleci/python:latest
     working_directory: /home/circleci/src/smriprep
     steps:
       - checkout
@@ -173,8 +173,7 @@ jobs:
       - run:
           name: Setup Python environment
           command: |
-            pyenv global 3.5.2
-            pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
       - run:
           name: Check PyPi preconditions
           command: |
@@ -183,7 +182,7 @@ jobs:
       - run:
           name: Install sMRIPrep
           no_output_timeout: 30m
-          command: pip install ".[test]"
+          command: pip install --user ".[test]"
       - run:
           name: Run sMRIPrep tests
           no_output_timeout: 2h
@@ -297,7 +296,11 @@ jobs:
       - run:
           name: Setting up test
           command: |
-            mkdir -p /tmp/ds005/derivatives && sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
+            mkdir -p /tmp/ds005/derivatives /tmp/ds005/work
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
       - run:
           name: Load Docker image layer cache
           no_output_timeout: 30m
@@ -313,16 +316,11 @@ jobs:
           name: Run anatomical workflow on ds005
           no_output_timeout: 2h
           command: |
-            mkdir -p /tmp/ds005/work /tmp/ds005/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
             docker run --rm=false -it -v /tmp:/tmp \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 poldracklab/smriprep:latest \
                 /tmp/data/ds005 /tmp/ds005/derivatives participant \
-                 -w /tmp/data/ds005/work \
+                 -w /tmp/ds005/work \
                 --skull-strip-template MNI152NLin2009cAsym:res-2 \
                 --sloppy --write-graph --mem-gb 4 \
                 --ncpus 2 --omp-nthreads 2 -vv \
@@ -378,7 +376,11 @@ jobs:
       - run:
           name: Setting up test
           command: |
-            mkdir -p /tmp/ds054/derivatives && sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
+            mkdir -p /tmp/ds054/derivatives /tmp/ds054/work
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
       - run:
           name: Load Docker image layer cache
           no_output_timeout: 30m
@@ -394,11 +396,6 @@ jobs:
           name: Run sMRIPrep on ds054 (with --fs-no-reconall)
           no_output_timeout: 2h
           command: |
-            mkdir -p /tmp/ds054/work /tmp/ds054/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
             docker run --rm=false -it -v /tmp:/tmp \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 poldracklab/smriprep:latest \
