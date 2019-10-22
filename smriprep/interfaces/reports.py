@@ -130,14 +130,14 @@ class FSSurfaceReport(SimpleInterface):
 
     def _run_interface(self, runtime):
         from niworkflows.viz.utils import plot_registration, cuts_from_bbox, compose_view
-        from nilearn.image import load_img
+        from nibabel import load
 
         rootdir = Path(self.inputs.subjects_dir) / self.inputs.subject_id
         _anat_file = str(rootdir / 'mri' / 'brain.mgz')
         _contour_file = str(rootdir / 'mri' / 'ribbon.mgz')
 
-        anat = load_img(_anat_file)
-        contour_nii = load_img(_contour_file)
+        anat = load(_anat_file)
+        contour_nii = load(_contour_file)
 
         n_cuts = 7
         cuts = cuts_from_bbox(contour_nii, cuts=n_cuts)

@@ -3,9 +3,6 @@
 """
 *sMRIPrep* base processing workflows.
 
-.. autofunction:: init_smriprep_wf
-.. autofunction:: init_single_subject_wf
-
 """
 
 import sys
@@ -56,15 +53,15 @@ def init_smriprep_wf(
         :simple_form: yes
 
         import os
-        from collections import OrderedDict
-        from pybids import BIDSLayout
+        from collections import OrderedDict, namedtuple
+        BIDSLayout = namedtuple('BIDSLayout', ['root'])
         os.environ['FREESURFER_HOME'] = os.getcwd()
         from smriprep.workflows.base import init_smriprep_wf
         wf = init_smriprep_wf(
             debug=False,
             freesurfer=True,
             hires=True,
-            layout=BIDSLayout('.', validate=False),
+            layout=BIDSLayout('.'),
             longitudinal=False,
             low_mem=False,
             omp_nthreads=1,
@@ -100,9 +97,9 @@ def init_smriprep_wf(
         output_spaces : OrderedDict
             List of spatial normalization targets. Some parts of pipeline will
             only be instantiated for some output spaces. Valid spaces:
-              - Any template identifier from TemplateFlow
-              - Path to a template folder organized following TemplateFlow's
-                conventions
+            - Any template identifier from TemplateFlow
+            - Path to a template folder organized following TemplateFlow's
+            conventions
         run_uuid : str
             Unique identifier for execution instance
         skull_strip_fixed_seed : bool
@@ -195,14 +192,14 @@ def init_single_subject_wf(
         :graph2use: orig
         :simple_form: yes
 
-        from collections import OrderedDict
+        from collections import OrderedDict, namedtuple
         from smriprep.workflows.base import init_single_subject_wf
-        from bids import BIDSLayout
+        BIDSLayout = namedtuple('BIDSLayout', ['root'])
         wf = init_single_subject_wf(
             debug=False,
             freesurfer=True,
             hires=True,
-            layout=BIDSLayout('.', validate=False),
+            layout=BIDSLayout('.'),
             longitudinal=False,
             low_mem=False,
             name='single_subject_wf',
@@ -241,9 +238,9 @@ def init_single_subject_wf(
         output_spaces : OrderedDict
             List of spatial normalization targets. Some parts of pipeline will
             only be instantiated for some output spaces. Valid spaces:
-              - Any template identifier from TemplateFlow
-              - Path to a template folder organized following TemplateFlow's
-                conventions
+            - Any template identifier from TemplateFlow
+            - Path to a template folder organized following TemplateFlow's
+            conventions
         reportlets_dir : str
             Directory in which to save reportlets
         skull_strip_fixed_seed : bool

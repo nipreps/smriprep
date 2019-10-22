@@ -226,6 +226,8 @@ def init_anat_preproc_wf(
       - Spatial normalization to standard spaces.
       - Surface reconstruction with FreeSurfer_.
 
+    .. include:: ../links.rst
+
     .. workflow::
         :graph2use: orig
         :simple_form: yes
