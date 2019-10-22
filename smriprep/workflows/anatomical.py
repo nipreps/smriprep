@@ -705,9 +705,3 @@ A T1w-reference map was computed after registration of
     ])
 
     return workflow
-
-
-def _pop(inlist):
-    if isinstance(inlist, (list, tuple)):
-        return inlist[0]
-    return inlist
