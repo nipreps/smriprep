@@ -57,6 +57,7 @@ def init_n4_only_wf(name='n4_only_wf',
     .. workflow::
         :graph2use: orig
         :simple_form: yes
+
         from smriprep.workflows.anatomical import init_n4_only_wf
         wf = init_n4_only_wf()
 
