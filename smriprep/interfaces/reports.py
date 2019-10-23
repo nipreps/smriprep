@@ -1,13 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-Interfaces to generate reportlets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-"""
+"""Interfaces to generate reportlets."""
 
 from pathlib import Path
 import time
@@ -17,6 +10,10 @@ from nipype.interfaces.base import (
     File, Directory, InputMultiObject, Str, isdefined,
     SimpleInterface)
 from nipype.interfaces import freesurfer as fs
+from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
+from nipype.interfaces.mixins import reporting
+
+from niworkflows.interfaces.report_base import SVGReportCapableInputSpec
 
 
 SUBJECT_TEMPLATE = """\
@@ -115,3 +112,46 @@ class AboutSummary(SummaryInterface):
         return ABOUT_TEMPLATE.format(version=self.inputs.version,
                                      command=self.inputs.command,
                                      date=time.strftime("%Y-%m-%d %H:%M:%S %z"))
+
+
+class _FSSurfaceReportInputSpec(SVGReportCapableInputSpec, _FSSourceInputSpec):
+    pass
+
+
+class _FSSurfaceReportOutputSpec(reporting.ReportCapableOutputSpec):
+    pass
+
+
+class FSSurfaceReport(SimpleInterface):
+    """Replaces ``ReconAllRPT``, without need of calling recon-all."""
+
+    input_spec = _FSSurfaceReportInputSpec
+    output_spec = _FSSurfaceReportOutputSpec
+
+    def _run_interface(self, runtime):
+        from niworkflows.viz.utils import plot_registration, cuts_from_bbox, compose_view
+        from nibabel import load
+
+        rootdir = Path(self.inputs.subjects_dir) / self.inputs.subject_id
+        _anat_file = str(rootdir / 'mri' / 'brain.mgz')
+        _contour_file = str(rootdir / 'mri' / 'ribbon.mgz')
+
+        anat = load(_anat_file)
+        contour_nii = load(_contour_file)
+
+        n_cuts = 7
+        cuts = cuts_from_bbox(contour_nii, cuts=n_cuts)
+
+        self._results['out_report'] = str(Path(runtime.cwd) / self.inputs.out_report)
+
+        # Call composer
+        compose_view(
+            plot_registration(anat, 'fixed-image',
+                              estimate_brightness=True,
+                              cuts=cuts,
+                              contour=contour_nii,
+                              compress=self.inputs.compress_report),
+            [],
+            out_file=self._results['out_report']
+        )
+        return runtime

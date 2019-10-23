@@ -46,9 +46,6 @@ jobs:
               echo "the command ``git fetch --tags --verbose`` and push"
               echo "them to your fork with ``git push origin --tags``"
             fi
-            # sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" wrapper/smriprep_docker.py
-            # sed -i -E "s/(var version = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" docs/citing.rst
-            # sed -i "s/title = {sMRIPrep}/title = {sMRIPrep ${CIRCLE_TAG:-$THISVERSION}}/" smriprep/data/boilerplate.bib
             # Build docker image
             e=1 && for i in {1..5}; do
               docker build \
@@ -158,8 +155,8 @@ jobs:
             - /tmp/ds005/derivatives/freesurfer
 
   test_pytest:
-    machine:
-      image: circleci/classic:201711-01
+    docker:
+      - image: circleci/python:latest
     working_directory: /home/circleci/src/smriprep
     steps:
       - checkout
@@ -173,8 +170,7 @@ jobs:
       - run:
           name: Setup Python environment
           command: |
-            pyenv global 3.5.2
-            pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
       - run:
           name: Check PyPi preconditions
           command: |
@@ -183,7 +179,7 @@ jobs:
       - run:
           name: Install sMRIPrep
           no_output_timeout: 30m
-          command: pip install ".[test]"
+          command: pip install --user ".[test]"
       - run:
           name: Run sMRIPrep tests
           no_output_timeout: 2h
@@ -248,26 +244,43 @@ jobs:
               fi
             fi
 
-  deploy_pypi:
-    machine:
-      image: circleci/classic:201711-01
+  test_packaging:
+    docker:
+      - image: circleci/python:latest
     working_directory: /home/circleci/src/smriprep
     steps:
       - checkout
       - run:
           name: Setup Python environment
           command: |
-            pyenv global 3.5.2
-            pip install --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
       - run:
-          name: Check PyPi preconditions
+          name: Build sMRIPrep distributions
+          command: python setup.py sdist bdist_wheel
+      - run:
+          name: Check packages
+          command: twine check dist/*
+
+  deploy_pypi:
+    docker:
+      - image: circleci/python:latest
+    working_directory: /home/circleci/src/smriprep
+    steps:
+      - checkout
+      - run:
+          name: Setup Python environment
           command: |
-            python setup.py sdist
-            twine check dist/*.tar.gz
+            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+      - run:
+          name: Build sMRIPrep distributions
+          command: python setup.py sdist bdist_wheel
+      - run:
+          name: Check packages
+          command: twine check dist/*
       - run:
           name: Deploy to PyPi
           command: |
-            twine upload dist/*.tar.gz
+            twine upload dist/*
 
   ds005:
     machine:
@@ -297,7 +310,11 @@ jobs:
       - run:
           name: Setting up test
           command: |
-            mkdir -p /tmp/ds005/derivatives && sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
+            mkdir -p /tmp/ds005/derivatives /tmp/ds005/work
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
       - run:
           name: Load Docker image layer cache
           no_output_timeout: 30m
@@ -313,16 +330,11 @@ jobs:
           name: Run anatomical workflow on ds005
           no_output_timeout: 2h
           command: |
-            mkdir -p /tmp/ds005/work /tmp/ds005/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
             docker run --rm=false -it -v /tmp:/tmp \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 poldracklab/smriprep:latest \
                 /tmp/data/ds005 /tmp/ds005/derivatives participant \
-                 -w /tmp/data/ds005/work \
+                 -w /tmp/ds005/work \
                 --skull-strip-template MNI152NLin2009cAsym:res-2 \
                 --sloppy --write-graph --mem-gb 4 \
                 --ncpus 2 --omp-nthreads 2 -vv \
@@ -378,7 +390,11 @@ jobs:
       - run:
           name: Setting up test
           command: |
-            mkdir -p /tmp/ds054/derivatives && sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
+            mkdir -p /tmp/ds054/derivatives /tmp/ds054/work
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
       - run:
           name: Load Docker image layer cache
           no_output_timeout: 30m
@@ -394,11 +410,6 @@ jobs:
           name: Run sMRIPrep on ds054 (with --fs-no-reconall)
           no_output_timeout: 2h
           command: |
-            mkdir -p /tmp/ds054/work /tmp/ds054/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
             docker run --rm=false -it -v /tmp:/tmp \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 poldracklab/smriprep:latest \
@@ -429,6 +440,76 @@ jobs:
       - store_artifacts:
           path: /tmp/ds054
 
+  build_docs:
+    docker:
+      - image: python:3.7.4
+    environment:
+      - FSLOUTPUTTYPE: NIFTI
+    steps:
+      - restore_cache:
+          keys:
+            - docs-v1-{{ .Branch }}-{{ .Revision }}
+            - docs-v1-{{ .Branch }}-
+            - docs-v1-master
+            - docs-v1-
+          paths:
+            - ./docs/_build/_html
+      - checkout
+      - run:
+          name: Install Graphviz
+          command: apt update && apt -y install graphviz
+      - run:
+          name: Install deps
+          command: pip install -r docs/requirements.txt
+      - run:
+          name: Build only this commit
+          command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
+      - store_artifacts:
+          path: ./docs/_build/no_version_html
+      - run:
+          name: Generate Versioned Docs
+          command: |
+            set +e
+            force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[docs?[ _]?versions?\]' )"
+            set -e
+            if [[ "x${CIRCLE_TAG}" = "x" && "${CIRCLE_BRANCH}" != "master" && "x${force_versioned}" = "x" ]]; then
+              echo "Not a tag or master branch - skipping versioned docs."
+              circleci step halt
+            else
+              make -f ./docs/Makefile versioned CURBRANCH=$(git branch | grep \* | cut -d ' ' -f2)
+            fi
+      - save_cache:
+          key: docs-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ./docs/_build/_html
+      - persist_to_workspace:
+          root: docs/_build
+          paths: html
+      - store_artifacts:
+          path: ./docs/_build/html
+
+  deploy_docs:
+    docker:
+      - image: node:8.10.0
+    steps:
+      - checkout
+      - attach_workspace:
+          at: docs/_build
+      - run:
+          name: Disable jekyll builds
+          command: touch docs/_build/html/.nojekyll
+      - run:
+          name: Install and configure dependencies
+          command: |
+            npm install -g --silent gh-pages@2.0.1
+            git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
+            git config user.name "ci-build"
+      - add_ssh_keys:
+          fingerprints:
+            - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
+      - run:
+          name: Deploy docs to gh-pages branch
+          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/_build/html
 
 workflows:
   version: 2
@@ -448,17 +529,27 @@ workflows:
             tags:
               only: /.*/
 
-      # - build_docs:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         ignore:
-      #           - /tests?\/.*/
-      #           - /ds005\/.*/
-      #           - /ds054\/.*/
-      #       tags:
-      #         only: /.*/
+      - build_docs:
+          filters:
+            branches:
+              ignore:
+                - /tests?\/.*/
+                - /ds005\/.*/
+                - /ds054\/.*/
+            tags:
+              only: /.*/
+
+      - deploy_docs:
+          requires:
+            - build_docs
+            - deploy_docker
+            - deploy_pypi
+          filters:
+            branches:
+              only:
+                - /master/
+            tags:
+              only: /.*/
 
       - update_cache:
           requires:
@@ -472,6 +563,16 @@ workflows:
               only: /.*/
 
       - test_pytest:
+          filters:
+            branches:
+              ignore:
+                - /docs?\/.*/
+                - /ds005\/.*/
+                - /ds054\/.*/
+            tags:
+              only: /.*/
+
+      - test_packaging:
           filters:
             branches:
               ignore:
@@ -496,11 +597,10 @@ workflows:
 
       - deploy_pypi:
           requires:
-            - build
+            - test_packaging
             - test_pytest
             - ds005
             - ds054
-            # - build_docs
           filters:
             branches:
               ignore: /.*/
