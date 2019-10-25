@@ -91,6 +91,8 @@ class ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
 
 
 class ReconAll(fs.ReconAll):
+    input_spec = ReconAllInputSpec
+
     def _is_resuming(self):
         subjects_dir = self.inputs.subjects_dir
         if not isdefined(subjects_dir):
