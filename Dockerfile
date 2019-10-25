@@ -159,6 +159,8 @@ RUN pip install --no-cache-dir "$( grep templateflow setup.cfg | xargs )" && \
                tfapi.get('OASIS30ANTs', resolution=1, desc='4', suffix='dseg'); \
                tfapi.get(['OASIS30ANTs', 'NKI'], resolution=1, label='brain', suffix='probseg'); \
                tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
+                         desc='BrainCerebellumExtraction', suffix='mask'); \
+               tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
                          desc='BrainCerebellumRegistration', suffix='mask');" && \
     rm setup.cfg && \
     find $HOME/.cache/templateflow -type d -exec chmod go=u {} + && \
