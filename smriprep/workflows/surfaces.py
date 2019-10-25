@@ -344,7 +344,8 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     autorecon_surfs.interface._always_run = True
 
     # -cortribbon is a prerequisite for -parcstats, -parcstats2, -parcstats3
-    cortribbon = pe.Node(ReconAll(steps=['-cortribbon']), name='cortribbon')
+    cortribbon = pe.Node(ReconAll(steps=['cortribbon']), name='cortribbon')
+    cortribbon.interface._always_run = True
 
     # -parcstats* can be run per-hemisphere
     # -hyporelabel is volumetric, even though it's part of -autorecon-hemi
@@ -355,8 +356,8 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
             openmp=omp_nthreads),
         iterfield='hemi', n_procs=omp_nthreads, mem_gb=5,
         name='parcstats')
-    autorecon_surfs.inputs.hemi = ['lh', 'rh']
-    autorecon_surfs.interface._always_run = True
+    parcstats.inputs.hemi = ['lh', 'rh']
+    parcstats.interface._always_run = True
 
     # Runs: -hyporelabel -aparc2aseg -apas2aseg -segstats -wmparc
     # All volumetric, so don't
