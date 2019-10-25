@@ -190,7 +190,7 @@ jobs:
 
   test_pytest:
     docker:
-      - image: circleci/python:latest
+      - image: circleci/python:3.7.4
     working_directory: /home/circleci/src/smriprep
     steps:
       - checkout
