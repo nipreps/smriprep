@@ -8,7 +8,7 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-__copyright__ = 'Copyright 2018, Center for Reproducible Neuroscience, Stanford University'
+__copyright__ = 'Copyright 2019, Center for Reproducible Neuroscience, Stanford University'
 __credits__ = ['Oscar Esteban', 'Chris Gorgolewski', 'Christopher J. Markiewicz',
                'Russell A. Poldrack']
 __url__ = 'https://github.com/poldracklab/smriprep'
