@@ -18,6 +18,8 @@ from nipype.interfaces import (
     freesurfer as fs,
 )
 
+from ..interfaces.freesurfer import ReconAll
+
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
     FSDetectInputs,
@@ -174,7 +176,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     fov_check = pe.Node(niu.Function(function=_check_cw256), name='fov_check')
 
     autorecon1 = pe.Node(
-        fs.ReconAll(directive='autorecon1', openmp=omp_nthreads),
+        ReconAll(directive='autorecon1', openmp=omp_nthreads),
         name='autorecon1', n_procs=omp_nthreads, mem_gb=5)
     autorecon1.interface._can_resume = False
     autorecon1.interface._always_run = True
@@ -271,7 +273,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
             -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
             -autorecon-hemi rh -T2pial \
-            -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel
+            -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
             -cortribbon
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
@@ -326,15 +328,15 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         name='outputnode')
 
     autorecon2_vol = pe.Node(
-        fs.ReconAll(directive='autorecon2-volonly', openmp=omp_nthreads),
+        ReconAll(directive='autorecon2-volonly', openmp=omp_nthreads),
         n_procs=omp_nthreads, mem_gb=5, name='autorecon2_vol')
     autorecon2_vol.interface._always_run = True
 
     autorecon_surfs = pe.MapNode(
-        fs.ReconAll(
+        ReconAll(
             directive='autorecon-hemi',
             flags=['-noparcstats', '-noparcstats2', '-noparcstats3',
-                   '-nohyporelabel'],
+                   '-nohyporelabel', '-nobalabels'],
             openmp=omp_nthreads),
         iterfield='hemi', n_procs=omp_nthreads, mem_gb=5,
         name='autorecon_surfs')
@@ -342,12 +344,12 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     autorecon_surfs.interface._always_run = True
 
     # -cortribbon is a prerequisite for -parcstats, -parcstats2, -parcstats3
-    cortribbon = pe.Node(fs.ReconAll(directive='autorecon2', flags=['-cortribbon']), name='cortribbon')
+    cortribbon = pe.Node(ReconAll(steps=['-cortribbon']), name='cortribbon')
 
     # -parcstats* can be run per-hemisphere
     # -hyporelabel is volumetric, even though it's part of -autorecon-hemi
     parcstats = pe.MapNode(
-        fs.ReconAll(
+        ReconAll(
             directive='autorecon-hemi',
             flags=['-nohyporelabel'],
             openmp=omp_nthreads),
@@ -359,7 +361,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     # Runs: -hyporelabel -aparc2aseg -apas2aseg -segstats -wmparc
     # All volumetric, so don't
     autorecon3 = pe.Node(
-        fs.ReconAll(directive='autorecon3', openmp=omp_nthreads),
+        ReconAll(directive='autorecon3', openmp=omp_nthreads),
         n_procs=omp_nthreads, mem_gb=5,
         name='autorecon3')
     autorecon3.interface._always_run = True
