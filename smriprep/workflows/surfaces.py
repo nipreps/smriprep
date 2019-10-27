@@ -271,7 +271,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
             -autorecon2-volonly
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
             -autorecon-hemi lh -T2pial \
-            -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel
+            -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
             -autorecon-hemi rh -T2pial \
             -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
