@@ -29,6 +29,7 @@ class ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
         'qcache',
         argstr='-%s',
         desc='process directive',
+        usedefault=True,
         xor=['steps'],
         position=0)
     steps = InputMultiObject(
@@ -84,7 +85,6 @@ class ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
             'wmparc',
             'balabels',
             ),
-        argstr='-%s ...',
         desc='specific process directives',
         xor=['directive'],
         position=0)

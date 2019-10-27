@@ -12,6 +12,7 @@ structural images.
 
 """
 from nipype.pipeline import engine as pe
+from nipype.interfaces.base import Undefined
 from nipype.interfaces import (
     io as nio,
     utility as niu,
@@ -344,7 +345,8 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     autorecon_surfs.interface._always_run = True
 
     # -cortribbon is a prerequisite for -parcstats, -parcstats2, -parcstats3
-    cortribbon = pe.Node(ReconAll(steps=['cortribbon']), name='cortribbon')
+    cortribbon = pe.Node(ReconAll(directive=Undefined,
+                                  steps=['cortribbon']), name='cortribbon')
     cortribbon.interface._always_run = True
 
     # -parcstats* can be run per-hemisphere
