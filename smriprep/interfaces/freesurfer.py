@@ -93,15 +93,6 @@ class ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
 class ReconAll(fs.ReconAll):
     input_spec = ReconAllInputSpec
 
-    def _is_resuming(self):
-        subjects_dir = self.inputs.subjects_dir
-        if not isdefined(subjects_dir):
-            subjects_dir = self._gen_subjects_dir()
-        if os.path.isdir(
-                os.path.join(subjects_dir, self.inputs.subject_id, 'mri')):
-            return True
-        return False
-
     @property
     def cmdline(self):
         cmd = super(fs.ReconAll, self).cmdline
