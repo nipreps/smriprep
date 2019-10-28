@@ -165,6 +165,8 @@ class ReconAll(fs.ReconAll):
                              [os.path.join(subj_dir, f) for f in infiles]):
                 flags.append(noflag)
             else:
+                if isdefined(self.inputs.steps):
+                    flags.append(flag)
                 no_run = False
 
         if no_run and not self.force_run:
