@@ -92,7 +92,8 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - testdata-v1-{{ epoch }}
+            - testdata-v1-{{ .Branch }}-{{ epoch }}
+            - testdata-v1-{{ .Branch }}
             - testdata-v1-
       - run:
           name: Get test data from ds000005
@@ -146,10 +147,9 @@ jobs:
             - data
             - fslicense
             - ds005/nipype.cfg
-            - ds005/derivatives
             - ds054/nipype.cfg
       - save_cache:
-         key: testdata-v1-{{ epoch }}
+         key: testdata-v1-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/data
             - /tmp/ds005/freesurfer
@@ -323,6 +323,11 @@ jobs:
             - ds005-anat-v4-{{ .Branch }}
             - ds005-anat-v4-master
             - ds005-anat-v4-
+      - restore_cache:
+          keys:
+            - testdata-v1-{{ .Branch }}-{{ epoch }}
+            - testdata-v1-{{ .Branch }}
+            - testdata-v1-
       - run:
           name: Setting up test
           command: |
