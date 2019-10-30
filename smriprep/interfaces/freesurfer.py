@@ -110,10 +110,9 @@ class ReconAll(fs.ReconAll):
         # Check only relevant steps
         directive = self.inputs.directive
         if not isdefined(directive):
+            steps = []
             if isdefined(self.inputs.steps):
                 steps = [step for step in self._steps if step[0] in self.inputs.steps]
-            else:
-                steps = []
         elif directive == 'autorecon1':
             steps = self._autorecon1_steps
         elif directive == 'autorecon2-volonly':
