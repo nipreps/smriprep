@@ -92,7 +92,8 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - testdata-v1-{{ epoch }}
+            - testdata-v1-{{ .Branch }}-{{ epoch }}
+            - testdata-v1-{{ .Branch }}
             - testdata-v1-
       - run:
           name: Get test data from ds000005
@@ -118,11 +119,11 @@ jobs:
       - run:
           name: Get FreeSurfer derivatives for ds000005
           command: |
-            if [[ ! -d /tmp/ds005/derivatives/freesurfer ]]; then
-              mkdir -p /tmp/ds005/derivatives
+            if [[ ! -d /tmp/ds005/freesurfer ]]; then
+              mkdir -p /tmp/ds005
               wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q \
                 -O ds005_derivatives_freesurfer.tar.gz "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/58fe59eb594d900250960180"
-              tar xvzf ds005_derivatives_freesurfer.tar.gz -C /tmp/ds005/derivatives
+              tar xvzf ds005_derivatives_freesurfer.tar.gz -C /tmp/ds005
             else
               echo "FreeSurfer derivatives of ds000005 were cached"
             fi
@@ -146,13 +147,12 @@ jobs:
             - data
             - fslicense
             - ds005/nipype.cfg
-            - ds005/derivatives
             - ds054/nipype.cfg
       - save_cache:
-         key: testdata-v1-{{ epoch }}
+         key: testdata-v1-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/data
-            - /tmp/ds005/derivatives/freesurfer
+            - /tmp/ds005/freesurfer
 
   test_wrapper:
     machine:
@@ -319,10 +319,15 @@ jobs:
           at: /tmp
       - restore_cache:
           keys:
-            - ds005-anat-v4-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v4-{{ .Branch }}
-            - ds005-anat-v4-master
-            - ds005-anat-v4-
+            - ds005-anat-v5-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v5-{{ .Branch }}
+            - ds005-anat-v5-master
+            - ds005-anat-v5-
+      - restore_cache:
+          keys:
+            - testdata-v1-{{ .Branch }}-{{ epoch }}
+            - testdata-v1-{{ .Branch }}
+            - testdata-v1-
       - run:
           name: Setting up test
           command: |
@@ -354,9 +359,10 @@ jobs:
                 --skull-strip-template MNI152NLin2009cAsym:res-2 \
                 --sloppy --write-graph --mem-gb 4 \
                 --ncpus 2 --omp-nthreads 2 -vv \
-                --fs-license-file /tmp/fslicense/license.txt
+                --fs-license-file /tmp/fslicense/license.txt \
+                --fs-subjects-dir /tmp/ds005/freesurfer
       - save_cache:
-         key: ds005-anat-v4-{{ .Branch }}-{{ epoch }}
+         key: ds005-anat-v5-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/ds005/work
 

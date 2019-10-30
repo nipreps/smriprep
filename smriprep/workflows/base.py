@@ -29,6 +29,7 @@ from .anatomical import init_anat_preproc_wf
 def init_smriprep_wf(
     debug,
     freesurfer,
+    fs_subjects_dir,
     hires,
     layout,
     longitudinal,
@@ -60,6 +61,7 @@ def init_smriprep_wf(
         wf = init_smriprep_wf(
             debug=False,
             freesurfer=True,
+            fs_subjects_dir=None,
             hires=True,
             layout=BIDSLayout('.'),
             longitudinal=False,
@@ -81,6 +83,8 @@ def init_smriprep_wf(
             Enable debugging outputs
         freesurfer : bool
             Enable FreeSurfer surface reconstruction (may increase runtime)
+        fs_subjects_dir : os.PathLike or None
+            Use existing FreeSurfer subjects directory if provided
         hires : bool
             Enable sub-millimeter preprocessing in FreeSurfer
         layout : BIDSLayout object
@@ -126,6 +130,8 @@ def init_smriprep_wf(
                 spaces=[s for s in output_spaces.keys() if s.startswith('fsaverage')] + [
                     'fsnative'] * ('fsnative' in output_spaces)),
             name='fsdir_run_%s' % run_uuid.replace('-', '_'), run_without_submitting=True)
+        if fs_subjects_dir is not None:
+            fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
     reportlets_dir = os.path.join(work_dir, 'reportlets')
     for subject_id in subject_list:
