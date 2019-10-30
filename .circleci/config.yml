@@ -319,10 +319,10 @@ jobs:
           at: /tmp
       - restore_cache:
           keys:
-            - ds005-anat-v4-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v4-{{ .Branch }}
-            - ds005-anat-v4-master
-            - ds005-anat-v4-
+            - ds005-anat-v5-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v5-{{ .Branch }}
+            - ds005-anat-v5-master
+            - ds005-anat-v5-
       - restore_cache:
           keys:
             - testdata-v1-{{ .Branch }}-{{ epoch }}
@@ -362,7 +362,7 @@ jobs:
                 --fs-license-file /tmp/fslicense/license.txt \
                 --fs-subjects-dir /tmp/ds005/freesurfer
       - save_cache:
-         key: ds005-anat-v4-{{ .Branch }}-{{ epoch }}
+         key: ds005-anat-v5-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/ds005/work
 
