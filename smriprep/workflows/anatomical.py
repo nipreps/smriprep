@@ -130,7 +130,7 @@ def init_n4_only_wf(name='n4_only_wf',
 
     # Create brain mask
     thr_brainmask = pe.Node(
-        Binarize(thresh_low=10), name='binarize')
+        Binarize(thresh_low=2), name='binarize')
 
     # INU correction
     inu_n4_final = pe.MapNode(
