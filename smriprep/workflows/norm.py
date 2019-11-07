@@ -7,7 +7,7 @@ from nipype.interfaces import utility as niu
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
 
-from templateflow import api as tf
+from templateflow.api import get_metadata
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.ants import ImageMath
 from niworkflows.interfaces.mni import RobustMNINormalization
@@ -103,7 +103,7 @@ The following template{tpls} selected for spatial normalization:
 
     # Append template citations to description
     for template, _ in templates:
-        template_meta = tf.get_metadata(template)
+        template_meta = get_metadata(template)
         template_refs = ['@%s' % template.lower()]
 
         if template_meta.get('RRID', None):
