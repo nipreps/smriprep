@@ -18,15 +18,15 @@ def _template(inlist):
     """
     Return an OrderedDict with templates.
 
-    >>> list(_template(['MNI152NLin2009c']).keys())
-    ['MNI152NLin2009c']
+    >>> list(_template(['MNI152NLin2009cAsym']).keys())
+    ['MNI152NLin2009cAsym']
 
-    >>> _template(['MNI152NLin2009c', 'MNI152NLin2009c:res-2'])
-    OrderedDict([('MNI152NLin2009c', {})])
+    >>> _template(['MNI152NLin2009cAsym', 'MNI152NLin2009cAsym:res-2'])
+    OrderedDict([('MNI152NLin2009cAsym', {})])
 
-    >>> _template(['MNI152NLin2009c', 'MNI152NLin2009c:res-2',
+    >>> _template(['MNI152NLin2009cAsym', 'MNI152NLin2009cAsym:res-2',
     ...            'MNI152NLin6Asym:res-2', 'MNI152NLin6Asym'])
-    OrderedDict([('MNI152NLin2009c', {}), ('MNI152NLin6Asym', {'res': '2'})])
+    OrderedDict([('MNI152NLin2009cAsym', {}), ('MNI152NLin6Asym', {'res': '2'})])
 
     """
     from collections import OrderedDict
