@@ -9,8 +9,7 @@ from nipype.interfaces.base import (
 
 
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
-    template = traits.Enum(*tf.templates(), mandatory=True,
-                           desc='Template ID')
+    template = traits.Str('MNI152NLin2009cAsym', mandatory=True, desc='Template ID')
     atlas = InputMultiObject(traits.Str, desc='Specify an atlas')
     resolution = InputMultiObject(traits.Int, desc='Specify a template resolution index')
     template_spec = traits.DictStrAny(

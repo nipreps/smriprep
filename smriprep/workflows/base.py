@@ -1,10 +1,6 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-*sMRIPrep* base processing workflows.
-
-"""
-
+"""*sMRIPrep* base processing workflows."""
 import sys
 import os
 from copy import deepcopy
@@ -77,46 +73,46 @@ def init_smriprep_wf(
             work_dir='.',
         )
 
-    **Parameters**
-
-        debug : bool
-            Enable debugging outputs
-        freesurfer : bool
-            Enable FreeSurfer surface reconstruction (may increase runtime)
-        fs_subjects_dir : os.PathLike or None
-            Use existing FreeSurfer subjects directory if provided
-        hires : bool
-            Enable sub-millimeter preprocessing in FreeSurfer
-        layout : BIDSLayout object
-            BIDS dataset layout
-        longitudinal : bool
-            Treat multiple sessions as longitudinal (may increase runtime)
-            See sub-workflows for specific differences
-        low_mem : bool
-            Write uncompressed .nii files in some cases to reduce memory usage
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        output_dir : str
-            Directory in which to save derivatives
-        output_spaces : OrderedDict
-            List of spatial normalization targets. Some parts of pipeline will
-            only be instantiated for some output spaces. Valid spaces:
-            - Any template identifier from TemplateFlow
-            - Path to a template folder organized following TemplateFlow's
-            conventions
-        run_uuid : str
-            Unique identifier for execution instance
-        skull_strip_fixed_seed : bool
-            Do not use a random seed for skull-stripping - will ensure
-            run-to-run replicability when used with --omp-nthreads 1
-        skull_strip_template : tuple
-            Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI'),
-            and dictionary with template specifications (e.g., {'res': '2'})
-        subject_list : list
-            List of subject labels
-        work_dir : str
-            Directory in which to store workflow execution state and
-            temporary files
+    Parameters
+    ----------
+    debug : bool
+        Enable debugging outputs
+    freesurfer : bool
+        Enable FreeSurfer surface reconstruction (may increase runtime)
+    fs_subjects_dir : os.PathLike or None
+        Use existing FreeSurfer subjects directory if provided
+    hires : bool
+        Enable sub-millimeter preprocessing in FreeSurfer
+    layout : BIDSLayout object
+        BIDS dataset layout
+    longitudinal : bool
+        Treat multiple sessions as longitudinal (may increase runtime)
+        See sub-workflows for specific differences
+    low_mem : bool
+        Write uncompressed .nii files in some cases to reduce memory usage
+    omp_nthreads : int
+        Maximum number of threads an individual process may use
+    output_dir : str
+        Directory in which to save derivatives
+    output_spaces : OrderedDict
+        List of spatial normalization targets. Some parts of pipeline will
+        only be instantiated for some output spaces. Valid spaces:
+        - Any template identifier from TemplateFlow
+        - Path to a template folder organized following TemplateFlow's
+        conventions
+    run_uuid : str
+        Unique identifier for execution instance
+    skull_strip_fixed_seed : bool
+        Do not use a random seed for skull-stripping - will ensure
+        run-to-run replicability when used with --omp-nthreads 1
+    skull_strip_template : tuple
+        Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI'),
+        and dictionary with template specifications (e.g., {'res': '2'})
+    subject_list : list
+        List of subject labels
+    work_dir : str
+        Directory in which to store workflow execution state and
+        temporary files
 
     """
     smriprep_wf = Workflow(name='smriprep_wf')
@@ -220,48 +216,48 @@ def init_single_subject_wf(
         )
 
 
-    **Parameters**
+    Parameters
+    ----------
+    debug : bool
+        Enable debugging outputs
+    freesurfer : bool
+        Enable FreeSurfer surface reconstruction (may increase runtime)
+    hires : bool
+        Enable sub-millimeter preprocessing in FreeSurfer
+    layout : BIDSLayout object
+        BIDS dataset layout
+    longitudinal : bool
+        Treat multiple sessions as longitudinal (may increase runtime)
+        See sub-workflows for specific differences
+    low_mem : bool
+        Write uncompressed .nii files in some cases to reduce memory usage
+    name : str
+        Name of workflow
+    omp_nthreads : int
+        Maximum number of threads an individual process may use
+    output_dir : str
+        Directory in which to save derivatives
+    output_spaces : OrderedDict
+        List of spatial normalization targets. Some parts of pipeline will
+        only be instantiated for some output spaces. Valid spaces:
+        - Any template identifier from TemplateFlow
+        - Path to a template folder organized following TemplateFlow's
+        conventions
+    reportlets_dir : str
+        Directory in which to save reportlets
+    skull_strip_fixed_seed : bool
+        Do not use a random seed for skull-stripping - will ensure
+        run-to-run replicability when used with --omp-nthreads 1
+    skull_strip_template : tuple
+        Name of ANTs skull-stripping template (e.g., 'OASIS30ANTs') and
+        dictionary of template specifications.
+    subject_id : str
+        List of subject labels
 
-        debug : bool
-            Enable debugging outputs
-        freesurfer : bool
-            Enable FreeSurfer surface reconstruction (may increase runtime)
-        hires : bool
-            Enable sub-millimeter preprocessing in FreeSurfer
-        layout : BIDSLayout object
-            BIDS dataset layout
-        longitudinal : bool
-            Treat multiple sessions as longitudinal (may increase runtime)
-            See sub-workflows for specific differences
-        low_mem : bool
-            Write uncompressed .nii files in some cases to reduce memory usage
-        name : str
-            Name of workflow
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        output_dir : str
-            Directory in which to save derivatives
-        output_spaces : OrderedDict
-            List of spatial normalization targets. Some parts of pipeline will
-            only be instantiated for some output spaces. Valid spaces:
-            - Any template identifier from TemplateFlow
-            - Path to a template folder organized following TemplateFlow's
-            conventions
-        reportlets_dir : str
-            Directory in which to save reportlets
-        skull_strip_fixed_seed : bool
-            Do not use a random seed for skull-stripping - will ensure
-            run-to-run replicability when used with --omp-nthreads 1
-        skull_strip_template : tuple
-            Name of ANTs skull-stripping template (e.g., 'OASIS30ANTs') and
-            dictionary of template specifications.
-        subject_id : str
-            List of subject labels
-
-    **Inputs**
-
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
+    Inputs
+    ------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
 
     """
     from ..interfaces.reports import AboutSummary, SubjectSummary

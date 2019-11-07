@@ -1,18 +1,13 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-Spatial normalization workflows.
-
-.. autofunction:: init_anat_norm_wf
-
-"""
+"""Spatial normalization workflows."""
 from collections import defaultdict
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
 
-from templateflow.api import get_metadata, templates as get_templates
+from templateflow import api as tf
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.ants import ImageMath
 from niworkflows.interfaces.mni import RobustMNINormalization
@@ -39,64 +34,57 @@ def init_anat_norm_wf(
             templates=[('MNI152NLin2009cAsym', {}), ('MNI152NLin6Asym', {})],
         )
 
-    **Parameters**
+    Parameters
+    ----------
+    debug : bool
+        Apply sloppy arguments to speed up processing. Use with caution,
+        registration processes will be very inaccurate.
+    omp_nthreads : int
+        Maximum number of threads an individual process may use.
+    templates : list of tuples
+        List of tuples containing TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``)
+        and corresponding specs, which specify target templates
+        for spatial normalization.
 
-        debug : bool
-            Apply sloppy arguments to speed up processing. Use with caution,
-            registration processes will be very inaccurate.
-        omp_nthreads : int
-            Maximum number of threads an individual process may use.
-        templates : list of tuples
-            List of tuples containing TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``)
-            and corresponding specs, which specify target templates
-            for spatial normalization.
+    Inputs
+    ------
+    moving_image
+        The input image that will be normalized to standard space.
+    moving_mask
+        A precise brain mask separating skull/skin/fat from brain
+        structures.
+    moving_segmentation
+        A brain tissue segmentation of the ``moving_image``.
+    moving_tpms
+        tissue probability maps (TPMs) corresponding to the
+        ``moving_segmentation``.
+    lesion_mask
+        (optional) A mask to exclude regions from the cost-function
+        input domain to enable standardization of lesioned brains.
+    orig_t1w
+        The original T1w image from the BIDS structure.
 
-    **Inputs**
-
-        moving_image
-            The input image that will be normalized to standard space.
-        moving_mask
-            A precise brain mask separating skull/skin/fat from brain
-            structures.
-        moving_segmentation
-            A brain tissue segmentation of the ``moving_image``.
-        moving_tpms
-            tissue probability maps (TPMs) corresponding to the
-            ``moving_segmentation``.
-        lesion_mask
-            (optional) A mask to exclude regions from the cost-function
-            input domain to enable standardization of lesioned brains.
-        orig_t1w
-            The original T1w image from the BIDS structure.
-
-    **Outputs**
-
-        standardized
-            The T1w after spatial normalization, in template space.
-        anat2std_xfm
-            The T1w-to-template transform.
-        std2anat_xfm
-            The template-to-T1w transform.
-        std_mask
-            The ``moving_mask`` in template space (matches ``standardized`` output).
-        std_dseg
-            The ``moving_segmentation`` in template space (matches ``standardized``
-            output).
-        std_tpms
-            The ``moving_tpms`` in template space (matches ``standardized`` output).
-        template
-            The input parameter ``template`` for further use in nodes depending
-            on this
-            workflow.
+    Outputs
+    -------
+    standardized
+        The T1w after spatial normalization, in template space.
+    anat2std_xfm
+        The T1w-to-template transform.
+    std2anat_xfm
+        The template-to-T1w transform.
+    std_mask
+        The ``moving_mask`` in template space (matches ``standardized`` output).
+    std_dseg
+        The ``moving_segmentation`` in template space (matches ``standardized``
+        output).
+    std_tpms
+        The ``moving_tpms`` in template space (matches ``standardized`` output).
+    template
+        The input parameter ``template`` for further use in nodes depending
+        on this
+        workflow.
 
     """
-    templateflow = get_templates()
-    missing_tpls = [template for template, _ in templates if template not in templateflow]
-    if missing_tpls:
-        raise ValueError("""\
-One or more templates were not found (%s). Please make sure TemplateFlow is \
-correctly installed and contains the given template identifiers.""" % ', '.join(missing_tpls))
-
     ntpls = len(templates)
     workflow = Workflow('anat_norm_wf')
     workflow.__desc__ = """\
@@ -115,7 +103,7 @@ The following template{tpls} selected for spatial normalization:
 
     # Append template citations to description
     for template, _ in templates:
-        template_meta = get_metadata(template)
+        template_meta = tf.get_metadata(template)
         template_refs = ['@%s' % template.lower()]
 
         if template_meta.get('RRID', None):
