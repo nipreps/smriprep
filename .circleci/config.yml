@@ -136,18 +136,15 @@ jobs:
       - run:
           name: Create Nipype config files
           command: |
-            mkdir -p /tmp/ds005 /tmp/ds054
-            printf "[execution]\nstop_on_first_crash = true\n" > /tmp/ds005/nipype.cfg
-            echo "poll_sleep_duration = 0.01" >> /tmp/ds005/nipype.cfg
-            echo "hash_method = content" >> /tmp/ds005/nipype.cfg
-            cp /tmp/ds005/nipype.cfg /tmp/ds054/nipype.cfg
+            printf "[execution]\nstop_on_first_crash = true\n" > /tmp/nipype.cfg
+            echo "poll_sleep_duration = 0.01" >> /tmp/nipype.cfg
+            echo "hash_method = content" >> /tmp/nipype.cfg
       - persist_to_workspace:
           root: /tmp
           paths:
             - data
             - fslicense
-            - ds005/nipype.cfg
-            - ds054/nipype.cfg
+            - nipype.cfg
       - save_cache:
          key: testdata-v1-{{ .Branch }}-{{ epoch }}
          paths:
@@ -351,7 +348,11 @@ jobs:
           name: Run anatomical workflow on ds005
           no_output_timeout: 2h
           command: |
-            docker run --rm=false -it -v /tmp:/tmp \
+            docker run --rm=false -it \
+                -v /tmp/data:/tmp/data:ro \
+                -v /tmp/fslicense:/tmp/fslicense:ro \
+                -v /tmp/ds005:/tmp/ds005 \
+                -v /tmp/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 poldracklab/smriprep:latest \
                 /tmp/data/ds005 /tmp/ds005/derivatives participant \
@@ -432,7 +433,11 @@ jobs:
           name: Run sMRIPrep on ds054 (with --fs-no-reconall)
           no_output_timeout: 2h
           command: |
-            docker run --rm=false -it -v /tmp:/tmp \
+            docker run --rm=false -it \
+                -v /tmp/data:/tmp/data:ro \
+                -v /tmp/fslicense:/tmp/fslicense:ro \
+                -v /tmp/ds054:/tmp/ds054 \
+                -v /tmp/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 poldracklab/smriprep:latest \
                 /tmp/data/ds054 /tmp/ds054/derivatives participant \
