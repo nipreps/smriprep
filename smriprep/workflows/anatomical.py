@@ -23,16 +23,14 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
 from niworkflows.interfaces.nibabel import Binarize
-from niworkflows.interfaces.utils import CopyXForm
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import (
     init_brain_extraction_wf, init_atropos_wf, ATROPOS_MODELS, _pop
-    )
+)
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
 
-from packaging.version import parse as parseversion, Version
 from warnings import warn
 
 
@@ -129,8 +127,7 @@ def init_n4_only_wf(name='n4_only_wf',
         name='outputnode')
 
     # Create brain mask
-    thr_brainmask = pe.Node(
-        Binarize(thresh_low=2), name='binarize')
+    thr_brainmask = pe.Node(Binarize(thresh_low=2), name='binarize')
 
     # INU correction
     inu_n4_final = pe.MapNode(
@@ -140,37 +137,20 @@ def init_n4_only_wf(name='n4_only_wf',
             bspline_fitting_distance=200),
         n_procs=omp_nthreads, name='inu_n4_final', iterfield=['input_image'])
 
-    # Tolerate missing ANTs at construction time
-    _ants_version = N4BiasFieldCorrection().version
-
-    if _ants_version and parseversion(_ants_version) >= Version('2.1.0'):
+    # Check ANTs version
+    try:
         inu_n4_final.inputs.rescale_intensities = True
-    else:
-        warn("""\
-Found ANTs version %s, which is too old. Please consider upgrading to 2.1.0 or \
-greater so that the --rescale-intensities option is available with \
-N4BiasFieldCorrection.""" % _ants_version, DeprecationWarning)
-
-    copy_xform = pe.Node(CopyXForm(
-        fields=['out_file', 'bias_image']),
-        name='copy_xform', run_without_submitting=True)
+    except ValueError:
+        warn("The installed ANTs version too old. Please consider upgrading to "
+             "2.1.0 or greater.", DeprecationWarning)
 
     wf.connect([
         (inputnode, inu_n4_final, [('in_files', 'input_image')]),
         (inputnode, thr_brainmask, [(('in_files', _pop), 'in_file')]),
         (thr_brainmask, outputnode, [('out_mask', 'out_mask')]),
-<<<<<<< HEAD
         (inu_n4_final, outputnode, [('output_image', 'out_file')]),
         (inu_n4_final, outputnode, [('output_image', 'bias_corrected')]),
         (inu_n4_final, outputnode, [('bias_image', 'bias_image')])
-=======
-        (inputnode, copy_xform, [(('in_files', _pop), 'hdr_file')]),
-        (inu_n4_final, copy_xform, [('output_image', 'out_file')]),
-        (inu_n4_final, copy_xform, [('bias_image', 'bias_image')]),
-        (copy_xform, outputnode, [('out_file', 'out_file')]),
-        (copy_xform, outputnode, [('out_file', 'bias_corrected')]),
-        (copy_xform, outputnode, [('bias_image', 'bias_image')])
->>>>>>> Out mask, not out file
     ])
 
     # If atropos refine, do in4 twice
