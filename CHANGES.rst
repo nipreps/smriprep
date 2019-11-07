@@ -1,3 +1,23 @@
+0.4.0 (TBD)
+===========
+
+* CI: Fix packaging test (#115) @effigies
+* CI: Run pytests on Python 3.7 for now (#133) @effigies
+* CI: Test packaging and update deploy_pypi step (#119) @effigies
+* DOC: Deploy docs to gh-pages from CircleCI - with versioning (#65) @rwblair
+* ENH: Add --fs-subjects-dir flag (#114) @effigies
+* ENH: Add a README.rst (#103) @oesteban
+* ENH: Add smriprep-docker wrapper (#118) @effigies
+* ENH: Decoupling anatomical reports (#112) @oesteban
+* ENH: Reduce friction when iterating over target templates (#111) @oesteban
+* ENH: Write out the fsnative-to-T1w transform (#113) @oesteban
+* FIX: Re-organize FreeSurfer stages to avoid duplication and races (#117) @effigies
+* FIX: Revise naming of transforms when several T1w images are averaged (#106) @oesteban
+* MAINT: Fine-tune versioning extension of sphinx (#121) @oesteban
+* MAINT: Refactoring inputs/outputs names and some stylistic changes (#108) @oesteban
+* MAINT: Resolve issues with working directory of ds005 on CircleCI (#110) @oesteban
+* PIN: niworkflows ~= 1.0.0rc1
+
 0.3.2 (September 9, 2019)
 =========================
 
