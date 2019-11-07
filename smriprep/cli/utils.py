@@ -1,13 +1,14 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-CLI Utilities
-"""
+"""CLI Utilities."""
 from argparse import Action
+from templateflow.api import templates as get_templates
+
+TEMPLATES = get_templates()
 
 
 class ParseTemplates(Action):
-    """Manipulate a string of templates with modifiers"""
+    """Manipulate a string of templates with modifiers."""
 
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, _template(values))
@@ -15,8 +16,7 @@ class ParseTemplates(Action):
 
 def _template(inlist):
     """
-    Return an OrderedDict with templates
-
+    Return an OrderedDict with templates.
 
     >>> list(_template(['MNI152NLin2009c']).keys())
     ['MNI152NLin2009c']
@@ -41,7 +41,8 @@ def _template(inlist):
 
 
 def output_space(value):
-    """Parse one element of ``--output-spaces``.
+    """
+    Parse one element of ``--output-spaces``.
 
     >>> output_space('MNI152NLin2009cAsym')
     ('MNI152NLin2009cAsym', {})
@@ -55,6 +56,10 @@ def output_space(value):
     >>> output_space('MNIInfant:res-2:cohort-1') == ('MNIInfant', {'res': '2', 'cohort': '1'})
     True
 
+    >>> output_space('UnkownTemplate')  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ValueError:
+
     """
     tpl_args = value.split(':')
     template = tpl_args[0]
@@ -62,5 +67,10 @@ def output_space(value):
     for modifier in tpl_args[1:]:
         mitems = modifier.split('-', 1)
         spec[mitems[0]] = len(mitems) == 1 or mitems[1]
+
+    if template not in TEMPLATES:
+        raise ValueError("""\
+Template identifier "{}" not found. Please, make sure TemplateFlow is \
+correctly installed and contains the given template identifiers.""".format(template))
 
     return template, spec

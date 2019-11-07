@@ -6,10 +6,6 @@ Surface preprocessing workflows.
 **sMRIPrep** uses FreeSurfer to reconstruct surfaces from T1w/T2w
 structural images.
 
-.. autofunction:: init_surface_recon_wf
-.. autofunction:: init_autorecon_resume_wf
-.. autofunction:: init_gifti_surface_wf
-
 """
 from nipype.pipeline import engine as pe
 from nipype.interfaces.base import Undefined
@@ -81,76 +77,73 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
     This procedure is inspired on mindboggle's solution to the problem:
     https://github.com/nipy/mindboggle/blob/7f91faaa7664d820fe12ccc52ebaf21d679795e2/mindboggle/guts/segment.py#L1660
 
-
     The final phase resumes reconstruction, using the T2w image to assist
     in finding the pial surface, if available.
     See :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf` for details.
-
 
     Memory annotations for FreeSurfer are based off `their documentation
     <https://surfer.nmr.mgh.harvard.edu/fswiki/SystemRequirements>`_.
     They specify an allocation of 4GB per subject. Here we define 5GB
     to have a certain margin.
 
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
+            from smriprep.workflows.surfaces import init_surface_recon_wf
+            wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
-
-        from smriprep.workflows.surfaces import init_surface_recon_wf
-        wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
-
-    **Parameters**
-
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        hires : bool
-            Enable sub-millimeter preprocessing in FreeSurfer
-
-    **Inputs**
-
-        t1w
-            List of T1-weighted structural images
-        t2w
-            List of T2-weighted structural images (only first used)
-        flair
-            List of FLAIR images
-        skullstripped_t1
-            Skull-stripped T1-weighted image (or mask of image)
-        ants_segs
-            Brain tissue segmentation from ANTS ``antsBrainExtraction.sh``
-        corrected_t1
-            INU-corrected, merged T1-weighted image
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-
-    **Outputs**
-
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-        t1w2fsnative_xfm
-            LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
-        fsnative2t1w_xfm
-            LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
-        surfaces
-            GIFTI surfaces for gray/white matter boundary, pial surface,
-            midthickness (or graymid) surface, and inflated surfaces
-        out_brainmask
-            Refined brainmask, derived from FreeSurfer's ``aseg`` volume
-        out_aseg
-            FreeSurfer's aseg segmentation, in native T1w space
-        out_aparc
-            FreeSurfer's aparc+aseg segmentation, in native T1w space
-
-    **Subworkflows**
-
+    Subworkflows
         * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
         * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
+
+    Parameters
+    ----------
+    omp_nthreads : int
+        Maximum number of threads an individual process may use
+    hires : bool
+        Enable sub-millimeter preprocessing in FreeSurfer
+
+    Inputs
+    ------
+    t1w
+        List of T1-weighted structural images
+    t2w
+        List of T2-weighted structural images (only first used)
+    flair
+        List of FLAIR images
+    skullstripped_t1
+        Skull-stripped T1-weighted image (or mask of image)
+    ants_segs
+        Brain tissue segmentation from ANTS ``antsBrainExtraction.sh``
+    corrected_t1
+        INU-corrected, merged T1-weighted image
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+
+    Outputs
+    -------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    t1w2fsnative_xfm
+        LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    surfaces
+        GIFTI surfaces for gray/white matter boundary, pial surface,
+        midthickness (or graymid) surface, and inflated surfaces
+    out_brainmask
+        Refined brainmask, derived from FreeSurfer's ``aseg`` volume
+    out_aseg
+        FreeSurfer's aseg segmentation, in native T1w space
+    out_aparc
+        FreeSurfer's aparc+aseg segmentation, in native T1w space
+
     """
     workflow = Workflow(name=name)
     workflow.__desc__ = """\
@@ -290,30 +283,31 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     Hypointensity relabeling is excluded from hemisphere-specific steps to avoid
     race conditions, as it is a volumetric operation.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.surfaces import init_autorecon_resume_wf
-        wf = init_autorecon_resume_wf(omp_nthreads=1)
+            from smriprep.workflows.surfaces import init_autorecon_resume_wf
+            wf = init_autorecon_resume_wf(omp_nthreads=1)
 
-    **Inputs**
+    Inputs
+    ------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    use_T2
+        Refine pial surface using T2w image
+    use_FLAIR
+        Refine pial surface using FLAIR image
 
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-        use_T2
-            Refine pial surface using T2w image
-        use_FLAIR
-            Refine pial surface using FLAIR image
-
-    **Outputs**
-
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
+    Outputs
+    -------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
 
     """
     workflow = Workflow(name=name)
@@ -408,27 +402,28 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
     Additionally, the vertex coordinates are :py:class:`recentered
     <smriprep.interfaces.NormalizeSurf>` to align with native T1w space.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.surfaces import init_gifti_surface_wf
-        wf = init_gifti_surface_wf()
+            from smriprep.workflows.surfaces import init_gifti_surface_wf
+            wf = init_gifti_surface_wf()
 
-    **Inputs**
+    Inputs
+    ------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    fsnative2t1w_xfm
+        LTA formatted affine transform file (inverse)
 
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-        fsnative2t1w_xfm
-            LTA formatted affine transform file (inverse)
-
-    **Outputs**
-
-        surfaces
-            GIFTI surfaces for gray/white matter boundary, pial surface,
-            midthickness (or graymid) surface, and inflated surfaces
+    Outputs
+    -------
+    surfaces
+        GIFTI surfaces for gray/white matter boundary, pial surface,
+        midthickness (or graymid) surface, and inflated surfaces
 
     """
     workflow = Workflow(name=name)
@@ -480,32 +475,33 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
     """
     Get a segmentation from FreeSurfer conformed space into native T1w space.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.surfaces import init_segs_to_native_wf
-        wf = init_segs_to_native_wf()
+            from smriprep.workflows.surfaces import init_segs_to_native_wf
+            wf = init_segs_to_native_wf()
 
+    Parameters
+    ----------
+    segmentation
+        The name of a segmentation ('aseg' or 'aparc_aseg' or 'wmparc')
 
-    **Parameters**
-        segmentation
-            The name of a segmentation ('aseg' or 'aparc_aseg' or 'wmparc')
+    Inputs
+    ------
+    in_file
+        Anatomical, merged T1w image after INU correction
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
 
-    **Inputs**
+    Outputs
+    -------
+    out_file
+        The selected segmentation, after resampling in native space
 
-        in_file
-            Anatomical, merged T1w image after INU correction
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-
-
-    **Outputs**
-
-        out_file
-            The selected segmentation, after resampling in native space
     """
     workflow = Workflow(name='%s_%s' % (name, segmentation))
     inputnode = pe.Node(niu.IdentityInterface([

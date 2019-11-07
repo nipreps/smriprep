@@ -30,14 +30,13 @@ copyright = _copyright
 author = 'The sMRIPrep Developers'
 
 # The short X.Y version
-version = Version(_version).base_version
+version = Version(_version).public
 # The full version, including alpha/beta/rc tags
-release = _version
+release = version
 
 
 # -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinxcontrib.apidoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
@@ -47,6 +46,31 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'nipype.sphinxext.plot_workflow',
+    'sphinxcontrib.apidoc',
+    'sphinxcontrib.napoleon'
+]
+
+autodoc_mock_imports = [
+    'matplotlib',
+    'nilearn',
+    'nitime',
+    'numpy',
+    'pandas',
+    'seaborn',
+    'skimage',
+    'svgutils',
+    'templateflow',
+    'transforms3d',
+]
+
+# Accept custom section names to be parsed for numpy-style docstrings
+# of parameters.
+# Requires pinning sphinxcontrib-napoleon to a specific commit while
+# https://github.com/sphinx-contrib/napoleon/pull/10 is merged.
+napoleon_use_param = False
+napoleon_custom_sections = [
+    ('Inputs', 'Parameters'),
+    ('Outputs', 'Parameters'),
 ]
 
 # Add any paths that contain templates here, relative to this directory.
