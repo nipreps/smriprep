@@ -13,11 +13,9 @@ from .__about__ import (
     __credits__,
     __version__,
 )
-from . import conf
 
 __all__ = [
     '__copyright__',
     '__credits__',
     '__version__',
-    'conf',
 ]
