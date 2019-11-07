@@ -1,3 +1,4 @@
+"""Nipype's recon-all replacement."""
 import os
 from nipype import logging
 from nipype.utils.filemanip import check_depends
@@ -7,7 +8,7 @@ from nipype.interfaces import freesurfer as fs
 iflogger = logging.getLogger('nipype.interface')
 
 
-class ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
+class _ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
     directive = traits.Enum(
         'all',
         'autorecon1',
@@ -84,14 +85,14 @@ class ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
             'apas2aseg',    # 6.0
             'wmparc',
             'balabels',
-            ),
+        ),
         desc='specific process directives',
         xor=['directive'],
         position=0)
 
 
 class ReconAll(fs.ReconAll):
-    input_spec = ReconAllInputSpec
+    input_spec = _ReconAllInputSpec
 
     @property
     def cmdline(self):

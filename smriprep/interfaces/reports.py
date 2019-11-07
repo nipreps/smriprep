@@ -13,7 +13,7 @@ from nipype.interfaces import freesurfer as fs
 from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
 from nipype.interfaces.mixins import reporting
 
-from niworkflows.interfaces.report_base import SVGReportCapableInputSpec
+from niworkflows.interfaces.report_base import _SVGReportCapableInputSpec
 
 
 SUBJECT_TEMPLATE = """\
@@ -34,12 +34,14 @@ ABOUT_TEMPLATE = """\t<ul>
 """
 
 
-class SummaryOutputSpec(TraitedSpec):
+class _SummaryOutputSpec(TraitedSpec):
     out_report = File(exists=True, desc='HTML segment containing summary')
 
 
 class SummaryInterface(SimpleInterface):
-    output_spec = SummaryOutputSpec
+    """Base Nipype interface for html summaries."""
+
+    output_spec = _SummaryOutputSpec
 
     def _run_interface(self, runtime):
         segment = self._generate_segment()
@@ -52,7 +54,7 @@ class SummaryInterface(SimpleInterface):
         raise NotImplementedError
 
 
-class SubjectSummaryInputSpec(BaseInterfaceInputSpec):
+class _SubjectSummaryInputSpec(BaseInterfaceInputSpec):
     t1w = InputMultiObject(File(exists=True), desc='T1w structural images')
     t2w = InputMultiObject(File(exists=True), desc='T2w structural images')
     subjects_dir = Directory(desc='FreeSurfer subjects directory')
@@ -60,15 +62,17 @@ class SubjectSummaryInputSpec(BaseInterfaceInputSpec):
     output_spaces = InputMultiObject(Str, desc='list of standard spaces')
 
 
-class SubjectSummaryOutputSpec(SummaryOutputSpec):
+class _SubjectSummaryOutputSpec(_SummaryOutputSpec):
     # This exists to ensure that the summary is run prior to the first ReconAll
     # call, allowing a determination whether there is a pre-existing directory
     subject_id = Str(desc='FreeSurfer subject ID')
 
 
 class SubjectSummary(SummaryInterface):
-    input_spec = SubjectSummaryInputSpec
-    output_spec = SubjectSummaryOutputSpec
+    """Subject html summary reportlet."""
+
+    input_spec = _SubjectSummaryInputSpec
+    output_spec = _SubjectSummaryOutputSpec
 
     def _run_interface(self, runtime):
         if isdefined(self.inputs.subject_id):
@@ -99,14 +103,16 @@ class SubjectSummary(SummaryInterface):
                                        freesurfer_status=freesurfer_status)
 
 
-class AboutSummaryInputSpec(BaseInterfaceInputSpec):
+class _AboutSummaryInputSpec(BaseInterfaceInputSpec):
     version = Str(desc='sMRIPrep version')
     command = Str(desc='sMRIPrep command')
     # Date not included - update timestamp only if version or command changes
 
 
 class AboutSummary(SummaryInterface):
-    input_spec = AboutSummaryInputSpec
+    """About section reportlet."""
+
+    input_spec = _AboutSummaryInputSpec
 
     def _generate_segment(self):
         return ABOUT_TEMPLATE.format(version=self.inputs.version,
@@ -114,7 +120,7 @@ class AboutSummary(SummaryInterface):
                                      date=time.strftime("%Y-%m-%d %H:%M:%S %z"))
 
 
-class _FSSurfaceReportInputSpec(SVGReportCapableInputSpec, _FSSourceInputSpec):
+class _FSSurfaceReportInputSpec(_SVGReportCapableInputSpec, _FSSourceInputSpec):
     pass
 
 
