@@ -12,11 +12,14 @@ structural images.
 
 """
 from nipype.pipeline import engine as pe
+from nipype.interfaces.base import Undefined
 from nipype.interfaces import (
     io as nio,
     utility as niu,
     freesurfer as fs,
 )
+
+from ..interfaces.freesurfer import ReconAll
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -174,7 +177,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     fov_check = pe.Node(niu.Function(function=_check_cw256), name='fov_check')
 
     autorecon1 = pe.Node(
-        fs.ReconAll(directive='autorecon1', openmp=omp_nthreads),
+        ReconAll(directive='autorecon1', openmp=omp_nthreads),
         name='autorecon1', n_procs=omp_nthreads, mem_gb=5)
     autorecon1.interface._can_resume = False
     autorecon1.interface._always_run = True
@@ -258,31 +261,34 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     r"""
     Resume recon-all execution, assuming the `-autorecon1` stage has been completed.
 
-    In order to utilize resources efficiently, this is broken down into five
+    In order to utilize resources efficiently, this is broken down into seven
     sub-stages; after the first stage, the second and third stages may be run
-    simultaneously, and the fourth and fifth stages may be run simultaneously,
-    if resources permit::
+    simultaneously, and the fifth and sixth stages may be run simultaneously,
+    if resources permit; the fourth stage must be run prior to the fifth and
+    sixth, and the seventh must be run after::
 
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
             -autorecon2-volonly
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
-            -autorecon-hemi lh \
-            -noparcstats -nocortparc2 -noparcstats2 -nocortparc3 \
-            -noparcstats3 -nopctsurfcon -nohyporelabel -noaparc2aseg \
-            -noapas2aseg -nosegstats -nowmparc -nobalabels
+            -autorecon-hemi lh -T2pial \
+            -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
-            -autorecon-hemi rh \
-            -noparcstats -nocortparc2 -noparcstats2 -nocortparc3 \
-            -noparcstats3 -nopctsurfcon -nohyporelabel -noaparc2aseg \
-            -noapas2aseg -nosegstats -nowmparc -nobalabels
+            -autorecon-hemi rh -T2pial \
+            -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
-            -autorecon3 -hemi lh -T2pial
+            -cortribbon
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
-            -autorecon3 -hemi rh -T2pial
+            -autorecon-hemi lh -nohyporelabel
+        $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
+            -autorecon-hemi rh -nohyporelabel
+        $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
+            -autorecon3
 
-    The excluded steps in the second and third stages (``-no<option>``) are not
-    fully hemisphere independent, and are therefore postponed to the final two
-    stages.
+    The parcellation statistics steps are excluded from the second and third
+    stages, because they require calculation of the cortical ribbon volume
+    (the fourth stage).
+    Hypointensity relabeling is excluded from hemisphere-specific steps to avoid
+    race conditions, as it is a volumetric operation.
 
     .. workflow::
         :graph2use: orig
@@ -323,28 +329,44 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         name='outputnode')
 
     autorecon2_vol = pe.Node(
-        fs.ReconAll(directive='autorecon2-volonly', openmp=omp_nthreads),
+        ReconAll(directive='autorecon2-volonly', openmp=omp_nthreads),
         n_procs=omp_nthreads, mem_gb=5, name='autorecon2_vol')
     autorecon2_vol.interface._always_run = True
 
     autorecon_surfs = pe.MapNode(
-        fs.ReconAll(
+        ReconAll(
             directive='autorecon-hemi',
-            flags=['-noparcstats', '-nocortparc2', '-noparcstats2',
-                   '-nocortparc3', '-noparcstats3', '-nopctsurfcon',
-                   '-nohyporelabel', '-noaparc2aseg', '-noapas2aseg',
-                   '-nosegstats', '-nowmparc', '-nobalabels'],
+            flags=['-noparcstats', '-noparcstats2', '-noparcstats3',
+                   '-nohyporelabel', '-nobalabels'],
             openmp=omp_nthreads),
         iterfield='hemi', n_procs=omp_nthreads, mem_gb=5,
         name='autorecon_surfs')
     autorecon_surfs.inputs.hemi = ['lh', 'rh']
     autorecon_surfs.interface._always_run = True
 
-    autorecon3 = pe.MapNode(
-        fs.ReconAll(directive='autorecon3', openmp=omp_nthreads),
+    # -cortribbon is a prerequisite for -parcstats, -parcstats2, -parcstats3
+    cortribbon = pe.Node(ReconAll(directive=Undefined,
+                                  steps=['cortribbon']), name='cortribbon')
+    cortribbon.interface._always_run = True
+
+    # -parcstats* can be run per-hemisphere
+    # -hyporelabel is volumetric, even though it's part of -autorecon-hemi
+    parcstats = pe.MapNode(
+        ReconAll(
+            directive='autorecon-hemi',
+            flags=['-nohyporelabel'],
+            openmp=omp_nthreads),
         iterfield='hemi', n_procs=omp_nthreads, mem_gb=5,
+        name='parcstats')
+    parcstats.inputs.hemi = ['lh', 'rh']
+    parcstats.interface._always_run = True
+
+    # Runs: -hyporelabel -aparc2aseg -apas2aseg -segstats -wmparc
+    # All volumetric, so don't
+    autorecon3 = pe.Node(
+        ReconAll(directive='autorecon3', openmp=omp_nthreads),
+        n_procs=omp_nthreads, mem_gb=5,
         name='autorecon3')
-    autorecon3.inputs.hemi = ['lh', 'rh']
     autorecon3.interface._always_run = True
 
     def _dedup(in_list):
@@ -355,16 +377,20 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         return vals.pop()
 
     workflow.connect([
-        (inputnode, autorecon3, [('use_T2', 'use_T2'),
-                                 ('use_FLAIR', 'use_FLAIR')]),
+        (inputnode, autorecon_surfs, [('use_T2', 'use_T2'),
+                                      ('use_FLAIR', 'use_FLAIR')]),
         (inputnode, autorecon2_vol, [('subjects_dir', 'subjects_dir'),
                                      ('subject_id', 'subject_id')]),
         (autorecon2_vol, autorecon_surfs, [('subjects_dir', 'subjects_dir'),
                                            ('subject_id', 'subject_id')]),
-        (autorecon_surfs, autorecon3, [(('subjects_dir', _dedup), 'subjects_dir'),
+        (autorecon_surfs, cortribbon, [(('subjects_dir', _dedup), 'subjects_dir'),
                                        (('subject_id', _dedup), 'subject_id')]),
-        (autorecon3, outputnode, [(('subjects_dir', _dedup), 'subjects_dir'),
-                                  (('subject_id', _dedup), 'subject_id')]),
+        (cortribbon, parcstats, [('subjects_dir', 'subjects_dir'),
+                                 ('subject_id', 'subject_id')]),
+        (parcstats, autorecon3, [(('subjects_dir', _dedup), 'subjects_dir'),
+                                 (('subject_id', _dedup), 'subject_id')]),
+        (autorecon3, outputnode, [('subjects_dir', 'subjects_dir'),
+                                  ('subject_id', 'subject_id')]),
     ])
 
     return workflow
