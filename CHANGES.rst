@@ -2,6 +2,7 @@
 ===========
 
 * CI: Fix packaging test (#115) @effigies
+* CI: Optimize CircleCI using a local docker registry instead docker save/load (#136) @oesteban
 * CI: Run pytests on Python 3.7 for now (#133) @effigies
 * CI: Test packaging and update deploy_pypi step (#119) @effigies
 * DOC: Deploy docs to gh-pages from CircleCI - with versioning (#65) @rwblair
