@@ -79,25 +79,15 @@ jobs:
           command: |
             docker exec -it registry /bin/registry garbage-collect --delete-untagged \
                 /etc/docker/registry/config.yml
-
-      - persist_to_workspace:
-          root: /tmp
-          paths:
-            - docker
-            - src/smriprep
-
-  update_cache:
-    machine:
-      # Ubuntu 14.04 with Docker 17.10.0-ce
-      image: circleci/classic:201711-01
-    working_directory: /tmp/src/smriprep
-    steps:
-      - attach_workspace:
-          at: /tmp
       - save_cache:
          key: build-v2-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/docker
+
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - src/smriprep
 
   get_data:
     machine:
@@ -172,6 +162,14 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp
+      - restore_cache:
+          keys:
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
+          paths:
+            - /tmp/docker
       - run:
           name: Set-up a Docker registry
           command: |
@@ -270,18 +268,24 @@ jobs:
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
     steps:
-      - checkout:
-          path: /home/circleci/src/smriprep
+      - attach_workspace:
+          at: /tmp
       - run:
           name: Check whether build should be skipped
           command: |
-            cd /home/circleci/src/smriprep
+            cd /tmp/src/smriprep
             if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?ds005\]' )" != "" ]]; then
               echo "Skipping ds000005 build"
               circleci step halt
             fi
-      - attach_workspace:
-          at: /tmp
+      - restore_cache:
+          keys:
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
+          paths:
+            - /tmp/docker
       - restore_cache:
           keys:
             - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
@@ -368,18 +372,24 @@ jobs:
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
     steps:
-      - checkout:
-          path: /home/circleci/src/smriprep
+      - attach_workspace:
+          at: /tmp
       - run:
           name: Check whether build should be skipped
           command: |
-            cd /home/circleci/src/smriprep
+            cd /tmp/src/smriprep
             if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?ds054\]' )" != "" ]]; then
               echo "Skipping ds000054 build"
               circleci step halt
             fi
-      - attach_workspace:
-          at: /tmp
+      - restore_cache:
+          keys:
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
+          paths:
+            - /tmp/docker
       - restore_cache:
           keys:
             - ds054-anat-v6-{{ .Branch }}-{{ epoch }}
@@ -525,8 +535,14 @@ jobs:
       image: circleci/classic:201711-01
     working_directory: /tmp/src/smriprep
     steps:
-      - attach_workspace:
-          at: /tmp
+      - restore_cache:
+          keys:
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
+          paths:
+            - /tmp/docker
       - run:
           name: Set-up a Docker registry
           command: |
@@ -588,17 +604,6 @@ workflows:
               only: /.*/
 
       - get_data:
-          filters:
-            branches:
-              ignore:
-                - /docs?\/.*/
-                - /tests?\/.*/
-            tags:
-              only: /.*/
-
-      - update_cache:
-          requires:
-            - build
           filters:
             branches:
               ignore:
