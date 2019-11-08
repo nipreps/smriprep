@@ -209,9 +209,8 @@ epub_exclude_files = ['search.html']
 
 apidoc_module_dir = '../smriprep'
 apidoc_output_dir = 'api'
-apidoc_excluded_paths = ['tests']
+apidoc_excluded_paths = ['conftest.py', '*/tests/*', 'tests/*', 'data/*', 'conf/*']
 apidoc_separate_modules = True
-# apidoc_extra_args = ['--templatedir=_templates/apidoc/', '--no-headings', '--module-first', '-d 1', '-T']
 apidoc_extra_args = ['--module-first', '-d 1', '-T']
 
 # -- Options for intersphinx extension ---------------------------------------

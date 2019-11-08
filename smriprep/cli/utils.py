@@ -2,9 +2,7 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """CLI Utilities."""
 from argparse import Action
-from templateflow.api import templates as get_templates
-
-TEMPLATES = get_templates()
+from ..conf import TF_TEMPLATES as _TF_TEMPLATES
 
 
 class ParseTemplates(Action):
@@ -15,20 +13,7 @@ class ParseTemplates(Action):
 
 
 def _template(inlist):
-    """
-    Return an OrderedDict with templates.
-
-    >>> list(_template(['MNI152NLin2009cAsym']).keys())
-    ['MNI152NLin2009cAsym']
-
-    >>> _template(['MNI152NLin2009cAsym', 'MNI152NLin2009cAsym:res-2'])
-    OrderedDict([('MNI152NLin2009cAsym', {})])
-
-    >>> _template(['MNI152NLin2009cAsym', 'MNI152NLin2009cAsym:res-2',
-    ...            'MNI152NLin6Asym:res-2', 'MNI152NLin6Asym'])
-    OrderedDict([('MNI152NLin2009cAsym', {}), ('MNI152NLin6Asym', {'res': '2'})])
-
-    """
+    """Return an OrderedDict with templates."""
     from collections import OrderedDict
     if isinstance(inlist, str):
         inlist = [inlist]
@@ -41,26 +26,7 @@ def _template(inlist):
 
 
 def output_space(value):
-    """
-    Parse one element of ``--output-spaces``.
-
-    >>> output_space('MNI152NLin2009cAsym')
-    ('MNI152NLin2009cAsym', {})
-
-    >>> output_space('MNI152NLin2009cAsym:native')
-    ('MNI152NLin2009cAsym', {'native': True})
-
-    >>> output_space('MNI152NLin2009cAsym:res-2')
-    ('MNI152NLin2009cAsym', {'res': '2'})
-
-    >>> output_space('MNIInfant:res-2:cohort-1') == ('MNIInfant', {'res': '2', 'cohort': '1'})
-    True
-
-    >>> output_space('UnkownTemplate')  # doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-    ValueError:
-
-    """
+    """Parse one element of ``--output-spaces``."""
     tpl_args = value.split(':')
     template = tpl_args[0]
     spec = {}
@@ -68,7 +34,7 @@ def output_space(value):
         mitems = modifier.split('-', 1)
         spec[mitems[0]] = len(mitems) == 1 or mitems[1]
 
-    if template not in TEMPLATES:
+    if template not in _TF_TEMPLATES:
         raise ValueError("""\
 Template identifier "{}" not found. Please, make sure TemplateFlow is \
 correctly installed and contains the given template identifiers.""".format(template))
