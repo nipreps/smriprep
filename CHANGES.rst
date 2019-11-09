@@ -13,6 +13,7 @@
 * ENH: Decoupling anatomical reports (#112) @oesteban
 * ENH: Reduce friction when iterating over target templates (#111) @oesteban
 * ENH: Write out the fsnative-to-T1w transform (#113) @oesteban
+* FIX: Build smriprep-docker like fmriprep-docker (#138) @oesteban
 * FIX: Check template identifiers are valid early (#135) @oesteban
 * FIX: Re-organize FreeSurfer stages to avoid duplication and races (#117) @effigies
 * FIX: Revise naming of transforms when several T1w images are averaged (#106) @oesteban
