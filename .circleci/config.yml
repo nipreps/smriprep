@@ -241,25 +241,76 @@ jobs:
       - store_artifacts:
           path: /tmp/data/reports
 
-  test_packaging:
+  test_deploy_pypi:
     docker:
-      - image: circleci/python:latest
-    working_directory: /home/circleci/src/smriprep
+      - image: circleci/python:3.7.4
+    working_directory: /tmp/src/smriprep
     steps:
       - checkout
       - run:
-          name: Setup Python environment
+          name: Build sMRIPrep
           command: |
-            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
+            pip install --user twine  # For use in checking distributions
+            THISVERSION=$( python get_version.py )
+            THISVERSION=${THISVERSION%.dirty*}
+            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
+            virtualenv --python=python build
+            source build/bin/activate
+            pip install --upgrade "pip>=19.1" numpy
+            echo "${CIRCLE_TAG:-$THISVERSION}" > smriprep/VERSION
+            python setup.py sdist
+            pip wheel --no-deps -w dist/ .
+      - store_artifacts:
+          path: /tmp/src/smriprep/dist
       - run:
-          name: Build sMRIPrep distributions
-          command: python setup.py sdist bdist_wheel
+          name: Check sdist distribution
+          command: |
+            THISVERSION=$( python get_version.py )
+            THISVERSION=${THISVERSION%.dirty*}
+            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
+            twine check dist/smriprep*.tar.gz
+            virtualenv --python=python sdist
+            source sdist/bin/activate
+            pip install --upgrade "pip>=19.1" numpy
+            pip install dist/smriprep*.tar.gz
+            which smriprep | grep sdist\\/bin
+            INSTALLED_VERSION=$(smriprep --version)
+            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
+            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep v"}
+            echo "VERSION: \"$THISVERSION\""
+            echo "INSTALLED: \"$INSTALLED_VERSION\""
+            test "$INSTALLED_VERSION" = "$THISVERSION"
+      - run:
+          name: Check wheel distribution
+          command: |
+            THISVERSION=$( python get_version.py )
+            THISVERSION=${THISVERSION%.dirty*}
+            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
+            twine check dist/smriprep*.whl
+            virtualenv --python=python wheel
+            source wheel/bin/activate
+            pip install dist/smriprep*.whl
+            which smriprep | grep wheel\\/bin
+            INSTALLED_VERSION=$(smriprep --version)
+            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
+            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep v"}
+            echo "VERSION: \"$THISVERSION\""
+            echo "INSTALLED: \"$INSTALLED_VERSION\""
+            test "$INSTALLED_VERSION" = "$THISVERSION"
       - run:
           name: Build smriprep-docker
-          command: cd wrapper && python setup.py sdist bdist_wheel
-      - run:
-          name: Check packages
-          command: twine check dist/* wrapper/dist/*
+          command: |
+            THISVERSION=$( python get_version.py )
+            THISVERSION=${THISVERSION%.dirty*}
+            cd wrapper
+            virtualenv --python=python build
+            source build/bin/activate
+            pip install --upgrade "pip>=19.1"
+            sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" smriprep_docker.py
+            python setup.py sdist
+            pip wheel --no-deps -w dist/ .
+      - store_artifacts:
+          path: /tmp/src/smriprep/wrapper/dist
 
   ds005:
     machine:
@@ -508,27 +559,36 @@ jobs:
 
   deploy_pypi:
     docker:
-      - image: circleci/python:latest
-    working_directory: /home/circleci/src/smriprep
+      - image: circleci/python:3.7.4
+    working_directory: /tmp/src/smriprep
     steps:
       - checkout
       - run:
-          name: Setup Python environment
+          name: Build sMRIPrep
           command: |
-            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
-      - run:
-          name: Build sMRIPrep distributions
-          command: python setup.py sdist bdist_wheel
+            THISVERSION=$( python get_version.py )
+            virtualenv --python=python build
+            source build/bin/activate
+            pip install --upgrade "pip>=19.1"
+            echo "${CIRCLE_TAG:-$THISVERSION}" > smriprep/VERSION
+            python setup.py sdist
+            pip wheel --no-deps -w dist/ .
       - run:
           name: Build smriprep-docker
-          command: cd wrapper && python setup.py sdist bdist_wheel
-      - run:
-          name: Check packages
-          command: twine check dist/* wrapper/dist/*
-      - run:
-          name: Deploy to PyPi
           command: |
-            twine upload dist/* wrapper/dist/*
+            THISVERSION=$( python get_version.py )
+            cd wrapper
+            virtualenv --python=python build
+            source build/bin/activate
+            pip install --upgrade "pip>=19.1"
+            sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" smriprep_docker.py
+            python setup.py sdist
+            pip wheel --no-deps -w dist/ .
+      - run:
+          name: Upload packages to PyPI
+          command: |
+            pip install --user twine
+            twine upload dist/smriprep* wrapper/dist/smriprep*
 
   deploy_docker:
     machine:
@@ -622,7 +682,7 @@ workflows:
             tags:
               only: /.*/
 
-      - test_packaging:
+      - test_deploy_pypi:
           filters:
             branches:
               ignore:
@@ -694,7 +754,7 @@ workflows:
 
       - deploy_pypi:
           requires:
-            - test_packaging
+            - test_deploy_pypi
             - test_pytest
             - test_wrapper
             - ds005
