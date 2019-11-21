@@ -180,7 +180,7 @@ The following template{tpls} selected for spatial normalization:
         (std_mask, poutputnode, [('output_image', 'std_mask')]),
         (std_dseg, poutputnode, [('output_image', 'std_dseg')]),
         (std_tpms, poutputnode, [('output_image', 'std_tpms')]),
-        (inputnode, poutputnode, [('template', 'template')]),
+        (inputnode, poutputnode, [(('template', _get_name), 'template')]),
     ])
 
     # Provide synchronized output
