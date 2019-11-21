@@ -1,3 +1,37 @@
+docs_deploy: &docs
+  docker:
+    - image: node:8.10.0
+  working_directory: /tmp/gh-pages
+  steps:
+    - run:
+        name: Check whether this is the original repo
+        command: |
+          if [[ "$CIRCLE_PROJECT_USERNAME" != "poldracklab" ]]; then
+              echo "Not in poldracklab/sdcflows - skipping docs deploy."
+              circleci step halt
+          fi
+    - add_ssh_keys:
+        fingerprints:
+          - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
+    - run:
+        name: Install gh-pages tool
+        command: |
+          npm install -g --silent gh-pages@2.0.1
+    - checkout
+    - run:
+        name: Set git settings
+        command: |
+          git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
+          git config user.name "ci-build"
+    - attach_workspace:
+        at: docs/_build
+    - run:
+        name: Disable jekyll builds
+        command: touch docs/_build/html/.nojekyll
+    - run:
+        name: Deploy docs to gh-pages branch
+        command: gh-pages --dotfiles --message "doc(update) [skip ci]" --dist docs/_build/html
+
 version: 2
 jobs:
   build:
@@ -512,17 +546,11 @@ jobs:
   build_docs:
     docker:
       - image: python:3.7.4
+    working_directory: /tmp/gh-pages
     environment:
       - FSLOUTPUTTYPE: NIFTI
+      - SUBJECTS_DIR: /tmp/subjects
     steps:
-      - restore_cache:
-          keys:
-            - docs-v1-{{ .Branch }}-{{ .Revision }}
-            - docs-v1-{{ .Branch }}-
-            - docs-v1-master
-            - docs-v1-
-          paths:
-            - ./docs/_build/_html
       - checkout
       - run:
           name: Install Graphviz
@@ -536,7 +564,7 @@ jobs:
       - store_artifacts:
           path: ./docs/_build/no_version_html
       - run:
-          name: Generate Versioned Docs
+          name: Stop or generate versioned docs?
           command: |
             set +e
             force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[docs?[ _]?versions?\]' )"
@@ -544,9 +572,18 @@ jobs:
             if [[ "x${CIRCLE_TAG}" = "x" && "${CIRCLE_BRANCH}" != "master" && "x${force_versioned}" = "x" ]]; then
               echo "Not a tag or master branch - skipping versioned docs."
               circleci step halt
-            else
-              make -f ./docs/Makefile versioned CURBRANCH=${CIRCLE_TAG:-$CIRCLE_BRANCH}
             fi
+      - restore_cache:
+          keys:
+            - docs-v1-{{ .Branch }}-{{ .Revision }}
+            - docs-v1-{{ .Branch }}-
+            - docs-v1-master
+            - docs-v1-
+          paths:
+            - ./docs/_build/_html
+      - run:
+          name: Generate Versioned Docs
+          command: make -f ./docs/Makefile versioned CURBRANCH=${CIRCLE_TAG:-$CIRCLE_BRANCH}
       - save_cache:
           key: docs-v1-{{ .Branch }}-{{ .Revision }}
           paths:
@@ -628,28 +665,11 @@ jobs:
               fi
             fi
 
-  deploy_docs:
-    docker:
-      - image: node:8.10.0
-    steps:
-      - checkout
-      - attach_workspace:
-          at: docs/_build
-      - run:
-          name: Disable jekyll builds
-          command: touch docs/_build/html/.nojekyll
-      - run:
-          name: Install and configure dependencies
-          command: |
-            npm install -g --silent gh-pages@2.0.1
-            git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
-            git config user.name "ci-build"
-      - add_ssh_keys:
-          fingerprints:
-            - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
-      - run:
-          name: Deploy docs to gh-pages branch
-          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/_build/html
+  deploy_docs_tag:
+    <<: *docs
+
+  deploy_docs_master:
+    <<: *docs
 
 workflows:
   version: 2
@@ -740,15 +760,28 @@ workflows:
             tags:
               only: /.*/
 
-      - deploy_docs:
+
+      - deploy_docs_master:
+          requires:
+            - build_docs
+            - ds005
+            - ds054
+            - test_pytest
+            - test_wrapper
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+
+      - deploy_docs_tag:
           requires:
             - build_docs
             - deploy_docker
             - deploy_pypi
           filters:
             branches:
-              only:
-                - /master/
+              ignore: /.*/
             tags:
               only: /.*/
 
