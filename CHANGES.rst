@@ -15,6 +15,7 @@
 * ENH: Write out the fsnative-to-T1w transform (#113) @oesteban
 * FIX: Build smriprep-docker like fmriprep-docker (#138) @oesteban
 * FIX: Check template identifiers are valid early (#135) @oesteban
+* FIX: Normalization workflow API - provide bare template names (#139) @oesteban
 * FIX: Re-organize FreeSurfer stages to avoid duplication and races (#117) @effigies
 * FIX: Revise naming of transforms when several T1w images are averaged (#106) @oesteban
 * MAINT: Fine-tune versioning extension of sphinx (#121) @oesteban
