@@ -6,6 +6,7 @@
 * CI: Run pytests on Python 3.7 for now (#133) @effigies
 * CI: Test packaging and update deploy_pypi step (#119) @effigies
 * DOC: Deploy docs to gh-pages from CircleCI - with versioning (#65) @rwblair
+* DOC: Minimal refactor preparing release (#140) @oesteban
 * DOC: Revise numpy docstrings so they are correctly rendered (#134) @oesteban
 * ENH: Add --fs-subjects-dir flag (#114) @effigies
 * ENH: Add a README.rst (#103) @oesteban
