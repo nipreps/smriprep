@@ -42,3 +42,18 @@ def test_template_parser(monkeypatch):
 
         with pytest.raises(ValueError):
             u._template(['MNI152NLin6Asym:res-2', 'UnkownTemplate:res-2'])
+
+        with pytest.raises(ValueError):
+            u._template(['MNI152NLin6Asym:res-2', 'func'])
+
+        u.set_nonstandard_spaces('func')
+        assert u._template(['MNI152NLin2009cAsym:res-2', 'func']) == \
+            OrderedDict([('MNI152NLin2009cAsym', {'res': '2'}), ('func', None)])
+
+        with pytest.raises(ValueError):
+            u._template(['MNI152NLin6Asym:res-2', 'fsnative'])
+
+        u.set_nonstandard_spaces(['func', 'fsnative'])
+        assert u._template(['MNI152NLin2009cAsym:res-2', 'func', 'fsnative']) == \
+            OrderedDict([('MNI152NLin2009cAsym', {'res': '2'}),
+                         ('func', None), ('fsnative', None)])
