@@ -66,3 +66,38 @@ class TemplateFlowSelect(SimpleInterface):
             **specs
         )
         return runtime
+
+
+class _TemplateDescInputSpec(BaseInterfaceInputSpec):
+    template = traits.Tuple(traits.Str, traits.Dict, mandatory=True,
+                            desc='(id, description) pair')
+
+
+class _TemplateDescOutputSpec(TraitedSpec):
+    name = traits.Str(desc='template identifier')
+    spec = traits.Dict(desc='template arguments')
+
+
+class TemplateDesc(SimpleInterface):
+    """
+    Select template description and name pairs.
+
+    This interface is necessary to ensure the good functioning
+    with iterables and JoinNodes.
+
+    >>> select = TemplateDesc(template=('MNI152NLin2009cAsym', {}))
+    >>> result = select.run()
+    >>> result.outputs.name
+    'MNI152NLin2009cAsym'
+
+    >>> result.outputs.spec
+    {}
+
+    """
+
+    input_spec = _TemplateDescInputSpec
+    output_spec = _TemplateDescOutputSpec
+
+    def _run_interface(self, runtime):
+        self._results['name'], self._results['spec'] = self.inputs.template
+        return runtime
