@@ -12,7 +12,7 @@ from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.ants import ImageMath
 from niworkflows.interfaces.mni import RobustMNINormalization
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
-from ..interfaces.templateflow import TemplateFlowSelect
+from ..interfaces.templateflow import TemplateFlowSelect, TemplateDesc
 
 
 def init_anat_norm_wf(
@@ -118,12 +118,14 @@ The following template{tpls} selected for spatial normalization:
 
     inputnode = pe.Node(niu.IdentityInterface(fields=[
         'moving_image', 'moving_mask', 'moving_segmentation', 'moving_tpms',
-        'lesion_mask', 'orig_t1w', 'template']),
+        'lesion_mask', 'orig_t1w']),
         name='inputnode')
-    inputnode.iterables = [('template', templates)]
     out_fields = ['standardized', 'anat2std_xfm', 'std2anat_xfm',
-                  'std_mask', 'std_dseg', 'std_tpms', 'template']
+                  'std_mask', 'std_dseg', 'std_tpms', 'template', 'template_spec']
     poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
+
+    split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name='split_desc')
+    split_desc.iterables = [('template', templates)]
 
     tf_select = pe.Node(TemplateFlowSelect(resolution=1 + debug),
                         name='tf_select', run_without_submitting=True)
@@ -151,16 +153,16 @@ The following template{tpls} selected for spatial normalization:
                           iterfield=['input_image'], name='std_tpms')
 
     workflow.connect([
-        (inputnode, tf_select, [(('template', _get_name), 'template'),
-                                (('template', _get_spec), 'template_spec')]),
-        (inputnode, registration, [(('template', _get_name), 'template'),
-                                   (('template', _get_spec), 'template_spec')]),
         (inputnode, trunc_mov, [('moving_image', 'op1')]),
         (inputnode, registration, [
             ('moving_mask', 'moving_mask'),
             ('lesion_mask', 'lesion_mask')]),
         (inputnode, tpl_moving, [('moving_image', 'input_image')]),
         (inputnode, std_mask, [('moving_mask', 'input_image')]),
+        (split_desc, tf_select, [('name', 'template'),
+                                 ('spec', 'template_spec')]),
+        (split_desc, registration, [('name', 'template'),
+                                    ('spec', 'template_spec')]),
         (tf_select, tpl_moving, [('t1w_file', 'reference_image')]),
         (tf_select, std_mask, [('t1w_file', 'reference_image')]),
         (tf_select, std_dseg, [('t1w_file', 'reference_image')]),
@@ -180,22 +182,15 @@ The following template{tpls} selected for spatial normalization:
         (std_mask, poutputnode, [('output_image', 'std_mask')]),
         (std_dseg, poutputnode, [('output_image', 'std_dseg')]),
         (std_tpms, poutputnode, [('output_image', 'std_tpms')]),
-        (inputnode, poutputnode, [(('template', _get_name), 'template')]),
+        (split_desc, poutputnode, [('name', 'template'),
+                                   ('spec', 'template_spec')]),
     ])
 
     # Provide synchronized output
     outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
-                             name='outputnode', joinsource='inputnode')
+                             name='outputnode', joinsource='split_desc')
     workflow.connect([
         (poutputnode, outputnode, [(f, f) for f in out_fields]),
     ])
 
     return workflow
-
-
-def _get_name(in_tuple):
-    return in_tuple[0]
-
-
-def _get_spec(in_tuple):
-    return in_tuple[1]

@@ -306,7 +306,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('std_t1w', 'inputnode.std_t1w'),
             ('std_mask', 'inputnode.std_mask')]),
         (anat_norm_wf, anat_reports_wf, [
-            ('poutputnode.template', 'inputnode.template')]),
+            ('poutputnode.template', 'inputnode.template'),
+            ('poutputnode.template_spec', 'inputnode.template_spec')]),
         # Connect derivatives
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
