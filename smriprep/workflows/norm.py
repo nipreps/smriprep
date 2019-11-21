@@ -23,16 +23,27 @@ def init_anat_norm_wf(
     """
     Build an individual spatial normalization workflow using ``antsRegistration``.
 
-    .. workflow ::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow ::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.norm import init_anat_norm_wf
-        wf = init_anat_norm_wf(
-            debug=False,
-            omp_nthreads=1,
-            templates=[('MNI152NLin2009cAsym', {}), ('MNI152NLin6Asym', {})],
-        )
+            from smriprep.workflows.norm import init_anat_norm_wf
+            wf = init_anat_norm_wf(
+                debug=False,
+                omp_nthreads=1,
+                templates=[('MNI152NLin2009cAsym', {}), ('MNI152NLin6Asym', {})],
+            )
+
+    .. important::
+        This workflow defines an iterable input over the input parameter ``templates``,
+        so Nipype will produce one copy of the downstream workflows which connect
+        ``poutputnode.template`` or ``poutputnode.template_spec`` to their inputs
+        (``poutputnode`` stands for *parametric output node*).
+        Nipype refers to this expansion of the graph as *parameterized execution*.
+        If a joint list of values is required (and thus cutting off parameterization),
+        please use the equivalent outputs of ``outputnode`` (which *joins* all the
+        parameterized execution paths).
 
     Parameters
     ----------
@@ -80,9 +91,11 @@ def init_anat_norm_wf(
     std_tpms
         The ``moving_tpms`` in template space (matches ``standardized`` output).
     template
-        The input parameter ``template`` for further use in nodes depending
-        on this
-        workflow.
+        Template name extracted from the input parameter ``template``, for further
+        use in downstream nodes.
+    template_spec
+        Template specifications extracted from the input parameter ``template``, for
+        further use in downstream nodes.
 
     """
     ntpls = len(templates)

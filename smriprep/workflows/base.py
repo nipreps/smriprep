@@ -42,36 +42,37 @@ def init_smriprep_wf(
     """
     Create the execution graph of *sMRIPrep*, with a sub-workflow for each subject.
 
-    If FreeSurfer's recon-all is to be run, a FreeSurfer derivatives folder is
+    If FreeSurfer's ``recon-all`` is to be run, a FreeSurfer derivatives folder is
     created and populated with any needed template subjects.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        import os
-        from collections import OrderedDict, namedtuple
-        BIDSLayout = namedtuple('BIDSLayout', ['root'])
-        os.environ['FREESURFER_HOME'] = os.getcwd()
-        from smriprep.workflows.base import init_smriprep_wf
-        wf = init_smriprep_wf(
-            debug=False,
-            freesurfer=True,
-            fs_subjects_dir=None,
-            hires=True,
-            layout=BIDSLayout('.'),
-            longitudinal=False,
-            low_mem=False,
-            omp_nthreads=1,
-            output_dir='.',
-            output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
-                                       ('fsaverage5', {})]),
-            run_uuid='testrun',
-            skull_strip_fixed_seed=False,
-            skull_strip_template=('OASIS30ANTs', {}),
-            subject_list=['smripreptest'],
-            work_dir='.',
-        )
+            import os
+            from collections import OrderedDict, namedtuple
+            BIDSLayout = namedtuple('BIDSLayout', ['root'])
+            os.environ['FREESURFER_HOME'] = os.getcwd()
+            from smriprep.workflows.base import init_smriprep_wf
+            wf = init_smriprep_wf(
+                debug=False,
+                freesurfer=True,
+                fs_subjects_dir=None,
+                hires=True,
+                layout=BIDSLayout('.'),
+                longitudinal=False,
+                low_mem=False,
+                omp_nthreads=1,
+                output_dir='.',
+                output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
+                                           ('fsaverage5', {})]),
+                run_uuid='testrun',
+                skull_strip_fixed_seed=False,
+                skull_strip_template=('OASIS30ANTs', {}),
+                subject_list=['smripreptest'],
+                work_dir='.',
+            )
 
     Parameters
     ----------
@@ -190,31 +191,31 @@ def init_single_subject_wf(
     Functional preprocessing is performed using a separate workflow for each
     individual BOLD series.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from collections import OrderedDict, namedtuple
-        from smriprep.workflows.base import init_single_subject_wf
-        BIDSLayout = namedtuple('BIDSLayout', ['root'])
-        wf = init_single_subject_wf(
-            debug=False,
-            freesurfer=True,
-            hires=True,
-            layout=BIDSLayout('.'),
-            longitudinal=False,
-            low_mem=False,
-            name='single_subject_wf',
-            omp_nthreads=1,
-            output_dir='.',
-            output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
-                                       ('fsaverage5', {})]),
-            reportlets_dir='.',
-            skull_strip_fixed_seed=False,
-            skull_strip_template=('OASIS30ANTs', {}),
-            subject_id='test',
-        )
-
+            from collections import OrderedDict, namedtuple
+            from smriprep.workflows.base import init_single_subject_wf
+            BIDSLayout = namedtuple('BIDSLayout', ['root'])
+            wf = init_single_subject_wf(
+                debug=False,
+                freesurfer=True,
+                hires=True,
+                layout=BIDSLayout('.'),
+                longitudinal=False,
+                low_mem=False,
+                name='single_subject_wf',
+                omp_nthreads=1,
+                output_dir='.',
+                output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
+                                           ('fsaverage5', {})]),
+                reportlets_dir='.',
+                skull_strip_fixed_seed=False,
+                skull_strip_template=('OASIS30ANTs', {}),
+                subject_id='test',
+            )
 
     Parameters
     ----------
