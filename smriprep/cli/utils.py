@@ -2,16 +2,24 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """CLI Utilities."""
 from argparse import Action
-from ..conf import TF_TEMPLATES as _TF_TEMPLATES
-
-EXCEPTIONS = None
+from ..conf import TF_TEMPLATES as _TF_TEMPLATES, LEGACY_SPACES
 
 
 class ParseTemplates(Action):
     """Manipulate a string of templates with modifiers."""
 
+    EXCEPTIONS = tuple()
+
     def __call__(self, parser, namespace, values, option_string=None):
         setattr(namespace, self.dest, _template(values))
+
+    @classmethod
+    def set_nonstandard_spaces(cls, inlist):
+        """Set permissible nonstandard spaces names."""
+        if isinstance(inlist, str):
+            inlist = [inlist]
+
+        cls.EXCEPTIONS = tuple(inlist)
 
 
 def _template(inlist):
@@ -29,7 +37,6 @@ def _template(inlist):
 
 def output_space(value):
     """Parse one element of ``--output-spaces``."""
-    global EXCEPTIONS
     tpl_args = value.split(':')
     template = tpl_args[0]
     spec = {}
@@ -37,7 +44,10 @@ def output_space(value):
         mitems = modifier.split('-', 1)
         spec[mitems[0]] = len(mitems) == 1 or mitems[1]
 
-    if EXCEPTIONS and template in EXCEPTIONS:
+    if template in ParseTemplates.EXCEPTIONS:
+        return template, None
+
+    if template in LEGACY_SPACES:
         return template, None
 
     if template not in _TF_TEMPLATES:
@@ -46,12 +56,3 @@ Template identifier "{}" not found. Please, make sure TemplateFlow is \
 correctly installed and contains the given template identifiers.""".format(template))
 
     return template, spec
-
-
-def set_nonstandard_spaces(inlist):
-    """Set permissible nonstandard spaces names."""
-    global EXCEPTIONS
-    if isinstance(inlist, str):
-        inlist = [inlist]
-
-    EXCEPTIONS = tuple(inlist)
