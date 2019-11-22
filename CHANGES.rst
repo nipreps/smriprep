@@ -14,6 +14,7 @@
 * ENH: Decoupling anatomical reports (#112) @oesteban
 * ENH: Reduce friction when iterating over target templates (#111) @oesteban
 * ENH: Write out the fsnative-to-T1w transform (#113) @oesteban
+* FIX: Allow setting nonstandard spaces for parser (#141) @oesteban
 * FIX: Build smriprep-docker like fmriprep-docker (#138) @oesteban
 * FIX: Check template identifiers are valid early (#135) @oesteban
 * FIX: Normalization workflow API - provide bare template names (#139) @oesteban
