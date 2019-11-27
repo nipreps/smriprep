@@ -9,8 +9,7 @@ from nipype.interfaces.base import (
 
 
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
-    template = traits.Enum(*tf.templates(), mandatory=True,
-                           desc='Template ID')
+    template = traits.Str('MNI152NLin2009cAsym', mandatory=True, desc='Template ID')
     atlas = InputMultiObject(traits.Str, desc='Specify an atlas')
     resolution = InputMultiObject(traits.Int, desc='Specify a template resolution index')
     template_spec = traits.DictStrAny(
@@ -66,4 +65,39 @@ class TemplateFlowSelect(SimpleInterface):
             suffix='mask',
             **specs
         )
+        return runtime
+
+
+class _TemplateDescInputSpec(BaseInterfaceInputSpec):
+    template = traits.Tuple(traits.Str, traits.Dict, mandatory=True,
+                            desc='(id, description) pair')
+
+
+class _TemplateDescOutputSpec(TraitedSpec):
+    name = traits.Str(desc='template identifier')
+    spec = traits.Dict(desc='template arguments')
+
+
+class TemplateDesc(SimpleInterface):
+    """
+    Select template description and name pairs.
+
+    This interface is necessary to ensure the good functioning
+    with iterables and JoinNodes.
+
+    >>> select = TemplateDesc(template=('MNI152NLin2009cAsym', {}))
+    >>> result = select.run()
+    >>> result.outputs.name
+    'MNI152NLin2009cAsym'
+
+    >>> result.outputs.spec
+    {}
+
+    """
+
+    input_spec = _TemplateDescInputSpec
+    output_spec = _TemplateDescOutputSpec
+
+    def _run_interface(self, runtime):
+        self._results['name'], self._results['spec'] = self.inputs.template
         return runtime

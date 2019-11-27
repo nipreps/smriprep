@@ -8,9 +8,14 @@ API for developers
 
 
 """
-
-from .__about__ import (  # noqa
-    __version__,
+from .__about__ import (
     __copyright__,
     __credits__,
+    __version__,
 )
+
+__all__ = [
+    '__copyright__',
+    '__credits__',
+    '__version__',
+]

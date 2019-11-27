@@ -6,17 +6,16 @@ Surface preprocessing workflows.
 **sMRIPrep** uses FreeSurfer to reconstruct surfaces from T1w/T2w
 structural images.
 
-.. autofunction:: init_surface_recon_wf
-.. autofunction:: init_autorecon_resume_wf
-.. autofunction:: init_gifti_surface_wf
-
 """
 from nipype.pipeline import engine as pe
+from nipype.interfaces.base import Undefined
 from nipype.interfaces import (
     io as nio,
     utility as niu,
     freesurfer as fs,
 )
+
+from ..interfaces.freesurfer import ReconAll
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -78,76 +77,73 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
     This procedure is inspired on mindboggle's solution to the problem:
     https://github.com/nipy/mindboggle/blob/7f91faaa7664d820fe12ccc52ebaf21d679795e2/mindboggle/guts/segment.py#L1660
 
-
     The final phase resumes reconstruction, using the T2w image to assist
     in finding the pial surface, if available.
     See :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf` for details.
-
 
     Memory annotations for FreeSurfer are based off `their documentation
     <https://surfer.nmr.mgh.harvard.edu/fswiki/SystemRequirements>`_.
     They specify an allocation of 4GB per subject. Here we define 5GB
     to have a certain margin.
 
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
+            from smriprep.workflows.surfaces import init_surface_recon_wf
+            wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
-
-        from smriprep.workflows.surfaces import init_surface_recon_wf
-        wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
-
-    **Parameters**
-
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        hires : bool
-            Enable sub-millimeter preprocessing in FreeSurfer
-
-    **Inputs**
-
-        t1w
-            List of T1-weighted structural images
-        t2w
-            List of T2-weighted structural images (only first used)
-        flair
-            List of FLAIR images
-        skullstripped_t1
-            Skull-stripped T1-weighted image (or mask of image)
-        ants_segs
-            Brain tissue segmentation from ANTS ``antsBrainExtraction.sh``
-        corrected_t1
-            INU-corrected, merged T1-weighted image
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-
-    **Outputs**
-
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-        t1w2fsnative_xfm
-            LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
-        fsnative2t1w_xfm
-            LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
-        surfaces
-            GIFTI surfaces for gray/white matter boundary, pial surface,
-            midthickness (or graymid) surface, and inflated surfaces
-        out_brainmask
-            Refined brainmask, derived from FreeSurfer's ``aseg`` volume
-        out_aseg
-            FreeSurfer's aseg segmentation, in native T1w space
-        out_aparc
-            FreeSurfer's aparc+aseg segmentation, in native T1w space
-
-    **Subworkflows**
-
+    Subworkflows
         * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
         * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
+
+    Parameters
+    ----------
+    omp_nthreads : int
+        Maximum number of threads an individual process may use
+    hires : bool
+        Enable sub-millimeter preprocessing in FreeSurfer
+
+    Inputs
+    ------
+    t1w
+        List of T1-weighted structural images
+    t2w
+        List of T2-weighted structural images (only first used)
+    flair
+        List of FLAIR images
+    skullstripped_t1
+        Skull-stripped T1-weighted image (or mask of image)
+    ants_segs
+        Brain tissue segmentation from ANTS ``antsBrainExtraction.sh``
+    corrected_t1
+        INU-corrected, merged T1-weighted image
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+
+    Outputs
+    -------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    t1w2fsnative_xfm
+        LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    surfaces
+        GIFTI surfaces for gray/white matter boundary, pial surface,
+        midthickness (or graymid) surface, and inflated surfaces
+    out_brainmask
+        Refined brainmask, derived from FreeSurfer's ``aseg`` volume
+    out_aseg
+        FreeSurfer's aseg segmentation, in native T1w space
+    out_aparc
+        FreeSurfer's aparc+aseg segmentation, in native T1w space
+
     """
     workflow = Workflow(name=name)
     workflow.__desc__ = """\
@@ -174,7 +170,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     fov_check = pe.Node(niu.Function(function=_check_cw256), name='fov_check')
 
     autorecon1 = pe.Node(
-        fs.ReconAll(directive='autorecon1', openmp=omp_nthreads),
+        ReconAll(directive='autorecon1', openmp=omp_nthreads),
         name='autorecon1', n_procs=omp_nthreads, mem_gb=5)
     autorecon1.interface._can_resume = False
     autorecon1.interface._always_run = True
@@ -258,56 +254,60 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     r"""
     Resume recon-all execution, assuming the `-autorecon1` stage has been completed.
 
-    In order to utilize resources efficiently, this is broken down into five
+    In order to utilize resources efficiently, this is broken down into seven
     sub-stages; after the first stage, the second and third stages may be run
-    simultaneously, and the fourth and fifth stages may be run simultaneously,
-    if resources permit::
+    simultaneously, and the fifth and sixth stages may be run simultaneously,
+    if resources permit; the fourth stage must be run prior to the fifth and
+    sixth, and the seventh must be run after::
 
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
             -autorecon2-volonly
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
-            -autorecon-hemi lh \
-            -noparcstats -nocortparc2 -noparcstats2 -nocortparc3 \
-            -noparcstats3 -nopctsurfcon -nohyporelabel -noaparc2aseg \
-            -noapas2aseg -nosegstats -nowmparc -nobalabels
+            -autorecon-hemi lh -T2pial \
+            -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
-            -autorecon-hemi rh \
-            -noparcstats -nocortparc2 -noparcstats2 -nocortparc3 \
-            -noparcstats3 -nopctsurfcon -nohyporelabel -noaparc2aseg \
-            -noapas2aseg -nosegstats -nowmparc -nobalabels
+            -autorecon-hemi rh -T2pial \
+            -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
-            -autorecon3 -hemi lh -T2pial
+            -cortribbon
         $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
-            -autorecon3 -hemi rh -T2pial
+            -autorecon-hemi lh -nohyporelabel
+        $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
+            -autorecon-hemi rh -nohyporelabel
+        $ recon-all -sd <output dir>/freesurfer -subjid sub-<subject_label> \
+            -autorecon3
 
-    The excluded steps in the second and third stages (``-no<option>``) are not
-    fully hemisphere independent, and are therefore postponed to the final two
-    stages.
+    The parcellation statistics steps are excluded from the second and third
+    stages, because they require calculation of the cortical ribbon volume
+    (the fourth stage).
+    Hypointensity relabeling is excluded from hemisphere-specific steps to avoid
+    race conditions, as it is a volumetric operation.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.surfaces import init_autorecon_resume_wf
-        wf = init_autorecon_resume_wf(omp_nthreads=1)
+            from smriprep.workflows.surfaces import init_autorecon_resume_wf
+            wf = init_autorecon_resume_wf(omp_nthreads=1)
 
-    **Inputs**
+    Inputs
+    ------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    use_T2
+        Refine pial surface using T2w image
+    use_FLAIR
+        Refine pial surface using FLAIR image
 
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-        use_T2
-            Refine pial surface using T2w image
-        use_FLAIR
-            Refine pial surface using FLAIR image
-
-    **Outputs**
-
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
+    Outputs
+    -------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
 
     """
     workflow = Workflow(name=name)
@@ -323,28 +323,44 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         name='outputnode')
 
     autorecon2_vol = pe.Node(
-        fs.ReconAll(directive='autorecon2-volonly', openmp=omp_nthreads),
+        ReconAll(directive='autorecon2-volonly', openmp=omp_nthreads),
         n_procs=omp_nthreads, mem_gb=5, name='autorecon2_vol')
     autorecon2_vol.interface._always_run = True
 
     autorecon_surfs = pe.MapNode(
-        fs.ReconAll(
+        ReconAll(
             directive='autorecon-hemi',
-            flags=['-noparcstats', '-nocortparc2', '-noparcstats2',
-                   '-nocortparc3', '-noparcstats3', '-nopctsurfcon',
-                   '-nohyporelabel', '-noaparc2aseg', '-noapas2aseg',
-                   '-nosegstats', '-nowmparc', '-nobalabels'],
+            flags=['-noparcstats', '-noparcstats2', '-noparcstats3',
+                   '-nohyporelabel', '-nobalabels'],
             openmp=omp_nthreads),
         iterfield='hemi', n_procs=omp_nthreads, mem_gb=5,
         name='autorecon_surfs')
     autorecon_surfs.inputs.hemi = ['lh', 'rh']
     autorecon_surfs.interface._always_run = True
 
-    autorecon3 = pe.MapNode(
-        fs.ReconAll(directive='autorecon3', openmp=omp_nthreads),
+    # -cortribbon is a prerequisite for -parcstats, -parcstats2, -parcstats3
+    cortribbon = pe.Node(ReconAll(directive=Undefined,
+                                  steps=['cortribbon']), name='cortribbon')
+    cortribbon.interface._always_run = True
+
+    # -parcstats* can be run per-hemisphere
+    # -hyporelabel is volumetric, even though it's part of -autorecon-hemi
+    parcstats = pe.MapNode(
+        ReconAll(
+            directive='autorecon-hemi',
+            flags=['-nohyporelabel'],
+            openmp=omp_nthreads),
         iterfield='hemi', n_procs=omp_nthreads, mem_gb=5,
+        name='parcstats')
+    parcstats.inputs.hemi = ['lh', 'rh']
+    parcstats.interface._always_run = True
+
+    # Runs: -hyporelabel -aparc2aseg -apas2aseg -segstats -wmparc
+    # All volumetric, so don't
+    autorecon3 = pe.Node(
+        ReconAll(directive='autorecon3', openmp=omp_nthreads),
+        n_procs=omp_nthreads, mem_gb=5,
         name='autorecon3')
-    autorecon3.inputs.hemi = ['lh', 'rh']
     autorecon3.interface._always_run = True
 
     def _dedup(in_list):
@@ -355,16 +371,20 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         return vals.pop()
 
     workflow.connect([
-        (inputnode, autorecon3, [('use_T2', 'use_T2'),
-                                 ('use_FLAIR', 'use_FLAIR')]),
+        (inputnode, autorecon_surfs, [('use_T2', 'use_T2'),
+                                      ('use_FLAIR', 'use_FLAIR')]),
         (inputnode, autorecon2_vol, [('subjects_dir', 'subjects_dir'),
                                      ('subject_id', 'subject_id')]),
         (autorecon2_vol, autorecon_surfs, [('subjects_dir', 'subjects_dir'),
                                            ('subject_id', 'subject_id')]),
-        (autorecon_surfs, autorecon3, [(('subjects_dir', _dedup), 'subjects_dir'),
+        (autorecon_surfs, cortribbon, [(('subjects_dir', _dedup), 'subjects_dir'),
                                        (('subject_id', _dedup), 'subject_id')]),
-        (autorecon3, outputnode, [(('subjects_dir', _dedup), 'subjects_dir'),
-                                  (('subject_id', _dedup), 'subject_id')]),
+        (cortribbon, parcstats, [('subjects_dir', 'subjects_dir'),
+                                 ('subject_id', 'subject_id')]),
+        (parcstats, autorecon3, [(('subjects_dir', _dedup), 'subjects_dir'),
+                                 (('subject_id', _dedup), 'subject_id')]),
+        (autorecon3, outputnode, [('subjects_dir', 'subjects_dir'),
+                                  ('subject_id', 'subject_id')]),
     ])
 
     return workflow
@@ -382,27 +402,28 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
     Additionally, the vertex coordinates are :py:class:`recentered
     <smriprep.interfaces.NormalizeSurf>` to align with native T1w space.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.surfaces import init_gifti_surface_wf
-        wf = init_gifti_surface_wf()
+            from smriprep.workflows.surfaces import init_gifti_surface_wf
+            wf = init_gifti_surface_wf()
 
-    **Inputs**
+    Inputs
+    ------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    fsnative2t1w_xfm
+        LTA formatted affine transform file (inverse)
 
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-        fsnative2t1w_xfm
-            LTA formatted affine transform file (inverse)
-
-    **Outputs**
-
-        surfaces
-            GIFTI surfaces for gray/white matter boundary, pial surface,
-            midthickness (or graymid) surface, and inflated surfaces
+    Outputs
+    -------
+    surfaces
+        GIFTI surfaces for gray/white matter boundary, pial surface,
+        midthickness (or graymid) surface, and inflated surfaces
 
     """
     workflow = Workflow(name=name)
@@ -454,32 +475,33 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
     """
     Get a segmentation from FreeSurfer conformed space into native T1w space.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.surfaces import init_segs_to_native_wf
-        wf = init_segs_to_native_wf()
+            from smriprep.workflows.surfaces import init_segs_to_native_wf
+            wf = init_segs_to_native_wf()
 
+    Parameters
+    ----------
+    segmentation
+        The name of a segmentation ('aseg' or 'aparc_aseg' or 'wmparc')
 
-    **Parameters**
-        segmentation
-            The name of a segmentation ('aseg' or 'aparc_aseg' or 'wmparc')
+    Inputs
+    ------
+    in_file
+        Anatomical, merged T1w image after INU correction
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
 
-    **Inputs**
+    Outputs
+    -------
+    out_file
+        The selected segmentation, after resampling in native space
 
-        in_file
-            Anatomical, merged T1w image after INU correction
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        subject_id
-            FreeSurfer subject ID
-
-
-    **Outputs**
-
-        out_file
-            The selected segmentation, after resampling in native space
     """
     workflow = Workflow(name='%s_%s' % (name, segmentation))
     inputnode = pe.Node(niu.IdentityInterface([

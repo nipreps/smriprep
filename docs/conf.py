@@ -21,6 +21,8 @@ from smriprep import (
     __version__ as _version,
     __copyright__ as _copyright,
 )
+from smriprep.__about__ import __url__ as github_url
+
 sys.path.append(os.path.abspath('sphinxext'))
 sys.path.insert(0, os.path.abspath('../wrapper'))
 
@@ -30,27 +32,64 @@ copyright = _copyright
 author = 'The sMRIPrep Developers'
 
 # The short X.Y version
-version = Version(_version).base_version
+version = Version(_version).public
 # The full version, including alpha/beta/rc tags
-release = _version
+release = version
 
 
 # -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinxcontrib.apidoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.linkcode',
     'sphinx.ext.githubpages',
     'nipype.sphinxext.plot_workflow',
+    'sphinxcontrib.apidoc',
+    'sphinxcontrib.napoleon'
+]
+
+autodoc_mock_imports = [
+    'matplotlib',
+    'nilearn',
+    'nitime',
+    'numpy',
+    'pandas',
+    'seaborn',
+    'skimage',
+    'svgutils',
+    'templateflow',
+    'transforms3d',
+]
+
+# Accept custom section names to be parsed for numpy-style docstrings
+# of parameters.
+# Requires pinning sphinxcontrib-napoleon to a specific commit while
+# https://github.com/sphinx-contrib/napoleon/pull/10 is merged.
+napoleon_use_param = False
+napoleon_custom_sections = [
+    ('Inputs', 'Parameters'),
+    ('Outputs', 'Parameters'),
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+
+def linkcode_resolve(domain, info):
+    """Configure linkcode extension."""
+    if domain != 'py':
+        return None
+    if not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    return "{url}/blob/{version}/{filename}.py".format(
+        url=github_url, filename=filename,
+        version=os.getenv('CIRCLE_SHA1', version))
+
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -185,9 +224,8 @@ epub_exclude_files = ['search.html']
 
 apidoc_module_dir = '../smriprep'
 apidoc_output_dir = 'api'
-apidoc_excluded_paths = ['tests']
+apidoc_excluded_paths = ['conftest.py', '*/tests/*', 'tests/*', 'data/*', 'conf/*']
 apidoc_separate_modules = True
-# apidoc_extra_args = ['--templatedir=_templates/apidoc/', '--no-headings', '--module-first', '-d 1', '-T']
 apidoc_extra_args = ['--module-first', '-d 1', '-T']
 
 # -- Options for intersphinx extension ---------------------------------------

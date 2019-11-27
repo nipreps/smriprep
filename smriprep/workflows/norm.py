@@ -1,23 +1,18 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-Spatial normalization workflows.
-
-.. autofunction:: init_anat_norm_wf
-
-"""
+"""Spatial normalization workflows."""
 from collections import defaultdict
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
 
-from templateflow.api import get_metadata, templates as get_templates
+from templateflow.api import get_metadata
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.ants import ImageMath
 from niworkflows.interfaces.mni import RobustMNINormalization
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
-from ..interfaces.templateflow import TemplateFlowSelect
+from ..interfaces.templateflow import TemplateFlowSelect, TemplateDesc
 
 
 def init_anat_norm_wf(
@@ -28,75 +23,81 @@ def init_anat_norm_wf(
     """
     Build an individual spatial normalization workflow using ``antsRegistration``.
 
-    .. workflow ::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow ::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.norm import init_anat_norm_wf
-        wf = init_anat_norm_wf(
-            debug=False,
-            omp_nthreads=1,
-            templates=[('MNI152NLin2009cAsym', {}), ('MNI152NLin6Asym', {})],
-        )
+            from smriprep.workflows.norm import init_anat_norm_wf
+            wf = init_anat_norm_wf(
+                debug=False,
+                omp_nthreads=1,
+                templates=[('MNI152NLin2009cAsym', {}), ('MNI152NLin6Asym', {})],
+            )
 
-    **Parameters**
+    .. important::
+        This workflow defines an iterable input over the input parameter ``templates``,
+        so Nipype will produce one copy of the downstream workflows which connect
+        ``poutputnode.template`` or ``poutputnode.template_spec`` to their inputs
+        (``poutputnode`` stands for *parametric output node*).
+        Nipype refers to this expansion of the graph as *parameterized execution*.
+        If a joint list of values is required (and thus cutting off parameterization),
+        please use the equivalent outputs of ``outputnode`` (which *joins* all the
+        parameterized execution paths).
 
-        debug : bool
-            Apply sloppy arguments to speed up processing. Use with caution,
-            registration processes will be very inaccurate.
-        omp_nthreads : int
-            Maximum number of threads an individual process may use.
-        templates : list of tuples
-            List of tuples containing TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``)
-            and corresponding specs, which specify target templates
-            for spatial normalization.
+    Parameters
+    ----------
+    debug : bool
+        Apply sloppy arguments to speed up processing. Use with caution,
+        registration processes will be very inaccurate.
+    omp_nthreads : int
+        Maximum number of threads an individual process may use.
+    templates : list of tuples
+        List of tuples containing TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``)
+        and corresponding specs, which specify target templates
+        for spatial normalization.
 
-    **Inputs**
+    Inputs
+    ------
+    moving_image
+        The input image that will be normalized to standard space.
+    moving_mask
+        A precise brain mask separating skull/skin/fat from brain
+        structures.
+    moving_segmentation
+        A brain tissue segmentation of the ``moving_image``.
+    moving_tpms
+        tissue probability maps (TPMs) corresponding to the
+        ``moving_segmentation``.
+    lesion_mask
+        (optional) A mask to exclude regions from the cost-function
+        input domain to enable standardization of lesioned brains.
+    orig_t1w
+        The original T1w image from the BIDS structure.
 
-        moving_image
-            The input image that will be normalized to standard space.
-        moving_mask
-            A precise brain mask separating skull/skin/fat from brain
-            structures.
-        moving_segmentation
-            A brain tissue segmentation of the ``moving_image``.
-        moving_tpms
-            tissue probability maps (TPMs) corresponding to the
-            ``moving_segmentation``.
-        lesion_mask
-            (optional) A mask to exclude regions from the cost-function
-            input domain to enable standardization of lesioned brains.
-        orig_t1w
-            The original T1w image from the BIDS structure.
-
-    **Outputs**
-
-        standardized
-            The T1w after spatial normalization, in template space.
-        anat2std_xfm
-            The T1w-to-template transform.
-        std2anat_xfm
-            The template-to-T1w transform.
-        std_mask
-            The ``moving_mask`` in template space (matches ``standardized`` output).
-        std_dseg
-            The ``moving_segmentation`` in template space (matches ``standardized``
-            output).
-        std_tpms
-            The ``moving_tpms`` in template space (matches ``standardized`` output).
-        template
-            The input parameter ``template`` for further use in nodes depending
-            on this
-            workflow.
+    Outputs
+    -------
+    standardized
+        The T1w after spatial normalization, in template space.
+    anat2std_xfm
+        The T1w-to-template transform.
+    std2anat_xfm
+        The template-to-T1w transform.
+    std_mask
+        The ``moving_mask`` in template space (matches ``standardized`` output).
+    std_dseg
+        The ``moving_segmentation`` in template space (matches ``standardized``
+        output).
+    std_tpms
+        The ``moving_tpms`` in template space (matches ``standardized`` output).
+    template
+        Template name extracted from the input parameter ``template``, for further
+        use in downstream nodes.
+    template_spec
+        Template specifications extracted from the input parameter ``template``, for
+        further use in downstream nodes.
 
     """
-    templateflow = get_templates()
-    missing_tpls = [template for template, _ in templates if template not in templateflow]
-    if missing_tpls:
-        raise ValueError("""\
-One or more templates were not found (%s). Please make sure TemplateFlow is \
-correctly installed and contains the given template identifiers.""" % ', '.join(missing_tpls))
-
     ntpls = len(templates)
     workflow = Workflow('anat_norm_wf')
     workflow.__desc__ = """\
@@ -130,12 +131,14 @@ The following template{tpls} selected for spatial normalization:
 
     inputnode = pe.Node(niu.IdentityInterface(fields=[
         'moving_image', 'moving_mask', 'moving_segmentation', 'moving_tpms',
-        'lesion_mask', 'orig_t1w', 'template']),
+        'lesion_mask', 'orig_t1w']),
         name='inputnode')
-    inputnode.iterables = [('template', templates)]
     out_fields = ['standardized', 'anat2std_xfm', 'std2anat_xfm',
-                  'std_mask', 'std_dseg', 'std_tpms', 'template']
+                  'std_mask', 'std_dseg', 'std_tpms', 'template', 'template_spec']
     poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
+
+    split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name='split_desc')
+    split_desc.iterables = [('template', templates)]
 
     tf_select = pe.Node(TemplateFlowSelect(resolution=1 + debug),
                         name='tf_select', run_without_submitting=True)
@@ -163,16 +166,16 @@ The following template{tpls} selected for spatial normalization:
                           iterfield=['input_image'], name='std_tpms')
 
     workflow.connect([
-        (inputnode, tf_select, [(('template', _get_name), 'template'),
-                                (('template', _get_spec), 'template_spec')]),
-        (inputnode, registration, [(('template', _get_name), 'template'),
-                                   (('template', _get_spec), 'template_spec')]),
         (inputnode, trunc_mov, [('moving_image', 'op1')]),
         (inputnode, registration, [
             ('moving_mask', 'moving_mask'),
             ('lesion_mask', 'lesion_mask')]),
         (inputnode, tpl_moving, [('moving_image', 'input_image')]),
         (inputnode, std_mask, [('moving_mask', 'input_image')]),
+        (split_desc, tf_select, [('name', 'template'),
+                                 ('spec', 'template_spec')]),
+        (split_desc, registration, [('name', 'template'),
+                                    ('spec', 'template_spec')]),
         (tf_select, tpl_moving, [('t1w_file', 'reference_image')]),
         (tf_select, std_mask, [('t1w_file', 'reference_image')]),
         (tf_select, std_dseg, [('t1w_file', 'reference_image')]),
@@ -192,22 +195,15 @@ The following template{tpls} selected for spatial normalization:
         (std_mask, poutputnode, [('output_image', 'std_mask')]),
         (std_dseg, poutputnode, [('output_image', 'std_dseg')]),
         (std_tpms, poutputnode, [('output_image', 'std_tpms')]),
-        (inputnode, poutputnode, [('template', 'template')]),
+        (split_desc, poutputnode, [('name', 'template'),
+                                   ('spec', 'template_spec')]),
     ])
 
     # Provide synchronized output
     outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
-                             name='outputnode', joinsource='inputnode')
+                             name='outputnode', joinsource='split_desc')
     workflow.connect([
         (poutputnode, outputnode, [(f, f) for f in out_fields]),
     ])
 
     return workflow
-
-
-def _get_name(in_tuple):
-    return in_tuple[0]
-
-
-def _get_spec(in_tuple):
-    return in_tuple[1]

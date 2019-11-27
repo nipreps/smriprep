@@ -1,12 +1,6 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-Writting outputs.
-
-.. autofunction:: init_anat_reports_wf
-.. autofunction:: init_anat_derivatives_wf
-
-"""
+"""Writting outputs."""
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
@@ -28,7 +22,7 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
 
     inputfields = ['source_file', 't1w_conform_report',
                    't1w_preproc', 't1w_dseg', 't1w_mask',
-                   'template', 'std_t1w', 'std_mask',
+                   'template', 'template_spec', 'std_t1w', 'std_mask',
                    'subject_id', 'subjects_dir']
     inputnode = pe.Node(niu.IdentityInterface(fields=inputfields),
                         name='inputnode')
@@ -70,9 +64,9 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         name='ds_std_t1w_report', run_without_submitting=True)
 
     workflow.connect([
-        (inputnode, tf_select, [(('template', _get_name), 'template'),
-                                (('template', _get_spec), 'template_spec')]),
-        (inputnode, norm_rpt, [(('template', _get_name), 'before_label')]),
+        (inputnode, tf_select, [('template', 'template'),
+                                ('template_spec', 'template_spec')]),
+        (inputnode, norm_rpt, [('template', 'before_label')]),
         (inputnode, norm_msk, [('std_t1w', 'after'),
                                ('std_mask', 'after_mask')]),
         (tf_select, norm_msk, [('t1w_file', 'before'),
@@ -80,7 +74,7 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         (norm_msk, norm_rpt, [('before', 'before'),
                               ('after', 'after')]),
         (inputnode, ds_std_t1w_report, [
-            (('template', _get_name), 'space'),
+            ('template', 'space'),
             ('source_file', 'source_file')]),
         (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
     ])
@@ -199,23 +193,23 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         # Template
         (inputnode, ds_t1w_tpl_warp, [
             ('anat2std_xfm', 'in_file'),
-            (('template', _get_name), 'to')]),
+            ('template', 'to')]),
         (inputnode, ds_t1w_tpl_inv_warp, [
             ('std2anat_xfm', 'in_file'),
-            (('template', _get_name), 'from')]),
+            ('template', 'from')]),
         (inputnode, ds_t1w_tpl, [
             ('std_t1w', 'in_file'),
-            (('template', _get_name), 'space')]),
+            ('template', 'space')]),
         (inputnode, ds_std_mask, [
             ('std_mask', 'in_file'),
-            (('template', _get_name), 'space'),
+            ('template', 'space'),
             (('template', _rawsources), 'RawSources')]),
-        (inputnode, ds_std_dseg, [(('template', _get_name), 'space')]),
+        (inputnode, ds_std_dseg, [('template', 'space')]),
         (inputnode, lut_std_dseg, [('std_dseg', 'in_file')]),
         (lut_std_dseg, ds_std_dseg, [('out', 'in_file')]),
         (inputnode, ds_std_tpms, [
             ('std_tpms', 'in_file'),
-            (('template', _get_name), 'space')]),
+            ('template', 'space')]),
         (t1w_name, ds_t1w_tpl_warp, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpl_inv_warp, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpl, [('out', 'source_file')]),
@@ -333,11 +327,3 @@ def _rpt_masks(mask_file, before, after, after_mask=None):
     nb.Nifti1Image(anii.get_fdata() * msk,
                    anii.affine, anii.header).to_filename('after.nii.gz')
     return abspath('before.nii.gz'), abspath('after.nii.gz')
-
-
-def _get_name(in_tuple):
-    return in_tuple[0]
-
-
-def _get_spec(in_tuple):
-    return in_tuple[1]
