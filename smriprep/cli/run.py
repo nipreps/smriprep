@@ -292,6 +292,7 @@ def build_workflow(opts, retval):
     from subprocess import check_call, CalledProcessError, TimeoutExpired
     from pkg_resources import resource_filename as pkgrf
 
+    import json
     from bids import BIDSLayout
     from nipype import logging, config as ncfg
     from ..__about__ import __version__
