@@ -6,5 +6,7 @@ Contents
 .. toctree::
     :maxdepth: 3
 
+    installation
+    usage
+    api
     changes
-    api/smriprep

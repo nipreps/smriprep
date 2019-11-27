@@ -94,10 +94,6 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
             from smriprep.workflows.surfaces import init_surface_recon_wf
             wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
 
-    Subworkflows
-        * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
-        * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
-
     Parameters
     ----------
     omp_nthreads : int
@@ -143,6 +139,11 @@ def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
         FreeSurfer's aseg segmentation, in native T1w space
     out_aparc
         FreeSurfer's aparc+aseg segmentation, in native T1w space
+
+    See also
+    --------
+    * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
+    * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
 
     """
     workflow = Workflow(name=name)
