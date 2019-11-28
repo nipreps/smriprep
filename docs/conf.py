@@ -21,9 +21,10 @@ from smriprep import (
     __version__ as _version,
     __copyright__ as _copyright,
 )
-from smriprep.__about__ import __url__ as github_url
 
 sys.path.append(os.path.abspath('sphinxext'))
+from github_link import make_linkcode_resolve
+
 sys.path.insert(0, os.path.abspath('../wrapper'))
 
 # -- Project information -----------------------------------------------------
@@ -47,6 +48,7 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.linkcode',
     'sphinx.ext.githubpages',
+    'sphinxarg.ext',  # argparse extension
     'nipype.sphinxext.plot_workflow',
     'sphinxcontrib.apidoc',
     'sphinxcontrib.napoleon'
@@ -78,19 +80,6 @@ napoleon_custom_sections = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-
-def linkcode_resolve(domain, info):
-    """Configure linkcode extension."""
-    if domain != 'py':
-        return None
-    if not info['module']:
-        return None
-    filename = info['module'].replace('.', '/')
-    return "{url}/blob/{version}/{filename}.py".format(
-        url=github_url, filename=filename,
-        version=os.getenv('CIRCLE_SHA1', version))
-
-
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
@@ -110,7 +99,9 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'api/modules.rst']
+exclude_patterns = [
+    '_build', 'Thumbs.db', '.DS_Store',
+    'api/modules.rst', 'api/smriprep.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
@@ -227,6 +218,13 @@ apidoc_output_dir = 'api'
 apidoc_excluded_paths = ['conftest.py', '*/tests/*', 'tests/*', 'data/*', 'conf/*']
 apidoc_separate_modules = True
 apidoc_extra_args = ['--module-first', '-d 1', '-T']
+
+# Options for github links
+# The following is used by sphinx.ext.linkcode to provide links to github
+linkcode_resolve = make_linkcode_resolve('smriprep',
+                                         'https://github.com/poldracklab/'
+                                         'smriprep/blob/{revision}/'
+                                         '{package}/{path}#L{lineno}')
 
 # -- Options for intersphinx extension ---------------------------------------
 

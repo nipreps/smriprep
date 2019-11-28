@@ -66,10 +66,6 @@ def init_anat_preproc_wf(
                 skull_strip_template=('MNI152NLin2009cAsym', {}),
             )
 
-    Subworkflows
-        * :py:func:`~niworkflows.anat.ants.init_brain_extraction_wf`
-        * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
-
     Parameters
     ----------
     bids_root : str
@@ -159,6 +155,11 @@ def init_anat_preproc_wf(
         subject space to T1w
     surfaces
         GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
+
+    See also
+    --------
+    * :py:func:`~niworkflows.anat.ants.init_brain_extraction_wf`
+    * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
 
     """
     workflow = Workflow(name=name)

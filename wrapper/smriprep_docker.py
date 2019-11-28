@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
-The sMRIPrep on Docker wrapper
-
+The sMRIPrep on Docker wrapper.
 
 This is a lightweight Python wrapper to run sMRIPrep.
 Docker must be installed and running. This can be checked
@@ -12,7 +11,8 @@ running ::
 Please report any feedback to our GitHub repository
 (https://github.com/poldracklab/smriprep) and do not
 forget to credit all the authors of software that sMRIPrep
-uses (https://smriprep.readthedocs.io/en/latest/citing.html).
+uses (consider using the citation boilerplate included in the
+individual reports).
 """
 import sys
 import os
