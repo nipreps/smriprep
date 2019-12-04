@@ -1,12 +1,6 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-Anatomical reference preprocessing workflows.
-
-.. autofunction:: init_anat_preproc_wf
-
-"""
-
+"""Anatomical reference preprocessing workflows."""
 from pkg_resources import resource_filename as pkgr
 from multiprocessing import cpu_count
 
@@ -208,121 +202,121 @@ def init_anat_preproc_wf(
 
     .. include:: ../links.rst
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from collections import OrderedDict
-        from smriprep.workflows.anatomical import init_anat_preproc_wf
-        wf = init_anat_preproc_wf(
-            bids_root='.',
-            freesurfer=True,
-            hires=True,
-            longitudinal=False,
-            num_t1w=1,
-            omp_nthreads=1,
-            output_dir='.',
-            output_spaces=OrderedDict([
-                ('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
-            reportlets_dir='.',
-            skull_strip_template=('MNI152NLin2009cAsym', {}),
-        )
+            from collections import OrderedDict
+            from smriprep.workflows.anatomical import init_anat_preproc_wf
+            wf = init_anat_preproc_wf(
+                bids_root='.',
+                freesurfer=True,
+                hires=True,
+                longitudinal=False,
+                num_t1w=1,
+                omp_nthreads=1,
+                output_dir='.',
+                output_spaces=OrderedDict([
+                    ('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
+                reportlets_dir='.',
+                skull_strip_template=('MNI152NLin2009cAsym', {}),
+            )
 
+    Parameters
+    ----------
+    bids_root : str
+        Path of the input BIDS dataset root
+    debug : bool
+        Enable debugging outputs
+    freesurfer : bool
+        Enable FreeSurfer surface reconstruction (increases runtime by 6h,
+        at the very least)
+    output_spaces : list
+        List of spatial normalization targets. Some parts of pipeline will
+        only be instantiated for some output spaces. Valid spaces:
 
-    **Parameters**
+          - Any template identifier from TemplateFlow
+          - Path to a template folder organized following TemplateFlow's
+            conventions
 
-        bids_root : str
-            Path of the input BIDS dataset root
-        debug : bool
-            Enable debugging outputs
-        freesurfer : bool
-            Enable FreeSurfer surface reconstruction (increases runtime by 6h,
-            at the very least)
-        output_spaces : list
-            List of spatial normalization targets. Some parts of pipeline will
-            only be instantiated for some output spaces. Valid spaces:
-
-              - Any template identifier from TemplateFlow
-              - Path to a template folder organized following TemplateFlow's
-                conventions
-
-        hires : bool
-            Enable sub-millimeter preprocessing in FreeSurfer
-        longitudinal : bool
-            Create unbiased structural template, regardless of number of inputs
-            (may increase runtime)
-        name : str, optional
-            Workflow name (default: anat_preproc_wf)
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        output_dir : str
-            Directory in which to save derivatives
-        reportlets_dir : str
-            Directory in which to save reportlets
-        skull_strip_fixed_seed : bool
-            Do not use a random seed for skull-stripping - will ensure
-            run-to-run replicability when used with --omp-nthreads 1
-            (default: ``False``).
-        skull_strip_template : tuple
-            Name of ANTs skull-stripping template and specifications.
-
-
-    **Inputs**
-
-        t1w
-            List of T1-weighted structural images
-        t2w
-            List of T2-weighted structural images
-        flair
-            List of FLAIR images
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
+    hires : bool
+        Enable sub-millimeter preprocessing in FreeSurfer
+    longitudinal : bool
+        Create unbiased structural template, regardless of number of inputs
+        (may increase runtime)
+    name : str, optional
+        Workflow name (default: anat_preproc_wf)
+    omp_nthreads : int
+        Maximum number of threads an individual process may use
+    output_dir : str
+        Directory in which to save derivatives
+    reportlets_dir : str
+        Directory in which to save reportlets
+    skull_strip_fixed_seed : bool
+        Do not use a random seed for skull-stripping - will ensure
+        run-to-run replicability when used with --omp-nthreads 1
+        (default: ``False``).
+    skull_strip_template : tuple
+        Name of ANTs skull-stripping template and specifications.
 
 
-    **Outputs**
+    Inputs
+    ------
+    t1w
+        List of T1-weighted structural images
+    t2w
+        List of T2-weighted structural images
+    flair
+        List of FLAIR images
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
 
-        t1w_preproc
-            The T1w reference map, which is calculated as the average of bias-corrected
-            and preprocessed T1w images, defining the anatomical space.
-        t1w_brain
-            Skull-stripped ``t1w_preproc``
-        t1w_mask
-            Brain (binary) mask estimated by brain extraction.
-        t1w_dseg
-            Brain tissue segmentation of the preprocessed structural image, including
-            gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
-        t1w_tpms
-            List of tissue probability maps corresponding to ``t1w_dseg``.
-        std_t1w
-            T1w reference resampled in one or more standard spaces.
-        std_mask
-            Mask of skull-stripped template, in MNI space
-        std_dseg
-            Segmentation, resampled into MNI space
-        std_tpms
-            List of tissue probability maps in MNI space
-        subjects_dir
-            FreeSurfer SUBJECTS_DIR
-        anat2std_xfm
-            Nonlinear spatial transform to resample imaging data given in anatomical space
-            into standard space.
-        std2anat_xfm
-            Inverse transform of the above.
-        subject_id
-            FreeSurfer subject ID
-        t1w2fsnative_xfm
-            LTA-style affine matrix translating from T1w to
-            FreeSurfer-conformed subject space
-        fsnative2t1w_xfm
-            LTA-style affine matrix translating from FreeSurfer-conformed
-            subject space to T1w
-        surfaces
-            GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
 
-    **Subworkflows**
+    Outputs
+    -------
+    t1w_preproc
+        The T1w reference map, which is calculated as the average of bias-corrected
+        and preprocessed T1w images, defining the anatomical space.
+    t1w_brain
+        Skull-stripped ``t1w_preproc``
+    t1w_mask
+        Brain (binary) mask estimated by brain extraction.
+    t1w_dseg
+        Brain tissue segmentation of the preprocessed structural image, including
+        gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
+    t1w_tpms
+        List of tissue probability maps corresponding to ``t1w_dseg``.
+    std_t1w
+        T1w reference resampled in one or more standard spaces.
+    std_mask
+        Mask of skull-stripped template, in MNI space
+    std_dseg
+        Segmentation, resampled into MNI space
+    std_tpms
+        List of tissue probability maps in MNI space
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    anat2std_xfm
+        Nonlinear spatial transform to resample imaging data given in anatomical space
+        into standard space.
+    std2anat_xfm
+        Inverse transform of the above.
+    subject_id
+        FreeSurfer subject ID
+    t1w2fsnative_xfm
+        LTA-style affine matrix translating from T1w to
+        FreeSurfer-conformed subject space
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed
+        subject space to T1w
+    surfaces
+        GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
 
-        * :py:func:`~niworkflows.anat.ants.init_brain_extraction_wf`
-        * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
+    See also
+    --------
+    * :py:func:`~niworkflows.anat.ants.init_brain_extraction_wf`
+    * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
 
     """
     workflow = Workflow(name=name)
@@ -476,7 +470,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('std_t1w', 'inputnode.std_t1w'),
             ('std_mask', 'inputnode.std_mask')]),
         (anat_norm_wf, anat_reports_wf, [
-            ('poutputnode.template', 'inputnode.template')]),
+            ('poutputnode.template', 'inputnode.template'),
+            ('poutputnode.template_spec', 'inputnode.template_spec')]),
         # Connect derivatives
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
@@ -554,39 +549,41 @@ def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_templa
     """
     Generate a canonically-oriented, structural average from all input T1w images.
 
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_anat_template_wf
-        wf = init_anat_template_wf(
-            longitudinal=False, omp_nthreads=1, num_t1w=1)
+            from smriprep.workflows.anatomical import init_anat_template_wf
+            wf = init_anat_template_wf(
+                longitudinal=False, omp_nthreads=1, num_t1w=1)
 
-    **Parameters**
+    Parameters
+    ----------
+    longitudinal : bool
+        Create unbiased structural average, regardless of number of inputs
+        (may increase runtime)
+    omp_nthreads : int
+        Maximum number of threads an individual process may use
+    num_t1w : int
+        Number of T1w images
+    name : str, optional
+        Workflow name (default: anat_template_wf)
 
-        longitudinal : bool
-            Create unbiased structural average, regardless of number of inputs
-            (may increase runtime)
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        num_t1w : int
-            Number of T1w images
-        name : str, optional
-            Workflow name (default: anat_template_wf)
+    Inputs
+    ------
+    t1w
+        List of T1-weighted structural images
 
-    **Inputs**
+    Outputs
+    -------
+    t1w_ref
+        Structural reference averaging input T1w images, defining the T1w space.
+    t1w_realign_xfm
+        List of affine transforms to realign input T1w images
+    out_report
+        Conformation report
 
-        t1w
-            List of T1-weighted structural images
-
-    **Outputs**
-
-        t1w_ref
-            Structural reference averaging input T1w images, defining the T1w space.
-        t1w_realign_xfm
-            List of affine transforms to realign input T1w images
-        out_report
-            Conformation report
     """
     workflow = Workflow(name=name)
 

@@ -21,7 +21,10 @@ from smriprep import (
     __version__ as _version,
     __copyright__ as _copyright,
 )
+
 sys.path.append(os.path.abspath('sphinxext'))
+from github_link import make_linkcode_resolve
+
 sys.path.insert(0, os.path.abspath('../wrapper'))
 
 # -- Project information -----------------------------------------------------
@@ -30,23 +33,48 @@ copyright = _copyright
 author = 'The sMRIPrep Developers'
 
 # The short X.Y version
-version = Version(_version).base_version
+version = Version(_version).public
 # The full version, including alpha/beta/rc tags
-release = _version
+release = version
 
 
 # -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinxcontrib.apidoc',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.linkcode',
     'sphinx.ext.githubpages',
+    'sphinxarg.ext',  # argparse extension
     'nipype.sphinxext.plot_workflow',
+    'sphinxcontrib.apidoc',
+    'sphinxcontrib.napoleon'
+]
+
+autodoc_mock_imports = [
+    'matplotlib',
+    'nilearn',
+    'nitime',
+    'numpy',
+    'pandas',
+    'seaborn',
+    'skimage',
+    'svgutils',
+    'templateflow',
+    'transforms3d',
+]
+
+# Accept custom section names to be parsed for numpy-style docstrings
+# of parameters.
+# Requires pinning sphinxcontrib-napoleon to a specific commit while
+# https://github.com/sphinx-contrib/napoleon/pull/10 is merged.
+napoleon_use_param = False
+napoleon_custom_sections = [
+    ('Inputs', 'Parameters'),
+    ('Outputs', 'Parameters'),
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -71,7 +99,9 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'api/modules.rst']
+exclude_patterns = [
+    '_build', 'Thumbs.db', '.DS_Store',
+    'api/modules.rst', 'api/smriprep.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
@@ -185,10 +215,16 @@ epub_exclude_files = ['search.html']
 
 apidoc_module_dir = '../smriprep'
 apidoc_output_dir = 'api'
-apidoc_excluded_paths = ['tests']
+apidoc_excluded_paths = ['conftest.py', '*/tests/*', 'tests/*', 'data/*', 'conf/*']
 apidoc_separate_modules = True
-# apidoc_extra_args = ['--templatedir=_templates/apidoc/', '--no-headings', '--module-first', '-d 1', '-T']
 apidoc_extra_args = ['--module-first', '-d 1', '-T']
+
+# Options for github links
+# The following is used by sphinx.ext.linkcode to provide links to github
+linkcode_resolve = make_linkcode_resolve('smriprep',
+                                         'https://github.com/poldracklab/'
+                                         'smriprep/blob/{revision}/'
+                                         '{package}/{path}#L{lineno}')
 
 # -- Options for intersphinx extension ---------------------------------------
 

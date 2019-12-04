@@ -1,43 +1,88 @@
+docs_deploy: &docs
+  docker:
+    - image: node:8.10.0
+  working_directory: /tmp/gh-pages
+  steps:
+    - run:
+        name: Check whether this is the original repo
+        command: |
+          if [[ "$CIRCLE_PROJECT_USERNAME" != "poldracklab" ]]; then
+              echo "Not in poldracklab/sdcflows - skipping docs deploy."
+              circleci step halt
+          fi
+    - add_ssh_keys:
+        fingerprints:
+          - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
+    - run:
+        name: Install gh-pages tool
+        command: |
+          npm install -g --silent gh-pages@2.0.1
+    - checkout
+    - run:
+        name: Set git settings
+        command: |
+          git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
+          git config user.name "ci-build"
+    - attach_workspace:
+        at: docs/_build
+    - run:
+        name: Disable jekyll builds
+        command: touch docs/_build/html/.nojekyll
+    - run:
+        name: Deploy docs to gh-pages branch
+        command: gh-pages --dotfiles --message "doc(update) [skip ci]" --dist docs/_build/html
+
 version: 2
 jobs:
-
   build:
+    machine:
+      image: circleci/classic:201711-01
+    working_directory: /tmp/src/smriprep
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
       SCRATCH: "/scratch"
-    docker:
-      - image: docker:18.01.0-ce-git
-    working_directory: /tmp/src/smriprep
     steps:
-      - run:
-          name: Install parallel gzip and python3
-          command: |
-            apk add --no-cache pigz python3
       - restore_cache:
           keys:
-            - build-v1-{{ .Branch }}-{{ epoch }}
-            - build-v1-{{ .Branch }}-
-            - build-v1-master-
-            - build-v1-
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
           paths:
-            - /tmp/cache/docker.tar.gz
-            - /tmp/cache/ubuntu.tar.gz
-      - checkout
-      - setup_remote_docker
+            - /tmp/docker
       - run:
-          name: Load Docker image layer cache
-          no_output_timeout: 30m
+          name: Set-up a Docker registry
           command: |
-            docker info
-            set +o pipefail
-            if [ -f /tmp/cache/docker.tar.gz ]; then
-              pigz -d --stdout /tmp/cache/docker.tar.gz | docker load
-              docker images
+            docker run -d -p 5000:5000 --restart=always --name=registry \
+                -v /tmp/docker:/var/lib/registry registry:2
+      - run:
+          name: Pull images
+          command: |
+            set +e
+            docker pull localhost:5000/ubuntu
+            success=$?
+            set -e
+            if [[ "$success" = "0" ]]; then
+                echo "Pulling from local registry"
+                docker tag localhost:5000/ubuntu ubuntu:xenial-20161213
+                docker pull localhost:5000/smriprep
+                docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+                docker tag localhost:5000/smriprep poldracklab/smriprep
+            else
+                echo "Pulling from Docker Hub"
+                docker pull ubuntu:xenial-20161213
+                docker tag ubuntu:xenial-20161213 localhost:5000/ubuntu
+                docker push localhost:5000/ubuntu
+                docker pull poldracklab/smriprep:latest
             fi
+      - checkout
       - run:
           name: Build Docker image
           no_output_timeout: 60m
           command: |
+            export PY3=$(pyenv versions | grep '3\.' |
+                         sed -e 's/.* 3\./3./' -e 's/ .*//')
+            pyenv local $PY3
             # Get version, update files.
             THISVERSION=$( python3 get_version.py )
             if [[ ${THISVERSION:0:1} == "0" ]] ; then
@@ -48,9 +93,8 @@ jobs:
             fi
             # Build docker image
             e=1 && for i in {1..5}; do
-              docker build \
+              docker build --rm \
                 --cache-from=poldracklab/smriprep \
-                --rm=false \
                 -t poldracklab/smriprep:latest \
                 --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
                 --build-arg VCS_REF=`git rev-parse --short HEAD` \
@@ -59,30 +103,25 @@ jobs:
             done && [ "$e" -eq "0" ]
 
       - run:
-          name: Docker save
+          name: Docker push to local registry
           no_output_timeout: 40m
           command: |
-            mkdir -p /tmp/cache
-            docker save ubuntu:xenial-20161213 poldracklab/smriprep:latest \
-            | pigz -8 -p 3 > /tmp/cache/docker.tar.gz
+            docker tag poldracklab/smriprep:latest localhost:5000/smriprep
+            docker push localhost:5000/smriprep
+      - run:
+          name: Docker registry garbage collection
+          command: |
+            docker exec -it registry /bin/registry garbage-collect --delete-untagged \
+                /etc/docker/registry/config.yml
+      - save_cache:
+         key: build-v2-{{ .Branch }}-{{ epoch }}
+         paths:
+            - /tmp/docker
 
       - persist_to_workspace:
           root: /tmp
           paths:
-            - cache/docker.tar.gz
             - src/smriprep
-
-  update_cache:
-    docker:
-      - image: docker:18.01.0-ce-git
-    working_directory: /tmp/src/smriprep
-    steps:
-      - attach_workspace:
-          at: /tmp
-      - save_cache:
-         key: build-v1-{{ .Branch }}-{{ epoch }}
-         paths:
-            - /tmp/cache/docker.tar.gz
 
   get_data:
     machine:
@@ -92,7 +131,8 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - testdata-v1-{{ epoch }}
+            - testdata-v1-{{ .Branch }}-{{ epoch }}
+            - testdata-v1-{{ .Branch }}
             - testdata-v1-
       - run:
           name: Get test data from ds000005
@@ -118,11 +158,11 @@ jobs:
       - run:
           name: Get FreeSurfer derivatives for ds000005
           command: |
-            if [[ ! -d /tmp/ds005/derivatives/freesurfer ]]; then
-              mkdir -p /tmp/ds005/derivatives
+            if [[ ! -d /tmp/ds005/freesurfer ]]; then
+              mkdir -p /tmp/ds005
               wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q \
                 -O ds005_derivatives_freesurfer.tar.gz "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/58fe59eb594d900250960180"
-              tar xvzf ds005_derivatives_freesurfer.tar.gz -C /tmp/ds005/derivatives
+              tar xvzf ds005_derivatives_freesurfer.tar.gz -C /tmp/ds005
             else
               echo "FreeSurfer derivatives of ds000005 were cached"
             fi
@@ -135,32 +175,46 @@ jobs:
       - run:
           name: Create Nipype config files
           command: |
-            mkdir -p /tmp/ds005 /tmp/ds054
-            printf "[execution]\nstop_on_first_crash = true\n" > /tmp/ds005/nipype.cfg
-            echo "poll_sleep_duration = 0.01" >> /tmp/ds005/nipype.cfg
-            echo "hash_method = content" >> /tmp/ds005/nipype.cfg
-            cp /tmp/ds005/nipype.cfg /tmp/ds054/nipype.cfg
+            printf "[execution]\nstop_on_first_crash = true\n" > /tmp/nipype.cfg
+            echo "poll_sleep_duration = 0.01" >> /tmp/nipype.cfg
+            echo "hash_method = content" >> /tmp/nipype.cfg
       - persist_to_workspace:
           root: /tmp
           paths:
             - data
             - fslicense
-            - ds005/nipype.cfg
-            - ds005/derivatives
-            - ds054/nipype.cfg
+            - nipype.cfg
       - save_cache:
-         key: testdata-v1-{{ epoch }}
+         key: testdata-v1-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/data
-            - /tmp/ds005/derivatives/freesurfer
+            - /tmp/ds005/freesurfer
 
   test_wrapper:
     machine:
       image: circleci/classic:201808-01
     steps:
-      - checkout
+      - attach_workspace:
+          at: /tmp
+      - restore_cache:
+          keys:
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
+          paths:
+            - /tmp/docker
       - run:
-          command: docker pull poldracklab/smriprep:latest
+          name: Set-up a Docker registry
+          command: |
+            docker run -d -p 5000:5000 --restart=always --name=registry \
+                -v /tmp/docker:/var/lib/registry registry:2
+      - run:
+          name: Pull images from local registry
+          command: |
+            docker pull localhost:5000/smriprep
+            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+      - checkout
       - run:
           name: Test smriprep-wrapper (Python 2)
           command: |
@@ -221,24 +275,381 @@ jobs:
       - store_artifacts:
           path: /tmp/data/reports
 
+  test_deploy_pypi:
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: /tmp/src/smriprep
+    steps:
+      - checkout
+      - run:
+          name: Build sMRIPrep
+          command: |
+            pip install --user twine  # For use in checking distributions
+            THISVERSION=$( python get_version.py )
+            THISVERSION=${THISVERSION%.dirty*}
+            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
+            virtualenv --python=python build
+            source build/bin/activate
+            pip install --upgrade "pip>=19.1" numpy
+            echo "${CIRCLE_TAG:-$THISVERSION}" > smriprep/VERSION
+            python setup.py sdist
+            pip wheel --no-deps -w dist/ .
+      - store_artifacts:
+          path: /tmp/src/smriprep/dist
+      - run:
+          name: Check sdist distribution
+          command: |
+            THISVERSION=$( python get_version.py )
+            THISVERSION=${THISVERSION%.dirty*}
+            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
+            twine check dist/smriprep*.tar.gz
+            virtualenv --python=python sdist
+            source sdist/bin/activate
+            pip install --upgrade "pip>=19.1" numpy
+            pip install dist/smriprep*.tar.gz
+            which smriprep | grep sdist\\/bin
+            INSTALLED_VERSION=$(smriprep --version)
+            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
+            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep v"}
+            echo "VERSION: \"$THISVERSION\""
+            echo "INSTALLED: \"$INSTALLED_VERSION\""
+            test "$INSTALLED_VERSION" = "$THISVERSION"
+      - run:
+          name: Check wheel distribution
+          command: |
+            THISVERSION=$( python get_version.py )
+            THISVERSION=${THISVERSION%.dirty*}
+            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
+            twine check dist/smriprep*.whl
+            virtualenv --python=python wheel
+            source wheel/bin/activate
+            pip install dist/smriprep*.whl
+            which smriprep | grep wheel\\/bin
+            INSTALLED_VERSION=$(smriprep --version)
+            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
+            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep v"}
+            echo "VERSION: \"$THISVERSION\""
+            echo "INSTALLED: \"$INSTALLED_VERSION\""
+            test "$INSTALLED_VERSION" = "$THISVERSION"
+      - run:
+          name: Build smriprep-docker
+          command: |
+            THISVERSION=$( python get_version.py )
+            THISVERSION=${THISVERSION%.dirty*}
+            cd wrapper
+            virtualenv --python=python build
+            source build/bin/activate
+            pip install --upgrade "pip>=19.1"
+            sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" smriprep_docker.py
+            python setup.py sdist
+            pip wheel --no-deps -w dist/ .
+      - store_artifacts:
+          path: /tmp/src/smriprep/wrapper/dist
+
+  ds005:
+    machine:
+      image: circleci/classic:201711-01
+    working_directory: /tmp/ds005
+    environment:
+      - FS_LICENSE: /tmp/fslicense/license.txt
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Check whether build should be skipped
+          command: |
+            cd /tmp/src/smriprep
+            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?ds005\]' )" != "" ]]; then
+              echo "Skipping ds000005 build"
+              circleci step halt
+            fi
+      - restore_cache:
+          keys:
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
+          paths:
+            - /tmp/docker
+      - restore_cache:
+          keys:
+            - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v6-{{ .Branch }}
+            - ds005-anat-v6-master
+            - ds005-anat-v6-
+      - restore_cache:
+          keys:
+            - testdata-v1-{{ .Branch }}-{{ epoch }}
+            - testdata-v1-{{ .Branch }}
+            - testdata-v1-
+      - run:
+          name: Setting up test
+          command: |
+            mkdir -p /tmp/ds005/derivatives /tmp/ds005/work
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
+      - run:
+          name: Set-up a Docker registry
+          command: |
+            docker run -d -p 5000:5000 --restart=always --name=registry \
+                -v /tmp/docker:/var/lib/registry registry:2
+      - run:
+          name: Pull images from local registry
+          command: |
+            docker pull localhost:5000/smriprep
+            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+      - run:
+          name: Run anatomical workflow on ds005
+          no_output_timeout: 2h
+          command: |
+            docker run --rm=false -it \
+                -v /tmp/data:/tmp/data:ro \
+                -v /tmp/fslicense:/tmp/fslicense:ro \
+                -v /tmp/ds005:/tmp/ds005 \
+                -v /tmp/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                poldracklab/smriprep:latest \
+                /tmp/data/ds005 /tmp/ds005/derivatives participant \
+                 -w /tmp/ds005/work \
+                --skull-strip-template MNI152NLin2009cAsym:res-2 \
+                --sloppy --write-graph --mem-gb 4 \
+                --ncpus 2 --omp-nthreads 2 -vv \
+                --fs-license-file /tmp/fslicense/license.txt \
+                --fs-subjects-dir /tmp/ds005/freesurfer
+      - save_cache:
+         key: ds005-anat-v6-{{ .Branch }}-{{ epoch }}
+         paths:
+            - /tmp/ds005/work
+
+      - run:
+          name: Checking outputs of sMRIPrep
+          command: |
+            mkdir -p /tmp/ds005/test
+            find /tmp/ds005/derivatives -name "*" ! -path "*/figures*" ! -path "*/freesurfer*" -print | sed s+/tmp/ds005/derivatives/++ | sort > /tmp/ds005/test/outputs.out
+            diff /tmp/src/smriprep/.circleci/ds005_outputs.txt /tmp/ds005/test/outputs.out
+            exit $?
+      - run:
+          name: Clean-up work directory
+          when: always
+          command: |
+            sudo chown $(id -un):$(id -gn) -R /tmp/ds005
+            rm -rf /tmp/ds005/freesurfer
+      - run:
+          name: Clean working directory
+          when: on_success
+          command: |
+            sudo rm -rf /tmp/ds005/work
+      - run:
+          name: Clean working directory
+          when: on_fail
+          command: |
+            find /tmp/ds005/work \( -name "*.nii.gz" -or -name "*.nii" -or "*.gii" -or "*.h5" \) \
+                -exec sh -c 'rm -f {}; touch {}' \;
+      - store_artifacts:
+          path: /tmp/ds005
+
+  ds054:
+    machine:
+      image: circleci/classic:201711-01
+    working_directory: /tmp/ds054
+    environment:
+      - FS_LICENSE: /tmp/fslicense/license.txt
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Check whether build should be skipped
+          command: |
+            cd /tmp/src/smriprep
+            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?ds054\]' )" != "" ]]; then
+              echo "Skipping ds000054 build"
+              circleci step halt
+            fi
+      - restore_cache:
+          keys:
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
+          paths:
+            - /tmp/docker
+      - restore_cache:
+          keys:
+            - ds054-anat-v6-{{ .Branch }}-{{ epoch }}
+            - ds054-anat-v6-{{ .Branch }}
+            - ds054-anat-v6-master
+            - ds054-anat-v6-
+      - run:
+          name: Setting up test
+          command: |
+            mkdir -p /tmp/ds054/derivatives /tmp/ds054/work
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
+      - run:
+          name: Set-up a Docker registry
+          command: |
+            docker run -d -p 5000:5000 --restart=always --name=registry \
+                -v /tmp/docker:/var/lib/registry registry:2
+      - run:
+          name: Pull images from local registry
+          command: |
+            docker pull localhost:5000/smriprep
+            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+      - run:
+          name: Run sMRIPrep on ds054 (with --fs-no-reconall)
+          no_output_timeout: 2h
+          command: |
+            docker run --rm=false -it \
+                -v /tmp/data:/tmp/data:ro \
+                -v /tmp/fslicense:/tmp/fslicense:ro \
+                -v /tmp/ds054:/tmp/ds054 \
+                -v /tmp/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                poldracklab/smriprep:latest \
+                /tmp/data/ds054 /tmp/ds054/derivatives participant \
+                -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
+                --skull-strip-template OASIS30ANTs:res-1 \
+                --output-spaces MNI152Lin MNI152NLin2009cAsym \
+                --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
+                --fs-license-file /tmp/fslicense/license.txt
+      - save_cache:
+         key: ds054-anat-v6-{{ .Branch }}-{{ epoch }}
+         paths:
+            - /tmp/ds054/work
+      - run:
+          name: Checking outputs of sMRIPrep
+          command: |
+            mkdir -p /tmp/ds054/test
+            find /tmp/ds054/derivatives -path */figures -prune -o -name "*" -print | sed s+/tmp/ds054/derivatives/++ | sort > /tmp/ds054/test/outputs.out
+            diff /tmp/src/smriprep/.circleci/ds054_outputs.txt /tmp/ds054/test/outputs.out
+            exit $?
+      - run:
+          name: Clean working directory
+          when: on_success
+          command: |
+            sudo chown $(id -un):$(id -gn) -R /tmp/ds054
+            sudo rm -rf /tmp/ds054/work
+      - run:
+          name: Clean working directory
+          when: on_fail
+          command: |
+            sudo chown $(id -un):$(id -gn) -R /tmp/ds054
+            find /tmp/ds054/work \( -name "*.nii.gz" -or -name "*.nii" -or "*.gii" -or "*.h5" \) \
+                -exec sh -c 'rm -f {}; touch {}' \;
+      - store_artifacts:
+          path: /tmp/ds054
+
+  build_docs:
+    docker:
+      - image: python:3.7.4
+    working_directory: /tmp/gh-pages
+    environment:
+      - FSLOUTPUTTYPE: NIFTI
+      - SUBJECTS_DIR: /tmp/subjects
+    steps:
+      - checkout
+      - run:
+          name: Install Graphviz
+          command: apt update && apt -y install graphviz
+      - run:
+          name: Install deps
+          command: pip install -r docs/requirements.txt
+      - run:
+          name: Build only this commit
+          command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
+      - store_artifacts:
+          path: ./docs/_build/no_version_html
+      - run:
+          name: Stop or generate versioned docs?
+          command: |
+            set +e
+            force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[docs?[ _]?versions?\]' )"
+            set -e
+            if [[ "x${CIRCLE_TAG}" = "x" && "${CIRCLE_BRANCH}" != "master" && "x${force_versioned}" = "x" ]]; then
+              echo "Not a tag or master branch - skipping versioned docs."
+              circleci step halt
+            fi
+      - restore_cache:
+          keys:
+            - docs-v1-{{ .Branch }}-{{ .Revision }}
+            - docs-v1-{{ .Branch }}-
+            - docs-v1-master
+            - docs-v1-
+          paths:
+            - ./docs/_build/_html
+      - run:
+          name: Generate Versioned Docs
+          command: make -f ./docs/Makefile versioned CURBRANCH=${CIRCLE_TAG:-$CIRCLE_BRANCH}
+      - save_cache:
+          key: docs-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ./docs/_build/_html
+      - persist_to_workspace:
+          root: docs/_build
+          paths: html
+      - store_artifacts:
+          path: ./docs/_build/html
+
+  deploy_pypi:
+    docker:
+      - image: circleci/python:3.7.4
+    working_directory: /tmp/src/smriprep
+    steps:
+      - checkout
+      - run:
+          name: Build sMRIPrep
+          command: |
+            THISVERSION=$( python get_version.py )
+            virtualenv --python=python build
+            source build/bin/activate
+            pip install --upgrade "pip>=19.1"
+            echo "${CIRCLE_TAG:-$THISVERSION}" > smriprep/VERSION
+            python setup.py sdist
+            pip wheel --no-deps -w dist/ .
+      - run:
+          name: Build smriprep-docker
+          command: |
+            THISVERSION=$( python get_version.py )
+            cd wrapper
+            virtualenv --python=python build
+            source build/bin/activate
+            pip install --upgrade "pip>=19.1"
+            sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" smriprep_docker.py
+            python setup.py sdist
+            pip wheel --no-deps -w dist/ .
+      - run:
+          name: Upload packages to PyPI
+          command: |
+            pip install --user twine
+            twine upload dist/smriprep* wrapper/dist/smriprep*
+
   deploy_docker:
     machine:
       image: circleci/classic:201711-01
     working_directory: /tmp/src/smriprep
     steps:
-      - attach_workspace:
-          at: /tmp
+      - restore_cache:
+          keys:
+            - build-v2-{{ .Branch }}-{{ epoch }}
+            - build-v2-{{ .Branch }}-
+            - build-v2-master-
+            - build-v2-
+          paths:
+            - /tmp/docker
       - run:
-          name: Load Docker image layer cache
-          no_output_timeout: 30m
+          name: Set-up a Docker registry
           command: |
-            docker info
-            set +o pipefail
-            if [ -f /tmp/cache/docker.tar.gz ]; then
-              sudo apt update && sudo apt -y install pigz
-              pigz -d --stdout /tmp/cache/docker.tar.gz | docker load
-              docker images
-            fi
+            docker run -d -p 5000:5000 --restart=always --name=registry \
+                -v /tmp/docker:/var/lib/registry registry:2
+      - run:
+          name: Pull images from local registry
+          command: |
+            docker pull localhost:5000/smriprep
+            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
       - run:
           name: Deploy to Docker Hub
           no_output_timeout: 40m
@@ -254,278 +665,11 @@ jobs:
               fi
             fi
 
-  test_packaging:
-    docker:
-      - image: circleci/python:latest
-    working_directory: /home/circleci/src/smriprep
-    steps:
-      - checkout
-      - run:
-          name: Setup Python environment
-          command: |
-            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
-      - run:
-          name: Build sMRIPrep distributions
-          command: python setup.py sdist bdist_wheel
-      - run:
-          name: Build smriprep-docker
-          command: cd wrapper && python setup.py sdist bdist_wheel
-      - run:
-          name: Check packages
-          command: twine check dist/* wrapper/dist/*
+  deploy_docs_tag:
+    <<: *docs
 
-  deploy_pypi:
-    docker:
-      - image: circleci/python:latest
-    working_directory: /home/circleci/src/smriprep
-    steps:
-      - checkout
-      - run:
-          name: Setup Python environment
-          command: |
-            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
-      - run:
-          name: Build sMRIPrep distributions
-          command: python setup.py sdist bdist_wheel
-      - run:
-          name: Build smriprep-docker
-          command: cd wrapper && python setup.py sdist bdist_wheel
-      - run:
-          name: Check packages
-          command: twine check dist/* wrapper/dist/*
-      - run:
-          name: Deploy to PyPi
-          command: |
-            twine upload dist/* wrapper/dist/*
-
-  ds005:
-    machine:
-      image: circleci/classic:201711-01
-    working_directory: /tmp/ds005
-    environment:
-      - FS_LICENSE: /tmp/fslicense/license.txt
-    steps:
-      - checkout:
-          path: /home/circleci/src/smriprep
-      - run:
-          name: Check whether build should be skipped
-          command: |
-            cd /home/circleci/src/smriprep
-            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?ds005\]' )" != "" ]]; then
-              echo "Skipping ds000005 build"
-              circleci step halt
-            fi
-      - attach_workspace:
-          at: /tmp
-      - restore_cache:
-          keys:
-            - ds005-anat-v4-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v4-{{ .Branch }}
-            - ds005-anat-v4-master
-            - ds005-anat-v4-
-      - run:
-          name: Setting up test
-          command: |
-            mkdir -p /tmp/ds005/derivatives /tmp/ds005/work
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
-      - run:
-          name: Load Docker image layer cache
-          no_output_timeout: 30m
-          command: |
-            docker info
-            set +o pipefail
-            if [ -f /tmp/cache/docker.tar.gz ]; then
-              sudo apt update && sudo apt -y install pigz
-              pigz -d --stdout /tmp/cache/docker.tar.gz | docker load
-              docker images
-            fi
-      - run:
-          name: Run anatomical workflow on ds005
-          no_output_timeout: 2h
-          command: |
-            docker run --rm=false -it -v /tmp:/tmp \
-                -e FMRIPREP_DEV=1 -u $(id -u) \
-                poldracklab/smriprep:latest \
-                /tmp/data/ds005 /tmp/ds005/derivatives participant \
-                 -w /tmp/ds005/work \
-                --skull-strip-template MNI152NLin2009cAsym:res-2 \
-                --sloppy --write-graph --mem-gb 4 \
-                --ncpus 2 --omp-nthreads 2 -vv \
-                --fs-license-file /tmp/fslicense/license.txt
-      - save_cache:
-         key: ds005-anat-v4-{{ .Branch }}-{{ epoch }}
-         paths:
-            - /tmp/ds005/work
-
-      - run:
-          name: Checking outputs
-          command: |
-            mkdir -p /tmp/ds005/test
-            find /tmp/ds005/derivatives -name "*" ! -path "*/figures*" ! -path "*/freesurfer*" -print | sed s+/tmp/ds005/derivatives/++ | sort > /tmp/ds005/test/outputs.out
-            diff /tmp/src/smriprep/.circleci/ds005_outputs.txt /tmp/ds005/test/outputs.out
-            exit $?
-
-      - run:
-          name: Clean working directory
-          when: always
-          command: |
-            sudo chown $(id -un):$(id -gn) -R /tmp/ds005
-            find /tmp/ds005/work -not -name "*.svg" -not -name "*.html" -not -name "*.rst" \
-                -not -name "*.mat" -not -name "*.lta" -not -name "*.json" -not -name "*.txt" -not -name "*.pklz" -type f -delete
-      - store_artifacts:
-          path: /tmp/ds005
-
-  ds054:
-    machine:
-      image: circleci/classic:201711-01
-    working_directory: /tmp/ds054
-    environment:
-      - FS_LICENSE: /tmp/fslicense/license.txt
-    steps:
-      - checkout:
-          path: /home/circleci/src/smriprep
-      - run:
-          name: Check whether build should be skipped
-          command: |
-            cd /home/circleci/src/smriprep
-            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?ds054\]' )" != "" ]]; then
-              echo "Skipping ds000054 build"
-              circleci step halt
-            fi
-      - attach_workspace:
-          at: /tmp
-      - restore_cache:
-          keys:
-            - ds054-anat-v5-{{ .Branch }}-{{ epoch }}
-            - ds054-anat-v5-{{ .Branch }}
-            - ds054-anat-v5-master
-            - ds054-anat-v5-
-      - run:
-          name: Setting up test
-          command: |
-            mkdir -p /tmp/ds054/derivatives /tmp/ds054/work
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
-      - run:
-          name: Load Docker image layer cache
-          no_output_timeout: 30m
-          command: |
-            docker info
-            set +o pipefail
-            if [ -f /tmp/cache/docker.tar.gz ]; then
-              sudo apt update && sudo apt -y install pigz
-              pigz -d --stdout /tmp/cache/docker.tar.gz | docker load
-              docker images
-            fi
-      - run:
-          name: Run sMRIPrep on ds054 (with --fs-no-reconall)
-          no_output_timeout: 2h
-          command: |
-            docker run --rm=false -it -v /tmp:/tmp \
-                -e FMRIPREP_DEV=1 -u $(id -u) \
-                poldracklab/smriprep:latest \
-                /tmp/data/ds054 /tmp/ds054/derivatives participant \
-                -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
-                --skull-strip-template OASIS30ANTs:res-1 \
-                --output-spaces MNI152Lin MNI152NLin2009cAsym \
-                --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
-                --fs-license-file /tmp/fslicense/license.txt
-      - save_cache:
-         key: ds054-anat-v5-{{ .Branch }}-{{ epoch }}
-         paths:
-            - /tmp/ds054/work
-      - run:
-          name: Checking outputs of sMRIPrep
-          command: |
-            mkdir -p /tmp/ds054/test
-            find /tmp/ds054/derivatives -path */figures -prune -o -name "*" -print | sed s+/tmp/ds054/derivatives/++ | sort > /tmp/ds054/test/outputs.out
-            diff /tmp/src/smriprep/.circleci/ds054_outputs.txt /tmp/ds054/test/outputs.out
-            exit $?
-      - run:
-          name: Clean-up work directory
-          when: always
-          command: |
-            sudo chown $(id -un):$(id -gn) -R /tmp/ds054
-            find /tmp/ds054/work -not -name "*.svg" -not -name "*.html" -not -name "*.rst" \
-                -not -name "*.mat" -not -name "*.lta" -not -name "*.json" -not -name "*.txt" -not -name "*.pklz" -type f -delete
-      - store_artifacts:
-          path: /tmp/ds054
-
-  build_docs:
-    docker:
-      - image: python:3.7.4
-    environment:
-      - FSLOUTPUTTYPE: NIFTI
-    steps:
-      - restore_cache:
-          keys:
-            - docs-v1-{{ .Branch }}-{{ .Revision }}
-            - docs-v1-{{ .Branch }}-
-            - docs-v1-master
-            - docs-v1-
-          paths:
-            - ./docs/_build/_html
-      - checkout
-      - run:
-          name: Install Graphviz
-          command: apt update && apt -y install graphviz
-      - run:
-          name: Install deps
-          command: pip install -r docs/requirements.txt
-      - run:
-          name: Build only this commit
-          command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
-      - store_artifacts:
-          path: ./docs/_build/no_version_html
-      - run:
-          name: Generate Versioned Docs
-          command: |
-            set +e
-            force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[docs?[ _]?versions?\]' )"
-            set -e
-            if [[ "x${CIRCLE_TAG}" = "x" && "${CIRCLE_BRANCH}" != "master" && "x${force_versioned}" = "x" ]]; then
-              echo "Not a tag or master branch - skipping versioned docs."
-              circleci step halt
-            else
-              make -f ./docs/Makefile versioned CURBRANCH=$(git branch | grep \* | cut -d ' ' -f2)
-            fi
-      - save_cache:
-          key: docs-v1-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - ./docs/_build/_html
-      - persist_to_workspace:
-          root: docs/_build
-          paths: html
-      - store_artifacts:
-          path: ./docs/_build/html
-
-  deploy_docs:
-    docker:
-      - image: node:8.10.0
-    steps:
-      - checkout
-      - attach_workspace:
-          at: docs/_build
-      - run:
-          name: Disable jekyll builds
-          command: touch docs/_build/html/.nojekyll
-      - run:
-          name: Install and configure dependencies
-          command: |
-            npm install -g --silent gh-pages@2.0.1
-            git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
-            git config user.name "ci-build"
-      - add_ssh_keys:
-          fingerprints:
-            - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
-      - run:
-          name: Deploy docs to gh-pages branch
-          command: gh-pages --dotfiles --message "[skip ci] Updates" --dist docs/_build/html
+  deploy_docs_master:
+    <<: *docs
 
 workflows:
   version: 2
@@ -533,43 +677,13 @@ workflows:
     jobs:
       - build:
           filters:
+            branches:
+              ignore:
+                - /docs?\/.*/
             tags:
               only: /.*/
 
       - get_data:
-          filters:
-            branches:
-              ignore:
-                - /docs?\/.*/
-                - /tests?\/.*/
-            tags:
-              only: /.*/
-
-      - build_docs:
-          filters:
-            branches:
-              ignore:
-                - /tests?\/.*/
-                - /ds005\/.*/
-                - /ds054\/.*/
-            tags:
-              only: /.*/
-
-      - deploy_docs:
-          requires:
-            - build_docs
-            - deploy_docker
-            - deploy_pypi
-          filters:
-            branches:
-              only:
-                - /master/
-            tags:
-              only: /.*/
-
-      - update_cache:
-          requires:
-            - build
           filters:
             branches:
               ignore:
@@ -588,7 +702,7 @@ workflows:
             tags:
               only: /.*/
 
-      - test_packaging:
+      - test_deploy_pypi:
           filters:
             branches:
               ignore:
@@ -599,6 +713,8 @@ workflows:
               only: /.*/
 
       - test_wrapper:
+          requires:
+            - build
           filters:
             branches:
               ignore:
@@ -608,29 +724,13 @@ workflows:
             tags:
               only: /.*/
 
-      - deploy_docker:
-          requires:
-            - build
-            - test_pytest
-            - ds005
-            - ds054
-            # - build_docs
+      - build_docs:
           filters:
             branches:
-              only: master
-            tags:
-              only: /.*/
-
-      - deploy_pypi:
-          requires:
-            - test_packaging
-            - test_pytest
-            - test_wrapper
-            - ds005
-            - ds054
-          filters:
-            branches:
-              ignore: /.*/
+              ignore:
+                - /tests?\/.*/
+                - /ds005\/.*/
+                - /ds054\/.*/
             tags:
               only: /.*/
 
@@ -657,5 +757,55 @@ workflows:
                 - /docs?\/.*/
                 - /tests?\/.*/
                 - /ds005\/.*/
+            tags:
+              only: /.*/
+
+
+      - deploy_docs_master:
+          requires:
+            - build_docs
+            - ds005
+            - ds054
+            - test_pytest
+            - test_wrapper
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+
+      - deploy_docs_tag:
+          requires:
+            - build_docs
+            - deploy_docker
+            - deploy_pypi
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
+
+      - deploy_pypi:
+          requires:
+            - test_deploy_pypi
+            - test_pytest
+            - test_wrapper
+            - ds005
+            - ds054
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
+
+      - deploy_docker:
+          requires:
+            - build
+            - test_pytest
+            - ds005
+            - ds054
+          filters:
+            branches:
+              only: master
             tags:
               only: /.*/
