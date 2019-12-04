@@ -40,19 +40,19 @@ from .surfaces import init_surface_recon_wf
 from warnings import warn
 
 
-def init_n4_only_wf(name='n4_only_wf',
-                    omp_nthreads,
-                    mem_gb=3.0,
-                    bids_suffix='T1w',
+def init_n4_only_wf(atropos_model=None,
                     atropos_refine=True,
                     atropos_use_random_seed=True,
-                    atropos_model=None):
+                    bids_suffix='T1w',
+                    mem_gb=3.0,
+                    name='n4_only_wf',
+                    omp_nthreads=None
+                    ):
     """
     Build a workflow to sidetrack brain extraction on skull-stripped datasets.
 
     An alternative workflow to "init_brain_extraction_wf", for anatomical
     images which have already been brain extracted.
-
 
       1. Creates brain mask assuming all zero voxels are outside the brain
       2. Applies N4 bias field correction
@@ -60,71 +60,62 @@ def init_n4_only_wf(name='n4_only_wf',
       4. Use results from 3 to refine N4 bias field correction
 
     Workflow Graph
-    .. workflow::
-        :graph2use: orig
-        :simple_form: yes
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
 
-        from smriprep.workflows.anatomical import init_n4_only_wf
-        wf = init_n4_only_wf()
-
+            from smriprep.workflows.anatomical import init_n4_only_wf
+            wf = init_n4_only_wf()
 
     Parameters
     ----------
-        omp_nthreads : int
-            Maximum number of threads an individual process may use
-        mem_gb : float
-            Estimated peak memory consumption of the most hungry nodes
-        bids_suffix : str
-            Sequence type of the first input image. For a list of acceptable values
-            see https://bids-specification.readthedocs.io/en/latest/\
-04-modality-specific-files/01-magnetic-resonance-imaging-data.html#anatomy-imaging-data
-        atropos_refine : bool
-            Enables or disables the whole ATROPOS sub-workflow
-        atropos_use_random_seed : bool
-            Whether ATROPOS should generate a random seed based on the
-            system's clock
-        atropos_model : tuple or None
-            Allows to specify a particular segmentation model, overwriting
-            the defaults based on ``bids_suffix``
-        name : str, optional
-            Workflow name (default: antsBrainExtraction)
-
+    omp_nthreads : int
+        Maximum number of threads an individual process may use
+    mem_gb : float
+        Estimated peak memory consumption of the most hungry nodes
+    bids_suffix : str
+        Sequence type of the first input image. For a list of acceptable values see
+        https://bids-specification.readthedocs.io/en/latest/04-modality-specific-files/01-magnetic-resonance-imaging-data.html#anatomy-imaging-data
+    atropos_refine : bool
+        Enables or disables the whole ATROPOS sub-workflow
+    atropos_use_random_seed : bool
+        Whether ATROPOS should generate a random seed based on the
+        system's clock
+    atropos_model : tuple or None
+        Allows to specify a particular segmentation model, overwriting
+        the defaults based on ``bids_suffix``
+    name : str, optional
+        Workflow name (default: antsBrainExtraction)
 
     Inputs
     ------
-        in_files
-            List of input anatomical images to be bias corrected,
-            typically T1-weighted.
-            If a list of anatomical images is provided, subsequently
-            specified images are used during the segmentation process.
-            However, only the first image is used in the registration
-            of priors.
-            Our suggestion would be to specify the T1w as the first image.
-
+    in_files
+        List of input anatomical images to be bias corrected,
+        typically T1-weighted.
+        If a list of anatomical images is provided, subsequently
+        specified images are used during the segmentation process.
+        However, only the first image is used in the registration
+        of priors.
+        Our suggestion would be to specify the T1w as the first image.
 
     Outputs
     -------
-
-        out_file
-            :abbr:`INU (intensity non-uniformity)`-corrected ``in_files``
-        out_mask
-            Calculated brain mask
-        bias_corrected
-            Same as "out_file", provided for consistency with brain extraction
-        bias_image
-            The :abbr:`INU (intensity non-uniformity)` field estimated for each
-            input in ``in_files``
-        out_segm
-            Output segmentation by ATROPOS
-        out_tpms
-            Output :abbr:`TPMs (tissue probability maps)` by ATROPOS
-
+    out_file
+        :abbr:`INU (intensity non-uniformity)`-corrected ``in_files``
+    out_mask
+        Calculated brain mask
+    bias_corrected
+        Same as "out_file", provided for consistency with brain extraction
+    bias_image
+        The :abbr:`INU (intensity non-uniformity)` field estimated for each
+        input in ``in_files``
+    out_segm
+        Output segmentation by ATROPOS
+    out_tpms
+        Output :abbr:`TPMs (tissue probability maps)` by ATROPOS
 
     """
     wf = pe.Workflow(name)
-
-    if omp_nthreads is None or omp_nthreads < 1:
-        omp_nthreads = cpu_count()
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['in_files', 'in_mask']),
                         name='inputnode')
