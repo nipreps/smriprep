@@ -47,13 +47,13 @@ def test_template_parser(monkeypatch):
             u._template(['MNI152NLin6Asym:res-2', 'func'])
 
         assert u._template(['MNI152NLin6Asym:res-2', 'fsnative']) == \
-            OrderedDict([('MNI152NLin6Asym', {'res': '2'}), ('fsnative', None)])
+            OrderedDict([('MNI152NLin6Asym', {'res': '2'}), ('fsnative', {})])
 
         u.ParseTemplates.set_nonstandard_spaces('func')
         assert u._template(['MNI152NLin2009cAsym:res-2', 'func']) == \
-            OrderedDict([('MNI152NLin2009cAsym', {'res': '2'}), ('func', None)])
+            OrderedDict([('MNI152NLin2009cAsym', {'res': '2'}), ('func', {})])
 
         u.ParseTemplates.set_nonstandard_spaces(['func', 'fsnative'])
         assert u._template(['MNI152NLin2009cAsym:res-2', 'func', 'fsnative']) == \
             OrderedDict([('MNI152NLin2009cAsym', {'res': '2'}),
-                         ('func', None), ('fsnative', None)])
+                         ('func', {}), ('fsnative', {})])
