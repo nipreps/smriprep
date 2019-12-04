@@ -41,13 +41,15 @@ from warnings import warn
 
 
 def init_n4_only_wf(name='n4_only_wf',
-                    omp_nthreads=None,
+                    omp_nthreads,
                     mem_gb=3.0,
                     bids_suffix='T1w',
                     atropos_refine=True,
                     atropos_use_random_seed=True,
                     atropos_model=None):
     """
+    Build a workflow to sidetrack brain extraction on skull-stripped datasets.
+
     An alternative workflow to "init_brain_extraction_wf", for anatomical
     images which have already been brain extracted.
 
@@ -57,7 +59,7 @@ def init_n4_only_wf(name='n4_only_wf',
       3. (Optional) apply ATROPOS and massage its outputs
       4. Use results from 3 to refine N4 bias field correction
 
-
+    Workflow Graph
     .. workflow::
         :graph2use: orig
         :simple_form: yes
@@ -66,8 +68,8 @@ def init_n4_only_wf(name='n4_only_wf',
         wf = init_n4_only_wf()
 
 
-    **Parameters**
-
+    Parameters
+    ----------
         omp_nthreads : int
             Maximum number of threads an individual process may use
         mem_gb : float
@@ -88,8 +90,8 @@ def init_n4_only_wf(name='n4_only_wf',
             Workflow name (default: antsBrainExtraction)
 
 
-    **Inputs**
-
+    Inputs
+    ------
         in_files
             List of input anatomical images to be bias corrected,
             typically T1-weighted.
@@ -100,8 +102,8 @@ def init_n4_only_wf(name='n4_only_wf',
             Our suggestion would be to specify the T1w as the first image.
 
 
-    **Outputs**
-
+    Outputs
+    -------
 
         out_file
             :abbr:`INU (intensity non-uniformity)`-corrected ``in_files``
