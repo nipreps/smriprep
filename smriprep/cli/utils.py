@@ -45,10 +45,10 @@ def output_space(value):
         spec[mitems[0]] = len(mitems) == 1 or mitems[1]
 
     if template in ParseTemplates.EXCEPTIONS:
-        return template, None
+        return template, {}
 
     if template in LEGACY_SPACES:
-        return template, None
+        return template, {}
 
     if template not in _TF_TEMPLATES:
         raise ValueError("""\
