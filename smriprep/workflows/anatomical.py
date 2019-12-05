@@ -170,6 +170,8 @@ def init_anat_preproc_wf(
 
     """
     workflow = Workflow(name=name)
+    num_t1w = len(t1w)
+
     desc = """Anatomical data preprocessing
 
 : """
@@ -225,18 +227,33 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                             run_without_submitting=True)
 
     # 2. Brain-extraction and INU (bias field) correction.
-    if not skip_brain_extraction:
+    def _is_skull_stripped(imgs):
+        """ Checks that if T1w images are skulled stripped by interrogating
+        extreme planes for all-zeros
+        """
+        def _check_img(img):
+            data = img.get_data()
+            sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
+                data[:, 0, :].sum() + data[:, -1, :].sum() + \
+                data[:, :, 0].sum() + data[:, :, -1].sum()
+            return sidevals > 0
+
+        skull_stripped = [_check_img(p) for p in imgs]
+
+        return all(skull_stripped)
+
+    if _is_skull_stripped(t1w) or skip_brain_extraction:
+        brain_extraction_wf = init_n4_only_wf(
+            omp_nthreads=omp_nthreads,
+            atropos_use_random_seed=not skull_strip_fixed_seed
+        )
+    else:
         brain_extraction_wf = init_brain_extraction_wf(
             in_template=skull_strip_template.space,
             template_spec=skull_strip_template.spec,
             atropos_use_random_seed=not skull_strip_fixed_seed,
             omp_nthreads=omp_nthreads,
             normalization_quality='precise' if not debug else 'testing')
-    else:
-        brain_extraction_wf = init_n4_only_wf(
-            omp_nthreads=omp_nthreads,
-            atropos_use_random_seed=not skull_strip_fixed_seed
-        )
 
     # 3. Brain tissue segmentation
     t1w_dseg = pe.Node(fsl.FAST(segments=True, no_bias=True, probability_maps=True),

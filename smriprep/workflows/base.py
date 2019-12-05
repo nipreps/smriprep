@@ -318,7 +318,7 @@ to workflows in *sMRIPrep*'s documentation]\
         hires=hires,
         longitudinal=longitudinal,
         name="anat_preproc_wf",
-        num_t1w=len(subject_data['t1w']),
+        t1w=subject_data['t1w'],
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
         reportlets_dir=reportlets_dir,
