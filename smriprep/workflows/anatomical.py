@@ -32,7 +32,7 @@ from .surfaces import init_surface_recon_wf
 
 def init_anat_preproc_wf(
         bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
-        output_spaces, num_t1w, reportlets_dir, skull_strip_template,
+        output_spaces, t1w, reportlets_dir, skull_strip_template,
         debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False,
         skip_brain_extraction=False):
     """
@@ -85,7 +85,8 @@ def init_anat_preproc_wf(
           - Any template identifier from TemplateFlow
           - Path to a template folder organized following TemplateFlow's
             conventions
-
+    t1w : list
+        List of T1-weighted structural images
     hires : bool
         Enable sub-millimeter preprocessing in FreeSurfer
     longitudinal : bool
@@ -105,6 +106,8 @@ def init_anat_preproc_wf(
         (default: ``False``).
     skull_strip_template : tuple
         Name of ANTs skull-stripping template and specifications.
+    skip_brain_extraction : bool
+        Skip ants brain extraction workflow, and instead use n4-only workflow
 
 
     Inputs
@@ -166,6 +169,8 @@ def init_anat_preproc_wf(
 
     """
     workflow = Workflow(name=name)
+    num_t1w = len(t1w)
+
     desc = """Anatomical data preprocessing
 
 : """
@@ -222,18 +227,33 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                             run_without_submitting=True)
 
     # 2. Brain-extraction and INU (bias field) correction.
-    if not skip_brain_extraction:
+    def _is_skull_stripped(imgs):
+        """ Checks that if T1w images are skulled stripped by interrogating
+        extreme planes for all-zeros
+        """
+        def _check_img(img):
+            data = img.get_data()
+            sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
+                data[:, 0, :].sum() + data[:, -1, :].sum() + \
+                data[:, :, 0].sum() + data[:, :, -1].sum()
+            return sidevals > 0
+
+        skull_stripped = [_check_img(p) for p in imgs]
+
+        return all(skull_stripped)
+
+    if _is_skull_stripped(t1w) or skip_brain_extraction:
+        brain_extraction_wf = init_n4_only_wf(
+            omp_nthreads=omp_nthreads,
+            atropos_use_random_seed=not skull_strip_fixed_seed
+        )
+    else:
         brain_extraction_wf = init_brain_extraction_wf(
             in_template=skull_strip_template[0],
             template_spec=skull_strip_template[1],
             atropos_use_random_seed=not skull_strip_fixed_seed,
             omp_nthreads=omp_nthreads,
             normalization_quality='precise' if not debug else 'testing')
-    else:
-        brain_extraction_wf = init_n4_only_wf(
-            omp_nthreads=omp_nthreads,
-            atropos_use_random_seed=not skull_strip_fixed_seed
-        )
 
     # 3. Brain tissue segmentation
     t1w_dseg = pe.Node(fsl.FAST(segments=True, no_bias=True, probability_maps=True),
