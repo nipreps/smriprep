@@ -372,8 +372,8 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         return vals.pop()
 
     workflow.connect([
-        (inputnode, autorecon_surfs, [('use_T2', 'use_T2'),
-                                      ('use_FLAIR', 'use_FLAIR')]),
+        (inputnode, cortribbon, [('use_T2', 'use_T2'),
+                                 ('use_FLAIR', 'use_FLAIR')]),
         (inputnode, autorecon2_vol, [('subjects_dir', 'subjects_dir'),
                                      ('subject_id', 'subject_id')]),
         (autorecon2_vol, autorecon_surfs, [('subjects_dir', 'subjects_dir'),
