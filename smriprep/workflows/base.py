@@ -117,7 +117,8 @@ def init_smriprep_wf(
         Directory in which to store workflow execution state and
         temporary files
     bids_filters : dict
-        For BIDSDataGrabber output_query
+        Provides finer specification of the pipeline input files through pybids entities filters.
+        A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
 
     """
     smriprep_wf = Workflow(name='smriprep_wf')
@@ -262,7 +263,8 @@ def init_single_subject_wf(
     subject_id : str
         List of subject labels
     bids_filters : dict
-        For BIDSDataGrabber output_query
+        Provides finer specification of the pipeline input files through pybids entities filters.
+        A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
 
     Inputs
     ------

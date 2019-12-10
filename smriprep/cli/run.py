@@ -55,8 +55,11 @@ def get_parser():
     g_bids.add_argument('--participant-label', '--participant_label', action='store', nargs='+',
                         help='a space delimited list of participant identifiers or a single '
                              'identifier (the sub- prefix can be removed)')
-    g_bids.add_argument('--bids-filters', action='store', type=Path,
-                        help='the path to a JSON file describing custom BIDS input filter')
+    g_bids.add_argument(
+        '--bids-filters', action='store', type=Path,
+        help='the path to a JSON file describing custom BIDS input filter'
+             ' using pybids {<suffix>:{<entity>:<filter>,...},...} '
+             '(https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json)')
 
     g_perfm = parser.add_argument_group('Options to handle performance')
     g_perfm.add_argument('--nprocs', '--ncpus', '--nthreads', '--n_cpus', '-n-cpus',
