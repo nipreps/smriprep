@@ -25,17 +25,17 @@ interpretable and comprehensive error and output reporting.
 It performs basic processing steps (subject-wise averaging, B1 field correction,
 spatial normalization, segmentation, skullstripping etc.) providing
 outputs that can be easily connected to subsequent tools such as
-`fMRIPrep <https://github.com/poldracklab/fmriprep>`_ or 
-`dMRIPrep <https://github.com/nipreps/dmriprep>`_.
+`fMRIPrep <https://github.com/poldracklab/fmriprep>`__ or 
+`dMRIPrep <https://github.com/nipreps/dmriprep>`__.
 
 .. image:: https://github.com/oesteban/smriprep/raw/033a6b4a54ecbd9051c45df979619cda69847cd1/docs/_resources/workflow.png
 
-The workflow is based on `Nipype <https://nipype.readthedocs.io>`_ and encompases
+The workflow is based on `Nipype <https://nipype.readthedocs.io>`__ and encompases
 a combination of tools from well-known software packages, including
-`FSL <https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/>`_,
-`ANTs <https://stnava.github.io/ANTs/>`_,
-`FreeSurfer <https://surfer.nmr.mgh.harvard.edu/>`_,
-and `AFNI <https://afni.nimh.nih.gov/>`_.
+`FSL <https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/>`__,
+`ANTs <https://stnava.github.io/ANTs/>`__,
+`FreeSurfer <https://surfer.nmr.mgh.harvard.edu/>`__,
+and `AFNI <https://afni.nimh.nih.gov/>`__.
 
 More information and documentation can be found at
 https://poldracklab.github.io/smriprep/.
@@ -68,4 +68,4 @@ Acknowledgements
 Please acknowledge this work by mentioning explicitly the name of this software
 (sMRIPrep) and the version, along with a link to the `GitHub repository
 <https://github.com/poldracklab/smriprep>`__ or the Zenodo reference
-(doi:`10.5281/zenodo.2650521 <https://doi.org/10.5281/zenodo.2650521>`_).
+(doi:`10.5281/zenodo.2650521 <https://doi.org/10.5281/zenodo.2650521>`__).
