@@ -263,6 +263,7 @@ def init_single_subject_wf(
         List of subject labels
     bids_filters : dict
         For BIDSDataGrabber output_query
+
     Inputs
     ------
     subjects_dir
