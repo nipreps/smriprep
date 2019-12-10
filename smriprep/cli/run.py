@@ -348,7 +348,7 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
     subject_list = collect_participants(
         layout, participant_label=opts.participant_label)
 
-    bids_filters = json.load(open(bids_filters_file)) if bids_filters_file else None
+    bids_filters = json.load(opts.bids_filters.read_text()) if opts.bids_filters else None
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
