@@ -55,7 +55,7 @@ def get_parser():
     g_bids.add_argument('--participant-label', '--participant_label', action='store', nargs='+',
                         help='a space delimited list of participant identifiers or a single '
                              'identifier (the sub- prefix can be removed)')
-    g_bids.add_argument('--bids_filters', action='store', type=Path,
+    g_bids.add_argument('--bids-filters', action='store', type=Path,
                         help='the path to a JSON file describing custom BIDS input filter')
 
     g_perfm = parser.add_argument_group('Options to handle performance')
