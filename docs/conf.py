@@ -22,7 +22,8 @@ from smriprep import (
     __copyright__ as _copyright,
 )
 
-sys.path.append(os.path.abspath('sphinxext'))
+sys.path.append(os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'sphinxext')))
 from github_link import make_linkcode_resolve
 
 sys.path.insert(0, os.path.abspath('../wrapper'))

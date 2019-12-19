@@ -1,3 +1,11 @@
+0.4.1 (Decemeber 12, 2019)
+==========================
+Bugfix release to address some fMRIPrep issues.
+
+* FIX: Use T2/FLAIR refinement at cortribbon stage (#148) @effigies
+* FIX: empty specs for legacy/nonstd spaces (#146) @mgxd
+* DOC: Refactor of documentation (#144) @oesteban
+
 0.4.0 (November 26, 2019)
 =========================
 A new 0.4.x series with a number of new features and bugfixes.

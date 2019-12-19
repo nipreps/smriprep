@@ -340,8 +340,13 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     autorecon_surfs.interface._always_run = True
 
     # -cortribbon is a prerequisite for -parcstats, -parcstats2, -parcstats3
-    cortribbon = pe.Node(ReconAll(directive=Undefined,
-                                  steps=['cortribbon']), name='cortribbon')
+    # Claiming two threads because pial refinement can be split by hemisphere
+    # if -T2pial or -FLAIRpial is enabled.
+    # Parallelizing by hemisphere saves ~30 minutes over simply enabling
+    # OpenMP on an 8 core machine.
+    cortribbon = pe.Node(ReconAll(directive=Undefined, steps=['cortribbon'],
+                                  parallel=True),
+                         n_procs=2, name='cortribbon')
     cortribbon.interface._always_run = True
 
     # -parcstats* can be run per-hemisphere
@@ -372,8 +377,8 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
         return vals.pop()
 
     workflow.connect([
-        (inputnode, autorecon_surfs, [('use_T2', 'use_T2'),
-                                      ('use_FLAIR', 'use_FLAIR')]),
+        (inputnode, cortribbon, [('use_T2', 'use_T2'),
+                                 ('use_FLAIR', 'use_FLAIR')]),
         (inputnode, autorecon2_vol, [('subjects_dir', 'subjects_dir'),
                                      ('subject_id', 'subject_id')]),
         (autorecon2_vol, autorecon_surfs, [('subjects_dir', 'subjects_dir'),
