@@ -232,7 +232,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         extreme planes for all-zeros
         """
         def _check_img(img):
-            data = img.get_data()
+            data = np.abs(nb.load(img).get_fdata(dtype=np.float32))
             sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
                 data[:, 0, :].sum() + data[:, -1, :].sum() + \
                 data[:, :, 0].sum() + data[:, :, -1].sum()
