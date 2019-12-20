@@ -3,6 +3,9 @@
 """Anatomical reference preprocessing workflows."""
 from pkg_resources import resource_filename as pkgr
 
+import numpy as np
+import nibabel as nb
+
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
     utility as niu,
