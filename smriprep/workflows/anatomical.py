@@ -228,15 +228,15 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # 2. Brain-extraction and INU (bias field) correction.
     def _is_skull_stripped(imgs):
-        """ Checks that if T1w images are skulled stripped by interrogating
-        extreme planes for all-zeros
+        """ Checks if T1w images are skulled stripped by interrogating
+        extreme planes for all (near) zeros.
         """
         def _check_img(img):
             data = img.get_data()
             sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
                 data[:, 0, :].sum() + data[:, -1, :].sum() + \
                 data[:, :, 0].sum() + data[:, :, -1].sum()
-            return sidevals > 0
+            return sidevals < 10
 
         skull_stripped = [_check_img(p) for p in imgs]
 
