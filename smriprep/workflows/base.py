@@ -3,6 +3,7 @@
 """*sMRIPrep* base processing workflows."""
 import sys
 import os
+from pathlib import Path
 from copy import deepcopy
 
 from nipype import __version__ as nipype_ver
@@ -218,6 +219,7 @@ def init_single_subject_wf(
             wf = init_single_subject_wf(
                 debug=False,
                 freesurfer=True,
+                force_build=True,
                 hires=True,
                 layout=BIDSLayout('.'),
                 longitudinal=False,
@@ -240,6 +242,8 @@ def init_single_subject_wf(
         Enable debugging outputs
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
+    force_build : :obj:`bool`
+        If ``True``, skip the attempt to collect previously run derivatives.
     hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     layout : BIDSLayout object
@@ -317,12 +321,9 @@ to workflows in *sMRIPrep*'s documentation]\
     deriv_cache = None
     if not force_build:
         from ..utils.bids import collect_derivatives
-        deriv_cache = {}
-        layout.add_derivatives(os.path.join(output_dir, 'smriprep'))
-        try:
-            deriv_cache = collect_derivatives(layout, subject_id, output_spaces, freesurfer)
-        except (IndexError, ValueError):
-            pass
+        std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
+        deriv_cache = collect_derivatives(
+            Path(output_dir) / 'smriprep', subject_id, std_spaces, freesurfer)
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']),
                         name='inputnode')
