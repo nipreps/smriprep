@@ -30,8 +30,8 @@ from .surfaces import init_surface_recon_wf
 
 def init_anat_preproc_wf(
         bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
-        output_spaces, num_t1w, reportlets_dir, skull_strip_template,
-        debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False):
+        spaces, num_t1w, reportlets_dir, skull_strip_template, debug=False,
+        name='anat_preproc_wf', skull_strip_fixed_seed=False):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
 
@@ -203,7 +203,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 'template', 'std_t1w', 'anat2std_xfm', 'std2anat_xfm',
                 'joint_template', 'joint_anat2std_xfm', 'joint_std2anat_xfm',
                 'std_mask', 'std_dseg', 'std_tpms',
-                't1w_realign_xfm',
+                't1w_realign_xfm', 'joint_template_and_spec',
                 'subjects_dir', 'subject_id', 't1w2fsnative_xfm',
                 'fsnative2t1w_xfm', 'surfaces', 't1w_aseg', 't1w_aparc']),
         name='outputnode')
@@ -237,12 +237,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     ])
 
     # 4. Spatial normalization
-    vol_spaces = [k for k in output_spaces.keys()
-                  if not k.startswith('fs')]
     anat_norm_wf = init_anat_norm_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
-        templates=[(v, output_spaces[v]) for v in vol_spaces],
+        templates=spaces,
     )
 
     workflow.connect([
@@ -280,6 +278,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.template', 'joint_template'),
             ('outputnode.anat2std_xfm', 'joint_anat2std_xfm'),
             ('outputnode.std2anat_xfm', 'joint_std2anat_xfm'),
+            ('outputnode.template_and_spec', 'joint_template_and_spec'),
         ]),
     ])
 

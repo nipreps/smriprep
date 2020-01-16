@@ -23,33 +23,36 @@ class ParseTemplates(Action):
 
 
 def _template(inlist):
-    """Return an OrderedDict with templates."""
-    from collections import OrderedDict
+    """Return a list of tuples composed of (template, template_specs)"""
     if isinstance(inlist, str):
         inlist = [inlist]
 
     templates = []
-    for item in reversed(inlist):
-        templates.append(output_space(item))
+    for item in inlist:
+        templates.extend(output_space(item))
 
-    return OrderedDict(reversed(OrderedDict(templates).items()))
+    return templates
 
 
 def output_space(value):
     """Parse one element of ``--output-spaces``."""
     tpl_args = value.split(':')
     template = tpl_args[0]
-    spec = {}
+    spaces = []
     for modifier in tpl_args[1:]:
+        spec = {}
         mitems = modifier.split('-', 1)
         spec[mitems[0]] = len(mitems) == 1 or mitems[1]
+        spaces.append((template, spec))
 
     if template in ParseTemplates.EXCEPTIONS or template in LEGACY_SPACES:
-        return template, {}
+        return [(template, {})]
 
     if template not in _TF_TEMPLATES:
         raise ValueError("""\
 Template identifier "{}" not found. Please, make sure TemplateFlow is \
 correctly installed and contains the given template identifiers.""".format(template))
 
-    return template, spec
+    if not spaces:
+        spaces.append((template, {}))
+    return spaces

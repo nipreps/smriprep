@@ -200,8 +200,9 @@ The following template{tpls} selected for spatial normalization:
     ])
 
     # Provide synchronized output
-    outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
-                             name='outputnode', joinsource='split_desc')
+    outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields + ['template_and_spec']),
+                             name='outputnode', joinsource='split_desc', joinfield=out_fields)
+    outputnode.inputs.template_and_spec = templates
     workflow.connect([
         (poutputnode, outputnode, [(f, f) for f in out_fields]),
     ])
