@@ -180,9 +180,7 @@ jobs:
           paths:
             - /tmp/data
             - /tmp/ds005/freesurfer
-
-      - attach_workspace:
-          at: /tmp
+      - checkout
       - restore_cache:
           keys:
             - templateflow-v1-{{ .Branch }}-{{ epoch }}
@@ -192,7 +190,7 @@ jobs:
           name: Pull TemplateFlow down, pre-cache some templates
           command: |
             export TEMPLATEFLOW_HOME=/tmp/templateflow
-            pip install -U --no-cache-dir "$( grep templateflow /tmp/src/smriprep/setup.cfg | xargs )"
+            pip install -U --no-cache-dir "$( grep templateflow setup.cfg | xargs )"
             python -c "from templateflow import api as tfapi; \
                        tfapi.get(['MNI152Lin', 'MNI152NLin2009cAsym', 'OASIS30ANTs'], suffix='T1w'); \
                        tfapi.get(['MNI152Lin', 'MNI152NLin2009cAsym', 'OASIS30ANTs'], desc='brain', suffix='mask'); \
