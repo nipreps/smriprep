@@ -171,7 +171,6 @@ COPY . /src/smriprep
 ARG VERSION
 # Force static versioning within container
 RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
-    echo "include smriprep/VERSION" >> /src/smriprep/MANIFEST.in && \
     cd /src/smriprep && \
     pip install --no-cache-dir .[all] && \
     rm -rf $HOME/.cache/pip
