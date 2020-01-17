@@ -124,8 +124,8 @@ jobs:
             - src/smriprep
 
   get_data:
-    machine:
-      image: circleci/python:3.7.4
+    docker:
+      - image: circleci/python:3.7.4
     working_directory: /home/circleci/data
     steps:
       - restore_cache:
