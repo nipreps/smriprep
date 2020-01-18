@@ -186,6 +186,11 @@ jobs:
             - templateflow-v1-{{ .Branch }}-{{ epoch }}
             - templateflow-v1-{{ .Branch }}
             - templateflow-v1-
+      - restore_cache:
+          keys:
+            - env-v1-{{ .Branch }}-{{ epoch }}
+            - env-v1-{{ .Branch }}
+            - env-v1-
       - run:
           name: Pull TemplateFlow down, pre-cache some templates
           command: |
@@ -204,6 +209,10 @@ jobs:
           key: templateflow-v1-{{ .Branch }}-{{ epoch }}
           paths:
             - /tmp/templateflow
+      - save_cache:
+          key: env-v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /home/circleci/.local
 
   test_wrapper:
     machine:
