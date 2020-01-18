@@ -52,6 +52,7 @@ def init_anat_preproc_wf(
 
             from collections import OrderedDict
             from smriprep.workflows.anatomical import init_anat_preproc_wf
+            from smriprep.utils import Spaces
             wf = init_anat_preproc_wf(
                 bids_root='.',
                 freesurfer=True,
@@ -60,8 +61,7 @@ def init_anat_preproc_wf(
                 num_t1w=1,
                 omp_nthreads=1,
                 output_dir='.',
-                output_spaces=OrderedDict([
-                    ('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
+                output_spaces=Spaces(output=[('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
                 reportlets_dir='.',
                 skull_strip_template=('MNI152NLin2009cAsym', {}),
             )
@@ -75,14 +75,15 @@ def init_anat_preproc_wf(
     freesurfer : bool
         Enable FreeSurfer surface reconstruction (increases runtime by 6h,
         at the very least)
-    output_spaces : list
-        List of spatial normalization targets. Some parts of pipeline will
-        only be instantiated for some output spaces. Valid spaces:
-
-          - Any template identifier from TemplateFlow
-          - Path to a template folder organized following TemplateFlow's
-            conventions
-
+    spaces : :obj:`Spaces`
+        Organize and filter spatial normalizations. Composed of internal and output lists
+        of spaces in the form of (Template, Specs). `Template` is a string of either
+        TemplateFlow IDs (e.g., ``MNI152Lin``, ``MNI152NLin6Asym``, ``MNI152NLin2009cAsym``, or
+        ``fsLR``), nonstandard references (e.g., ``T1w`` or ``anat``, ``sbref``, ``run``, etc.),
+        or paths pointing to custom templates organized in a TemplateFlow-like structure.
+        Specs is a dictionary with template specifications (e.g., the specs for the template
+        ``MNI152Lin`` could be ``{'resolution': 2}`` if one wants the resampling to be done on
+        the 2mm resolution version of the selected template).
     hires : bool
         Enable sub-millimeter preprocessing in FreeSurfer
     longitudinal : bool
