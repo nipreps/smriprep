@@ -404,6 +404,15 @@ jobs:
             sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
       - run:
+          name: Install coverage and codecov
+          command: |
+              pyenv install 3.6.3
+              pyenv local 3.6.3
+              python --version
+              python -m pip install -U pip
+              python -m pip install -U coverage codecov
+              pyenv rehash
+      - run:
           name: Set-up a Docker registry
           command: |
             docker run -d -p 5000:5000 --restart=always --name=registry \
@@ -440,14 +449,29 @@ jobs:
                 -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -v /tmp/src/smriprep/.circleci/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
                 poldracklab/smriprep:latest \
+                run -m smriprep \
                 /tmp/data/ds005 /tmp/ds005/derivatives participant \
-                 -w /tmp/ds005/work \
+                -w /tmp/ds005/work \
                 --skull-strip-template MNI152NLin2009cAsym:res-2 \
                 --sloppy --write-graph --mem-gb 4 \
                 --ncpus 2 --omp-nthreads 2 -vv \
                 --fs-license-file /tmp/fslicense/license.txt \
                 --fs-subjects-dir /tmp/ds005/freesurfer
+      - run:
+          name: Combine coverage and submit
+          command: |
+              which python
+              python --version
+              coverage combine \
+                --rcfile /tmp/src/smriprep/docker/multiproc.coveragerc \
+                /tmp/ds005/work/.coverage.*
+              coverage xml
+              which codecov
+              codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
       - save_cache:
          key: ds005-anat-v6-{{ .Branch }}-{{ epoch }}
          paths:

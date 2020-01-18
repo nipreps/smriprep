@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = /usr/local/miniconda/lib/python3.7/site-packages/smriprep
+omit =
+    */tests/*
+concurrency = multiprocessing
