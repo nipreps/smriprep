@@ -82,10 +82,6 @@ def get_parser():
     g_conf.add_argument(
         '--longitudinal', action='store_true',
         help='treat dataset as longitudinal - may increase runtime')
-    g_conf.add_argument(
-        '--template', '--spatial-normalization-target', action='store', type=str,
-        choices=[tpl for tpl in templates() if not tpl.startswith('fs')],
-        help='DEPRECATED: spatial normalization target (one TemplateFlow Identifier)')
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
@@ -113,20 +109,9 @@ def get_parser():
                          help='disable sub-millimeter (hires) reconstruction')
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
-    g_surfs_xor.add_argument(
-        '--fs-output-spaces', required=False, action='store', nargs='+',
-        choices=['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'],
-        help="""DEPRECATED - configure Freesurfer's output spaces:
-  - fsnative: individual subject surface
-  - fsaverage*: FreeSurfer average meshes
-this argument can be single value or a space delimited list,
-for example: --fs-output-spaces fsnative fsaverage fsaverage5."""
-    )
-    g_surfs_xor.add_argument('--fs-no-reconall', '--no-freesurfer',
+    g_surfs_xor.add_argument('--fs-no-reconall',
                              action='store_false', dest='run_reconall',
-                             help='disable FreeSurfer surface preprocessing.'
-                             ' Note : `--no-freesurfer` is deprecated and will be removed in 1.2.'
-                             ' Use `--fs-no-reconall` instead.')
+                             help='disable FreeSurfer surface preprocessing.')
 
     g_other = parser.add_argument_group('Other options')
     g_other.add_argument('-w', '--work-dir', action='store', type=Path, default=Path('work'),
@@ -294,38 +279,22 @@ def build_workflow(opts, retval):
     from nipype import logging, config as ncfg
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
+    from ..utils import Spaces
     from niworkflows.utils.bids import collect_participants
 
-    # Set the default template to 'MNI152NLin2009c'
-    output_spaces = opts.output_spaces or OrderedDict([('MNI152NLin2009cAsym', {})])
+    spaces = Spaces(output=opts.output_spaces)
+    target_spaces = spaces.unique()
+    if not target_spaces:
+        # Set the default template to 'MNI152NLin2009c'
+        spaces.add_space('MNI152NLin2009cAsym', output=False)
 
-    if opts.template:
-        print("""\
-The ``--template`` option has been deprecated in version 1.1.2. Your selected template \
-"%s" will be inserted at the front of the ``--output-spaces`` argument list. Please update \
-your scripts to use ``--output-spaces``.""" % opts.template, file=sys.stderr)
-        deprecated_tpl_arg = [(opts.template, {})]
-        # If output_spaces is not set, just replate the default - append otherwise
-        if opts.output_spaces is not None:
-            deprecated_tpl_arg += list(output_spaces.items())
-        output_spaces = OrderedDict(deprecated_tpl_arg)
-
-    if opts.fs_output_spaces:
-        print("""\
-The ``--fs-output-spaces`` option has been deprecated in version 1.1.2. Your selected output \
-surfaces "%s" will be appended to the ``--output-spaces`` argument list. Please update \
-your scripts to use ``--output-spaces``.""" % ', '.join(opts.fs_output_spaces), file=sys.stderr)
-        for fs_space in opts.fs_output_spaces:
-            if fs_space not in output_spaces:
-                output_spaces[fs_space] = {}
-
-    FS_SPACES = set(['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'])
-    if opts.run_reconall and not list(FS_SPACES.intersection(output_spaces.keys())):
+    FS_SPACES = {'fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'}
+    if opts.run_reconall and not FS_SPACES.intersection(target_spaces):
         print("""\
 Although ``--fs-no-reconall`` was not set, no FreeSurfer output space (valid values are: \
 %s) was selected. Adding default "fsaverage5" to the \
 list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
-        output_spaces['fsaverage5'] = {}
+        spaces.add_space('fsaverage5', output=False)
 
     logger = logging.getLogger('nipype.workflow')
 

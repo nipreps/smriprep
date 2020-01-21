@@ -32,10 +32,10 @@ def init_smriprep_wf(
     low_mem,
     omp_nthreads,
     output_dir,
-    output_spaces,
     run_uuid,
     skull_strip_fixed_seed,
     skull_strip_template,
+    spaces,
     subject_list,
     work_dir,
 ):
@@ -55,6 +55,7 @@ def init_smriprep_wf(
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             os.environ['FREESURFER_HOME'] = os.getcwd()
             from smriprep.workflows.base import init_smriprep_wf
+            from smriprep.utils import Spaces
             wf = init_smriprep_wf(
                 debug=False,
                 freesurfer=True,
@@ -65,11 +66,11 @@ def init_smriprep_wf(
                 low_mem=False,
                 omp_nthreads=1,
                 output_dir='.',
-                output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
-                                           ('fsaverage5', {})]),
                 run_uuid='testrun',
                 skull_strip_fixed_seed=False,
                 skull_strip_template=('OASIS30ANTs', {}),
+                spaces=Spaces(output=[('MNI152NLin2009cAsym', {}),
+                                      ('fsaverage5', {})]),
                 subject_list=['smripreptest'],
                 work_dir='.',
             )
@@ -95,12 +96,6 @@ def init_smriprep_wf(
         Maximum number of threads an individual process may use
     output_dir : str
         Directory in which to save derivatives
-    output_spaces : OrderedDict
-        List of spatial normalization targets. Some parts of pipeline will
-        only be instantiated for some output spaces. Valid spaces:
-        - Any template identifier from TemplateFlow
-        - Path to a template folder organized following TemplateFlow's
-        conventions
     run_uuid : str
         Unique identifier for execution instance
     skull_strip_fixed_seed : bool
@@ -109,6 +104,15 @@ def init_smriprep_wf(
     skull_strip_template : tuple
         Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI'),
         and dictionary with template specifications (e.g., {'res': '2'})
+    spaces : :obj:`Spaces`
+        Organize and filter spatial normalizations. Composed of internal and output lists
+        of spaces in the form of (Template, Specs). `Template` is a string of either
+        TemplateFlow IDs (e.g., ``MNI152Lin``, ``MNI152NLin6Asym``, ``MNI152NLin2009cAsym``, or
+        ``fsLR``), nonstandard references (e.g., ``T1w`` or ``anat``, ``sbref``, ``run``, etc.),
+        or paths pointing to custom templates organized in a TemplateFlow-like structure.
+        Specs is a dictionary with template specifications (e.g., the specs for the template
+        ``MNI152Lin`` could be ``{'resolution': 2}`` if one wants the resampling to be done on
+        the 2mm resolution version of the selected template).
     subject_list : list
         List of subject labels
     work_dir : str
@@ -124,8 +128,8 @@ def init_smriprep_wf(
             BIDSFreeSurferDir(
                 derivatives=output_dir,
                 freesurfer_home=os.getenv('FREESURFER_HOME'),
-                spaces=[s for s in output_spaces.keys() if s.startswith('fsaverage')] + [
-                    'fsnative'] * ('fsnative' in output_spaces)),
+                spaces=[s for s in spaces.unique()
+                        if s.startswith('fsaverage') or s == 'fsnative']),
             name='fsdir_run_%s' % run_uuid.replace('-', '_'), run_without_submitting=True)
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
@@ -142,10 +146,10 @@ def init_smriprep_wf(
             name="single_subject_%s_wf" % subject_id,
             omp_nthreads=omp_nthreads,
             output_dir=output_dir,
-            output_spaces=output_spaces,
             reportlets_dir=reportlets_dir,
             skull_strip_fixed_seed=skull_strip_fixed_seed,
             skull_strip_template=skull_strip_template,
+            spaces=spaces,
             subject_id=subject_id,
         )
 
@@ -173,10 +177,10 @@ def init_single_subject_wf(
     name,
     omp_nthreads,
     output_dir,
-    output_spaces,
     reportlets_dir,
     skull_strip_fixed_seed,
     skull_strip_template,
+    spaces,
     subject_id,
 ):
     """
@@ -209,11 +213,11 @@ def init_single_subject_wf(
                 name='single_subject_wf',
                 omp_nthreads=1,
                 output_dir='.',
-                output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
-                                           ('fsaverage5', {})]),
                 reportlets_dir='.',
                 skull_strip_fixed_seed=False,
                 skull_strip_template=('OASIS30ANTs', {}),
+                spaces=Spaces(output=[('MNI152NLin2009cAsym', {}),
+                                      ('fsaverage5', {})]),
                 subject_id='test',
             )
 
@@ -238,12 +242,6 @@ def init_single_subject_wf(
         Maximum number of threads an individual process may use
     output_dir : str
         Directory in which to save derivatives
-    output_spaces : OrderedDict
-        List of spatial normalization targets. Some parts of pipeline will
-        only be instantiated for some output spaces. Valid spaces:
-        - Any template identifier from TemplateFlow
-        - Path to a template folder organized following TemplateFlow's
-        conventions
     reportlets_dir : str
         Directory in which to save reportlets
     skull_strip_fixed_seed : bool
@@ -252,6 +250,15 @@ def init_single_subject_wf(
     skull_strip_template : tuple
         Name of ANTs skull-stripping template (e.g., 'OASIS30ANTs') and
         dictionary of template specifications.
+    spaces : :obj:`Spaces`
+        Organize and filter spatial normalizations. Composed of internal and output lists
+        of spaces in the form of (Template, Specs). `Template` is a string of either
+        TemplateFlow IDs (e.g., ``MNI152Lin``, ``MNI152NLin6Asym``, ``MNI152NLin2009cAsym``, or
+        ``fsLR``), nonstandard references (e.g., ``T1w`` or ``anat``, ``sbref``, ``run``, etc.),
+        or paths pointing to custom templates organized in a TemplateFlow-like structure.
+        Specs is a dictionary with template specifications (e.g., the specs for the template
+        ``MNI152Lin`` could be ``{'resolution': 2}`` if one wants the resampling to be done on
+        the 2mm resolution version of the selected template).
     subject_id : str
         List of subject labels
 
@@ -304,7 +311,7 @@ to workflows in *sMRIPrep*'s documentation]\
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
                         run_without_submitting=True)
 
-    summary = pe.Node(SubjectSummary(output_spaces=list(output_spaces.keys())),
+    summary = pe.Node(SubjectSummary(output_spaces=list(spaces.unique('output'))),
                       name='summary', run_without_submitting=True)
 
     about = pe.Node(AboutSummary(version=__version__,
