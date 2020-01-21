@@ -241,7 +241,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     anat_norm_wf = init_anat_norm_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
-        templates=spaces,
+        templates=spaces.filtered('std_vol', 'all'),
     )
 
     workflow.connect([
