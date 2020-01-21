@@ -339,10 +339,10 @@ to workflows in *sMRIPrep*'s documentation]\
         num_t1w=len(subject_data['t1w']),
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
-        output_spaces=output_spaces,
         reportlets_dir=reportlets_dir,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         skull_strip_template=skull_strip_template,
+        spaces=spaces,
     )
 
     workflow.connect([
