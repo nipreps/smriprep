@@ -423,10 +423,10 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
         low_mem=opts.low_mem,
         omp_nthreads=omp_nthreads,
         output_dir=str(output_dir),
-        output_spaces=output_spaces,
         run_uuid=run_uuid,
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
         skull_strip_template=opts.skull_strip_template,
+        spaces=spaces,
         subject_list=subject_list,
         work_dir=str(work_dir),
     )
