@@ -269,7 +269,6 @@ def build_workflow(opts, retval):
     import sys
     from shutil import copyfile
     from os import cpu_count
-    from collections import OrderedDict
     import uuid
     from time import strftime
     from subprocess import check_call, CalledProcessError, TimeoutExpired
