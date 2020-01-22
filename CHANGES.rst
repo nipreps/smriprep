@@ -1,3 +1,12 @@
+0.4.2 (January 22, 2020)
+========================
+Bugfix release in the 0.4.x series.
+
+* FIX: Calculate FoV with shape and zooms (#161) @effigies
+* FIX: Package version incorrect within Docker image (#155) @oesteban
+* ENH: Add smriprep.__main__ to allow python -m smriprep (#158) @effigies
+* MAINT: Revise CircleCI to optimize TemplateFlow and caching (#157) @oesteban
+
 0.4.1 (Decemeber 12, 2019)
 ==========================
 Bugfix release to address some fMRIPrep issues.
