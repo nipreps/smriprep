@@ -542,9 +542,12 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
 
 
 def _check_cw256(in_files):
+    import numpy as np
     from nibabel.funcs import concat_images
     if isinstance(in_files, str):
         in_files = [in_files]
-    if any((s > 256 for s in concat_images(in_files).shape[:3])):
+    summary_img = concat_images(in_files)
+    fov = np.array(summary_img.shape[:3]) * summary_img.header.get_zooms()[:3]
+    if np.any(fov > 256):
         return ['-noskullstrip', '-cw256']
     return '-noskullstrip'
