@@ -266,39 +266,6 @@ jobs:
             smriprep-docker -i poldracklab/smriprep:latest --help
             smriprep-docker -i poldracklab/smriprep:latest --version
 
-  test_pytest:
-    docker:
-      - image: circleci/python:3.7.4
-    working_directory: /home/circleci/src/smriprep
-    steps:
-      - checkout
-      - run:
-          name: Check whether build should be skipped
-          command: |
-            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?tests\]' )" != "" ]]; then
-              echo "Skipping pytest job"
-              circleci step halt
-            fi
-      - run:
-          name: Setup Python environment
-          command: |
-            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
-      - run:
-          name: Check PyPi preconditions
-          command: |
-            python setup.py sdist
-            twine check dist/*.tar.gz
-      - run:
-          name: Install sMRIPrep
-          no_output_timeout: 30m
-          command: pip install --user ".[test]"
-      - run:
-          name: Run sMRIPrep tests
-          no_output_timeout: 2h
-          command: python -m pytest -svx --doctest-modules smriprep
-      - store_artifacts:
-          path: /tmp/data/reports
-
   test_deploy_pypi:
     docker:
       - image: circleci/python:3.7.4
@@ -781,16 +748,6 @@ workflows:
             tags:
               only: /.*/
 
-      - test_pytest:
-          filters:
-            branches:
-              ignore:
-                - /docs?\/.*/
-                - /ds005\/.*/
-                - /ds054\/.*/
-            tags:
-              only: /.*/
-
       - test_deploy_pypi:
           filters:
             branches:
@@ -855,7 +812,6 @@ workflows:
             - build_docs
             - ds005
             - ds054
-            - test_pytest
             - test_wrapper
           filters:
             branches:
@@ -877,7 +833,6 @@ workflows:
       - deploy_pypi:
           requires:
             - test_deploy_pypi
-            - test_pytest
             - test_wrapper
             - ds005
             - ds054
@@ -890,7 +845,6 @@ workflows:
       - deploy_docker:
           requires:
             - build
-            - test_pytest
             - ds005
             - ds054
           filters:
