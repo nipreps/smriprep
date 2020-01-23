@@ -284,6 +284,7 @@ def build_workflow(opts, retval):
     spaces = Spaces(output=opts.output_spaces)
     target_spaces = spaces.unique()
     if not target_spaces:
+        # no output spaces have been set - should this blow up?
         # Set the default template to 'MNI152NLin2009c'
         spaces.add_space('MNI152NLin2009cAsym', output=False)
 
