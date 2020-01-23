@@ -1,2 +1,2 @@
 ignore:
-  - "fitlins/_version.py"
+  - "smriprep/_version.py"
