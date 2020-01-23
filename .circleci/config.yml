@@ -430,6 +430,7 @@ jobs:
                 --fs-subjects-dir /tmp/ds005/freesurfer
       - run:
           name: Combine coverage and submit
+          working_directory: /tmp/src/smriprep
           command: |
               which python
               python --version
@@ -563,6 +564,7 @@ jobs:
                 --fs-license-file /tmp/fslicense/license.txt
       - run:
           name: Combine coverage and submit
+          working_directory: /tmp/src/smriprep
           command: |
               which python
               python --version
@@ -571,7 +573,7 @@ jobs:
                 /tmp/ds005/work/.coverage.*
               coverage xml
               which codecov
-              codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
+              codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
       - save_cache:
          key: ds054-anat-v6-{{ .Branch }}-{{ epoch }}
          paths:
