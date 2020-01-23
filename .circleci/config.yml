@@ -439,7 +439,7 @@ jobs:
                 --rcfile /tmp/src/smriprep/docker/multiproc.coveragerc \
                 /tmp/ds005/work/.coverage.*
               coverage xml
-              which codecov
+              coverage report
               codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
       - save_cache:
          key: ds005-anat-v6-{{ .Branch }}-{{ epoch }}
@@ -552,7 +552,7 @@ jobs:
                 -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -v /tmp/src/smriprep/.circleci/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
-                -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
+                -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
                 poldracklab/smriprep:latest \
@@ -572,9 +572,9 @@ jobs:
               python --version
               coverage combine \
                 --rcfile /tmp/src/smriprep/docker/multiproc.coveragerc \
-                /tmp/ds005/work/.coverage.*
+                /tmp/ds054/work/.coverage.*
+              coverage report
               coverage xml
-              which codecov
               codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
       - save_cache:
          key: ds054-anat-v6-{{ .Branch }}-{{ epoch }}
