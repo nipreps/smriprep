@@ -432,6 +432,7 @@ jobs:
           name: Combine coverage and submit
           working_directory: /tmp/src/smriprep
           command: |
+              pyenv local 3.6.3
               which python
               python --version
               coverage combine \
@@ -566,6 +567,7 @@ jobs:
           name: Combine coverage and submit
           working_directory: /tmp/src/smriprep
           command: |
+              pyenv local 3.6.3
               which python
               python --version
               coverage combine \
