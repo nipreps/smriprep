@@ -371,13 +371,13 @@ jobs:
             sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
       - run:
-          name: Install coverage and codecov
+          name: Install codecov
           command: |
               pyenv install 3.6.3
               pyenv global 3.6.3
               python --version
               python -m pip install -U pip
-              python -m pip install -U coverage codecov
+              python -m pip install -U codecov
               pyenv rehash
       - run:
           name: Set-up a Docker registry
@@ -429,17 +429,39 @@ jobs:
                 --fs-license-file /tmp/fslicense/license.txt \
                 --fs-subjects-dir /tmp/ds005/freesurfer
       - run:
+          name: Combine coverage
+          no_output_timeout: 2h
+          command: |
+            # Combine coverage and convert to XML inside container because
+            # the file format is sensitive to changes in environment
+            docker run --rm=false -it \
+                -v /tmp/ds005:/tmp/ds005 \
+                -v /tmp/src/smriprep:/src/smriprep \
+                -w /src/smriprep \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
+                poldracklab/smriprep:latest \
+                combine /tmp/ds005/work/.coverage.*
+            # Convert to XML to freeze
+            docker run --rm=false -it \
+                -v /tmp/ds005:/tmp/ds005 \
+                -v /tmp/src/smriprep:/src/smriprep \
+                -w /src/smriprep \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
+                poldracklab/smriprep:latest \
+                xml
+      - run:
           name: Combine coverage and submit
           working_directory: /tmp/src/smriprep
           command: |
               pyenv local 3.6.3
               which python
               python --version
-              coverage combine \
-                --rcfile /tmp/src/smriprep/docker/multiproc.coveragerc \
-                /tmp/ds005/work/.coverage.*
-              coverage xml
-              coverage report
               codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
       - save_cache:
          key: ds005-anat-v6-{{ .Branch }}-{{ epoch }}
@@ -507,13 +529,13 @@ jobs:
             sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
       - run:
-          name: Install coverage and codecov
+          name: Install codecov
           command: |
               pyenv install 3.6.3
               pyenv global 3.6.3
               python --version
               python -m pip install -U pip
-              python -m pip install -U coverage codecov
+              python -m pip install -U codecov
               pyenv rehash
       - run:
           name: Set-up a Docker registry
@@ -564,17 +586,39 @@ jobs:
                 --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
                 --fs-license-file /tmp/fslicense/license.txt
       - run:
-          name: Combine coverage and submit
+          name: Combine coverage
+          no_output_timeout: 2h
+          command: |
+            # Combine coverage and convert to XML inside container because
+            # the file format is sensitive to changes in environment
+            docker run --rm=false -it \
+                -v /tmp/ds054:/tmp/ds054 \
+                -v /tmp/src/smriprep:/src/smriprep \
+                -w /src/smriprep \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
+                poldracklab/smriprep:latest \
+                combine /tmp/ds054/work/.coverage.*
+            # Convert to XML to freeze
+            docker run --rm=false -it \
+                -v /tmp/ds054:/tmp/ds054 \
+                -v /tmp/src/smriprep:/src/smriprep \
+                -w /src/smriprep \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
+                poldracklab/smriprep:latest \
+                xml
+      - run:
+          name: Submit coverage
           working_directory: /tmp/src/smriprep
           command: |
               pyenv local 3.6.3
               which python
               python --version
-              coverage combine \
-                --rcfile /tmp/src/smriprep/docker/multiproc.coveragerc \
-                /tmp/ds054/work/.coverage.*
-              coverage report
-              coverage xml
               codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
       - save_cache:
          key: ds054-anat-v6-{{ .Branch }}-{{ epoch }}

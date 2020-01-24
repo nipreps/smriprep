@@ -3,11 +3,9 @@ branch = True
 source = smriprep
 omit =
     */tests/*
-relative_files = True
 concurrency = multiprocessing
 
 [paths]
 source =
     smriprep/
-    /tmp/src/smriprep/smriprep
-    /usr/local/miniconda/lib/python*/site-packages/smriprep
+    */smriprep
