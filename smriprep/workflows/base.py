@@ -101,18 +101,10 @@ def init_smriprep_wf(
     skull_strip_fixed_seed : bool
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
-    skull_strip_template : tuple
-        Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI'),
-        and dictionary with template specifications (e.g., {'res': '2'})
-    spaces : :obj:`Spaces`
-        Organize and filter spatial normalizations. Composed of internal and output lists
-        of spaces in the form of (Template, Specs). `Template` is a string of either
-        TemplateFlow IDs (e.g., ``MNI152Lin``, ``MNI152NLin6Asym``, ``MNI152NLin2009cAsym``, or
-        ``fsLR``), nonstandard references (e.g., ``T1w`` or ``anat``, ``sbref``, ``run``, etc.),
-        or paths pointing to custom templates organized in a TemplateFlow-like structure.
-        Specs is a dictionary with template specifications (e.g., the specs for the template
-        ``MNI152Lin`` could be ``{'resolution': 2}`` if one wants the resampling to be done on
-        the 2mm resolution version of the selected template).
+    skull_strip_template : :obj:`Space`
+        Space specification to use in atlas-based brain extraction.
+    spaces : :obj:`SpatialReferences`
+        Object containing standard and nonstandard space specifications.
     subject_list : list
         List of subject labels
     work_dir : str
@@ -128,8 +120,7 @@ def init_smriprep_wf(
             BIDSFreeSurferDir(
                 derivatives=output_dir,
                 freesurfer_home=os.getenv('FREESURFER_HOME'),
-                spaces=[s for s in spaces.unique()
-                        if s.startswith('fsaverage') or s == 'fsnative']),
+                spaces=spaces.get_fs_spaces()),
             name='fsdir_run_%s' % run_uuid.replace('-', '_'), run_without_submitting=True)
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
@@ -247,10 +238,9 @@ def init_single_subject_wf(
     skull_strip_fixed_seed : bool
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
-    skull_strip_template : tuple
-        Name of ANTs skull-stripping template (e.g., 'OASIS30ANTs') and
-        dictionary of template specifications.
-    spaces : :obj:`Spaces`
+    skull_strip_template : :obj:`Space`
+        Space specification to use in atlas-based brain extraction.
+    spaces : :obj:`SpatialReferences`
         Organize and filter spatial normalizations. Composed of internal and output lists
         of spaces in the form of (Template, Specs). `Template` is a string of either
         TemplateFlow IDs (e.g., ``MNI152Lin``, ``MNI152NLin6Asym``, ``MNI152NLin2009cAsym``, or
@@ -311,7 +301,7 @@ to workflows in *sMRIPrep*'s documentation]\
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
                         run_without_submitting=True)
 
-    summary = pe.Node(SubjectSummary(output_spaces=list(spaces.unique())),
+    summary = pe.Node(SubjectSummary(output_spaces=spaces.get_std_spaces()),
                       name='summary', run_without_submitting=True)
 
     about = pe.Node(AboutSummary(version=__version__,

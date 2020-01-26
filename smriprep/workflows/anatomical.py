@@ -101,9 +101,8 @@ def init_anat_preproc_wf(
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
-    skull_strip_template : tuple
-        Name of ANTs skull-stripping template and specifications.
-
+    skull_strip_template : :obj:`Space`
+        Space specification to use in atlas-based brain extraction.
 
     Inputs
     ------
@@ -115,7 +114,6 @@ def init_anat_preproc_wf(
         List of FLAIR images
     subjects_dir
         FreeSurfer SUBJECTS_DIR
-
 
     Outputs
     -------
@@ -193,7 +191,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         ants_ver=ANTsInfo.version() or '(version unknown)',
         fsl_ver=fsl.FAST().version or '(version unknown)',
         num_t1w=num_t1w,
-        skullstrip_tpl=skull_strip_template[0],
+        skullstrip_tpl=skull_strip_template.fullname,
     )
 
     inputnode = pe.Node(
@@ -203,8 +201,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         fields=['t1w_preproc', 't1w_brain', 't1w_mask', 't1w_dseg', 't1w_tpms',
                 'template', 'std_t1w', 'anat2std_xfm', 'std2anat_xfm',
                 'joint_template', 'joint_anat2std_xfm', 'joint_std2anat_xfm',
-                'std_mask', 'std_dseg', 'std_tpms',
-                't1w_realign_xfm', 'joint_template_and_spec',
+                'std_mask', 'std_dseg', 'std_tpms', 't1w_realign_xfm',
                 'subjects_dir', 'subject_id', 't1w2fsnative_xfm',
                 'fsnative2t1w_xfm', 'surfaces', 't1w_aseg', 't1w_aparc']),
         name='outputnode')
@@ -221,8 +218,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # 2. Brain-extraction and INU (bias field) correction.
     brain_extraction_wf = init_brain_extraction_wf(
-        in_template=skull_strip_template[0],
-        template_spec=skull_strip_template[1],
+        in_template=skull_strip_template.name,
+        template_spec=skull_strip_template.spec,
         atropos_use_random_seed=not skull_strip_fixed_seed,
         omp_nthreads=omp_nthreads,
         normalization_quality='precise' if not debug else 'testing')
@@ -241,7 +238,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     anat_norm_wf = init_anat_norm_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
-        templates=spaces.filtered('std_vol', 'all'),
+        templates=spaces.get_std_spaces(),
     )
 
     workflow.connect([
@@ -279,7 +276,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.template', 'joint_template'),
             ('outputnode.anat2std_xfm', 'joint_anat2std_xfm'),
             ('outputnode.std2anat_xfm', 'joint_std2anat_xfm'),
-            ('outputnode.template_and_spec', 'joint_template_and_spec'),
         ]),
     ])
 

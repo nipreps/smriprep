@@ -28,8 +28,7 @@ def get_parser():
     from pathlib import Path
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
-    from templateflow.api import templates
-    from .utils import ParseTemplates, output_space as _output_space
+    from .utils import ParseTemplates, Space
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -77,8 +76,8 @@ def get_parser():
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
         '--output-spaces', nargs='+', action=ParseTemplates,
-        help='paths or keywords prescribing standard spaces to which normalize the input T1w image'
-             ' (valid keywords are: %s).' % ', '.join('"%s"' % s for s in templates()))
+        help='paths or keywords prescribing output spaces - '
+             'standard spaces will be extracted for spatial normalization.')
     g_conf.add_argument(
         '--longitudinal', action='store_true',
         help='treat dataset as longitudinal - may increase runtime')
@@ -86,7 +85,7 @@ def get_parser():
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
     g_ants.add_argument(
-        '--skull-strip-template', action='store', default='OASIS30ANTs', type=_output_space,
+        '--skull-strip-template', action='store', default='OASIS30ANTs', type=Space,
         help='select a template for skull-stripping with antsBrainExtraction')
     g_ants.add_argument('--skull-strip-fixed-seed', action='store_true',
                         help='do not use a random seed for skull-stripping - will ensure '
@@ -266,7 +265,6 @@ def build_workflow(opts, retval):
     ``multiprocessing.Process`` that allows smriprep to enforce
     a hard-limited memory-scope.
     """
-    import sys
     from shutil import copyfile
     from os import cpu_count
     import uuid
@@ -278,23 +276,7 @@ def build_workflow(opts, retval):
     from nipype import logging, config as ncfg
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
-    from ..utils import Spaces
     from niworkflows.utils.bids import collect_participants
-
-    spaces = Spaces(output=opts.output_spaces)
-    target_spaces = spaces.unique()
-    if not target_spaces:
-        # no output spaces have been set - should this blow up?
-        # Set the default template to 'MNI152NLin2009c'
-        spaces.add_space('MNI152NLin2009cAsym', output=False)
-
-    FS_SPACES = {'fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'}
-    if opts.run_reconall and not FS_SPACES.intersection(target_spaces):
-        print("""\
-Although ``--fs-no-reconall`` was not set, no FreeSurfer output space (valid values are: \
-%s) was selected. Adding default "fsaverage5" to the \
-list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
-        spaces.add_space('fsaverage5', output=False)
 
     logger = logging.getLogger('nipype.workflow')
 
@@ -425,8 +407,8 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
         output_dir=str(output_dir),
         run_uuid=run_uuid,
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
-        skull_strip_template=opts.skull_strip_template[0],
-        spaces=spaces,
+        skull_strip_template=opts.skull_strip_template,
+        spaces=opts.output_spaces,
         subject_list=subject_list,
         work_dir=str(work_dir),
     )

@@ -69,8 +69,7 @@ class TemplateFlowSelect(SimpleInterface):
 
 
 class _TemplateDescInputSpec(BaseInterfaceInputSpec):
-    template = traits.Tuple(traits.Str, traits.Dict, mandatory=True,
-                            desc='(id, description) pair')
+    template = traits.Str(mandatory=True, desc='univocal template identifier')
 
 
 class _TemplateDescOutputSpec(TraitedSpec):
@@ -85,7 +84,7 @@ class TemplateDesc(SimpleInterface):
     This interface is necessary to ensure the good functioning
     with iterables and JoinNodes.
 
-    >>> select = TemplateDesc(template=('MNI152NLin2009cAsym', {}))
+    >>> select = TemplateDesc(template='MNI152NLin2009cAsym')
     >>> result = select.run()
     >>> result.outputs.name
     'MNI152NLin2009cAsym'
@@ -93,11 +92,26 @@ class TemplateDesc(SimpleInterface):
     >>> result.outputs.spec
     {}
 
+    >>> select = TemplateDesc(template='MNIPediatricAsym:cohort-2')
+    >>> result = select.run()
+    >>> result.outputs.name
+    'MNIPediatricAsym'
+
+    >>> result.outputs.spec
+    {'cohort': '2'}
+
     """
 
     input_spec = _TemplateDescInputSpec
     output_spec = _TemplateDescOutputSpec
 
     def _run_interface(self, runtime):
-        self._results['name'], self._results['spec'] = self.inputs.template
+        _split = self.inputs.split(':')
+        self._results['name'] = _split[0]
+
+        self._results['spec'] = {}
+        if len(_split) > 1:
+            for desc in _split[1:]:
+                descsplit = desc.split('-')
+                self._results['spec'][descsplit[0]] = descsplit[1]
         return runtime

@@ -52,10 +52,10 @@ def init_anat_norm_wf(
         registration processes will be very inaccurate.
     omp_nthreads : int
         Maximum number of threads an individual process may use.
-    templates : list of tuples
-        List of tuples containing TemplateFlow identifiers (e.g. ``MNI152NLin6Asym``)
-        and corresponding specs, which specify target templates
-        for spatial normalization.
+    templates : :obj:`list` of :obj:`str`
+        List of standard space fullnames (e.g., ``MNI152NLin6Asym``
+        or ``MNIPediatricAsym:cohort-4``) which are targets for spatial
+        normalization.
 
     Inputs
     ------
@@ -110,13 +110,13 @@ The following template{tpls} selected for spatial normalization:
         targets='%s standard space%s' % (defaultdict(
             'several'.format, {1: 'one', 2: 'two', 3: 'three', 4: 'four'})[ntpls],
             's' * (ntpls != 1)),
-        targets_id=', '.join((t for t, _ in templates)),
+        targets_id=', '.join(templates),
         tpls=(' was', 's were')[ntpls != 1]
     )
 
     # Append template citations to description
-    for template, _ in templates:
-        template_meta = get_metadata(template)
+    for template in templates:
+        template_meta = get_metadata(template.split(':')[0])
         template_refs = ['@%s' % template.lower()]
 
         if template_meta.get('RRID', None):
@@ -200,9 +200,8 @@ The following template{tpls} selected for spatial normalization:
     ])
 
     # Provide synchronized output
-    outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields + ['template_and_spec']),
-                             name='outputnode', joinsource='split_desc', joinfield=out_fields)
-    outputnode.inputs.template_and_spec = templates
+    outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
+                             name='outputnode', joinsource='split_desc')
     workflow.connect([
         (poutputnode, outputnode, [(f, f) for f in out_fields]),
     ])
