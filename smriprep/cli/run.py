@@ -85,7 +85,7 @@ def get_parser():
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
     g_ants.add_argument(
-        '--skull-strip-template', action='store', default='OASIS30ANTs', type=Space,
+        '--skull-strip-template', action='store', default='OASIS30ANTs', type=Space.from_string,
         help='select a template for skull-stripping with antsBrainExtraction')
     g_ants.add_argument('--skull-strip-fixed-seed', action='store_true',
                         help='do not use a random seed for skull-stripping - will ensure '
@@ -407,7 +407,7 @@ def build_workflow(opts, retval):
         output_dir=str(output_dir),
         run_uuid=run_uuid,
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
-        skull_strip_template=opts.skull_strip_template,
+        skull_strip_template=opts.skull_strip_template[0],
         spaces=opts.output_spaces,
         subject_list=subject_list,
         work_dir=str(work_dir),
