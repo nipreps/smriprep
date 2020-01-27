@@ -96,10 +96,16 @@ class SubjectSummary(SummaryInterface):
         if self.inputs.t2w:
             t2w_seg = '(+ {:d} T2-weighted)'.format(len(self.inputs.t2w))
 
+        output_spaces = self.inputs.output_spaces
+        if not isdefined(output_spaces):
+            output_spaces = "&lt;none given&gt;"
+        else:
+            output_spaces = ', '.join(output_spaces)
+
         return SUBJECT_TEMPLATE.format(subject_id=self.inputs.subject_id,
                                        n_t1s=len(self.inputs.t1w),
                                        t2w=t2w_seg,
-                                       output_spaces=', '.join(self.inputs.output_spaces),
+                                       output_spaces=output_spaces,
                                        freesurfer_status=freesurfer_status)
 
 

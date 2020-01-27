@@ -75,7 +75,7 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
-        '--output-spaces', nargs='+', action=ParseTemplates,
+        '--output-spaces', nargs='+', type=Space.from_string,
         help='paths or keywords prescribing output spaces - '
              'standard spaces will be extracted for spatial normalization.')
     g_conf.add_argument(
@@ -274,9 +274,10 @@ def build_workflow(opts, retval):
 
     from bids import BIDSLayout
     from nipype import logging, config as ncfg
+    from niworkflows.utils.spaces import SpatialReferences
+    from niworkflows.utils.bids import collect_participants
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
-    from niworkflows.utils.bids import collect_participants
 
     logger = logging.getLogger('nipype.workflow')
 
@@ -395,6 +396,10 @@ def build_workflow(opts, retval):
         uuid=run_uuid)
     )
 
+    output_spaces = SpatialReferences()
+    if opts.output_spaces is not None:
+        output_spaces += opts.output_spaces
+
     retval['workflow'] = init_smriprep_wf(
         debug=opts.sloppy,
         freesurfer=opts.run_reconall,
@@ -408,7 +413,7 @@ def build_workflow(opts, retval):
         run_uuid=run_uuid,
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
         skull_strip_template=opts.skull_strip_template[0],
-        spaces=opts.output_spaces,
+        spaces=output_spaces,
         subject_list=subject_list,
         work_dir=str(work_dir),
     )

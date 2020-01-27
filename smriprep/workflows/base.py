@@ -55,7 +55,7 @@ def init_smriprep_wf(
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             os.environ['FREESURFER_HOME'] = os.getcwd()
             from smriprep.workflows.base import init_smriprep_wf
-            from smriprep.utils import Spaces
+            from niworkflows.utils.spaces import SpatialReferences
             wf = init_smriprep_wf(
                 debug=False,
                 freesurfer=True,
@@ -69,8 +69,7 @@ def init_smriprep_wf(
                 run_uuid='testrun',
                 skull_strip_fixed_seed=False,
                 skull_strip_template=('OASIS30ANTs', {}),
-                spaces=Spaces(output=[('MNI152NLin2009cAsym', {}),
-                                      ('fsaverage5', {})]),
+                spaces=SpatialReferences(['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_list=['smripreptest'],
                 work_dir='.',
             )

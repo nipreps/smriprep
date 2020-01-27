@@ -32,7 +32,7 @@ def init_anat_norm_wf(
             wf = init_anat_norm_wf(
                 debug=False,
                 omp_nthreads=1,
-                templates=[('MNI152NLin2009cAsym', {}), ('MNI152NLin6Asym', {})],
+                templates=['MNI152NLin2009cAsym', 'MNI152NLin6Asym'],
             )
 
     .. important::
@@ -100,34 +100,37 @@ def init_anat_norm_wf(
     """
     ntpls = len(templates)
     workflow = Workflow('anat_norm_wf')
-    workflow.__desc__ = """\
+
+    if templates:
+        workflow.__desc__ = """\
 Volume-based spatial normalization to {targets} ({targets_id}) was performed through
 nonlinear registration with `antsRegistration` (ANTs {ants_ver}),
 using brain-extracted versions of both T1w reference and the T1w template.
 The following template{tpls} selected for spatial normalization:
 """.format(
-        ants_ver=ANTsInfo.version() or '(version unknown)',
-        targets='%s standard space%s' % (defaultdict(
-            'several'.format, {1: 'one', 2: 'two', 3: 'three', 4: 'four'})[ntpls],
-            's' * (ntpls != 1)),
-        targets_id=', '.join(templates),
-        tpls=(' was', 's were')[ntpls != 1]
-    )
+            ants_ver=ANTsInfo.version() or '(version unknown)',
+            targets='%s standard space%s' % (defaultdict(
+                'several'.format, {1: 'one', 2: 'two', 3: 'three', 4: 'four'})[ntpls],
+                's' * (ntpls != 1)),
+            targets_id=', '.join(templates),
+            tpls=(' was', 's were')[ntpls != 1]
+        )
 
-    # Append template citations to description
-    for template in templates:
-        template_meta = get_metadata(template.split(':')[0])
-        template_refs = ['@%s' % template.lower()]
+        # Append template citations to description
+        for template in templates:
+            template_meta = get_metadata(template.split(':')[0])
+            template_refs = ['@%s' % template.split(':')[0].lower()]
 
-        if template_meta.get('RRID', None):
-            template_refs += ['RRID:%s' % template_meta['RRID']]
+            if template_meta.get('RRID', None):
+                template_refs += ['RRID:%s' % template_meta['RRID']]
 
-        workflow.__desc__ += """\
+            workflow.__desc__ += """\
 *{template_name}* [{template_refs}; TemplateFlow ID: {template}]""".format(
-            template=template,
-            template_name=template_meta['Name'],
-            template_refs=', '.join(template_refs))
-        workflow.__desc__ += (', ', '.')[template == templates[-1][0]]
+                template=template,
+                template_name=template_meta['Name'],
+                template_refs=', '.join(template_refs)
+            )
+            workflow.__desc__ += (', ', '.')[template == templates[-1][0]]
 
     inputnode = pe.Node(niu.IdentityInterface(fields=[
         'moving_image', 'moving_mask', 'moving_segmentation', 'moving_tpms',
