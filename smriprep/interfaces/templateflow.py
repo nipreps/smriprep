@@ -106,7 +106,7 @@ class TemplateDesc(SimpleInterface):
     output_spec = _TemplateDescOutputSpec
 
     def _run_interface(self, runtime):
-        _split = self.inputs.split(':')
+        _split = self.inputs.template.split(':')
         self._results['name'] = _split[0]
 
         self._results['spec'] = {}
