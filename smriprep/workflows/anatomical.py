@@ -29,9 +29,20 @@ from .surfaces import init_surface_recon_wf
 
 
 def init_anat_preproc_wf(
-        bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
-        spaces, num_t1w, reportlets_dir, skull_strip_template, debug=False,
-        name='anat_preproc_wf', skull_strip_fixed_seed=False):
+        bids_root,
+        freesurfer,
+        hires,
+        longitudinal,
+        num_t1w,
+        omp_nthreads,
+        output_dir,
+        reportlets_dir,
+        skull_strip_template,
+        spaces,
+        debug=False,
+        name='anat_preproc_wf',
+        skull_strip_fixed_seed=False
+):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
 
@@ -50,9 +61,8 @@ def init_anat_preproc_wf(
             :graph2use: orig
             :simple_form: yes
 
-            from collections import OrderedDict
+            from niworkflows.utils.spaces import SpatialReferences, Space
             from smriprep.workflows.anatomical import init_anat_preproc_wf
-            from smriprep.utils import Spaces
             wf = init_anat_preproc_wf(
                 bids_root='.',
                 freesurfer=True,
@@ -61,48 +71,43 @@ def init_anat_preproc_wf(
                 num_t1w=1,
                 omp_nthreads=1,
                 output_dir='.',
-                output_spaces=Spaces(output=[('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
                 reportlets_dir='.',
-                skull_strip_template=('MNI152NLin2009cAsym', {}),
+                skull_strip_template=Space.from_string('OASIS30ANTs')[0],
+                spaces=SpatialReferences(['MNI152NLin2009cAsym', 'fsaverage5']),
             )
 
     Parameters
     ----------
-    bids_root : str
+    bids_root : :obj:`str`
         Path of the input BIDS dataset root
-    debug : bool
-        Enable debugging outputs
-    freesurfer : bool
+    freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (increases runtime by 6h,
         at the very least)
-    spaces : :obj:`Spaces`
-        Organize and filter spatial normalizations. Composed of internal and output lists
-        of spaces in the form of (Template, Specs). `Template` is a string of either
-        TemplateFlow IDs (e.g., ``MNI152Lin``, ``MNI152NLin6Asym``, ``MNI152NLin2009cAsym``, or
-        ``fsLR``), nonstandard references (e.g., ``T1w`` or ``anat``, ``sbref``, ``run``, etc.),
-        or paths pointing to custom templates organized in a TemplateFlow-like structure.
-        Specs is a dictionary with template specifications (e.g., the specs for the template
-        ``MNI152Lin`` could be ``{'resolution': 2}`` if one wants the resampling to be done on
-        the 2mm resolution version of the selected template).
-    hires : bool
+    hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
-    longitudinal : bool
+    longitudinal : :obj:`bool`
         Create unbiased structural template, regardless of number of inputs
         (may increase runtime)
-    name : str, optional
-        Workflow name (default: anat_preproc_wf)
-    omp_nthreads : int
+    num_t1w : :obj:`int`
+        Number of T1w that were averaged for the anatomical reference.
+    omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
-    output_dir : str
+    output_dir : :obj:`str`
         Directory in which to save derivatives
-    reportlets_dir : str
+    reportlets_dir : :obj:`str`
         Directory in which to save reportlets
-    skull_strip_fixed_seed : bool
+    skull_strip_template : :obj:`Space`
+        Space specification to use in atlas-based brain extraction.
+    spaces : :obj:`SpatialReferences`
+        Object containing standard and nonstandard space specifications.
+    debug : :obj:`bool`
+        Enable debugging outputs
+    name : :obj:`str`, optional
+        Workflow name (default: anat_preproc_wf)
+    skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
-    skull_strip_template : :obj:`Space`
-        Space specification to use in atlas-based brain extraction.
 
     Inputs
     ------
@@ -155,7 +160,7 @@ def init_anat_preproc_wf(
     surfaces
         GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
 
-    See also
+    See Also
     --------
     * :py:func:`~niworkflows.anat.ants.init_brain_extraction_wf`
     * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
@@ -393,14 +398,14 @@ def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_templa
 
     Parameters
     ----------
-    longitudinal : bool
+    longitudinal : :obj:`bool`
         Create unbiased structural average, regardless of number of inputs
         (may increase runtime)
-    omp_nthreads : int
+    omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
-    num_t1w : int
+    num_t1w : :obj:`int`
         Number of T1w images
-    name : str, optional
+    name : :obj:`str`, optional
         Workflow name (default: anat_template_wf)
 
     Inputs

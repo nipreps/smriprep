@@ -51,11 +51,11 @@ def init_smriprep_wf(
             :simple_form: yes
 
             import os
-            from collections import OrderedDict, namedtuple
+            from collections import namedtuple
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             os.environ['FREESURFER_HOME'] = os.getcwd()
             from smriprep.workflows.base import init_smriprep_wf
-            from niworkflows.utils.spaces import SpatialReferences
+            from niworkflows.utils.spaces import SpatialReferences, Space
             wf = init_smriprep_wf(
                 debug=False,
                 freesurfer=True,
@@ -68,7 +68,7 @@ def init_smriprep_wf(
                 output_dir='.',
                 run_uuid='testrun',
                 skull_strip_fixed_seed=False,
-                skull_strip_template=('OASIS30ANTs', {}),
+                skull_strip_template=Space.from_string('OASIS30ANTs')[0],
                 spaces=SpatialReferences(['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_list=['smripreptest'],
                 work_dir='.',
@@ -76,37 +76,37 @@ def init_smriprep_wf(
 
     Parameters
     ----------
-    debug : bool
+    debug : :obj:`bool`
         Enable debugging outputs
-    freesurfer : bool
+    freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
     fs_subjects_dir : os.PathLike or None
         Use existing FreeSurfer subjects directory if provided
-    hires : bool
+    hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     layout : BIDSLayout object
         BIDS dataset layout
-    longitudinal : bool
+    longitudinal : :obj:`bool`
         Treat multiple sessions as longitudinal (may increase runtime)
         See sub-workflows for specific differences
-    low_mem : bool
+    low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
-    omp_nthreads : int
+    omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
-    output_dir : str
+    output_dir : :obj:`str`
         Directory in which to save derivatives
-    run_uuid : str
+    run_uuid : :obj:`str`
         Unique identifier for execution instance
-    skull_strip_fixed_seed : bool
+    skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
     skull_strip_template : :obj:`Space`
         Space specification to use in atlas-based brain extraction.
     spaces : :obj:`SpatialReferences`
         Object containing standard and nonstandard space specifications.
-    subject_list : list
+    subject_list : :obj:`list`
         List of subject labels
-    work_dir : str
+    work_dir : :obj:`str`
         Directory in which to store workflow execution state and
         temporary files
 
@@ -190,7 +190,8 @@ def init_single_subject_wf(
             :graph2use: orig
             :simple_form: yes
 
-            from collections import OrderedDict, namedtuple
+            from collections import namedtuple
+            from niworkflows.utils.spaces import SpatialReferences, Space
             from smriprep.workflows.base import init_single_subject_wf
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             wf = init_single_subject_wf(
@@ -205,50 +206,42 @@ def init_single_subject_wf(
                 output_dir='.',
                 reportlets_dir='.',
                 skull_strip_fixed_seed=False,
-                skull_strip_template=('OASIS30ANTs', {}),
-                spaces=Spaces(output=[('MNI152NLin2009cAsym', {}),
-                                      ('fsaverage5', {})]),
+                skull_strip_template=Space.from_string('OASIS30ANTs')[0],
+                spaces=SpatialReferences(['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_id='test',
             )
 
     Parameters
     ----------
-    debug : bool
+    debug : :obj:`bool`
         Enable debugging outputs
-    freesurfer : bool
+    freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
-    hires : bool
+    hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     layout : BIDSLayout object
         BIDS dataset layout
-    longitudinal : bool
+    longitudinal : :obj:`bool`
         Treat multiple sessions as longitudinal (may increase runtime)
         See sub-workflows for specific differences
-    low_mem : bool
+    low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
-    name : str
+    name : :obj:`str`
         Name of workflow
-    omp_nthreads : int
+    omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
-    output_dir : str
+    output_dir : :obj:`str`
         Directory in which to save derivatives
-    reportlets_dir : str
+    reportlets_dir : :obj:`str`
         Directory in which to save reportlets
-    skull_strip_fixed_seed : bool
+    skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
     skull_strip_template : :obj:`Space`
         Space specification to use in atlas-based brain extraction.
     spaces : :obj:`SpatialReferences`
-        Organize and filter spatial normalizations. Composed of internal and output lists
-        of spaces in the form of (Template, Specs). `Template` is a string of either
-        TemplateFlow IDs (e.g., ``MNI152Lin``, ``MNI152NLin6Asym``, ``MNI152NLin2009cAsym``, or
-        ``fsLR``), nonstandard references (e.g., ``T1w`` or ``anat``, ``sbref``, ``run``, etc.),
-        or paths pointing to custom templates organized in a TemplateFlow-like structure.
-        Specs is a dictionary with template specifications (e.g., the specs for the template
-        ``MNI152Lin`` could be ``{'resolution': 2}`` if one wants the resampling to be done on
-        the 2mm resolution version of the selected template).
-    subject_id : str
+        Object containing standard and nonstandard space specifications.
+    subject_id : :obj:`str`
         List of subject labels
 
     Inputs

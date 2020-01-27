@@ -47,10 +47,10 @@ def init_anat_norm_wf(
 
     Parameters
     ----------
-    debug : bool
+    debug : :obj:`bool`
         Apply sloppy arguments to speed up processing. Use with caution,
         registration processes will be very inaccurate.
-    omp_nthreads : int
+    omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use.
     templates : :obj:`list` of :obj:`str`
         List of standard space fullnames (e.g., ``MNI152NLin6Asym``

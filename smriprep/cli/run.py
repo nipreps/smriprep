@@ -1,20 +1,17 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-sMRIPrep: Structural MRI PREProcessing workflow
-===============================================
-"""
+"""sMRIPrep: Structural MRI PREProcessing workflow."""
 
 
 def main():
-    """Entrypoint"""
+    """Set an entrypoint."""
     opts = get_parser().parse_args()
     return build_opts(opts)
 
 
 def check_deps(workflow):
+    """Make sure all dependencies are installed."""
     from nipype.utils.filemanip import which
     return sorted(
         (node.interface.__class__.__name__, node.interface._cmd)
@@ -24,11 +21,11 @@ def check_deps(workflow):
 
 
 def get_parser():
-    """Build parser object"""
+    """Build parser object."""
     from pathlib import Path
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
-    from .utils import ParseTemplates, Space
+    from niworkflows.utils.spaces import Space
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -143,7 +140,7 @@ def get_parser():
 
 
 def build_opts(opts):
-    """Entry point"""
+    """Trigger a new process that builds the workflow graph, based on the input options."""
     import os
     from pathlib import Path
     import logging
@@ -257,13 +254,14 @@ def build_opts(opts):
 
 def build_workflow(opts, retval):
     """
-    Create the Nipype Workflow that supports the whole execution
-    graph, given the inputs.
+    Create the Nipype Workflow that supports the whole execution graph, given the inputs.
+
     All the checks and the construction of the workflow are done
     inside this function that has pickleable inputs and output
     dictionary (``retval``) to allow isolation using a
     ``multiprocessing.Process`` that allows smriprep to enforce
     a hard-limited memory-scope.
+
     """
     from shutil import copyfile
     from os import cpu_count
