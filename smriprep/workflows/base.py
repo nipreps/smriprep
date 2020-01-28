@@ -100,9 +100,9 @@ def init_smriprep_wf(
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
-    skull_strip_template : :obj:`Space`
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Space`
         Space specification to use in atlas-based brain extraction.
-    spaces : :obj:`SpatialReferences`
+    spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
     subject_list : :obj:`list`
         List of subject labels
@@ -237,9 +237,9 @@ def init_single_subject_wf(
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
-    skull_strip_template : :obj:`Space`
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Space`
         Space specification to use in atlas-based brain extraction.
-    spaces : :obj:`SpatialReferences`
+    spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
     subject_id : :obj:`str`
         List of subject labels

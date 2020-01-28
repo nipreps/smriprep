@@ -96,9 +96,9 @@ def init_anat_preproc_wf(
         Directory in which to save derivatives
     reportlets_dir : :obj:`str`
         Directory in which to save reportlets
-    skull_strip_template : :obj:`Space`
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Space`
         Space specification to use in atlas-based brain extraction.
-    spaces : :obj:`SpatialReferences`
+    spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
     debug : :obj:`bool`
         Enable debugging outputs
