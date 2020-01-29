@@ -35,9 +35,8 @@ from .surfaces import init_surface_recon_wf
 
 def init_anat_preproc_wf(
         bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
-        output_spaces, t1w, reportlets_dir, skull_strip_template,
-        debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False,
-        skip_brain_extraction=False):
+        output_spaces, t1w, reportlets_dir, skull_strip_template, skip_brain_extraction,
+        debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
 
@@ -70,6 +69,7 @@ def init_anat_preproc_wf(
                     ('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
                 reportlets_dir='.',
                 skull_strip_template=('MNI152NLin2009cAsym', {}),
+                skip_brain_extraction=False
             )
 
     Parameters
@@ -103,14 +103,14 @@ def init_anat_preproc_wf(
         Directory in which to save derivatives
     reportlets_dir : str
         Directory in which to save reportlets
+    skip_brain_extraction : bool
+        Skip ants brain extraction workflow, and instead use N4-only workflow
     skull_strip_fixed_seed : bool
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
     skull_strip_template : tuple
         Name of ANTs skull-stripping template and specifications.
-    skip_brain_extraction : bool
-        Skip ants brain extraction workflow, and instead use N4-only workflow
 
 
     Inputs
