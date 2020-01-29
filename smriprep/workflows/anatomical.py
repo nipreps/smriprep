@@ -43,11 +43,11 @@ def init_anat_preproc_wf(
         output_dir,
         reportlets_dir,
         skull_strip_template,
+        skip_brain_extraction,
         spaces,
         debug=False,
         name='anat_preproc_wf',
         skull_strip_fixed_seed=False,
-        skip_brain_extraction=False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -114,6 +114,8 @@ def init_anat_preproc_wf(
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
+    skip_brain_extraction : :obj:`bool`
+        Skip ants brain extraction workflow, and instead use N4-only workflow
 
     Inputs
     ------
