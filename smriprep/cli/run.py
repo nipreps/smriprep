@@ -272,7 +272,6 @@ def build_workflow(opts, retval):
 
     from bids import BIDSLayout
     from nipype import logging, config as ncfg
-    from niworkflows.utils.spaces import SpatialReferences
     from niworkflows.utils.bids import collect_participants
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
@@ -393,7 +392,6 @@ def build_workflow(opts, retval):
         subject_list=subject_list,
         uuid=run_uuid)
     )
-
 
     retval['workflow'] = init_smriprep_wf(
         debug=opts.sloppy,
