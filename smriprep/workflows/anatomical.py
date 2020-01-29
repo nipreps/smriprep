@@ -110,7 +110,7 @@ def init_anat_preproc_wf(
     skull_strip_template : tuple
         Name of ANTs skull-stripping template and specifications.
     skip_brain_extraction : bool
-        Skip ants brain extraction workflow, and instead use n4-only workflow
+        Skip ants brain extraction workflow, and instead use N4-only workflow
 
 
     Inputs
@@ -245,7 +245,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
         return all(skull_stripped)
 
-    if _is_skull_stripped(t1w) or skip_brain_extraction:
+    if skip_brain_extraction or _is_skull_stripped(t1w):
         brain_extraction_wf = init_n4_only_wf(
             omp_nthreads=omp_nthreads,
             atropos_use_random_seed=not skull_strip_fixed_seed
