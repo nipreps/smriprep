@@ -463,6 +463,12 @@ jobs:
               which python
               python --version
               codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
+      - run:
+          name: Clean-up temporary directory of reportlets
+          when: always
+          command: |
+            sudo chown $(id -un):$(id -gn) -R /tmp/ds005
+            rm -rf /tmp/ds005/work/reportlets
       - save_cache:
          key: ds005-anat-v6-{{ .Branch }}-{{ epoch }}
          paths:
@@ -479,13 +485,12 @@ jobs:
           name: Clean-up work directory
           when: always
           command: |
-            sudo chown $(id -un):$(id -gn) -R /tmp/ds005
             rm -rf /tmp/ds005/freesurfer
       - run:
           name: Clean working directory
           when: on_success
           command: |
-            sudo rm -rf /tmp/ds005/work
+            rm -rf /tmp/ds005/work
       - run:
           name: Clean working directory
           when: on_fail
@@ -620,6 +625,12 @@ jobs:
               which python
               python --version
               codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
+      - run:
+          name: Clean-up temporary directory of reportlets
+          when: always
+          command: |
+            sudo chown $(id -un):$(id -gn) -R /tmp/ds054
+            rm -rf /tmp/ds054/work/reportlets
       - save_cache:
          key: ds054-anat-v6-{{ .Branch }}-{{ epoch }}
          paths:
@@ -870,8 +881,10 @@ workflows:
       - deploy_docs_tag:
           requires:
             - build_docs
-            - deploy_docker
-            - deploy_pypi
+            - ds005
+            - ds054
+            - test_deploy_pypi
+            - test_wrapper
           filters:
             branches:
               ignore: /.*/
@@ -880,10 +893,7 @@ workflows:
 
       - deploy_pypi:
           requires:
-            - test_deploy_pypi
-            - test_wrapper
-            - ds005
-            - ds054
+            - deploy_docs_tag
           filters:
             branches:
               ignore: /.*/
