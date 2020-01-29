@@ -25,7 +25,7 @@ def get_parser():
     from pathlib import Path
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
-    from niworkflows.utils.spaces import Space, OutputSpacesAction
+    from niworkflows.utils.spaces import Space, SpatialReferences, OutputSpacesAction
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -72,7 +72,7 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
-        '--output-spaces', nargs='*', action=OutputSpacesAction,
+        '--output-spaces', nargs='*', action=OutputSpacesAction, default=SpatialReferences(),
         help='paths or keywords prescribing output spaces - '
              'standard spaces will be extracted for spatial normalization.')
     g_conf.add_argument(
