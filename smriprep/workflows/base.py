@@ -34,6 +34,7 @@ def init_smriprep_wf(
     output_dir,
     output_spaces,
     run_uuid,
+    skip_brain_extraction,
     skull_strip_fixed_seed,
     skull_strip_template,
     subject_list,
@@ -68,6 +69,7 @@ def init_smriprep_wf(
                 output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
                                            ('fsaverage5', {})]),
                 run_uuid='testrun',
+                skip_brain_extraction=False,
                 skull_strip_fixed_seed=False,
                 skull_strip_template=('OASIS30ANTs', {}),
                 subject_list=['smripreptest'],
@@ -144,6 +146,7 @@ def init_smriprep_wf(
             output_dir=output_dir,
             output_spaces=output_spaces,
             reportlets_dir=reportlets_dir,
+            skip_brain_extraction=skip_brain_extraction,
             skull_strip_fixed_seed=skull_strip_fixed_seed,
             skull_strip_template=skull_strip_template,
             subject_id=subject_id,
@@ -175,6 +178,7 @@ def init_single_subject_wf(
     output_dir,
     output_spaces,
     reportlets_dir,
+    skip_brain_extraction,
     skull_strip_fixed_seed,
     skull_strip_template,
     subject_id,
@@ -212,6 +216,7 @@ def init_single_subject_wf(
                 output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
                                            ('fsaverage5', {})]),
                 reportlets_dir='.',
+                skip_brain_extraction=False,
                 skull_strip_fixed_seed=False,
                 skull_strip_template=('OASIS30ANTs', {}),
                 subject_id='test',
@@ -246,6 +251,8 @@ def init_single_subject_wf(
         conventions
     reportlets_dir : str
         Directory in which to save reportlets
+    skip_brain_extraction : bool
+        Skip ants brain extraction workflow, and instead use N4-only workflow
     skull_strip_fixed_seed : bool
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
@@ -334,6 +341,7 @@ to workflows in *sMRIPrep*'s documentation]\
         output_dir=output_dir,
         output_spaces=output_spaces,
         reportlets_dir=reportlets_dir,
+        skip_brain_extraction=skip_brain_extraction,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         skull_strip_template=skull_strip_template,
     )
