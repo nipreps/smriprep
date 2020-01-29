@@ -25,7 +25,7 @@ def get_parser():
     from pathlib import Path
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
-    from niworkflows.utils.spaces import Space, OutputSpacesAction
+    from niworkflows.utils.spaces import Space, SpatialReferences, OutputSpacesAction
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -72,7 +72,7 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
-        '--output-spaces', nargs='+', action=OutputSpacesAction,
+        '--output-spaces', nargs='*', action=OutputSpacesAction, default=SpatialReferences(),
         help='paths or keywords prescribing output spaces - '
              'standard spaces will be extracted for spatial normalization.')
     g_conf.add_argument(
@@ -283,6 +283,8 @@ def build_workflow(opts, retval):
       * BIDS dataset path: {bids_dir}.
       * Participant list: {subject_list}.
       * Run identifier: {uuid}.
+
+    {spaces}
     """.format
 
     # Set up some instrumental utilities
@@ -385,14 +387,15 @@ def build_workflow(opts, retval):
             config=pkgrf('smriprep', 'data/reports/config.json'))
         return retval
 
-    # Build main workflow
     logger.log(25, INIT_MSG(
         version=__version__,
         bids_dir=bids_dir,
         subject_list=subject_list,
-        uuid=run_uuid)
+        uuid=run_uuid,
+        spaces=opts.output_spaces)
     )
 
+    # Build main workflow
     retval['workflow'] = init_smriprep_wf(
         debug=opts.sloppy,
         freesurfer=opts.run_reconall,
