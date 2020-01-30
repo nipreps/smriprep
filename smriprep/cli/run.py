@@ -1,20 +1,17 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""
-sMRIPrep: Structural MRI PREProcessing workflow
-===============================================
-"""
+"""sMRIPrep: Structural MRI PREProcessing workflow."""
 
 
 def main():
-    """Entrypoint"""
+    """Set an entrypoint."""
     opts = get_parser().parse_args()
     return build_opts(opts)
 
 
 def check_deps(workflow):
+    """Make sure all dependencies are installed."""
     from nipype.utils.filemanip import which
     return sorted(
         (node.interface.__class__.__name__, node.interface._cmd)
@@ -24,12 +21,11 @@ def check_deps(workflow):
 
 
 def get_parser():
-    """Build parser object"""
+    """Build parser object."""
     from pathlib import Path
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
-    from templateflow.api import templates
-    from .utils import ParseTemplates, output_space as _output_space
+    from niworkflows.utils.spaces import Space, SpatialReferences, OutputSpacesAction
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -76,21 +72,17 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
-        '--output-spaces', nargs='+', action=ParseTemplates,
-        help='paths or keywords prescribing standard spaces to which normalize the input T1w image'
-             ' (valid keywords are: %s).' % ', '.join('"%s"' % s for s in templates()))
+        '--output-spaces', nargs='*', action=OutputSpacesAction, default=SpatialReferences(),
+        help='paths or keywords prescribing output spaces - '
+             'standard spaces will be extracted for spatial normalization.')
     g_conf.add_argument(
         '--longitudinal', action='store_true',
         help='treat dataset as longitudinal - may increase runtime')
-    g_conf.add_argument(
-        '--template', '--spatial-normalization-target', action='store', type=str,
-        choices=[tpl for tpl in templates() if not tpl.startswith('fs')],
-        help='DEPRECATED: spatial normalization target (one TemplateFlow Identifier)')
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
     g_ants.add_argument(
-        '--skull-strip-template', action='store', default='OASIS30ANTs', type=_output_space,
+        '--skull-strip-template', action='store', default='OASIS30ANTs', type=Space.from_string,
         help='select a template for skull-stripping with antsBrainExtraction')
     g_ants.add_argument('--skull-strip-fixed-seed', action='store_true',
                         help='do not use a random seed for skull-stripping - will ensure '
@@ -113,20 +105,9 @@ def get_parser():
                          help='disable sub-millimeter (hires) reconstruction')
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
-    g_surfs_xor.add_argument(
-        '--fs-output-spaces', required=False, action='store', nargs='+',
-        choices=['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'],
-        help="""DEPRECATED - configure Freesurfer's output spaces:
-  - fsnative: individual subject surface
-  - fsaverage*: FreeSurfer average meshes
-this argument can be single value or a space delimited list,
-for example: --fs-output-spaces fsnative fsaverage fsaverage5."""
-    )
-    g_surfs_xor.add_argument('--fs-no-reconall', '--no-freesurfer',
+    g_surfs_xor.add_argument('--fs-no-reconall',
                              action='store_false', dest='run_reconall',
-                             help='disable FreeSurfer surface preprocessing.'
-                             ' Note : `--no-freesurfer` is deprecated and will be removed in 1.2.'
-                             ' Use `--fs-no-reconall` instead.')
+                             help='disable FreeSurfer surface preprocessing.')
 
     g_other = parser.add_argument_group('Other options')
     g_other.add_argument('-w', '--work-dir', action='store', type=Path, default=Path('work'),
@@ -159,7 +140,7 @@ for example: --fs-output-spaces fsnative fsaverage fsaverage5."""
 
 
 def build_opts(opts):
-    """Entry point"""
+    """Trigger a new process that builds the workflow graph, based on the input options."""
     import os
     from pathlib import Path
     import logging
@@ -273,18 +254,17 @@ def build_opts(opts):
 
 def build_workflow(opts, retval):
     """
-    Create the Nipype Workflow that supports the whole execution
-    graph, given the inputs.
+    Create the Nipype Workflow that supports the whole execution graph, given the inputs.
+
     All the checks and the construction of the workflow are done
     inside this function that has pickleable inputs and output
     dictionary (``retval``) to allow isolation using a
     ``multiprocessing.Process`` that allows smriprep to enforce
     a hard-limited memory-scope.
+
     """
-    import sys
     from shutil import copyfile
     from os import cpu_count
-    from collections import OrderedDict
     import uuid
     from time import strftime
     from subprocess import check_call, CalledProcessError, TimeoutExpired
@@ -292,40 +272,9 @@ def build_workflow(opts, retval):
 
     from bids import BIDSLayout
     from nipype import logging, config as ncfg
+    from niworkflows.utils.bids import collect_participants
     from ..__about__ import __version__
     from ..workflows.base import init_smriprep_wf
-    from niworkflows.utils.bids import collect_participants
-
-    # Set the default template to 'MNI152NLin2009c'
-    output_spaces = opts.output_spaces or OrderedDict([('MNI152NLin2009cAsym', {})])
-
-    if opts.template:
-        print("""\
-The ``--template`` option has been deprecated in version 1.1.2. Your selected template \
-"%s" will be inserted at the front of the ``--output-spaces`` argument list. Please update \
-your scripts to use ``--output-spaces``.""" % opts.template, file=sys.stderr)
-        deprecated_tpl_arg = [(opts.template, {})]
-        # If output_spaces is not set, just replate the default - append otherwise
-        if opts.output_spaces is not None:
-            deprecated_tpl_arg += list(output_spaces.items())
-        output_spaces = OrderedDict(deprecated_tpl_arg)
-
-    if opts.fs_output_spaces:
-        print("""\
-The ``--fs-output-spaces`` option has been deprecated in version 1.1.2. Your selected output \
-surfaces "%s" will be appended to the ``--output-spaces`` argument list. Please update \
-your scripts to use ``--output-spaces``.""" % ', '.join(opts.fs_output_spaces), file=sys.stderr)
-        for fs_space in opts.fs_output_spaces:
-            if fs_space not in output_spaces:
-                output_spaces[fs_space] = {}
-
-    FS_SPACES = set(['fsnative', 'fsaverage', 'fsaverage6', 'fsaverage5'])
-    if opts.run_reconall and not list(FS_SPACES.intersection(output_spaces.keys())):
-        print("""\
-Although ``--fs-no-reconall`` was not set, no FreeSurfer output space (valid values are: \
-%s) was selected. Adding default "fsaverage5" to the \
-list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
-        output_spaces['fsaverage5'] = {}
 
     logger = logging.getLogger('nipype.workflow')
 
@@ -334,6 +283,8 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
       * BIDS dataset path: {bids_dir}.
       * Participant list: {subject_list}.
       * Run identifier: {uuid}.
+
+    {spaces}
     """.format
 
     # Set up some instrumental utilities
@@ -436,14 +387,15 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
             config=pkgrf('smriprep', 'data/reports/config.json'))
         return retval
 
-    # Build main workflow
     logger.log(25, INIT_MSG(
         version=__version__,
         bids_dir=bids_dir,
         subject_list=subject_list,
-        uuid=run_uuid)
+        uuid=run_uuid,
+        spaces=opts.output_spaces)
     )
 
+    # Build main workflow
     retval['workflow'] = init_smriprep_wf(
         debug=opts.sloppy,
         freesurfer=opts.run_reconall,
@@ -454,10 +406,10 @@ list of output spaces.""" % ', '.join(FS_SPACES), file=sys.stderr)
         low_mem=opts.low_mem,
         omp_nthreads=omp_nthreads,
         output_dir=str(output_dir),
-        output_spaces=output_spaces,
         run_uuid=run_uuid,
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
-        skull_strip_template=opts.skull_strip_template,
+        skull_strip_template=opts.skull_strip_template[0],
+        spaces=opts.output_spaces,
         subject_list=subject_list,
         work_dir=str(work_dir),
     )

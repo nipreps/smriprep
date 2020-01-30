@@ -230,7 +230,10 @@ linkcode_resolve = make_linkcode_resolve('smriprep',
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/', None),
+    'niworkflows': ('https://poldracklab.github.io/niworkflows/', None),
+}
 
 # -- Options for versioning extension ----------------------------------------
 scv_show_banner = True

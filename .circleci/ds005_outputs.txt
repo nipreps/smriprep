@@ -17,9 +17,7 @@ smriprep/sub-01/anat/sub-01_desc-preproc_T1w.json
 smriprep/sub-01/anat/sub-01_desc-preproc_T1w.nii.gz
 smriprep/sub-01/anat/sub-01_dseg.nii.gz
 smriprep/sub-01/anat/sub-01_from-fsnative_to-T1w_mode-image_xfm.txt
-smriprep/sub-01/anat/sub-01_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5
 smriprep/sub-01/anat/sub-01_from-T1w_to-fsnative_mode-image_xfm.txt
-smriprep/sub-01/anat/sub-01_from-T1w_to-MNI152NLin2009cAsym_mode-image_xfm.h5
 smriprep/sub-01/anat/sub-01_hemi-L_inflated.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_midthickness.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_pial.surf.gii
@@ -31,13 +29,5 @@ smriprep/sub-01/anat/sub-01_hemi-R_smoothwm.surf.gii
 smriprep/sub-01/anat/sub-01_label-CSF_probseg.nii.gz
 smriprep/sub-01/anat/sub-01_label-GM_probseg.nii.gz
 smriprep/sub-01/anat/sub-01_label-WM_probseg.nii.gz
-smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-brain_mask.json
-smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz
-smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-preproc_T1w.json
-smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz
-smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_dseg.nii.gz
-smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_label-CSF_probseg.nii.gz
-smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_label-GM_probseg.nii.gz
-smriprep/sub-01/anat/sub-01_space-MNI152NLin2009cAsym_label-WM_probseg.nii.gz
 smriprep/sub-01.html
 /tmp/ds005/derivatives
