@@ -63,8 +63,11 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w'),
         name='ds_std_t1w_report', run_without_submitting=True)
 
+    def _drop_cohort(in_template):
+        return in_template.split(':')[0]
+
     workflow.connect([
-        (inputnode, tf_select, [('template', 'template'),
+        (inputnode, tf_select, [(('template', _drop_cohort), 'template'),
                                 ('template_spec', 'template_spec')]),
         (inputnode, norm_rpt, [('template', 'before_label')]),
         (inputnode, norm_msk, [('std_t1w', 'after'),
@@ -74,7 +77,7 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         (norm_msk, norm_rpt, [('before', 'before'),
                               ('after', 'after')]),
         (inputnode, ds_std_t1w_report, [
-            ('template', 'space'),
+            (('template', _drop_cohort), 'space'),
             ('source_file', 'source_file')]),
         (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
     ])
