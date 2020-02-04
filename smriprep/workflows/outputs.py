@@ -63,9 +63,6 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w'),
         name='ds_std_t1w_report', run_without_submitting=True)
 
-    def _drop_cohort(in_template):
-        return in_template.split(':')[0]
-
     workflow.connect([
         (inputnode, tf_select, [(('template', _drop_cohort), 'template'),
                                 ('template_spec', 'template_spec')]),
@@ -77,7 +74,7 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         (norm_msk, norm_rpt, [('before', 'before'),
                               ('after', 'after')]),
         (inputnode, ds_std_t1w_report, [
-            (('template', _drop_cohort), 'space'),
+            (('template', _fmt_cohort), 'space'),
             ('source_file', 'source_file')]),
         (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
     ])
@@ -196,23 +193,23 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         # Template
         (inputnode, ds_t1w_tpl_warp, [
             ('anat2std_xfm', 'in_file'),
-            ('template', 'to')]),
+            (('template', _drop_cohort), 'to')]),
         (inputnode, ds_t1w_tpl_inv_warp, [
             ('std2anat_xfm', 'in_file'),
-            ('template', 'from')]),
+            (('template', _drop_cohort), 'from')]),
         (inputnode, ds_t1w_tpl, [
             ('std_t1w', 'in_file'),
-            ('template', 'space')]),
+            (('template', _fmt_cohort), 'space')]),
         (inputnode, ds_std_mask, [
             ('std_mask', 'in_file'),
-            ('template', 'space'),
+            (('template', _fmt_cohort), 'space'),
             (('template', _rawsources), 'RawSources')]),
-        (inputnode, ds_std_dseg, [('template', 'space')]),
+        (inputnode, ds_std_dseg, [(('template', _fmt_cohort), 'space')]),
         (inputnode, lut_std_dseg, [('std_dseg', 'in_file')]),
         (lut_std_dseg, ds_std_dseg, [('out', 'in_file')]),
         (inputnode, ds_std_tpms, [
             ('std_tpms', 'in_file'),
-            ('template', 'space')]),
+            (('template', _fmt_cohort), 'space')]),
         (t1w_name, ds_t1w_tpl_warp, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpl_inv_warp, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpl, [('out', 'source_file')]),
@@ -330,3 +327,11 @@ def _rpt_masks(mask_file, before, after, after_mask=None):
     nb.Nifti1Image(anii.get_fdata() * msk,
                    anii.affine, anii.header).to_filename('after.nii.gz')
     return abspath('before.nii.gz'), abspath('after.nii.gz')
+
+
+def _drop_cohort(in_template):
+    return in_template.split(':')[0]
+
+
+def _fmt_cohort(in_template):
+    return in_template.replace(':', '_')
