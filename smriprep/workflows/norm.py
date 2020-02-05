@@ -133,15 +133,29 @@ The following template{tpls} selected for spatial normalization:
             workflow.__desc__ += (', ', '.')[template == templates[-1][0]]
 
     inputnode = pe.Node(niu.IdentityInterface(fields=[
-        'moving_image', 'moving_mask', 'moving_segmentation', 'moving_tpms',
-        'lesion_mask', 'orig_t1w']),
-        name='inputnode')
-    out_fields = ['standardized', 'anat2std_xfm', 'std2anat_xfm',
-                  'std_mask', 'std_dseg', 'std_tpms', 'template', 'template_spec']
+        'lesion_mask',
+        'moving_image',
+        'moving_mask',
+        'moving_segmentation',
+        'moving_tpms',
+        'orig_t1w',
+        'template',
+    ]), name='inputnode')
+    inputnode.iterables = [('template', templates)]
+
+    out_fields = [
+        'anat2std_xfm',
+        'standardized',
+        'std2anat_xfm',
+        'std_dseg',
+        'std_mask',
+        'std_tpms',
+        'template',
+        'template_spec',
+    ]
     poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
 
     split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name='split_desc')
-    split_desc.iterables = [('template', templates)]
 
     tf_select = pe.Node(TemplateFlowSelect(resolution=1 + debug),
                         name='tf_select', run_without_submitting=True)
@@ -169,6 +183,8 @@ The following template{tpls} selected for spatial normalization:
                           iterfield=['input_image'], name='std_tpms')
 
     workflow.connect([
+        (inputnode, split_desc, [('template', 'template')]),
+        (inputnode, poutputnode, [('template', 'template')]),
         (inputnode, trunc_mov, [('moving_image', 'op1')]),
         (inputnode, registration, [
             ('moving_mask', 'moving_mask'),
@@ -198,13 +214,12 @@ The following template{tpls} selected for spatial normalization:
         (std_mask, poutputnode, [('output_image', 'std_mask')]),
         (std_dseg, poutputnode, [('output_image', 'std_dseg')]),
         (std_tpms, poutputnode, [('output_image', 'std_tpms')]),
-        (split_desc, poutputnode, [('name', 'template'),
-                                   ('spec', 'template_spec')]),
+        (split_desc, poutputnode, [('spec', 'template_spec')]),
     ])
 
     # Provide synchronized output
     outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
-                             name='outputnode', joinsource='split_desc')
+                             name='outputnode', joinsource='inputnode')
     workflow.connect([
         (poutputnode, outputnode, [(f, f) for f in out_fields]),
     ])
