@@ -55,7 +55,7 @@ def init_smriprep_wf(
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             os.environ['FREESURFER_HOME'] = os.getcwd()
             from smriprep.workflows.base import init_smriprep_wf
-            from niworkflows.utils.spaces import SpatialReferences, Space
+            from niworkflows.utils.spaces import SpatialReferences, Reference
             wf = init_smriprep_wf(
                 debug=False,
                 freesurfer=True,
@@ -68,8 +68,8 @@ def init_smriprep_wf(
                 output_dir='.',
                 run_uuid='testrun',
                 skull_strip_fixed_seed=False,
-                skull_strip_template=Space.from_string('OASIS30ANTs')[0],
-                spaces=SpatialReferences(['MNI152NLin2009cAsym', 'fsaverage5']),
+                skull_strip_template=Reference('OASIS30ANTs'),
+                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_list=['smripreptest'],
                 work_dir='.',
             )
@@ -100,8 +100,8 @@ def init_smriprep_wf(
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
-    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Space`
-        Space specification to use in atlas-based brain extraction.
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
+        Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
     subject_list : :obj:`list`
@@ -191,7 +191,7 @@ def init_single_subject_wf(
             :simple_form: yes
 
             from collections import namedtuple
-            from niworkflows.utils.spaces import SpatialReferences, Space
+            from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.base import init_single_subject_wf
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             wf = init_single_subject_wf(
@@ -206,8 +206,8 @@ def init_single_subject_wf(
                 output_dir='.',
                 reportlets_dir='.',
                 skull_strip_fixed_seed=False,
-                skull_strip_template=Space.from_string('OASIS30ANTs')[0],
-                spaces=SpatialReferences(['MNI152NLin2009cAsym', 'fsaverage5']),
+                skull_strip_template=Reference('OASIS30ANTs'),
+                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_id='test',
             )
 
@@ -237,8 +237,8 @@ def init_single_subject_wf(
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
-    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Space`
-        Space specification to use in atlas-based brain extraction.
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
+        Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
     subject_id : :obj:`str`
@@ -293,7 +293,7 @@ to workflows in *sMRIPrep*'s documentation]\
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
                         run_without_submitting=True)
 
-    summary = pe.Node(SubjectSummary(output_spaces=spaces.get_std_spaces()),
+    summary = pe.Node(SubjectSummary(output_spaces=spaces.get_spaces(nonstandard=False)),
                       name='summary', run_without_submitting=True)
 
     about = pe.Node(AboutSummary(version=__version__,

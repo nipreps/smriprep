@@ -25,7 +25,7 @@ def get_parser():
     from pathlib import Path
     from argparse import ArgumentParser
     from argparse import RawTextHelpFormatter
-    from niworkflows.utils.spaces import Space, SpatialReferences, OutputSpacesAction
+    from niworkflows.utils.spaces import Reference, SpatialReferences, OutputReferencesAction
     from ..__about__ import __version__
 
     parser = ArgumentParser(description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -72,7 +72,7 @@ def get_parser():
 
     g_conf = parser.add_argument_group('Workflow configuration')
     g_conf.add_argument(
-        '--output-spaces', nargs='*', action=OutputSpacesAction, default=SpatialReferences(),
+        '--output-spaces', nargs='*', action=OutputReferencesAction, default=SpatialReferences(),
         help='paths or keywords prescribing output spaces - '
              'standard spaces will be extracted for spatial normalization.')
     g_conf.add_argument(
@@ -82,7 +82,7 @@ def get_parser():
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
     g_ants.add_argument(
-        '--skull-strip-template', action='store', default='OASIS30ANTs', type=Space.from_string,
+        '--skull-strip-template', default='OASIS30ANTs', type=Reference.from_string,
         help='select a template for skull-stripping with antsBrainExtraction')
     g_ants.add_argument('--skull-strip-fixed-seed', action='store_true',
                         help='do not use a random seed for skull-stripping - will ensure '
