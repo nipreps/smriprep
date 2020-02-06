@@ -520,11 +520,11 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
 
     if segmentation.startswith('aparc'):
         if segmentation == 'aparc_aseg':
-            def _sel(x): return [parc for parc in x if 'aparc+' in parc][0]
+            def _sel(x): return [parc for parc in x if 'aparc+' in parc][0]  # noqa
         elif segmentation == 'aparc_a2009s':
-            def _sel(x): return [parc for parc in x if 'a2009s+' in parc][0]
+            def _sel(x): return [parc for parc in x if 'a2009s+' in parc][0]  # noqa
         elif segmentation == 'aparc_dkt':
-            def _sel(x): return [parc for parc in x if 'DKTatlas+' in parc][0]
+            def _sel(x): return [parc for parc in x if 'DKTatlas+' in parc][0]  # noqa
         segmentation = (segmentation, _sel)
 
     workflow.connect([
