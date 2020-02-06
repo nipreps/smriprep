@@ -61,7 +61,7 @@ def init_anat_preproc_wf(
             :graph2use: orig
             :simple_form: yes
 
-            from niworkflows.utils.spaces import SpatialReferences, Space
+            from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.anatomical import init_anat_preproc_wf
             wf = init_anat_preproc_wf(
                 bids_root='.',
@@ -72,8 +72,8 @@ def init_anat_preproc_wf(
                 omp_nthreads=1,
                 output_dir='.',
                 reportlets_dir='.',
-                skull_strip_template=Space.from_string('OASIS30ANTs')[0],
-                spaces=SpatialReferences(['MNI152NLin2009cAsym', 'fsaverage5']),
+                skull_strip_template=Reference('OASIS30ANTs'),
+                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
             )
 
     Parameters
@@ -96,8 +96,8 @@ def init_anat_preproc_wf(
         Directory in which to save derivatives
     reportlets_dir : :obj:`str`
         Directory in which to save reportlets
-    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Space`
-        Space specification to use in atlas-based brain extraction.
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
+        Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
     debug : :obj:`bool`
