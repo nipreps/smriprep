@@ -223,7 +223,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # 2. Brain-extraction and INU (bias field) correction.
     brain_extraction_wf = init_brain_extraction_wf(
-        in_template=skull_strip_template.name,
+        in_template=skull_strip_template.space,
         template_spec=skull_strip_template.spec,
         atropos_use_random_seed=not skull_strip_fixed_seed,
         omp_nthreads=omp_nthreads,
