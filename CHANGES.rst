@@ -1,3 +1,14 @@
+0.5.0 (February 6, 2020)
+========================
+A new minor release with a focus on improving internal handling and representations
+of spatial references.
+
+* RF: Update Spaces objects (#164) @mgxd
+* ENH: Fix template keys output in normalization workflow, when cohort present (#163) @oesteban
+* ENH: Integrate new infrastructure in NiWorkflows to handle spatial references (#159) @mgxd
+* FIX: Improvements to the CircleCI workflow (#162) @oesteban
+* CI: Update coverage (#156) @effigies
+
 0.4.2 (January 22, 2020)
 ========================
 Bugfix release in the 0.4.x series.
