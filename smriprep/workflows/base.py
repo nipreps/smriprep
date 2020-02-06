@@ -293,7 +293,7 @@ to workflows in *sMRIPrep*'s documentation]\
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
                         run_without_submitting=True)
 
-    summary = pe.Node(SubjectSummary(output_spaces=spaces.get_std_spaces()),
+    summary = pe.Node(SubjectSummary(output_spaces=spaces.get_spaces(nonstandard=False)),
                       name='summary', run_without_submitting=True)
 
     about = pe.Node(AboutSummary(version=__version__,
