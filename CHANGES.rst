@@ -1,3 +1,9 @@
+0.5.1 (February 7, 2020)
+========================
+A hotfix release updating dependencies
+
+* PIN: Nibabel 3.0.1 and niworkflows 1.1.6 (#166) @mgxd
+
 0.5.0 (February 6, 2020)
 ========================
 A new minor release with a focus on improving internal handling and representations
