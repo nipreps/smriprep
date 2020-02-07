@@ -26,7 +26,6 @@ from niworkflows.interfaces.freesurfer import (
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
-)
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
@@ -34,8 +33,9 @@ from .surfaces import init_surface_recon_wf
 
 def init_anat_preproc_wf(
         bids_root, freesurfer, hires, longitudinal, omp_nthreads, output_dir,
-        output_spaces, t1w, reportlets_dir, skull_strip_template, skip_brain_extraction,
-        debug=False, name='anat_preproc_wf', skull_strip_fixed_seed=False):
+        output_spaces, t1w, reportlets_dir, skull_strip_template,
+        skip_brain_extraction, debug=False, name='anat_preproc_wf',
+        skull_strip_fixed_seed=False):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
 
@@ -68,7 +68,7 @@ def init_anat_preproc_wf(
                     ('MNI152NLin2009cAsym', {}), ('fsaverage5', {})]),
                 reportlets_dir='.',
                 skull_strip_template=('MNI152NLin2009cAsym', {}),
-                skip_brain_extraction=False
+                skip_brain_extraction='auto'
             )
 
     Parameters
@@ -102,8 +102,10 @@ def init_anat_preproc_wf(
         Directory in which to save derivatives
     reportlets_dir : str
         Directory in which to save reportlets
-    skip_brain_extraction : bool
+    skip_brain_extraction : str
         Skip ants brain extraction workflow, and instead use N4-only workflow
+        Options: 'auto', 'skip', 'force'.
+        (default: ``auto``).
     skull_strip_fixed_seed : bool
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
@@ -244,7 +246,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
         return all(skull_stripped)
 
-    if skip_brain_extraction or _is_skull_stripped(t1w):
+    if skip_brain_extraction == 'auto':
+        skip_brain_extraction = _is_skull_stripped(t1w)
+    else:
+        skip_brain_extraction = skip_brain_extraction == 'skip'
+
+    if skip_brain_extraction:
         brain_extraction_wf = init_n4_only_wf(
             omp_nthreads=omp_nthreads,
             atropos_use_random_seed=not skull_strip_fixed_seed
