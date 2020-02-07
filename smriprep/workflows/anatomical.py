@@ -25,8 +25,7 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
-from niworkflows.anat.ants import (
-    init_brain_extraction_wf, init_n4_only_wf, _pop
+from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 )
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
@@ -551,3 +550,8 @@ A T1w-reference map was computed after registration of
     ])
 
     return workflow
+
+def _pop(inlist):
+    if isinstance(inlist, (list, tuple)):
+        return inlist[0]
+    return inlist
