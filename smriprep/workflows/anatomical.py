@@ -232,7 +232,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # 2. Brain-extraction and INU (bias field) correction.
     def _is_skull_stripped(imgs):
-        """ Checks if T1w images are skulled stripped by interrogating
+        """Check if T1w images are skull-stripped by interrogating
         extreme planes for all (near) zeros.
         """
         def _check_img(img):
