@@ -88,8 +88,9 @@ def get_parser():
                         help='do not use a random seed for skull-stripping - will ensure '
                              'run-to-run replicability when used with --omp-nthreads 1')
     g_ants.add_argument(
-        '--skip-brain-extraction', required=False, action='store_true',
-        default=False, help='Skip the brain extraction workflow (for pre-extracted T1ws))')
+        '--skip-brain-extraction', required=False, action='store',
+        default='auto', help='Skip the brain extraction workflow. '
+                             'Options: auto (default), skip, force. ')
 
     # FreeSurfer options
     g_fs = parser.add_argument_group('Specific options for FreeSurfer preprocessing')

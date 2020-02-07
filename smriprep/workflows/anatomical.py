@@ -26,7 +26,6 @@ from niworkflows.interfaces.freesurfer import (
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
-)
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
@@ -109,12 +108,14 @@ def init_anat_preproc_wf(
         Enable debugging outputs
     name : :obj:`str`, optional
         Workflow name (default: anat_preproc_wf)
+    skip_brain_extraction : :obj:`str`
+        Skip ants brain extraction workflow, and instead use N4-only workflow
+        Options: 'auto', 'skip', 'force'.
+        (default: ``auto``).
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
-    skip_brain_extraction : :obj:`bool`
-        Skip ants brain extraction workflow, and instead use N4-only workflow
 
     Inputs
     ------
@@ -246,7 +247,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
         return all(skull_stripped)
 
-    if _is_skull_stripped(t1w) or skip_brain_extraction:
+    if skip_brain_extraction == 'auto':
+        skip_brain_extraction = _is_skull_stripped(t1w)
+    else:
+        skip_brain_extraction = skip_brain_extraction == 'skip'
+
+    if skip_brain_extraction:
         brain_extraction_wf = init_n4_only_wf(
             omp_nthreads=omp_nthreads,
             atropos_use_random_seed=not skull_strip_fixed_seed
