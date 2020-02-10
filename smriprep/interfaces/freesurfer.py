@@ -123,11 +123,11 @@ class ReconAll(fs.ReconAll):
         elif directive.startswith('autorecon2'):
             if isdefined(self.inputs.hemi):
                 if self.inputs.hemi == 'lh':
-                    steps = (self._autorecon2_volonly_steps +
-                             self._autorecon2_lh_steps)
+                    steps = (self._autorecon2_volonly_steps
+                             + self._autorecon2_lh_steps)
                 else:
-                    steps = (self._autorecon2_volonly_steps +
-                             self._autorecon2_rh_steps)
+                    steps = (self._autorecon2_volonly_steps
+                             + self._autorecon2_rh_steps)
             else:
                 steps = self._autorecon2_steps
         elif directive == 'autorecon-hemi':
