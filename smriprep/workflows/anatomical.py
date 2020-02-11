@@ -36,7 +36,7 @@ def init_anat_preproc_wf(
         freesurfer,
         hires,
         longitudinal,
-        num_t1w,
+        t1w,
         omp_nthreads,
         output_dir,
         reportlets_dir,
@@ -72,10 +72,11 @@ def init_anat_preproc_wf(
                 freesurfer=True,
                 hires=True,
                 longitudinal=False,
-                num_t1w=1,
+                t1w=['T1w.nii.gz'],
                 omp_nthreads=1,
                 output_dir='.',
                 reportlets_dir='.',
+                skip_brain_extraction='auto',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
             )
@@ -92,8 +93,8 @@ def init_anat_preproc_wf(
     longitudinal : :obj:`bool`
         Create unbiased structural template, regardless of number of inputs
         (may increase runtime)
-    num_t1w : :obj:`int`
-        Number of T1w that were averaged for the anatomical reference.
+    t1w : :obj:`list`
+        List of T1-weighted structural images.
     omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
     output_dir : :obj:`str`
@@ -176,7 +177,6 @@ def init_anat_preproc_wf(
     """
     workflow = Workflow(name=name)
     num_t1w = len(t1w)
-
     desc = """Anatomical data preprocessing
 
 : """
@@ -255,7 +255,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     if skip_brain_extraction:
         brain_extraction_wf = init_n4_only_wf(
             omp_nthreads=omp_nthreads,
-            atropos_use_random_seed=not skull_strip_fixed_seed
+            atropos_use_random_seed=not skull_strip_fixed_seed,
         )
     else:
         brain_extraction_wf = init_brain_extraction_wf(
@@ -556,6 +556,7 @@ A T1w-reference map was computed after registration of
     ])
 
     return workflow
+
 
 def _pop(inlist):
     if isinstance(inlist, (list, tuple)):

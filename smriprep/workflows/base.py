@@ -68,7 +68,7 @@ def init_smriprep_wf(
                 omp_nthreads=1,
                 output_dir='.',
                 run_uuid='testrun',
-                skip_brain_extraction=False,
+                skip_brain_extraction='auto',
                 skull_strip_fixed_seed=False,
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
@@ -99,6 +99,10 @@ def init_smriprep_wf(
         Directory in which to save derivatives
     run_uuid : :obj:`str`
         Unique identifier for execution instance
+    skip_brain_extraction : :obj:`str`
+        Skip ants brain extraction workflow, and instead use N4-only workflow
+        Options: 'auto', 'skip', 'force'.
+        (default: ``auto``).
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
@@ -209,7 +213,7 @@ def init_single_subject_wf(
                 omp_nthreads=1,
                 output_dir='.',
                 reportlets_dir='.',
-                skip_brain_extraction=False,
+                skip_brain_extraction='auto',
                 skull_strip_fixed_seed=False,
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
@@ -239,8 +243,10 @@ def init_single_subject_wf(
         Directory in which to save derivatives
     reportlets_dir : :obj:`str`
         Directory in which to save reportlets
-    skip_brain_extraction : :obj:`bool`
+    skip_brain_extraction : :obj:`str`
         Skip ants brain extraction workflow, and instead use N4-only workflow
+        Options: 'auto', 'skip', 'force'.
+        (default: ``auto``).
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
