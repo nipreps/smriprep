@@ -54,6 +54,7 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 	rm -f *.dot*
+	rm -rf api/*
 
 .PHONY: html
 html:

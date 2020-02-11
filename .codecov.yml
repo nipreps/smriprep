@@ -1,0 +1,4 @@
+fixes:
+  - "/src/smriprep/::"
+ignore:
+  - "smriprep/_version.py"

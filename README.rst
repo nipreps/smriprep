@@ -7,6 +7,10 @@ sMRIPrep: Structural MRI PREProcessing pipeline
 
 .. image:: https://circleci.com/gh/poldracklab/smriprep/tree/master.svg?style=shield
   :target: https://circleci.com/gh/poldracklab/smriprep/tree/master
+  
+.. image:: https://codecov.io/gh/poldracklab/smriprep/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/poldracklab/smriprep
+  :alt: Coverage report
 
 .. image:: https://img.shields.io/pypi/v/smriprep.svg
   :target: https://pypi.python.org/pypi/smriprep/

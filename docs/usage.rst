@@ -33,7 +33,7 @@ Command-Line Arguments
    :nodefaultconst:
 
 
-The command-line interface of the docker wrapper 
+The command-line interface of the docker wrapper
 ------------------------------------------------
 
 .. argparse::
@@ -53,10 +53,10 @@ The FreeSurfer license
 To obtain a FreeSurfer license, simply register for free at
 https://surfer.nmr.mgh.harvard.edu/registration.html.
 
-When using manually-prepared environments or singularity, FreeSurfer will search 
-for a license key file first using the ``$FS_LICENSE`` environment variable and then 
-in the default path to the license key file (``$FREESURFER_HOME/license.txt``). 
-If using the ``--cleanenv`` flag and ``$FS_LICENSE`` is set, use ``--fs-license-file $FS_LICENSE`` 
+When using manually-prepared environments or singularity, FreeSurfer will search
+for a license key file first using the ``$FS_LICENSE`` environment variable and then
+in the default path to the license key file (``$FREESURFER_HOME/license.txt``).
+If using the ``--cleanenv`` flag and ``$FS_LICENSE`` is set, use ``--fs-license-file $FS_LICENSE``
 to pass the license file location to *sMRIPrep*.
 
 It is possible to run the docker container pointing the image to a local path

@@ -22,7 +22,8 @@ from smriprep import (
     __copyright__ as _copyright,
 )
 
-sys.path.append(os.path.abspath('sphinxext'))
+sys.path.append(os.path.abspath(
+    os.path.join(os.path.dirname(__file__), 'sphinxext')))
 from github_link import make_linkcode_resolve
 
 sys.path.insert(0, os.path.abspath('../wrapper'))
@@ -229,7 +230,10 @@ linkcode_resolve = make_linkcode_resolve('smriprep',
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/', None),
+    'niworkflows': ('https://poldracklab.github.io/niworkflows/', None),
+}
 
 # -- Options for versioning extension ----------------------------------------
 scv_show_banner = True

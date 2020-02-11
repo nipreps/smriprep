@@ -124,9 +124,8 @@ jobs:
             - src/smriprep
 
   get_data:
-    machine:
-      # Ubuntu 14.04 with Docker 17.10.0-ce
-      image: circleci/classic:201711-01
+    docker:
+      - image: circleci/python:3.7.4
     working_directory: /home/circleci/data
     steps:
       - restore_cache:
@@ -172,23 +171,48 @@ jobs:
             mkdir -p /tmp/fslicense
             cd /tmp/fslicense
             echo "cHJpbnRmICJrcnp5c3p0b2YuZ29yZ29sZXdza2lAZ21haWwuY29tXG41MTcyXG4gKkN2dW12RVYzelRmZ1xuRlM1Si8yYzFhZ2c0RVxuIiA+IGxpY2Vuc2UudHh0Cg==" | base64 -d | sh
-      - run:
-          name: Create Nipype config files
-          command: |
-            printf "[execution]\nstop_on_first_crash = true\n" > /tmp/nipype.cfg
-            echo "poll_sleep_duration = 0.01" >> /tmp/nipype.cfg
-            echo "hash_method = content" >> /tmp/nipype.cfg
       - persist_to_workspace:
           root: /tmp
           paths:
-            - data
             - fslicense
-            - nipype.cfg
       - save_cache:
-         key: testdata-v1-{{ .Branch }}-{{ epoch }}
-         paths:
+          key: testdata-v1-{{ .Branch }}-{{ epoch }}
+          paths:
             - /tmp/data
             - /tmp/ds005/freesurfer
+      - checkout
+      - restore_cache:
+          keys:
+            - templateflow-v1-{{ .Branch }}-{{ epoch }}
+            - templateflow-v1-{{ .Branch }}
+            - templateflow-v1-
+      - restore_cache:
+          keys:
+            - env-v1-{{ .Branch }}-{{ epoch }}
+            - env-v1-{{ .Branch }}
+            - env-v1-
+      - run:
+          name: Pull TemplateFlow down, pre-cache some templates
+          command: |
+            export TEMPLATEFLOW_HOME=/tmp/templateflow
+            pip install -U --user --no-cache-dir "$( grep templateflow setup.cfg | xargs )"
+            python -c "from templateflow import api as tfapi; \
+                       tfapi.get(['MNI152Lin', 'MNI152NLin2009cAsym', 'OASIS30ANTs'], suffix='T1w'); \
+                       tfapi.get(['MNI152Lin', 'MNI152NLin2009cAsym', 'OASIS30ANTs'], desc='brain', suffix='mask'); \
+                       tfapi.get('OASIS30ANTs', resolution=1, desc='4', suffix='dseg'); \
+                       tfapi.get(['OASIS30ANTs', 'NKI'], resolution=1, label='brain', suffix='probseg'); \
+                       tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
+                                 desc='BrainCerebellumExtraction', suffix='mask'); \
+                       tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
+                                 desc='BrainCerebellumRegistration', suffix='mask');"
+      - save_cache:
+          key: templateflow-v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /tmp/templateflow
+      - save_cache:
+          key: env-v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /home/circleci/.local
 
   test_wrapper:
     machine:
@@ -241,39 +265,6 @@ jobs:
             which smriprep-docker
             smriprep-docker -i poldracklab/smriprep:latest --help
             smriprep-docker -i poldracklab/smriprep:latest --version
-
-  test_pytest:
-    docker:
-      - image: circleci/python:3.7.4
-    working_directory: /home/circleci/src/smriprep
-    steps:
-      - checkout
-      - run:
-          name: Check whether build should be skipped
-          command: |
-            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[skip[ _]?tests\]' )" != "" ]]; then
-              echo "Skipping pytest job"
-              circleci step halt
-            fi
-      - run:
-          name: Setup Python environment
-          command: |
-            pip install --user --upgrade "setuptools>=30.3.0" "pip>=18.1" twine docutils
-      - run:
-          name: Check PyPi preconditions
-          command: |
-            python setup.py sdist
-            twine check dist/*.tar.gz
-      - run:
-          name: Install sMRIPrep
-          no_output_timeout: 30m
-          command: pip install --user ".[test]"
-      - run:
-          name: Run sMRIPrep tests
-          no_output_timeout: 2h
-          command: python -m pytest -svx --doctest-modules smriprep
-      - store_artifacts:
-          path: /tmp/data/reports
 
   test_deploy_pypi:
     docker:
@@ -371,6 +362,33 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+      - run:
+          name: Setting up test
+          command: |
+            mkdir -p /tmp/ds005/derivatives /tmp/ds005/work
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
+            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
+                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
+      - run:
+          name: Install codecov
+          command: |
+              pyenv install 3.6.3
+              pyenv global 3.6.3
+              python --version
+              python -m pip install -U pip
+              python -m pip install -U codecov
+              pyenv rehash
+      - run:
+          name: Set-up a Docker registry
+          command: |
+            docker run -d -p 5000:5000 --restart=always --name=registry \
+                -v /tmp/docker:/var/lib/registry registry:2
+      - run:
+          name: Pull images from local registry
+          command: |
+            docker pull localhost:5000/smriprep
+            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
       - restore_cache:
           keys:
             - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
@@ -382,24 +400,11 @@ jobs:
             - testdata-v1-{{ .Branch }}-{{ epoch }}
             - testdata-v1-{{ .Branch }}
             - testdata-v1-
-      - run:
-          name: Setting up test
-          command: |
-            mkdir -p /tmp/ds005/derivatives /tmp/ds005/work
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
-      - run:
-          name: Set-up a Docker registry
-          command: |
-            docker run -d -p 5000:5000 --restart=always --name=registry \
-                -v /tmp/docker:/var/lib/registry registry:2
-      - run:
-          name: Pull images from local registry
-          command: |
-            docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+      - restore_cache:
+          keys:
+            - templateflow-v1-{{ .Branch }}-{{ epoch }}
+            - templateflow-v1-{{ .Branch }}
+            - templateflow-v1-
       - run:
           name: Run anatomical workflow on ds005
           no_output_timeout: 2h
@@ -408,16 +413,62 @@ jobs:
                 -v /tmp/data:/tmp/data:ro \
                 -v /tmp/fslicense:/tmp/fslicense:ro \
                 -v /tmp/ds005:/tmp/ds005 \
-                -v /tmp/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
+                -v /tmp/src/smriprep/.circleci/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
                 poldracklab/smriprep:latest \
+                run -m smriprep \
                 /tmp/data/ds005 /tmp/ds005/derivatives participant \
-                 -w /tmp/ds005/work \
+                -w /tmp/ds005/work \
                 --skull-strip-template MNI152NLin2009cAsym:res-2 \
                 --sloppy --write-graph --mem-gb 4 \
                 --ncpus 2 --omp-nthreads 2 -vv \
                 --fs-license-file /tmp/fslicense/license.txt \
                 --fs-subjects-dir /tmp/ds005/freesurfer
+      - run:
+          name: Combine coverage
+          no_output_timeout: 2h
+          command: |
+            # Combine coverage and convert to XML inside container because
+            # the file format is sensitive to changes in environment
+            docker run --rm=false -it \
+                -v /tmp/ds005:/tmp/ds005 \
+                -v /tmp/src/smriprep:/src/smriprep \
+                -w /src/smriprep \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
+                poldracklab/smriprep:latest \
+                combine /tmp/ds005/work/.coverage.*
+            # Convert to XML to freeze
+            docker run --rm=false -it \
+                -v /tmp/ds005:/tmp/ds005 \
+                -v /tmp/src/smriprep:/src/smriprep \
+                -w /src/smriprep \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
+                poldracklab/smriprep:latest \
+                xml
+      - run:
+          name: Combine coverage and submit
+          working_directory: /tmp/src/smriprep
+          command: |
+              pyenv local 3.6.3
+              which python
+              python --version
+              codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
+      - run:
+          name: Clean-up temporary directory of reportlets
+          when: always
+          command: |
+            sudo chown $(id -un):$(id -gn) -R /tmp/ds005
+            rm -rf /tmp/ds005/work/reportlets
       - save_cache:
          key: ds005-anat-v6-{{ .Branch }}-{{ epoch }}
          paths:
@@ -434,13 +485,12 @@ jobs:
           name: Clean-up work directory
           when: always
           command: |
-            sudo chown $(id -un):$(id -gn) -R /tmp/ds005
             rm -rf /tmp/ds005/freesurfer
       - run:
           name: Clean working directory
           when: on_success
           command: |
-            sudo rm -rf /tmp/ds005/work
+            rm -rf /tmp/ds005/work
       - run:
           name: Clean working directory
           when: on_fail
@@ -475,12 +525,6 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
-      - restore_cache:
-          keys:
-            - ds054-anat-v6-{{ .Branch }}-{{ epoch }}
-            - ds054-anat-v6-{{ .Branch }}
-            - ds054-anat-v6-master
-            - ds054-anat-v6-
       - run:
           name: Setting up test
           command: |
@@ -489,6 +533,15 @@ jobs:
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
             sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
+      - run:
+          name: Install codecov
+          command: |
+              pyenv install 3.6.3
+              pyenv global 3.6.3
+              python --version
+              python -m pip install -U pip
+              python -m pip install -U codecov
+              pyenv rehash
       - run:
           name: Set-up a Docker registry
           command: |
@@ -499,6 +552,22 @@ jobs:
           command: |
             docker pull localhost:5000/smriprep
             docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+      - restore_cache:
+          keys:
+            - ds054-anat-v6-{{ .Branch }}-{{ epoch }}
+            - ds054-anat-v6-{{ .Branch }}
+            - ds054-anat-v6-master
+            - ds054-anat-v6-
+      - restore_cache:
+          keys:
+            - testdata-v1-{{ .Branch }}-{{ epoch }}
+            - testdata-v1-{{ .Branch }}
+            - testdata-v1-
+      - restore_cache:
+          keys:
+            - templateflow-v1-{{ .Branch }}-{{ epoch }}
+            - templateflow-v1-{{ .Branch }}
+            - templateflow-v1-
       - run:
           name: Run sMRIPrep on ds054 (with --fs-no-reconall)
           no_output_timeout: 2h
@@ -507,15 +576,61 @@ jobs:
                 -v /tmp/data:/tmp/data:ro \
                 -v /tmp/fslicense:/tmp/fslicense:ro \
                 -v /tmp/ds054:/tmp/ds054 \
-                -v /tmp/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
+                -v /tmp/src/smriprep/.circleci/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
                 poldracklab/smriprep:latest \
+                run -m smriprep \
                 /tmp/data/ds054 /tmp/ds054/derivatives participant \
                 -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
                 --skull-strip-template OASIS30ANTs:res-1 \
                 --output-spaces MNI152Lin MNI152NLin2009cAsym \
                 --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
                 --fs-license-file /tmp/fslicense/license.txt
+      - run:
+          name: Combine coverage
+          no_output_timeout: 2h
+          command: |
+            # Combine coverage and convert to XML inside container because
+            # the file format is sensitive to changes in environment
+            docker run --rm=false -it \
+                -v /tmp/ds054:/tmp/ds054 \
+                -v /tmp/src/smriprep:/src/smriprep \
+                -w /src/smriprep \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
+                poldracklab/smriprep:latest \
+                combine /tmp/ds054/work/.coverage.*
+            # Convert to XML to freeze
+            docker run --rm=false -it \
+                -v /tmp/ds054:/tmp/ds054 \
+                -v /tmp/src/smriprep:/src/smriprep \
+                -w /src/smriprep \
+                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
+                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+                --entrypoint=coverage \
+                poldracklab/smriprep:latest \
+                xml
+      - run:
+          name: Submit coverage
+          working_directory: /tmp/src/smriprep
+          command: |
+              pyenv local 3.6.3
+              which python
+              python --version
+              codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
+      - run:
+          name: Clean-up temporary directory of reportlets
+          when: always
+          command: |
+            sudo chown $(id -un):$(id -gn) -R /tmp/ds054
+            rm -rf /tmp/ds054/work/reportlets
       - save_cache:
          key: ds054-anat-v6-{{ .Branch }}-{{ epoch }}
          paths:
@@ -692,16 +807,6 @@ workflows:
             tags:
               only: /.*/
 
-      - test_pytest:
-          filters:
-            branches:
-              ignore:
-                - /docs?\/.*/
-                - /ds005\/.*/
-                - /ds054\/.*/
-            tags:
-              only: /.*/
-
       - test_deploy_pypi:
           filters:
             branches:
@@ -766,7 +871,6 @@ workflows:
             - build_docs
             - ds005
             - ds054
-            - test_pytest
             - test_wrapper
           filters:
             branches:
@@ -777,8 +881,10 @@ workflows:
       - deploy_docs_tag:
           requires:
             - build_docs
-            - deploy_docker
-            - deploy_pypi
+            - ds005
+            - ds054
+            - test_deploy_pypi
+            - test_wrapper
           filters:
             branches:
               ignore: /.*/
@@ -787,11 +893,7 @@ workflows:
 
       - deploy_pypi:
           requires:
-            - test_deploy_pypi
-            - test_pytest
-            - test_wrapper
-            - ds005
-            - ds054
+            - deploy_docs_tag
           filters:
             branches:
               ignore: /.*/
@@ -801,7 +903,6 @@ workflows:
       - deploy_docker:
           requires:
             - build
-            - test_pytest
             - ds005
             - ds054
           filters:

@@ -1,3 +1,37 @@
+0.5.1 (February 7, 2020)
+========================
+A hotfix release updating dependencies
+
+* PIN: Nibabel 3.0.1 and niworkflows 1.1.6 (#166) @mgxd
+
+0.5.0 (February 6, 2020)
+========================
+A new minor release with a focus on improving internal handling and representations
+of spatial references.
+
+* RF: Update Spaces objects (#164) @mgxd
+* ENH: Fix template keys output in normalization workflow, when cohort present (#163) @oesteban
+* ENH: Integrate new infrastructure in NiWorkflows to handle spatial references (#159) @mgxd
+* FIX: Improvements to the CircleCI workflow (#162) @oesteban
+* CI: Update coverage (#156) @effigies
+
+0.4.2 (January 22, 2020)
+========================
+Bugfix release in the 0.4.x series.
+
+* FIX: Calculate FoV with shape and zooms (#161) @effigies
+* FIX: Package version incorrect within Docker image (#155) @oesteban
+* ENH: Add smriprep.__main__ to allow python -m smriprep (#158) @effigies
+* MAINT: Revise CircleCI to optimize TemplateFlow and caching (#157) @oesteban
+
+0.4.1 (Decemeber 12, 2019)
+==========================
+Bugfix release to address some fMRIPrep issues.
+
+* FIX: Use T2/FLAIR refinement at cortribbon stage (#148) @effigies
+* FIX: empty specs for legacy/nonstd spaces (#146) @mgxd
+* DOC: Refactor of documentation (#144) @oesteban
+
 0.4.0 (November 26, 2019)
 =========================
 A new 0.4.x series with a number of new features and bugfixes.

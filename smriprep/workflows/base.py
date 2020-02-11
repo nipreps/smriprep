@@ -32,10 +32,10 @@ def init_smriprep_wf(
     low_mem,
     omp_nthreads,
     output_dir,
-    output_spaces,
     run_uuid,
     skull_strip_fixed_seed,
     skull_strip_template,
+    spaces,
     subject_list,
     work_dir,
     bids_filters,
@@ -52,10 +52,11 @@ def init_smriprep_wf(
             :simple_form: yes
 
             import os
-            from collections import OrderedDict, namedtuple
+            from collections import namedtuple
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             os.environ['FREESURFER_HOME'] = os.getcwd()
             from smriprep.workflows.base import init_smriprep_wf
+            from niworkflows.utils.spaces import SpatialReferences, Reference
             wf = init_smriprep_wf(
                 debug=False,
                 freesurfer=True,
@@ -66,11 +67,10 @@ def init_smriprep_wf(
                 low_mem=False,
                 omp_nthreads=1,
                 output_dir='.',
-                output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
-                                           ('fsaverage5', {})]),
                 run_uuid='testrun',
                 skull_strip_fixed_seed=False,
-                skull_strip_template=('OASIS30ANTs', {}),
+                skull_strip_template=Reference('OASIS30ANTs'),
+                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_list=['smripreptest'],
                 work_dir='.',
                 bids_filters=None,
@@ -78,42 +78,37 @@ def init_smriprep_wf(
 
     Parameters
     ----------
-    debug : bool
+    debug : :obj:`bool`
         Enable debugging outputs
-    freesurfer : bool
+    freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
     fs_subjects_dir : os.PathLike or None
         Use existing FreeSurfer subjects directory if provided
-    hires : bool
+    hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     layout : BIDSLayout object
         BIDS dataset layout
-    longitudinal : bool
+    longitudinal : :obj:`bool`
         Treat multiple sessions as longitudinal (may increase runtime)
         See sub-workflows for specific differences
-    low_mem : bool
+    low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
-    omp_nthreads : int
+    omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
-    output_dir : str
+    output_dir : :obj:`str`
         Directory in which to save derivatives
-    output_spaces : OrderedDict
-        List of spatial normalization targets. Some parts of pipeline will
-        only be instantiated for some output spaces. Valid spaces:
-        - Any template identifier from TemplateFlow
-        - Path to a template folder organized following TemplateFlow's
-        conventions
-    run_uuid : str
+    run_uuid : :obj:`str`
         Unique identifier for execution instance
-    skull_strip_fixed_seed : bool
+    skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
-    skull_strip_template : tuple
-        Name of ANTs skull-stripping template ('OASIS30ANTs' or 'NKI'),
-        and dictionary with template specifications (e.g., {'res': '2'})
-    subject_list : list
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
+        Spatial reference to use in atlas-based brain extraction.
+    spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
+        Object containing standard and nonstandard space specifications.
+    subject_list : :obj:`list`
         List of subject labels
-    work_dir : str
+    work_dir : :obj:`str`
         Directory in which to store workflow execution state and
         temporary files
     bids_filters : dict
@@ -129,8 +124,7 @@ def init_smriprep_wf(
             BIDSFreeSurferDir(
                 derivatives=output_dir,
                 freesurfer_home=os.getenv('FREESURFER_HOME'),
-                spaces=[s for s in output_spaces.keys() if s.startswith('fsaverage')] + [
-                    'fsnative'] * ('fsnative' in output_spaces)),
+                spaces=spaces.get_fs_spaces()),
             name='fsdir_run_%s' % run_uuid.replace('-', '_'), run_without_submitting=True)
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
@@ -147,10 +141,10 @@ def init_smriprep_wf(
             name="single_subject_%s_wf" % subject_id,
             omp_nthreads=omp_nthreads,
             output_dir=output_dir,
-            output_spaces=output_spaces,
             reportlets_dir=reportlets_dir,
             skull_strip_fixed_seed=skull_strip_fixed_seed,
             skull_strip_template=skull_strip_template,
+            spaces=spaces,
             subject_id=subject_id,
             bids_filters=bids_filters,
         )
@@ -179,10 +173,10 @@ def init_single_subject_wf(
     name,
     omp_nthreads,
     output_dir,
-    output_spaces,
     reportlets_dir,
     skull_strip_fixed_seed,
     skull_strip_template,
+    spaces,
     subject_id,
     bids_filters,
 ):
@@ -203,7 +197,8 @@ def init_single_subject_wf(
             :graph2use: orig
             :simple_form: yes
 
-            from collections import OrderedDict, namedtuple
+            from collections import namedtuple
+            from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.base import init_single_subject_wf
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             wf = init_single_subject_wf(
@@ -216,51 +211,45 @@ def init_single_subject_wf(
                 name='single_subject_wf',
                 omp_nthreads=1,
                 output_dir='.',
-                output_spaces=OrderedDict([('MNI152NLin2009cAsym', {}),
-                                           ('fsaverage5', {})]),
                 reportlets_dir='.',
                 skull_strip_fixed_seed=False,
-                skull_strip_template=('OASIS30ANTs', {}),
+                skull_strip_template=Reference('OASIS30ANTs'),
+                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_id='test',
                 bids_filters=None,
             )
 
     Parameters
     ----------
-    debug : bool
+    debug : :obj:`bool`
         Enable debugging outputs
-    freesurfer : bool
+    freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
-    hires : bool
+    hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     layout : BIDSLayout object
         BIDS dataset layout
-    longitudinal : bool
+    longitudinal : :obj:`bool`
         Treat multiple sessions as longitudinal (may increase runtime)
         See sub-workflows for specific differences
-    low_mem : bool
+    low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
-    name : str
+    name : :obj:`str`
         Name of workflow
-    omp_nthreads : int
+    omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
-    output_dir : str
+    output_dir : :obj:`str`
         Directory in which to save derivatives
-    output_spaces : OrderedDict
-        List of spatial normalization targets. Some parts of pipeline will
-        only be instantiated for some output spaces. Valid spaces:
-        - Any template identifier from TemplateFlow
-        - Path to a template folder organized following TemplateFlow's
-        conventions
-    reportlets_dir : str
+    reportlets_dir : :obj:`str`
         Directory in which to save reportlets
-    skull_strip_fixed_seed : bool
+    skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
-    skull_strip_template : tuple
-        Name of ANTs skull-stripping template (e.g., 'OASIS30ANTs') and
-        dictionary of template specifications.
-    subject_id : str
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
+        Spatial reference to use in atlas-based brain extraction.
+    spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
+        Object containing standard and nonstandard space specifications.
+    subject_id : :obj:`str`
         List of subject labels
     bids_filters : dict
         Provides finer specification of the pipeline input files through pybids entities filters.
@@ -315,7 +304,7 @@ to workflows in *sMRIPrep*'s documentation]\
     bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
                         run_without_submitting=True)
 
-    summary = pe.Node(SubjectSummary(output_spaces=list(output_spaces.keys())),
+    summary = pe.Node(SubjectSummary(output_spaces=spaces.get_spaces(nonstandard=False)),
                       name='summary', run_without_submitting=True)
 
     about = pe.Node(AboutSummary(version=__version__,
@@ -343,10 +332,10 @@ to workflows in *sMRIPrep*'s documentation]\
         num_t1w=len(subject_data['t1w']),
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
-        output_spaces=output_spaces,
         reportlets_dir=reportlets_dir,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         skull_strip_template=skull_strip_template,
+        spaces=spaces,
     )
 
     workflow.connect([
