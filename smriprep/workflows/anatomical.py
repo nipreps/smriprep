@@ -41,8 +41,8 @@ def init_anat_preproc_wf(
         omp_nthreads,
         output_dir,
         reportlets_dir,
+        skull_strip_mode,
         skull_strip_template,
-        skip_brain_extraction,
         spaces,
         debug=False,
         name='anat_preproc_wf',
@@ -77,7 +77,7 @@ def init_anat_preproc_wf(
                 omp_nthreads=1,
                 output_dir='.',
                 reportlets_dir='.',
-                skip_brain_extraction='auto',
+                skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
             )
@@ -111,10 +111,10 @@ def init_anat_preproc_wf(
         Enable debugging outputs
     name : :obj:`str`, optional
         Workflow name (default: anat_preproc_wf)
-    skip_brain_extraction : :obj:`str`
-        Skip ants brain extraction workflow, and instead use N4-only workflow
-        Options: 'auto', 'skip', 'force'.
-        (default: ``auto``).
+    skull_strip_mode : :obj:`str`
+        Determiner for T1-weighted skull stripping (`force` ensures skull stripping,
+        `skip` ignores skull stripping, and `auto` automatically ignores skull stripping
+        if pre-stripped brains are detected).
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
@@ -245,19 +245,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 data[:, :, 0].sum() + data[:, :, -1].sum()
             return sidevals < 10
 
-        for img in imgs:
-            if not os.path.exists(img):
-                continue
-            if not _check_img(img):
-                return False
-        return True
+        return all(_check_img(img) for img in imgs)
 
-    if skip_brain_extraction == 'auto':
-        skip_brain_extraction = _is_skull_stripped(t1w)
-    else:
-        skip_brain_extraction = skip_brain_extraction == 'skip'
+    if skull_strip_mode == 'auto':
+        skull_strip_mode = _is_skull_stripped(t1w)
 
-    if skip_brain_extraction:
+    if skull_strip_mode in (True, 'skip'):
         brain_extraction_wf = init_n4_only_wf(
             omp_nthreads=omp_nthreads,
             atropos_use_random_seed=not skull_strip_fixed_seed,

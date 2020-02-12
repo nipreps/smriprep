@@ -88,9 +88,10 @@ def get_parser():
                         help='do not use a random seed for skull-stripping - will ensure '
                              'run-to-run replicability when used with --omp-nthreads 1')
     g_ants.add_argument(
-        '--skip-brain-extraction', required=False, action='store',
-        default='auto', help='Skip the brain extraction workflow. '
-                             'Options: auto (default), skip, force. ')
+        '--skull-strip-mode', action='store', choices=('auto', 'skip', 'force'),
+        default='auto', help='determiner for T1-weighted skull stripping (force ensures skull '
+                             'stripping, skip ignores skull stripping, and auto automatically '
+                             'ignores skull stripping if pre-stripped brains are detected).')
 
     # FreeSurfer options
     g_fs = parser.add_argument_group('Specific options for FreeSurfer preprocessing')
@@ -411,8 +412,8 @@ def build_workflow(opts, retval):
         omp_nthreads=omp_nthreads,
         output_dir=str(output_dir),
         run_uuid=run_uuid,
-        skip_brain_extraction=opts.skip_brain_extraction,
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
+        skull_strip_mode=opts.skull_strip_mode,
         skull_strip_template=opts.skull_strip_template[0],
         spaces=opts.output_spaces,
         subject_list=subject_list,

@@ -33,7 +33,7 @@ def init_smriprep_wf(
     omp_nthreads,
     output_dir,
     run_uuid,
-    skip_brain_extraction,
+    skull_strip_mode,
     skull_strip_fixed_seed,
     skull_strip_template,
     spaces,
@@ -68,8 +68,8 @@ def init_smriprep_wf(
                 omp_nthreads=1,
                 output_dir='.',
                 run_uuid='testrun',
-                skip_brain_extraction='auto',
                 skull_strip_fixed_seed=False,
+                skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_list=['smripreptest'],
@@ -99,13 +99,13 @@ def init_smriprep_wf(
         Directory in which to save derivatives
     run_uuid : :obj:`str`
         Unique identifier for execution instance
-    skip_brain_extraction : :obj:`str`
-        Skip ants brain extraction workflow, and instead use N4-only workflow
-        Options: 'auto', 'skip', 'force'.
-        (default: ``auto``).
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
+    skull_strip_mode : :obj:`str`
+        Determiner for T1-weighted skull stripping (`force` ensures skull stripping,
+        `skip` ignores skull stripping, and `auto` automatically ignores skull stripping
+        if pre-stripped brains are detected).
     skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
         Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
@@ -143,8 +143,8 @@ def init_smriprep_wf(
             omp_nthreads=omp_nthreads,
             output_dir=output_dir,
             reportlets_dir=reportlets_dir,
-            skip_brain_extraction=skip_brain_extraction,
             skull_strip_fixed_seed=skull_strip_fixed_seed,
+            skull_strip_mode=skull_strip_mode,
             skull_strip_template=skull_strip_template,
             spaces=spaces,
             subject_id=subject_id,
@@ -175,8 +175,8 @@ def init_single_subject_wf(
     omp_nthreads,
     output_dir,
     reportlets_dir,
-    skip_brain_extraction,
     skull_strip_fixed_seed,
+    skull_strip_mode,
     skull_strip_template,
     spaces,
     subject_id,
@@ -213,8 +213,8 @@ def init_single_subject_wf(
                 omp_nthreads=1,
                 output_dir='.',
                 reportlets_dir='.',
-                skip_brain_extraction='auto',
                 skull_strip_fixed_seed=False,
+                skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_id='test',
@@ -243,13 +243,13 @@ def init_single_subject_wf(
         Directory in which to save derivatives
     reportlets_dir : :obj:`str`
         Directory in which to save reportlets
-    skip_brain_extraction : :obj:`str`
-        Skip ants brain extraction workflow, and instead use N4-only workflow
-        Options: 'auto', 'skip', 'force'.
-        (default: ``auto``).
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
+    skull_strip_mode : :obj:`str`
+        Determiner for T1-weighted skull stripping (`force` ensures skull stripping,
+        `skip` ignores skull stripping, and `auto` automatically ignores skull stripping
+        if pre-stripped brains are detected).
     skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
         Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
@@ -335,8 +335,8 @@ to workflows in *sMRIPrep*'s documentation]\
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
         reportlets_dir=reportlets_dir,
-        skip_brain_extraction=skip_brain_extraction,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
+        skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
         spaces=spaces,
     )
