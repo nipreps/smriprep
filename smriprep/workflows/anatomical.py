@@ -67,6 +67,9 @@ def init_anat_preproc_wf(
 
             from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.anatomical import init_anat_preproc_wf
+            import nibabel as nb
+            import numpy as np
+            nb.Nifti1Image(np.ones((1,1,1)), np.eye(4)).to_filename('T1w.nii.gz')
             wf = init_anat_preproc_wf(
                 bids_root='.',
                 freesurfer=True,
@@ -80,6 +83,9 @@ def init_anat_preproc_wf(
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
             )
+            import os
+            os.unlink('T1w.nii.gz')
+
 
     Parameters
     ----------
@@ -243,9 +249,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 data[:, :, 0].sum() + data[:, :, -1].sum()
             return sidevals < 10
 
-        skull_stripped = [_check_img(p) for p in imgs]
-
-        return all(skull_stripped)
+        for img in imgs:
+            if not _check_img(img):
+                return False
+        return True
 
     if skip_brain_extraction == 'auto':
         skip_brain_extraction = _is_skull_stripped(t1w)
