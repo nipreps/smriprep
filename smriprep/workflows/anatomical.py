@@ -3,6 +3,7 @@
 """Anatomical reference preprocessing workflows."""
 from pkg_resources import resource_filename as pkgr
 
+import os
 import numpy as np
 import nibabel as nb
 
@@ -67,15 +68,12 @@ def init_anat_preproc_wf(
 
             from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.anatomical import init_anat_preproc_wf
-            import nibabel as nb
-            import numpy as np
-            nb.Nifti1Image(np.ones((1,1,1)), np.eye(4)).to_filename('T1w.nii.gz')
             wf = init_anat_preproc_wf(
                 bids_root='.',
                 freesurfer=True,
                 hires=True,
                 longitudinal=False,
-                t1w=['T1w.nii.gz'],
+                t1w=['t1w.nii.gz'],
                 omp_nthreads=1,
                 output_dir='.',
                 reportlets_dir='.',
@@ -83,8 +81,6 @@ def init_anat_preproc_wf(
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
             )
-            import os
-            os.unlink('T1w.nii.gz')
 
 
     Parameters
@@ -250,6 +246,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             return sidevals < 10
 
         for img in imgs:
+            if not os.path.exists(img):
+                continue
             if not _check_img(img):
                 return False
         return True
