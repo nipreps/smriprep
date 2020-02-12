@@ -3,7 +3,6 @@
 """Anatomical reference preprocessing workflows."""
 from pkg_resources import resource_filename as pkgr
 
-import os
 import numpy as np
 import nibabel as nb
 
