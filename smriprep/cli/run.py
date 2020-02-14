@@ -51,6 +51,11 @@ def get_parser():
     g_bids.add_argument('--participant-label', '--participant_label', action='store', nargs='+',
                         help='a space delimited list of participant identifiers or a single '
                              'identifier (the sub- prefix can be removed)')
+    g_bids.add_argument(
+        '--bids-filter-file', action='store', type=Path, metavar='PATH',
+        help='a JSON file describing custom BIDS input filters using pybids '
+             '{<suffix>:{<entity>:<filter>,...},...} '
+             '(https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json)')
 
     g_perfm = parser.add_argument_group('Options to handle performance')
     g_perfm.add_argument('--nprocs', '--ncpus', '--nthreads', '--n_cpus', '-n-cpus',
@@ -270,6 +275,7 @@ def build_workflow(opts, retval):
     from subprocess import check_call, CalledProcessError, TimeoutExpired
     from pkg_resources import resource_filename as pkgrf
 
+    import json
     from bids import BIDSLayout
     from nipype import logging, config as ncfg
     from niworkflows.utils.bids import collect_participants
@@ -295,6 +301,8 @@ def build_workflow(opts, retval):
     layout = BIDSLayout(str(bids_dir), validate=False)
     subject_list = collect_participants(
         layout, participant_label=opts.participant_label)
+
+    bids_filters = json.loads(opts.bids_filter_file.read_text()) if opts.bids_filter_file else None
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
@@ -412,6 +420,7 @@ def build_workflow(opts, retval):
         spaces=opts.output_spaces,
         subject_list=subject_list,
         work_dir=str(work_dir),
+        bids_filters=bids_filters,
     )
     retval['return_code'] = 0
 

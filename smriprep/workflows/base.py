@@ -38,6 +38,7 @@ def init_smriprep_wf(
     spaces,
     subject_list,
     work_dir,
+    bids_filters,
 ):
     """
     Create the execution graph of *sMRIPrep*, with a sub-workflow for each subject.
@@ -72,6 +73,7 @@ def init_smriprep_wf(
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_list=['smripreptest'],
                 work_dir='.',
+                bids_filters=None,
             )
 
     Parameters
@@ -109,6 +111,9 @@ def init_smriprep_wf(
     work_dir : :obj:`str`
         Directory in which to store workflow execution state and
         temporary files
+    bids_filters : dict
+        Provides finer specification of the pipeline input files through pybids entities filters.
+        A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
 
     """
     smriprep_wf = Workflow(name='smriprep_wf')
@@ -141,6 +146,7 @@ def init_smriprep_wf(
             skull_strip_template=skull_strip_template,
             spaces=spaces,
             subject_id=subject_id,
+            bids_filters=bids_filters,
         )
 
         single_subject_wf.config['execution']['crashdump_dir'] = (
@@ -172,6 +178,7 @@ def init_single_subject_wf(
     skull_strip_template,
     spaces,
     subject_id,
+    bids_filters,
 ):
     """
     Create a single subject workflow.
@@ -209,6 +216,7 @@ def init_single_subject_wf(
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_id='test',
+                bids_filters=None,
             )
 
     Parameters
@@ -243,6 +251,9 @@ def init_single_subject_wf(
         Object containing standard and nonstandard space specifications.
     subject_id : :obj:`str`
         List of subject labels
+    bids_filters : dict
+        Provides finer specification of the pipeline input files through pybids entities filters.
+        A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
 
     Inputs
     ------
@@ -257,7 +268,7 @@ def init_single_subject_wf(
             't1w': ['/completely/made/up/path/sub-01_T1w.nii.gz'],
         }
     else:
-        subject_data = collect_data(layout, subject_id)[0]
+        subject_data = collect_data(layout, subject_id, bids_filters=bids_filters)[0]
 
     if not subject_data['t1w']:
         raise Exception("No T1w images found for participant {}. "
