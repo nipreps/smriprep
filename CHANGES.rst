@@ -1,3 +1,10 @@
+0.5.2 (February 14, 2020)
+=========================
+Minor tweaks in preparation for fMRIPrep 20.0.0 release.
+
+* ENH: Enable users to pass JSON filters to select subsets of data (#143) @bpinsard
+* MAINT: Add ignore W503 in setup.cfg (#165) @oesteban
+
 0.5.1 (February 7, 2020)
 ========================
 A hotfix release updating dependencies
