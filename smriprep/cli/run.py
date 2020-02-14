@@ -52,9 +52,9 @@ def get_parser():
                         help='a space delimited list of participant identifiers or a single '
                              'identifier (the sub- prefix can be removed)')
     g_bids.add_argument(
-        '--bids-filters', action='store', type=Path,
-        help='the path to a JSON file describing custom BIDS input filter'
-             ' using pybids {<suffix>:{<entity>:<filter>,...},...} '
+        '--bids-filter-file', action='store', type=Path, metavar='PATH',
+        help='a JSON file describing custom BIDS input filters using pybids '
+             '{<suffix>:{<entity>:<filter>,...},...} '
              '(https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json)')
 
     g_perfm = parser.add_argument_group('Options to handle performance')
@@ -302,7 +302,7 @@ def build_workflow(opts, retval):
     subject_list = collect_participants(
         layout, participant_label=opts.participant_label)
 
-    bids_filters = json.load(opts.bids_filters.read_text()) if opts.bids_filters else None
+    bids_filters = json.loads(opts.bids_filter_file.read_text()) if opts.bids_filter_file else None
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
