@@ -118,8 +118,8 @@ def get_parser():
     g_other.add_argument('-w', '--work-dir', action='store', type=Path, default=Path('work'),
                          help='path where intermediate results should be stored')
     g_other.add_argument(
-        '--force-build', action='store_true', default=False,
-        help='')
+        '--fast-track', action='store_true', default=False,
+        help='fast-track the workflow by searching for existing derivatives.')
     g_other.add_argument(
         '--resource-monitor', action='store_true', default=False,
         help='enable Nipype\'s resource monitoring to keep track of memory and CPU usage')
@@ -409,7 +409,7 @@ def build_workflow(opts, retval):
     # Build main workflow
     retval['workflow'] = init_smriprep_wf(
         debug=opts.sloppy,
-        force_build=opts.force_build,
+        fast_track=opts.fast_track,
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,
         hires=opts.hires,

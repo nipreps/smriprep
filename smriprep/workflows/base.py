@@ -25,7 +25,7 @@ from .anatomical import init_anat_preproc_wf
 
 def init_smriprep_wf(
     debug,
-    force_build,
+    fast_track,
     freesurfer,
     fs_subjects_dir,
     hires,
@@ -61,7 +61,7 @@ def init_smriprep_wf(
             from niworkflows.utils.spaces import SpatialReferences, Reference
             wf = init_smriprep_wf(
                 debug=False,
-                force_build=True,
+                fast_track=False,
                 freesurfer=True,
                 fs_subjects_dir=None,
                 hires=True,
@@ -83,8 +83,8 @@ def init_smriprep_wf(
     ----------
     debug : :obj:`bool`
         Enable debugging outputs
-    force_build : :obj:`bool`
-        Do not fast-track the workflow by searching for existing derivatives.
+    fast_track : :obj:`bool`
+        Fast-track the workflow by searching for existing derivatives.
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
     fs_subjects_dir : os.PathLike or None
@@ -139,7 +139,7 @@ def init_smriprep_wf(
         single_subject_wf = init_single_subject_wf(
             debug=debug,
             freesurfer=freesurfer,
-            force_build=force_build,
+            fast_track=fast_track,
             hires=hires,
             layout=layout,
             longitudinal=longitudinal,
@@ -172,7 +172,7 @@ def init_smriprep_wf(
 def init_single_subject_wf(
     debug,
     freesurfer,
-    force_build,
+    fast_track,
     hires,
     layout,
     longitudinal,
@@ -211,7 +211,7 @@ def init_single_subject_wf(
             wf = init_single_subject_wf(
                 debug=False,
                 freesurfer=True,
-                force_build=True,
+                fast_track=False,
                 hires=True,
                 layout=BIDSLayout('.'),
                 longitudinal=False,
@@ -233,8 +233,8 @@ def init_single_subject_wf(
         Enable debugging outputs
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
-    force_build : :obj:`bool`
-        If ``True``, skip the attempt to collect previously run derivatives.
+    fast_track : :obj:`bool`
+        If ``True``, attempt to collect previously run derivatives.
     hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     layout : BIDSLayout object
@@ -306,7 +306,7 @@ to workflows in *sMRIPrep*'s documentation]\
 """
 
     deriv_cache = None
-    if not force_build:
+    if fast_track:
         from ..utils.bids import collect_derivatives
         std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
         deriv_cache = collect_derivatives(

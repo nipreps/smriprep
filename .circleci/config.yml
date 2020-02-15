@@ -119,14 +119,14 @@ jobs:
             - /tmp/docker
 
       - run:
-          name: Check --force-build (requires repo checkout)
+          name: Check --fast-track (requires repo checkout)
           command: |
-            touch /tmp/.force
-            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-                echo "--force-build" > /tmp/.force
+            touch /tmp/.fastrack
+            if [[ "$CIRCLE_BRANCH" != "master" ]]; then
+                echo "--fast-track" > /tmp/.fastrack
             fi
             if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[force[ _-]build\]' )" != "" ]]; then
-                echo "--force-build" > /tmp/.force
+                echo "" > /tmp/.fastrack
             fi
 
       - persist_to_workspace:
@@ -434,7 +434,7 @@ jobs:
           name: Run anatomical workflow on ds005
           no_output_timeout: 2h
           command: |
-            bash /tmp/src/smriprep/.circleci/ds005_run.sh --write-graph $( cat /tmp/.force )
+            bash /tmp/src/smriprep/.circleci/ds005_run.sh --write-graph $( cat /tmp/.fastrack )
       - run:
           name: Combine coverage
           no_output_timeout: 2h
@@ -592,7 +592,7 @@ jobs:
           name: Run sMRIPrep on ds054 (with --fs-no-reconall)
           no_output_timeout: 2h
           command: |
-            bash /tmp/src/smriprep/.circleci/ds054_run.sh --write-graph $( cat /tmp/.force )
+            bash /tmp/src/smriprep/.circleci/ds054_run.sh --write-graph $( cat /tmp/.fastrack )
       - run:
           name: Combine coverage
           no_output_timeout: 2h
