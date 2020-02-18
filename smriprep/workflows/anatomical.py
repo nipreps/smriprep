@@ -89,7 +89,7 @@ def init_anat_preproc_wf(
     ----------
     bids_root : :obj:`str`
         Path of the input BIDS dataset root
-    existing_derivatives : :obj:`dict`
+    existing_derivatives : :obj:`dict` or None
         Dictionary mapping output specification attribute names and
         paths to corresponding derivatives.
     freesurfer : :obj:`bool`
