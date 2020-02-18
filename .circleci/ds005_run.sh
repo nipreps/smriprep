@@ -15,6 +15,7 @@ docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
     -w /tmp/ds005/work \
     --skull-strip-template MNI152NLin2009cAsym:res-2 \
     --sloppy --mem-gb 4 \
-    --ncpus 2 --omp-nthreads 2 -vv $( cat /tmp/.force ) \
+    --ncpus 2 --omp-nthreads 2 -vv \
     --fs-license-file /tmp/fslicense/license.txt \
-    --fs-subjects-dir /tmp/ds005/freesurfer ${@:1}
+    --fs-subjects-dir /tmp/ds005/freesurfer \
+    ${@:1}
