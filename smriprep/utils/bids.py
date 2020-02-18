@@ -29,6 +29,7 @@ def get_outputnode_spec():
     fields += [s for s in spec["surfaces"].keys()]
     return fields
 
+
 def predict_derivatives(subject_id, output_spaces, freesurfer):
     """
     Generate a list of the files that should be found in the output folder.
