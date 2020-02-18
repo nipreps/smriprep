@@ -25,6 +25,7 @@ from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateI
 from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
+from ..utils.bids import get_outputnode_spec
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
@@ -195,13 +196,7 @@ BIDS dataset.""".format(num_t1w=num_t1w)
         name='inputnode')
 
     outputnode = pe.Node(niu.IdentityInterface(
-        fields=[
-            't1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',  # T1w space
-            'std_preproc', 'std_mask', 'std_dseg', 'std_tpms',  # Standard spaces
-            'template', 'anat2std_xfm', 'std2anat_xfm',  # Standard spaces (misc)
-            'subjects_dir', 'subject_id', 'surfaces',  # Freesurfer
-            't1w_aseg', 't1w_aparc', 't1w2fsnative_xfm', 'fsnative2t1w_xfm',  # Freesurfer
-        ]),
+        fields=['template', 'subjects_dir', 'subject_id'] + get_outputnode_spec()),
         name='outputnode')
 
     # Connect reportlets workflows
@@ -297,9 +292,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         import nibabel as nb
 
         def _is_skull_stripped(imgs):
-            """Check if T1w images are skull-stripped by interrogating
-            extreme planes for all (near) zeros.
-            """
+            """Check if T1w images are skull-stripped."""
             def _check_img(img):
                 data = np.abs(nb.load(img).get_fdata(dtype=np.float32))
                 sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \

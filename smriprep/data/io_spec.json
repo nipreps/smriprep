@@ -40,17 +40,17 @@
       }
     },
     "surfaces": {
-      "aseg": {
+      "t1w_aseg": {
         "datatype": "anat",
         "desc": "aseg",
         "suffix": "dseg"
       },
-      "aparcaseg": {
+      "t1w_aparc": {
         "datatype": "anat",
         "desc": "aparcaseg",
         "suffix": "dseg"
       },
-      "anat2fsnative_xfm": {
+      "t1w2fsnative_xfm": {
         "datatype": "anat",
         "from": "T1w",
         "to": "fsnative",
@@ -58,7 +58,7 @@
         "suffix": "xfm",
         "mode": "image"
       },
-      "fsnative2anat_xfm": {
+      "fsnative2t1w_xfm": {
         "datatype": "anat",
         "from": "fsnative",
         "to": "T1w",
