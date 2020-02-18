@@ -16,4 +16,5 @@ docker run --rm -it -e FMRIPREP_DEV=1 -u $(id -u) \
     --skull-strip-template OASIS30ANTs:res-1 \
     --output-spaces MNI152Lin MNI152NLin2009cAsym \
     --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
-    --fs-license-file /tmp/fslicense/license.txt
+    --fs-license-file /tmp/fslicense/license.txt \
+    ${@:1}

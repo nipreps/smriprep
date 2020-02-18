@@ -118,17 +118,6 @@ jobs:
          paths:
             - /tmp/docker
 
-      - run:
-          name: Check --fast-track (requires repo checkout)
-          command: |
-            touch /tmp/.fastrack
-            if [[ "$CIRCLE_BRANCH" != "master" ]]; then
-                echo "--fast-track" > /tmp/.fastrack
-            fi
-            if [[ "$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[force[ _-]build\]' )" != "" ]]; then
-                echo "" > /tmp/.fastrack
-            fi
-
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -434,7 +423,7 @@ jobs:
           name: Run anatomical workflow on ds005
           no_output_timeout: 2h
           command: |
-            bash /tmp/src/smriprep/.circleci/ds005_run.sh --write-graph $( cat /tmp/.fastrack )
+            bash /tmp/src/smriprep/.circleci/ds005_run.sh --write-graph
       - run:
           name: Combine coverage
           no_output_timeout: 2h
@@ -506,7 +495,7 @@ jobs:
           name: Check fast track using existing derivatives
           no_output_timeout: 5m
           command: |
-            bash /tmp/src/smriprep/.circleci/ds005_run.sh
+            bash /tmp/src/smriprep/.circleci/ds005_run.sh --fast-track
       - run:
           name: Clean working directory
           when: on_fail
@@ -592,7 +581,7 @@ jobs:
           name: Run sMRIPrep on ds054 (with --fs-no-reconall)
           no_output_timeout: 2h
           command: |
-            bash /tmp/src/smriprep/.circleci/ds054_run.sh --write-graph $( cat /tmp/.fastrack )
+            bash /tmp/src/smriprep/.circleci/ds054_run.sh --write-graph
       - run:
           name: Combine coverage
           no_output_timeout: 2h
@@ -663,7 +652,7 @@ jobs:
           name: Check fast track using existing derivatives (with --fs-no-reconall)
           no_output_timeout: 5m
           command: |
-            bash /tmp/src/smriprep/.circleci/ds054_run.sh
+            bash /tmp/src/smriprep/.circleci/ds054_run.sh --fast-track
       - store_artifacts:
           path: /tmp/ds054/work
           destination: fasttrack-work
