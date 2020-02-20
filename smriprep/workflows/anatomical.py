@@ -22,7 +22,7 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
-from niworkflows.anat.ants import init_brain_extraction_wf
+from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
@@ -33,15 +33,16 @@ def init_anat_preproc_wf(
         freesurfer,
         hires,
         longitudinal,
-        num_t1w,
+        t1w,
         omp_nthreads,
         output_dir,
         reportlets_dir,
+        skull_strip_mode,
         skull_strip_template,
         spaces,
         debug=False,
         name='anat_preproc_wf',
-        skull_strip_fixed_seed=False
+        skull_strip_fixed_seed=False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -68,13 +69,15 @@ def init_anat_preproc_wf(
                 freesurfer=True,
                 hires=True,
                 longitudinal=False,
-                num_t1w=1,
+                t1w=['t1w.nii.gz'],
                 omp_nthreads=1,
                 output_dir='.',
                 reportlets_dir='.',
+                skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
             )
+
 
     Parameters
     ----------
@@ -88,8 +91,8 @@ def init_anat_preproc_wf(
     longitudinal : :obj:`bool`
         Create unbiased structural template, regardless of number of inputs
         (may increase runtime)
-    num_t1w : :obj:`int`
-        Number of T1w that were averaged for the anatomical reference.
+    t1w : :obj:`list`
+        List of T1-weighted structural images.
     omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
     output_dir : :obj:`str`
@@ -104,6 +107,10 @@ def init_anat_preproc_wf(
         Enable debugging outputs
     name : :obj:`str`, optional
         Workflow name (default: anat_preproc_wf)
+    skull_strip_mode : :obj:`str`
+        Determiner for T1-weighted skull stripping (`force` ensures skull stripping,
+        `skip` ignores skull stripping, and `auto` automatically ignores skull stripping
+        if pre-stripped brains are detected).
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
@@ -167,6 +174,7 @@ def init_anat_preproc_wf(
 
     """
     workflow = Workflow(name=name)
+    num_t1w = len(t1w)
     desc = """Anatomical data preprocessing
 
 : """
@@ -222,12 +230,37 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                             run_without_submitting=True)
 
     # 2. Brain-extraction and INU (bias field) correction.
-    brain_extraction_wf = init_brain_extraction_wf(
-        in_template=skull_strip_template.space,
-        template_spec=skull_strip_template.spec,
-        atropos_use_random_seed=not skull_strip_fixed_seed,
-        omp_nthreads=omp_nthreads,
-        normalization_quality='precise' if not debug else 'testing')
+    if skull_strip_mode == 'auto':
+        import numpy as np
+        import nibabel as nb
+
+        def _is_skull_stripped(imgs):
+            """Check if T1w images are skull-stripped by interrogating
+            extreme planes for all (near) zeros.
+            """
+            def _check_img(img):
+                data = np.abs(nb.load(img).get_fdata(dtype=np.float32))
+                sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
+                    data[:, 0, :].sum() + data[:, -1, :].sum() + \
+                    data[:, :, 0].sum() + data[:, :, -1].sum()
+                return sidevals < 10
+
+            return all(_check_img(img) for img in imgs)
+
+        skull_strip_mode = _is_skull_stripped(t1w)
+
+    if skull_strip_mode in (True, 'skip'):
+        brain_extraction_wf = init_n4_only_wf(
+            omp_nthreads=omp_nthreads,
+            atropos_use_random_seed=not skull_strip_fixed_seed,
+        )
+    else:
+        brain_extraction_wf = init_brain_extraction_wf(
+            in_template=skull_strip_template.space,
+            template_spec=skull_strip_template.spec,
+            atropos_use_random_seed=not skull_strip_fixed_seed,
+            omp_nthreads=omp_nthreads,
+            normalization_quality='precise' if not debug else 'testing')
 
     # 3. Brain tissue segmentation
     t1w_dseg = pe.Node(fsl.FAST(segments=True, no_bias=True, probability_maps=True),
