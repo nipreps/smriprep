@@ -3,9 +3,6 @@
 """Anatomical reference preprocessing workflows."""
 from pkg_resources import resource_filename as pkgr
 
-import numpy as np
-import nibabel as nb
-
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
     utility as niu,
@@ -233,20 +230,22 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                             run_without_submitting=True)
 
     # 2. Brain-extraction and INU (bias field) correction.
-    def _is_skull_stripped(imgs):
-        """Check if T1w images are skull-stripped by interrogating
-        extreme planes for all (near) zeros.
-        """
-        def _check_img(img):
-            data = np.abs(nb.load(img).get_fdata(dtype=np.float32))
-            sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
-                data[:, 0, :].sum() + data[:, -1, :].sum() + \
-                data[:, :, 0].sum() + data[:, :, -1].sum()
-            return sidevals < 10
-
-        return all(_check_img(img) for img in imgs)
-
     if skull_strip_mode == 'auto':
+        import numpy as np
+        import nibabel as nb
+        def _is_skull_stripped(imgs):
+            """Check if T1w images are skull-stripped by interrogating
+            extreme planes for all (near) zeros.
+            """
+            def _check_img(img):
+                data = np.abs(nb.load(img).get_fdata(dtype=np.float32))
+                sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
+                    data[:, 0, :].sum() + data[:, -1, :].sum() + \
+                    data[:, :, 0].sum() + data[:, :, -1].sum()
+                return sidevals < 10
+
+            return all(_check_img(img) for img in imgs)
+
         skull_strip_mode = _is_skull_stripped(t1w)
 
     if skull_strip_mode in (True, 'skip'):
