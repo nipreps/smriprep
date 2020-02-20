@@ -233,6 +233,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     if skull_strip_mode == 'auto':
         import numpy as np
         import nibabel as nb
+
         def _is_skull_stripped(imgs):
             """Check if T1w images are skull-stripped by interrogating
             extreme planes for all (near) zeros.
