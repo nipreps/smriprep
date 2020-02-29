@@ -232,7 +232,7 @@ linkcode_resolve = make_linkcode_resolve('smriprep',
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/', None),
-    'niworkflows': ('https://poldracklab.github.io/niworkflows/', None),
+    'niworkflows': ('https://www.nipreps.org/niworkflows/', None),
 }
 
 # -- Options for versioning extension ----------------------------------------
