@@ -1,3 +1,9 @@
+0.6.0 (TBD)
+===========
+<0.6.0rc1 - Release message TBD>
+
+  * ENH: Add option to skip brain extraction (#167)
+
 0.5.2 (February 14, 2020)
 =========================
 Minor tweaks in preparation for fMRIPrep 20.0.0 release.
