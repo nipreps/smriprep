@@ -219,7 +219,11 @@ Anatomical preprocessing was reused from previously existing derivative objects.
         workflow.__desc__ = desc
 
         templates = existing_derivatives.pop('template')
-        outputnode.iterables = [('template', templates)]
+        templatesource = pe.Node(niu.IdentityInterface(
+            fields=['template']), name='templatesource')
+        templatesource.iterables = [('template', templates)]
+        outputnode.inputs.template = templates
+
         for field, value in existing_derivatives.items():
             setattr(outputnode.inputs, field, value)
 
@@ -236,12 +240,11 @@ Anatomical preprocessing was reused from previously existing derivative objects.
             (inputnode, anat_reports_wf, [
                 ('subjects_dir', 'inputnode.subjects_dir'),
                 ('subject_id', 'inputnode.subject_id')]),
-            (outputnode, stdselect, [('template', 'key'),
-                                     ('std_preproc', 'std_preproc'),
+            (templatesource, stdselect, [('template', 'key')]),
+            (outputnode, stdselect, [('std_preproc', 'std_preproc'),
                                      ('std_mask', 'std_mask')]),
-            (outputnode, anat_reports_wf, [
-                ('template', 'inputnode.template')]),
             (stdselect, anat_reports_wf, [
+                ('key', 'inputnode.template'),
                 ('std_preproc', 'inputnode.std_t1w'),
                 ('std_mask', 'inputnode.std_mask'),
             ]),
@@ -360,15 +363,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('probability_maps', 'inputnode.moving_tpms')]),
         (anat_norm_wf, outputnode, [
             ('poutputnode.standardized', 'std_preproc'),
-            ('poutputnode.template', 'template'),
-            ('poutputnode.anat2std_xfm', 'anat2std_xfm'),
-            ('poutputnode.std2anat_xfm', 'std2anat_xfm'),
             ('poutputnode.std_mask', 'std_mask'),
             ('poutputnode.std_dseg', 'std_dseg'),
             ('poutputnode.std_tpms', 'std_tpms'),
-            ('outputnode.template', 'joint_template'),
-            ('outputnode.anat2std_xfm', 'joint_anat2std_xfm'),
-            ('outputnode.std2anat_xfm', 'joint_std2anat_xfm'),
+            ('outputnode.template', 'template'),
+            ('outputnode.anat2std_xfm', 'anat2std_xfm'),
+            ('outputnode.std2anat_xfm', 'std2anat_xfm'),
         ]),
     ])
 
@@ -399,11 +399,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
         (anat_norm_wf, anat_derivatives_wf, [
-            ('poutputnode.template', 'inputnode.template')]),
+            ('poutputnode.template', 'inputnode.template'),
+            ('poutputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
+            ('poutputnode.std2anat_xfm', 'inputnode.std2anat_xfm')
+        ]),
         (outputnode, anat_derivatives_wf, [
             ('std_preproc', 'inputnode.std_t1w'),
-            ('anat2std_xfm', 'inputnode.anat2std_xfm'),
-            ('std2anat_xfm', 'inputnode.std2anat_xfm'),
             ('t1w_ref_xfms', 'inputnode.t1w_ref_xfms'),
             ('t1w_preproc', 'inputnode.t1w_preproc'),
             ('t1w_mask', 'inputnode.t1w_mask'),
