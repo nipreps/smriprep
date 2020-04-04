@@ -3,6 +3,7 @@
 """Anatomical reference preprocessing workflows."""
 from pkg_resources import resource_filename as pkgr
 
+from nipype import logging
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
     utility as niu,
@@ -21,11 +22,15 @@ from niworkflows.interfaces.freesurfer import (
     PatchedLTAConvert as LTAConvert,
 )
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
+from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
+from ..utils.bids import get_outputnode_spec
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
+
+LOGGER = logging.getLogger('nipype.workflow')
 
 
 def init_anat_preproc_wf(
@@ -41,6 +46,7 @@ def init_anat_preproc_wf(
         skull_strip_template,
         spaces,
         debug=False,
+        existing_derivatives=None,
         name='anat_preproc_wf',
         skull_strip_fixed_seed=False,
 ):
@@ -83,6 +89,9 @@ def init_anat_preproc_wf(
     ----------
     bids_root : :obj:`str`
         Path of the input BIDS dataset root
+    existing_derivatives : :obj:`dict` or None
+        Dictionary mapping output specification attribute names and
+        paths to corresponding derivatives.
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (increases runtime by 6h,
         at the very least)
@@ -141,7 +150,7 @@ def init_anat_preproc_wf(
         gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
     t1w_tpms
         List of tissue probability maps corresponding to ``t1w_dseg``.
-    std_t1w
+    std_preproc
         T1w reference resampled in one or more standard spaces.
     std_mask
         Mask of skull-stripped template, in MNI space
@@ -180,7 +189,70 @@ def init_anat_preproc_wf(
 : """
     desc += """\
 A total of {num_t1w} T1-weighted (T1w) images were found within the input
-BIDS dataset.
+BIDS dataset.""".format(num_t1w=num_t1w)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['t1w', 't2w', 'roi', 'flair', 'subjects_dir', 'subject_id']),
+        name='inputnode')
+
+    outputnode = pe.Node(niu.IdentityInterface(
+        fields=['template', 'subjects_dir', 'subject_id'] + get_outputnode_spec()),
+        name='outputnode')
+
+    # Connect reportlets workflows
+    anat_reports_wf = init_anat_reports_wf(
+        freesurfer=freesurfer,
+        reportlets_dir=reportlets_dir,
+    )
+    workflow.connect([
+        (outputnode, anat_reports_wf, [
+            ('t1w_preproc', 'inputnode.t1w_preproc'),
+            ('t1w_mask', 'inputnode.t1w_mask'),
+            ('t1w_dseg', 'inputnode.t1w_dseg')]),
+    ])
+
+    if existing_derivatives is not None:
+        LOGGER.log(25, "Anatomical workflow will reuse prior derivatives found in the "
+                   "output folder (%s).", output_dir)
+        desc += """
+Anatomical preprocessing was reused from previously existing derivative objects.\n"""
+        workflow.__desc__ = desc
+
+        templates = existing_derivatives.pop('template')
+        templatesource = pe.Node(niu.IdentityInterface(
+            fields=['template']), name='templatesource')
+        templatesource.iterables = [('template', templates)]
+        outputnode.inputs.template = templates
+
+        for field, value in existing_derivatives.items():
+            setattr(outputnode.inputs, field, value)
+
+        anat_reports_wf.inputs.inputnode.source_file = fix_multi_T1w_source_name(
+            [existing_derivatives['t1w_preproc']])
+        anat_reports_wf.inputs.seg_rpt.colors = ['b', 'magenta']
+
+        stdselect = pe.Node(KeySelect(
+            fields=['std_preproc', 'std_mask'], keys=templates),
+            name='stdselect', run_without_submitting=True)
+        workflow.connect([
+            (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
+                                     ('subject_id', 'subject_id')]),
+            (inputnode, anat_reports_wf, [
+                ('subjects_dir', 'inputnode.subjects_dir'),
+                ('subject_id', 'inputnode.subject_id')]),
+            (templatesource, stdselect, [('template', 'key')]),
+            (outputnode, stdselect, [('std_preproc', 'std_preproc'),
+                                     ('std_mask', 'std_mask')]),
+            (stdselect, anat_reports_wf, [
+                ('key', 'inputnode.template'),
+                ('std_preproc', 'inputnode.std_t1w'),
+                ('std_mask', 'inputnode.std_mask'),
+            ]),
+        ])
+        return workflow
+
+    # The workflow is not cached.
+    desc += """
 All of them were corrected for intensity non-uniformity (INU)
 """ if num_t1w > 1 else """\
 The T1-weighted (T1w) image was corrected for intensity non-uniformity (INU)
@@ -207,18 +279,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         skullstrip_tpl=skull_strip_template.fullname,
     )
 
-    inputnode = pe.Node(
-        niu.IdentityInterface(fields=['t1w', 't2w', 'roi', 'flair', 'subjects_dir', 'subject_id']),
-        name='inputnode')
-    outputnode = pe.Node(niu.IdentityInterface(
-        fields=['t1w_preproc', 't1w_brain', 't1w_mask', 't1w_dseg', 't1w_tpms',
-                'template', 'std_t1w', 'anat2std_xfm', 'std2anat_xfm',
-                'joint_template', 'joint_anat2std_xfm', 'joint_std2anat_xfm',
-                'std_mask', 'std_dseg', 'std_tpms', 't1w_realign_xfm',
-                'subjects_dir', 'subject_id', 't1w2fsnative_xfm',
-                'fsnative2t1w_xfm', 'surfaces', 't1w_aseg', 't1w_aparc']),
-        name='outputnode')
-
     buffernode = pe.Node(niu.IdentityInterface(
         fields=['t1w_brain', 't1w_mask']), name='buffernode')
 
@@ -235,9 +295,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         import nibabel as nb
 
         def _is_skull_stripped(imgs):
-            """Check if T1w images are skull-stripped by interrogating
-            extreme planes for all (near) zeros.
-            """
+            """Check if T1w images are skull-stripped."""
             def _check_img(img):
                 data = np.abs(nb.load(img).get_fdata(dtype=np.float32))
                 sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
@@ -304,23 +362,31 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (t1w_dseg, anat_norm_wf, [
             ('probability_maps', 'inputnode.moving_tpms')]),
         (anat_norm_wf, outputnode, [
-            ('poutputnode.standardized', 'std_t1w'),
-            ('poutputnode.template', 'template'),
-            ('poutputnode.anat2std_xfm', 'anat2std_xfm'),
-            ('poutputnode.std2anat_xfm', 'std2anat_xfm'),
+            ('poutputnode.standardized', 'std_preproc'),
             ('poutputnode.std_mask', 'std_mask'),
             ('poutputnode.std_dseg', 'std_dseg'),
             ('poutputnode.std_tpms', 'std_tpms'),
-            ('outputnode.template', 'joint_template'),
-            ('outputnode.anat2std_xfm', 'joint_anat2std_xfm'),
-            ('outputnode.std2anat_xfm', 'joint_std2anat_xfm'),
+            ('outputnode.template', 'template'),
+            ('outputnode.anat2std_xfm', 'anat2std_xfm'),
+            ('outputnode.std2anat_xfm', 'std2anat_xfm'),
         ]),
     ])
 
-    # Write outputs ############################################3
-    anat_reports_wf = init_anat_reports_wf(
-        reportlets_dir=reportlets_dir, freesurfer=freesurfer)
+    # Connect reportlets
+    workflow.connect([
+        (inputnode, anat_reports_wf, [
+            (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
+        (outputnode, anat_reports_wf, [
+            ('std_preproc', 'inputnode.std_t1w'),
+            ('std_mask', 'inputnode.std_mask'),
+        ]),
+        (anat_template_wf, anat_reports_wf, [
+            ('outputnode.out_report', 'inputnode.t1w_conform_report')]),
+        (anat_norm_wf, anat_reports_wf, [
+            ('poutputnode.template', 'inputnode.template')]),
+    ])
 
+    # Write outputs ############################################3
     anat_derivatives_wf = init_anat_derivatives_wf(
         bids_root=bids_root,
         freesurfer=freesurfer,
@@ -329,29 +395,16 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     )
 
     workflow.connect([
-        # Connect reportlets
-        (inputnode, anat_reports_wf, [
-            (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
-        (anat_template_wf, anat_reports_wf, [
-            ('outputnode.out_report', 'inputnode.t1w_conform_report')]),
-        (outputnode, anat_reports_wf, [
-            ('t1w_preproc', 'inputnode.t1w_preproc'),
-            ('t1w_dseg', 'inputnode.t1w_dseg'),
-            ('t1w_mask', 'inputnode.t1w_mask'),
-            ('std_t1w', 'inputnode.std_t1w'),
-            ('std_mask', 'inputnode.std_mask')]),
-        (anat_norm_wf, anat_reports_wf, [
-            ('poutputnode.template', 'inputnode.template'),
-            ('poutputnode.template_spec', 'inputnode.template_spec')]),
         # Connect derivatives
         (anat_template_wf, anat_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
         (anat_norm_wf, anat_derivatives_wf, [
-            ('poutputnode.template', 'inputnode.template')]),
+            ('poutputnode.template', 'inputnode.template'),
+            ('poutputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
+            ('poutputnode.std2anat_xfm', 'inputnode.std2anat_xfm')
+        ]),
         (outputnode, anat_derivatives_wf, [
-            ('std_t1w', 'inputnode.std_t1w'),
-            ('anat2std_xfm', 'inputnode.anat2std_xfm'),
-            ('std2anat_xfm', 'inputnode.std2anat_xfm'),
+            ('std_preproc', 'inputnode.std_t1w'),
             ('t1w_ref_xfms', 'inputnode.t1w_ref_xfms'),
             ('t1w_preproc', 'inputnode.t1w_preproc'),
             ('t1w_mask', 'inputnode.t1w_mask'),
@@ -360,9 +413,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('std_mask', 'inputnode.std_mask'),
             ('std_dseg', 'inputnode.std_dseg'),
             ('std_tpms', 'inputnode.std_tpms'),
-            ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
-            ('surfaces', 'inputnode.surfaces'),
         ]),
     ])
 
@@ -410,6 +460,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (surface_recon_wf, anat_derivatives_wf, [
             ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
             ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
+        ]),
+        (outputnode, anat_derivatives_wf, [
+            ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('surfaces', 'inputnode.surfaces'),
         ]),
     ])
 

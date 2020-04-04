@@ -11,7 +11,7 @@ from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
 from ..interfaces import DerivativesDataSink
 
 
-def init_anat_reports_wf(reportlets_dir, freesurfer,
+def init_anat_reports_wf(freesurfer, reportlets_dir,
                          name='anat_reports_wf'):
     """Set up a battery of datasinks to store reports in the right location."""
     from niworkflows.interfaces import SimpleBeforeAfter
@@ -22,13 +22,17 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
 
     inputfields = ['source_file', 't1w_conform_report',
                    't1w_preproc', 't1w_dseg', 't1w_mask',
-                   'template', 'template_spec', 'std_t1w', 'std_mask',
+                   'template', 'std_t1w', 'std_mask',
                    'subject_id', 'subjects_dir']
     inputnode = pe.Node(niu.IdentityInterface(fields=inputfields),
                         name='inputnode')
 
     seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
                       name='seg_rpt')
+
+    t1w_conform_check = pe.Node(niu.Function(
+        function=_empty_report),
+        name='t1w_conform_check', run_without_submitting=True)
 
     ds_t1w_conform_report = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir, desc='conform', keep_dtype=True),
@@ -39,14 +43,14 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         name='ds_t1w_dseg_mask_report', run_without_submitting=True)
 
     workflow.connect([
-        (inputnode, ds_t1w_conform_report, [('source_file', 'source_file'),
-                                            ('t1w_conform_report', 'in_file')]),
+        (inputnode, t1w_conform_check, [('t1w_conform_report', 'in_file')]),
+        (t1w_conform_check, ds_t1w_conform_report, [('out', 'in_file')]),
+        (inputnode, ds_t1w_conform_report, [('source_file', 'source_file')]),
         (inputnode, ds_t1w_dseg_mask_report, [('source_file', 'source_file')]),
         (inputnode, seg_rpt, [('t1w_preproc', 'in_file'),
                               ('t1w_mask', 'in_mask'),
                               ('t1w_dseg', 'in_rois')]),
         (seg_rpt, ds_t1w_dseg_mask_report, [('out_report', 'in_file')]),
-
     ])
 
     # Generate reportlets showing spatial normalization
@@ -64,8 +68,7 @@ def init_anat_reports_wf(reportlets_dir, freesurfer,
         name='ds_std_t1w_report', run_without_submitting=True)
 
     workflow.connect([
-        (inputnode, tf_select, [(('template', _drop_cohort), 'template'),
-                                ('template_spec', 'template_spec')]),
+        (inputnode, tf_select, [('template', 'template')]),
         (inputnode, norm_rpt, [('template', 'before_label')]),
         (inputnode, norm_msk, [('std_t1w', 'after'),
                                ('std_mask', 'after_mask')]),
@@ -112,7 +115,9 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
                     't1w_fs_aseg', 't1w_fs_aparc']),
         name='inputnode')
 
-    t1w_name = pe.Node(niu.Function(function=fix_multi_T1w_source_name), name='t1w_name')
+    t1w_name = pe.Node(niu.Function(
+        function=fix_multi_T1w_source_name),
+        name='t1w_name', run_without_submitting=True)
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
@@ -279,7 +284,6 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         (t1w_name, ds_t1w_fsaseg, [('out', 'source_file')]),
         (t1w_name, ds_t1w_fsparc, [('out', 'source_file')]),
     ])
-
     return workflow
 
 
@@ -335,3 +339,16 @@ def _drop_cohort(in_template):
 
 def _fmt_cohort(in_template):
     return in_template.replace(':', '_')
+
+
+def _empty_report(in_file=None):
+    from pathlib import Path
+    from nipype.interfaces.base import isdefined
+    if in_file is not None and isdefined(in_file):
+        return in_file
+
+    out_file = Path('tmp-report.html').absolute()
+    out_file.write_text("""\
+                <h4 class="elem-title">A previously computed T1w template was provided.</h4>
+""")
+    return str(out_file)

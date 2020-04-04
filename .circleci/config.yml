@@ -122,6 +122,7 @@ jobs:
           root: /tmp
           paths:
             - src/smriprep
+            - .force
 
   get_data:
     docker:
@@ -130,9 +131,9 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - testdata-v1-{{ .Branch }}-{{ epoch }}
-            - testdata-v1-{{ .Branch }}
-            - testdata-v1-
+            - testdata-v2-{{ .Branch }}-{{ epoch }}
+            - testdata-v2-{{ .Branch }}
+            - testdata-v2-
       - run:
           name: Get test data from ds000005
           command: |
@@ -176,11 +177,12 @@ jobs:
           paths:
             - fslicense
       - save_cache:
-          key: testdata-v1-{{ .Branch }}-{{ epoch }}
+          key: testdata-v2-{{ .Branch }}-{{ epoch }}
           paths:
             - /tmp/data
             - /tmp/ds005/freesurfer
-      - checkout
+      - checkout:
+          path: /tmp/src/smriprep
       - restore_cache:
           keys:
             - templateflow-v1-{{ .Branch }}-{{ epoch }}
@@ -195,7 +197,7 @@ jobs:
           name: Pull TemplateFlow down, pre-cache some templates
           command: |
             export TEMPLATEFLOW_HOME=/tmp/templateflow
-            pip install -U --user --no-cache-dir "$( grep templateflow setup.cfg | xargs )"
+            pip install -U --user --no-cache-dir "$( grep templateflow /tmp/src/smriprep/setup.cfg | xargs )"
             python -c "from templateflow import api as tfapi; \
                        tfapi.get(['MNI152Lin', 'MNI152NLin2009cAsym', 'OASIS30ANTs'], suffix='T1w'); \
                        tfapi.get(['MNI152Lin', 'MNI152NLin2009cAsym', 'OASIS30ANTs'], desc='brain', suffix='mask'); \
@@ -362,6 +364,18 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+      - restore_cache:
+          keys:
+            - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v6-{{ .Branch }}
+            - ds005-anat-v6-master
+            - ds005-anat-v6-
+      - restore_cache:
+          keys:
+            - testdata-v2-{{ .Branch }}-{{ epoch }}
+            - testdata-v2-{{ .Branch }}
+            - testdata-v2-
+
       - run:
           name: Setting up test
           command: |
@@ -397,9 +411,9 @@ jobs:
             - ds005-anat-v6-
       - restore_cache:
           keys:
-            - testdata-v1-{{ .Branch }}-{{ epoch }}
-            - testdata-v1-{{ .Branch }}
-            - testdata-v1-
+            - testdata-v2-{{ .Branch }}-{{ epoch }}
+            - testdata-v2-{{ .Branch }}
+            - testdata-v2-
       - restore_cache:
           keys:
             - templateflow-v1-{{ .Branch }}-{{ epoch }}
@@ -409,47 +423,27 @@ jobs:
           name: Run anatomical workflow on ds005
           no_output_timeout: 2h
           command: |
-            docker run --rm=false -it \
-                -v /tmp/data:/tmp/data:ro \
-                -v /tmp/fslicense:/tmp/fslicense:ro \
-                -v /tmp/ds005:/tmp/ds005 \
-                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
-                -v /tmp/src/smriprep/.circleci/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
-                -e FMRIPREP_DEV=1 -u $(id -u) \
-                -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
-                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
-                --entrypoint=coverage \
-                poldracklab/smriprep:latest \
-                run -m smriprep \
-                /tmp/data/ds005 /tmp/ds005/derivatives participant \
-                -w /tmp/ds005/work \
-                --skull-strip-template MNI152NLin2009cAsym:res-2 \
-                --sloppy --write-graph --mem-gb 4 \
-                --ncpus 2 --omp-nthreads 2 -vv \
-                --fs-license-file /tmp/fslicense/license.txt \
-                --fs-subjects-dir /tmp/ds005/freesurfer
+            bash /tmp/src/smriprep/.circleci/ds005_run.sh --write-graph
       - run:
           name: Combine coverage
           no_output_timeout: 2h
           command: |
             # Combine coverage and convert to XML inside container because
             # the file format is sensitive to changes in environment
-            docker run --rm=false -it \
+            docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
                 -w /src/smriprep \
-                -e FMRIPREP_DEV=1 -u $(id -u) \
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
                 poldracklab/smriprep:latest \
                 combine /tmp/ds005/work/.coverage.*
             # Convert to XML to freeze
-            docker run --rm=false -it \
+            docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
                 -w /src/smriprep \
-                -e FMRIPREP_DEV=1 -u $(id -u) \
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
@@ -464,11 +458,12 @@ jobs:
               python --version
               codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
       - run:
-          name: Clean-up temporary directory of reportlets
+          name: Clean-up temporary directory of reportlets and fsdir_run_XXX nodes
           when: always
           command: |
             sudo chown $(id -un):$(id -gn) -R /tmp/ds005
             rm -rf /tmp/ds005/work/reportlets
+            rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
       - save_cache:
          key: ds005-anat-v6-{{ .Branch }}-{{ epoch }}
          paths:
@@ -478,14 +473,11 @@ jobs:
           name: Checking outputs of sMRIPrep
           command: |
             mkdir -p /tmp/ds005/test
-            find /tmp/ds005/derivatives -name "*" ! -path "*/figures*" ! -path "*/freesurfer*" -print | sed s+/tmp/ds005/derivatives/++ | sort > /tmp/ds005/test/outputs.out
+            find /tmp/ds005/derivatives -name "*" ! -path "*/figures*" -print | sed s+/tmp/ds005/derivatives/++ | sort > /tmp/ds005/test/outputs.out
             diff /tmp/src/smriprep/.circleci/ds005_outputs.txt /tmp/ds005/test/outputs.out
             exit $?
-      - run:
-          name: Clean-up work directory
-          when: always
-          command: |
-            rm -rf /tmp/ds005/freesurfer
+      - store_artifacts:
+          path: /tmp/ds005/derivatives
       - run:
           name: Clean working directory
           when: on_success
@@ -495,11 +487,28 @@ jobs:
           name: Clean working directory
           when: on_fail
           command: |
-            find /tmp/ds005/work \( -name "*.nii.gz" -or -name "*.nii" -or "*.gii" -or "*.h5" \) \
+            find /tmp/ds005/work \( -name "*.nii.gz" -or -name "*.nii" -or -name "*.gii" -or -name "*.h5" \) \
                 -exec sh -c 'rm -f {}; touch {}' \;
       - store_artifacts:
-          path: /tmp/ds005
-
+          path: /tmp/ds005/work
+      - run:
+          name: Check fast track using existing derivatives
+          no_output_timeout: 5m
+          command: |
+            bash /tmp/src/smriprep/.circleci/ds005_run.sh --fast-track
+      - run:
+          name: Clean working directory
+          when: on_fail
+          command: |
+            rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
+            find /tmp/ds005/work \( -name "*.nii.gz" -or -name "*.nii" -or -name "*.gii" -or -name "*.h5" \) \
+                -exec sh -c 'rm -f {}; touch {}' \;
+      - store_artifacts:
+          path: /tmp/ds005/work
+          destination: fasttrack
+      - store_artifacts:
+          path: /tmp/ds005/derivatives
+          destination: fasttrack
   ds054:
     machine:
       image: circleci/classic:201711-01
@@ -560,9 +569,9 @@ jobs:
             - ds054-anat-v6-
       - restore_cache:
           keys:
-            - testdata-v1-{{ .Branch }}-{{ epoch }}
-            - testdata-v1-{{ .Branch }}
-            - testdata-v1-
+            - testdata-v2-{{ .Branch }}-{{ epoch }}
+            - testdata-v2-{{ .Branch }}
+            - testdata-v2-
       - restore_cache:
           keys:
             - templateflow-v1-{{ .Branch }}-{{ epoch }}
@@ -572,24 +581,7 @@ jobs:
           name: Run sMRIPrep on ds054 (with --fs-no-reconall)
           no_output_timeout: 2h
           command: |
-            docker run --rm=false -it \
-                -v /tmp/data:/tmp/data:ro \
-                -v /tmp/fslicense:/tmp/fslicense:ro \
-                -v /tmp/ds054:/tmp/ds054 \
-                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
-                -v /tmp/src/smriprep/.circleci/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
-                -e FMRIPREP_DEV=1 -u $(id -u) \
-                -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
-                -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
-                --entrypoint=coverage \
-                poldracklab/smriprep:latest \
-                run -m smriprep \
-                /tmp/data/ds054 /tmp/ds054/derivatives participant \
-                -w /tmp/ds054/work --fs-no-reconall --sloppy --write-graph \
-                --skull-strip-template OASIS30ANTs:res-1 \
-                --output-spaces MNI152Lin MNI152NLin2009cAsym \
-                --mem-gb 4 --ncpus 2 --omp-nthreads 2 -vv \
-                --fs-license-file /tmp/fslicense/license.txt
+            bash /tmp/src/smriprep/.circleci/ds054_run.sh --write-graph
       - run:
           name: Combine coverage
           no_output_timeout: 2h
@@ -646,18 +638,27 @@ jobs:
           name: Clean working directory
           when: on_success
           command: |
-            sudo chown $(id -un):$(id -gn) -R /tmp/ds054
             sudo rm -rf /tmp/ds054/work
       - run:
           name: Clean working directory
           when: on_fail
           command: |
-            sudo chown $(id -un):$(id -gn) -R /tmp/ds054
-            find /tmp/ds054/work \( -name "*.nii.gz" -or -name "*.nii" -or "*.gii" -or "*.h5" \) \
+            find /tmp/ds054/work \( -name "*.nii.gz" -or -name "*.nii" -or -name "*.gii" -or -name "*.h5" \) \
                 -exec sh -c 'rm -f {}; touch {}' \;
       - store_artifacts:
           path: /tmp/ds054
 
+      - run:
+          name: Check fast track using existing derivatives (with --fs-no-reconall)
+          no_output_timeout: 5m
+          command: |
+            bash /tmp/src/smriprep/.circleci/ds054_run.sh --fast-track
+      - store_artifacts:
+          path: /tmp/ds054/work
+          destination: fasttrack-work
+      - store_artifacts:
+          path: /tmp/ds054/derivatives
+          destination: fasttrack-derivatives
   build_docs:
     docker:
       - image: python:3.7.4

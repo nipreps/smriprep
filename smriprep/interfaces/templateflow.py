@@ -34,8 +34,22 @@ class TemplateFlowSelect(SimpleInterface):
     >>> result.outputs.brain_mask  # doctest: +ELLIPSIS
     '.../tpl-MNI152NLin2009cAsym_res-01_desc-brain_mask.nii.gz'
 
-    >>> select = TemplateFlowSelect(resolution=1)
+    >>> select = TemplateFlowSelect()
     >>> select.inputs.template = 'MNIPediatricAsym'
+    >>> select.inputs.template_spec = {'cohort': 5, 'resolution': 1}
+    >>> result = select.run()
+    >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
+    '.../tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz'
+
+    >>> select = TemplateFlowSelect(resolution=2)
+    >>> select.inputs.template = 'MNIPediatricAsym:cohort-5'
+    >>> select.inputs.template_spec = {'resolution': 1}
+    >>> result = select.run()
+    >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
+    '.../tpl-MNIPediatricAsym_cohort-5_res-2_T1w.nii.gz'
+
+    >>> select = TemplateFlowSelect()
+    >>> select.inputs.template = 'MNIPediatricAsym:cohort-2'
     >>> select.inputs.template_spec = {'cohort': 5, 'resolution': 1}
     >>> result = select.run()
     >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
@@ -52,18 +66,21 @@ class TemplateFlowSelect(SimpleInterface):
             specs['resolution'] = self.inputs.resolution
         if isdefined(self.inputs.atlas):
             specs['atlas'] = self.inputs.atlas
+
+        name = self.inputs.template.strip(":").split(":", 1)
+        if len(name) > 1:
+            specs.update({
+                k: v for modifier in name[1].split(":")
+                for k, v in [tuple(modifier.split("-"))]
+                if k not in specs
+            })
+
         self._results['t1w_file'] = tf.get(
-            self.inputs.template,
-            desc=None,
-            suffix='T1w',
-            **specs
+            name[0], desc=None, suffix='T1w', **specs
         )
 
         self._results['brain_mask'] = tf.get(
-            self.inputs.template,
-            desc='brain',
-            suffix='mask',
-            **specs
+            name[0], desc='brain', suffix='mask', **specs
         )
         return runtime
 
