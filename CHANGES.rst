@@ -1,8 +1,11 @@
 0.6.0 (TBD)
 ===========
-<0.6.0rc1 - Release message TBD>
+<0.6.0rc2 - Release message TBD>
 
+  * ENH: Enable anatomical fast track reusing existing derivatives (#107)
   * ENH: Add option to skip brain extraction (#167)
+  * MAINT: Update dependencies to be inline with fMRIPrep-20.1.x (#173)
+
 
 0.5.2 (February 14, 2020)
 =========================
