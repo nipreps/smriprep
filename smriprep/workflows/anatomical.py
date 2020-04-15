@@ -26,6 +26,7 @@ from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.bids import get_outputnode_spec
+from ..utils.misc import apply_lut as _apply_bids_lut
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
@@ -320,14 +321,20 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             omp_nthreads=omp_nthreads,
             normalization_quality='precise' if not debug else 'testing')
 
-    # 3. Brain tissue segmentation
+    # 3. Brain tissue segmentation - FAST produces: 0 (bg), 1 (wm), 2 (csf), 3 (gm)
     t1w_dseg = pe.Node(fsl.FAST(segments=True, no_bias=True, probability_maps=True),
                        name='t1w_dseg', mem_gb=3)
 
+    # Change LookUp Table - BIDS wants: 0 (bg), 1 (gm), 2 (wm), 3 (csf)
+    lut_t1w_dseg = pe.Node(niu.Function(function=_apply_bids_lut),
+                           name='lut_t1w_dseg')
+    lut_t1w_dseg.inputs.lut = [0, 3, 1, 2]  # Maps: 0 -> 0, 3 -> 1, 1 -> 2, 2 -> 3.
+
     workflow.connect([
         (buffernode, t1w_dseg, [('t1w_brain', 'in_files')]),
-        (t1w_dseg, outputnode, [('tissue_class_map', 't1w_dseg'),
-                                ('probability_maps', 't1w_tpms')]),
+        (t1w_dseg, lut_t1w_dseg, [('tissue_class_map', 'in_dseg')]),
+        (t1w_dseg, outputnode, [('probability_maps', 't1w_tpms')]),
+        (lut_t1w_dseg, outputnode, [('out', 't1w_dseg')]),
     ])
 
     # 4. Spatial normalization
@@ -357,8 +364,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (brain_extraction_wf, anat_norm_wf, [
             (('outputnode.bias_corrected', _pop), 'inputnode.moving_image')]),
         (buffernode, anat_norm_wf, [('t1w_mask', 'inputnode.moving_mask')]),
-        (t1w_dseg, anat_norm_wf, [
-            ('tissue_class_map', 'inputnode.moving_segmentation')]),
+        (lut_t1w_dseg, anat_norm_wf, [
+            ('out', 'inputnode.moving_segmentation')]),
         (t1w_dseg, anat_norm_wf, [
             ('probability_maps', 'inputnode.moving_tpms')]),
         (anat_norm_wf, outputnode, [

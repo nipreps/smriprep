@@ -133,8 +133,6 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         name='ds_t1w_mask', run_without_submitting=True)
     ds_t1w_mask.inputs.Type = 'Brain'
 
-    lut_t1w_dseg = pe.Node(niu.Function(function=_apply_default_bids_lut),
-                           name='lut_t1w_dseg')
     ds_t1w_dseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='dseg',
                             compress=True),
@@ -158,8 +156,6 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         name='ds_std_mask', run_without_submitting=True)
     ds_std_mask.inputs.Type = 'Brain'
 
-    lut_std_dseg = pe.Node(niu.Function(function=_apply_default_bids_lut),
-                           name='lut_std_dseg')
     ds_std_dseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='dseg',
                             compress=True),
@@ -187,9 +183,8 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         (inputnode, raw_sources, [('source_files', 'in_files')]),
         (inputnode, ds_t1w_preproc, [('t1w_preproc', 'in_file')]),
         (inputnode, ds_t1w_mask, [('t1w_mask', 'in_file')]),
-        (inputnode, lut_t1w_dseg, [('t1w_dseg', 'in_file')]),
         (inputnode, ds_t1w_tpms, [('t1w_tpms', 'in_file')]),
-        (lut_t1w_dseg, ds_t1w_dseg, [('out', 'in_file')]),
+        (inputnode, ds_t1w_dseg, [('t1w_dseg', 'in_file')]),
         (t1w_name, ds_t1w_preproc, [('out', 'source_file')]),
         (t1w_name, ds_t1w_mask, [('out', 'source_file')]),
         (t1w_name, ds_t1w_dseg, [('out', 'source_file')]),
@@ -210,8 +205,7 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
             (('template', _fmt_cohort), 'space'),
             (('template', _rawsources), 'RawSources')]),
         (inputnode, ds_std_dseg, [(('template', _fmt_cohort), 'space')]),
-        (inputnode, lut_std_dseg, [('std_dseg', 'in_file')]),
-        (lut_std_dseg, ds_std_dseg, [('out', 'in_file')]),
+        (inputnode, ds_std_dseg, [('std_dseg', 'in_file')]),
         (inputnode, ds_std_tpms, [
             ('std_tpms', 'in_file'),
             (('template', _fmt_cohort), 'space')]),
@@ -285,22 +279,6 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         (t1w_name, ds_t1w_fsparc, [('out', 'source_file')]),
     ])
     return workflow
-
-
-def _apply_default_bids_lut(in_file):
-    import numpy as np
-    import nibabel as nb
-    from os import getcwd
-    from nipype.utils.filemanip import fname_presuffix
-
-    out_file = fname_presuffix(in_file, suffix='_lut', newpath=getcwd())
-    lut = np.array([0, 3, 1, 2], dtype=int)
-
-    segm = nb.load(in_file)
-    segm.__class__(lut[segm.get_data().astype(int)],
-                   segm.affine, segm.header).to_filename(out_file)
-
-    return out_file
 
 
 def _bids_relative(in_files, bids_root):
