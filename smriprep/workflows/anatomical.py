@@ -345,7 +345,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (anat_validate, brain_extraction_wf, [
             ('out_file', 'inputnode.in_files')]),
         (brain_extraction_wf, outputnode, [
-            ('outputnode.bias_corrected', 't1w_preproc')]),
+            (('outputnode.bias_corrected', _pop), 't1w_preproc')]),
         (anat_template_wf, outputnode, [
             ('outputnode.t1w_realign_xfm', 't1w_ref_xfms')]),
         (buffernode, outputnode, [('t1w_brain', 't1w_brain'),
