@@ -1,9 +1,12 @@
 0.6.0 (TBD)
 ===========
-<0.6.0rc2 - Release message TBD>
+<0.6.0rc3 - Release message TBD>
 
+  * FIX: Correct the ``dseg`` labeling from FSL FAST earlier (#177)
+  * FIX: Ensure ``bias_corrected`` is single file, not list (#174)
   * ENH: Enable anatomical fast track reusing existing derivatives (#107)
   * ENH: Add option to skip brain extraction (#167)
+  * MAINT: Pin troublesome sphinx (#175)
   * MAINT: Update dependencies to be inline with fMRIPrep-20.1.x (#173)
 
 
