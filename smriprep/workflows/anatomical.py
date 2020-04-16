@@ -328,7 +328,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # Change LookUp Table - BIDS wants: 0 (bg), 1 (gm), 2 (wm), 3 (csf)
     lut_t1w_dseg = pe.Node(niu.Function(function=_apply_bids_lut),
                            name='lut_t1w_dseg')
-    lut_t1w_dseg.inputs.lut = [0, 3, 1, 2]  # Maps: 0 -> 0, 3 -> 1, 1 -> 2, 2 -> 3.
+    lut_t1w_dseg.inputs.lut = (0, 3, 1, 2)  # Maps: 0 -> 0, 3 -> 1, 1 -> 2, 2 -> 3.
 
     workflow.connect([
         (buffernode, t1w_dseg, [('t1w_brain', 'in_files')]),
