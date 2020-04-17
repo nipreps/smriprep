@@ -10,6 +10,8 @@ from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
 
 from ..interfaces import DerivativesDataSink
 
+FSL_FAST_TISSUE_ORDER = ("CSF", "GM", "WM")
+
 
 def init_anat_reports_wf(freesurfer, reportlets_dir,
                          name='anat_reports_wf'):
@@ -101,7 +103,7 @@ def init_anat_reports_wf(freesurfer, reportlets_dir,
 
 
 def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
-                             name='anat_derivatives_wf'):
+                             name='anat_derivatives_wf', tpm_labels=FSL_FAST_TISSUE_ORDER):
     """Set up a battery of datasinks to store derivatives in the right location."""
     workflow = Workflow(name=name)
 
@@ -165,7 +167,11 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         DerivativesDataSink(base_directory=output_dir, suffix='probseg',
                             compress=True),
         name='ds_std_tpms', run_without_submitting=True)
-    ds_std_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
+
+    # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
+    #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
+    #           output in the data/io_spec.json file.
+    ds_std_tpms.inputs.extra_values = [f"label-{l}" for l in tpm_labels]
 
     # Transforms
     ds_t1w_tpl_inv_warp = pe.Node(
