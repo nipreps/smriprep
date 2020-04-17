@@ -230,7 +230,6 @@ Anatomical preprocessing was reused from previously existing derivative objects.
 
         anat_reports_wf.inputs.inputnode.source_file = fix_multi_T1w_source_name(
             [existing_derivatives['t1w_preproc']])
-        anat_reports_wf.inputs.seg_rpt.colors = ['b', 'magenta']
 
         stdselect = pe.Node(KeySelect(
             fields=['std_preproc', 'std_mask'], keys=templates),

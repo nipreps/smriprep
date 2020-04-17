@@ -29,7 +29,7 @@ def init_anat_reports_wf(freesurfer, reportlets_dir,
     inputnode = pe.Node(niu.IdentityInterface(fields=inputfields),
                         name='inputnode')
 
-    seg_rpt = pe.Node(ROIsPlot(colors=['magenta', 'b'], levels=[1.5, 2.5]),
+    seg_rpt = pe.Node(ROIsPlot(colors=['b', 'magenta'], levels=[1.5, 2.5]),
                       name='seg_rpt')
 
     t1w_conform_check = pe.Node(niu.Function(
