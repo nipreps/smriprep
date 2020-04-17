@@ -678,7 +678,8 @@ jobs:
           name: Build only this commit
           command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
       - store_artifacts:
-          path: ./docs/_build/no_version_html
+          path: ./docs/_build/no_version_html/html
+          destination: noversion
       - run:
           name: Stop or generate versioned docs?
           command: |
@@ -689,26 +690,30 @@ jobs:
               echo "Not a tag or master branch - skipping versioned docs."
               circleci step halt
             fi
+      - run:
+          name: Clean-up unversioned docs
+          command: make -C docs clean
       - restore_cache:
           keys:
-            - docs-v1-{{ .Branch }}-{{ .Revision }}
-            - docs-v1-{{ .Branch }}-
-            - docs-v1-master
-            - docs-v1-
+            - docs-v2-{{ .Branch }}-{{ .Revision }}
+            - docs-v2-{{ .Branch }}-
+            - docs-v2-master
+            - docs-v2-
           paths:
-            - ./docs/_build/_html
+            - ./docs/_build
       - run:
           name: Generate Versioned Docs
           command: make -f ./docs/Makefile versioned CURBRANCH=${CIRCLE_TAG:-$CIRCLE_BRANCH}
       - save_cache:
-          key: docs-v1-{{ .Branch }}-{{ .Revision }}
+          key: docs-v2-{{ .Branch }}-{{ .Revision }}
           paths:
-            - ./docs/_build/_html
+            - ./docs/_build
       - persist_to_workspace:
           root: docs/_build
           paths: html
       - store_artifacts:
           path: ./docs/_build/html
+          destination: versioned
 
   deploy_pypi:
     docker:
