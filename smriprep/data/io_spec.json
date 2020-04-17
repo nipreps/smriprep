@@ -17,7 +17,7 @@
       },
       "tpms": {
         "datatype": "anat",
-        "label": [ "CSF", "WM", "GM"],
+        "label": [ "CSF", "GM", "WM"],
         "suffix": "probseg"
       }
     },
