@@ -431,7 +431,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         return workflow
 
     # Map FS' aseg labels onto three-tissue segmentation
-    lut_t1w_dseg.inputs.lut = _aseg_two_three()
+    lut_t1w_dseg.inputs.lut = _aseg_to_three()
     split_seg = pe.Node(niu.Function(function=_split_segments),
                         name='split_seg')
 
@@ -633,7 +633,7 @@ def _pop(inlist):
     return inlist
 
 
-def _aseg_two_three():
+def _aseg_to_three():
     import numpy as np
     # Base struct
     aseg_lut = np.zeros((256,), dtype="int")
@@ -676,10 +676,9 @@ def _split_segments(in_file):
     hdr.set_data_dtype('uint8')
 
     out_files = []
-    for i, label in enumerate(("CSF", "WM", "GM")):
-        out_fname = str((Path() / f"aseg_label-{label}_mask.nii.gz").absolute())
-        segment = (data == i + 1).astype('uint8')
-        segimg.__class__(segment, segimg.affine, hdr).to_filename(out_fname)
+    for i, label in enumerate(("CSF", "WM", "GM"), 1):
+        out_fname = str(Path.cwd() / f"aseg_label-{label}_mask.nii.gz")
+        segimg.__class__(data == i, segimg.affine, hdr).to_filename(out_fname)
         out_files.append(out_fname)
 
     return out_files
