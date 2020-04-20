@@ -634,6 +634,18 @@ def _pop(inlist):
 
 
 def _aseg_to_three():
+    """
+    Map FreeSurfer's segmentation onto a brain (3-)tissue segmentation.
+
+    This function generates an index of 255+0 labels and maps them into zero (bg),
+    1 (GM), 2 (WM), or 3 (CSF). The new values are set according to BIDS-Derivatives.
+    Then the index is populated (e.g., label 3 in the original segmentation maps to label
+    1 in the output).
+    The `aseg lookup table
+    <https://github.com/freesurfer/freesurfer/blob/2beb96c6099d96508246c14a24136863124566a3/distribution/ASegStatsLUT.txt>`__
+    is available in the FreeSurfer source.
+
+    """
     import numpy as np
     # Base struct
     aseg_lut = np.zeros((256,), dtype="int")
