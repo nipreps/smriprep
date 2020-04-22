@@ -21,3 +21,35 @@ def apply_lut(in_dseg, lut, newpath=None):
                    segm.affine, hdr).to_filename(out_file)
 
     return out_file
+
+
+def check_valid_fs_license():
+    """Quickly runs mri_convert to weed out FreeSurfer license issues"""
+    import contextlib
+    import logging
+    import os
+
+    import nibabel as nb
+    import numpy as np
+    from nipype.interfaces.freesurfer import MRIConvert
+
+    # keep record of interface logging
+    iflogger = logging.getLogger('nipype.interface')
+    _level = iflogger.level
+    iflogger.setLevel(0)  # mute logging
+
+    tmp_file = 'test.nii.gz'
+    out_file = 'out.mgz'
+    # create test NIfTI
+    nb.Nifti1Image(np.zeros((5, 5, 5)), np.eye(4)).to_filename(tmp_file)
+    # run simple fs interface
+    mric = MRIConvert(in_file=tmp_file, out_file=out_file, out_type='mgz')
+    res = mric.run(ignore_exception=True)
+    valid = "ERROR: FreeSurfer license file" not in res.runtime.stderr
+    # clean up
+    with contextlib.suppress(FileNotFoundError):
+        os.unlink(tmp_file)
+        os.unlink(out_file)
+
+    iflogger.setLevel(_level)  # reset logger
+    return valid
