@@ -5,7 +5,6 @@ from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.utils.misc import fix_multi_T1w_source_name
-from niworkflows.interfaces.surf import GiftiNameSource
 from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
 
 from ..interfaces import DerivativesDataSink
@@ -37,11 +36,11 @@ def init_anat_reports_wf(freesurfer, reportlets_dir,
         name='t1w_conform_check', run_without_submitting=True)
 
     ds_t1w_conform_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, desc='conform', keep_dtype=True),
+        DerivativesDataSink(base_directory=reportlets_dir, desc='conform', datatype="figures"),
         name='ds_t1w_conform_report', run_without_submitting=True)
 
     ds_t1w_dseg_mask_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, suffix='dseg'),
+        DerivativesDataSink(base_directory=reportlets_dir, suffix='dseg', datatype="figures"),
         name='ds_t1w_dseg_mask_report', run_without_submitting=True)
 
     workflow.connect([
@@ -66,7 +65,7 @@ def init_anat_reports_wf(freesurfer, reportlets_dir,
     norm_rpt.inputs.after_label = 'Participant'  # after
 
     ds_std_t1w_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w'),
+        DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w', datatype="figures"),
         name='ds_std_t1w_report', run_without_submitting=True)
 
     workflow.connect([
@@ -90,7 +89,8 @@ def init_anat_reports_wf(freesurfer, reportlets_dir,
         recon_report.interface._always_run = True
 
         ds_recon_report = pe.Node(
-            DerivativesDataSink(base_directory=reportlets_dir, desc='reconall', keep_dtype=True),
+            DerivativesDataSink(
+                base_directory=reportlets_dir, desc='reconall', datatype="figures"),
             name='ds_recon_report', run_without_submitting=True)
         workflow.connect([
             (inputnode, recon_report, [('subjects_dir', 'subjects_dir'),
@@ -124,8 +124,7 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
     raw_sources.inputs.bids_root = bids_root
 
     ds_t1w_preproc = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
-                            compress=True),
+        DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True),
         name='ds_t1w_preproc', run_without_submitting=True)
     ds_t1w_preproc.inputs.SkullStripped = False
 
@@ -136,15 +135,13 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
     ds_t1w_mask.inputs.Type = 'Brain'
 
     ds_t1w_dseg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='dseg',
-                            compress=True),
+        DerivativesDataSink(base_directory=output_dir, suffix='dseg', compress=True),
         name='ds_t1w_dseg', run_without_submitting=True)
 
     ds_t1w_tpms = pe.Node(
-        DerivativesDataSink(base_directory=output_dir,
-                            suffix='probseg', compress=True),
+        DerivativesDataSink(base_directory=output_dir, suffix='probseg', compress=True),
         name='ds_t1w_tpms', run_without_submitting=True)
-    ds_t1w_tpms.inputs.extra_values = ['label-CSF', 'label-GM', 'label-WM']
+    ds_t1w_tpms.inputs.label = tpm_labels
 
     ds_t1w_tpl = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
@@ -171,17 +168,16 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
     # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
     #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
     #           output in the data/io_spec.json file.
-    ds_std_tpms.inputs.extra_values = [f"label-{l}" for l in tpm_labels]
+    ds_std_tpms.inputs.label = tpm_labels
 
     # Transforms
     ds_t1w_tpl_inv_warp = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
-                            to='T1w', mode='image', suffix='xfm'),
+        DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm'),
         name='ds_t1w_tpl_inv_warp', run_without_submitting=True)
 
     ds_t1w_tpl_warp = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
-                            mode='image', suffix='xfm', **{'from': 'T1w'}),
+        DerivativesDataSink(base_directory=output_dir, mode='image', suffix='xfm',
+                            **{'from': 'T1w'}),
         name='ds_t1w_tpl_warp', run_without_submitting=True)
 
     workflow.connect([
@@ -227,8 +223,8 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         # Please note the dictionary unpacking to provide the from argument.
         # It is necessary because from is a protected keyword (not allowed as argument name).
         ds_t1w_ref_xfms = pe.MapNode(
-            DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
-                                to='T1w', mode='image', suffix='xfm', **{'from': 'orig'}),
+            DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
+                                **{'from': 'orig'}),
             iterfield=['source_file', 'in_file'],
             name='ds_t1w_ref_xfms', run_without_submitting=True)
         workflow.connect([
@@ -239,25 +235,25 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
     if not freesurfer:
         return workflow
 
+    from niworkflows.interfaces.surf import Path2BIDS
+
     # FS native space transforms
     lta2itk_fwd = pe.Node(LTAConvert(out_itk=True), name='lta2itk_fwd')
     lta2itk_inv = pe.Node(LTAConvert(out_itk=True), name='lta2itk_inv')
     ds_t1w_fsnative = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+        DerivativesDataSink(base_directory=output_dir,
                             mode='image', to='fsnative', suffix='xfm', **{'from': 'T1w'}),
         name='ds_t1w_fsnative', run_without_submitting=True)
     ds_fsnative_t1w = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, allowed_entities=['from', 'to', 'mode'],
+        DerivativesDataSink(base_directory=output_dir,
                             mode='image', to='T1w', suffix='xfm', **{'from': 'fsnative'}),
         name='ds_fsnative_t1w', run_without_submitting=True)
     # Surfaces
-    name_surfs = pe.MapNode(GiftiNameSource(
-        pattern=r'(?P<LR>[lr])h.(?P<surf>.+)_converted.gii',
-        template='hemi-{LR}_{surf}.surf'),
-        iterfield='in_file', name='name_surfs', run_without_submitting=True)
+    name_surfs = pe.MapNode(Path2BIDS(), iterfield='in_file', name='name_surfs',
+                            run_without_submitting=True)
     ds_surfs = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir),
-        iterfield=['in_file', 'suffix'], name='ds_surfs', run_without_submitting=True)
+        DerivativesDataSink(base_directory=output_dir, extension=".surf.gii"),
+        iterfield=['in_file', 'hemi', 'suffix'], name='ds_surfs', run_without_submitting=True)
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg',
@@ -278,7 +274,8 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         (inputnode, name_surfs, [('surfaces', 'in_file')]),
         (inputnode, ds_surfs, [('surfaces', 'in_file')]),
         (t1w_name, ds_surfs, [('out', 'source_file')]),
-        (name_surfs, ds_surfs, [('out_name', 'suffix')]),
+        (name_surfs, ds_surfs, [('hemi', 'hemi'),
+                                ('suffix', 'suffix')]),
         (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file')]),
         (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file')]),
         (t1w_name, ds_t1w_fsaseg, [('out', 'source_file')]),

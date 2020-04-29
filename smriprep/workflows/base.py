@@ -343,12 +343,12 @@ to workflows in *sMRIPrep*'s documentation]\
 
     ds_report_summary = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir,
-                            desc='summary', keep_dtype=True),
+                            desc='summary', datatype="figures"),
         name='ds_report_summary', run_without_submitting=True)
 
     ds_report_about = pe.Node(
         DerivativesDataSink(base_directory=reportlets_dir,
-                            desc='about', keep_dtype=True),
+                            desc='about', datatype="figures"),
         name='ds_report_about', run_without_submitting=True)
 
     # Preprocessing of T1w (includes registration to MNI)
