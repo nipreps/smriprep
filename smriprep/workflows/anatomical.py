@@ -42,7 +42,6 @@ def init_anat_preproc_wf(
         t1w,
         omp_nthreads,
         output_dir,
-        reportlets_dir,
         skull_strip_mode,
         skull_strip_template,
         spaces,
@@ -79,7 +78,6 @@ def init_anat_preproc_wf(
                 t1w=['t1w.nii.gz'],
                 omp_nthreads=1,
                 output_dir='.',
-                reportlets_dir='.',
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
@@ -107,8 +105,6 @@ def init_anat_preproc_wf(
         Maximum number of threads an individual process may use
     output_dir : :obj:`str`
         Directory in which to save derivatives
-    reportlets_dir : :obj:`str`
-        Directory in which to save reportlets
     skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
         Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
@@ -203,7 +199,7 @@ BIDS dataset.""".format(num_t1w=num_t1w)
     # Connect reportlets workflows
     anat_reports_wf = init_anat_reports_wf(
         freesurfer=freesurfer,
-        reportlets_dir=reportlets_dir,
+        output_dir=output_dir,
     )
     workflow.connect([
         (outputnode, anat_reports_wf, [

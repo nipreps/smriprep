@@ -12,7 +12,7 @@ from ..interfaces import DerivativesDataSink
 FSL_FAST_TISSUE_ORDER = ("CSF", "GM", "WM")
 
 
-def init_anat_reports_wf(freesurfer, reportlets_dir,
+def init_anat_reports_wf(freesurfer, output_dir,
                          name='anat_reports_wf'):
     """Set up a battery of datasinks to store reports in the right location."""
     from niworkflows.interfaces import SimpleBeforeAfter
@@ -36,11 +36,11 @@ def init_anat_reports_wf(freesurfer, reportlets_dir,
         name='t1w_conform_check', run_without_submitting=True)
 
     ds_t1w_conform_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, desc='conform', datatype="figures"),
+        DerivativesDataSink(base_directory=output_dir, desc='conform', datatype="figures"),
         name='ds_t1w_conform_report', run_without_submitting=True)
 
     ds_t1w_dseg_mask_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, suffix='dseg', datatype="figures"),
+        DerivativesDataSink(base_directory=output_dir, suffix='dseg', datatype="figures"),
         name='ds_t1w_dseg_mask_report', run_without_submitting=True)
 
     workflow.connect([
@@ -65,7 +65,7 @@ def init_anat_reports_wf(freesurfer, reportlets_dir,
     norm_rpt.inputs.after_label = 'Participant'  # after
 
     ds_std_t1w_report = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir, suffix='T1w', datatype="figures"),
+        DerivativesDataSink(base_directory=output_dir, suffix='T1w', datatype="figures"),
         name='ds_std_t1w_report', run_without_submitting=True)
 
     workflow.connect([
@@ -90,7 +90,7 @@ def init_anat_reports_wf(freesurfer, reportlets_dir,
 
         ds_recon_report = pe.Node(
             DerivativesDataSink(
-                base_directory=reportlets_dir, desc='reconall', datatype="figures"),
+                base_directory=output_dir, desc='reconall', datatype="figures"),
             name='ds_recon_report', run_without_submitting=True)
         workflow.connect([
             (inputnode, recon_report, [('subjects_dir', 'subjects_dir'),

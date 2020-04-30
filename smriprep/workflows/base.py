@@ -140,7 +140,6 @@ def init_smriprep_wf(
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
-    reportlets_dir = os.path.join(work_dir, 'reportlets')
     for subject_id in subject_list:
         single_subject_wf = init_single_subject_wf(
             debug=debug,
@@ -153,7 +152,6 @@ def init_smriprep_wf(
             name="single_subject_%s_wf" % subject_id,
             omp_nthreads=omp_nthreads,
             output_dir=output_dir,
-            reportlets_dir=reportlets_dir,
             skull_strip_fixed_seed=skull_strip_fixed_seed,
             skull_strip_mode=skull_strip_mode,
             skull_strip_template=skull_strip_template,
@@ -187,7 +185,6 @@ def init_single_subject_wf(
     name,
     omp_nthreads,
     output_dir,
-    reportlets_dir,
     skull_strip_fixed_seed,
     skull_strip_mode,
     skull_strip_template,
@@ -227,7 +224,6 @@ def init_single_subject_wf(
                 name='single_subject_wf',
                 omp_nthreads=1,
                 output_dir='.',
-                reportlets_dir='.',
                 skull_strip_fixed_seed=False,
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
@@ -259,8 +255,6 @@ def init_single_subject_wf(
         Maximum number of threads an individual process may use
     output_dir : :obj:`str`
         Directory in which to save derivatives
-    reportlets_dir : :obj:`str`
-        Directory in which to save reportlets
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
@@ -342,12 +336,12 @@ to workflows in *sMRIPrep*'s documentation]\
                     name='about', run_without_submitting=True)
 
     ds_report_summary = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir,
+        DerivativesDataSink(base_directory=output_dir,
                             desc='summary', datatype="figures"),
         name='ds_report_summary', run_without_submitting=True)
 
     ds_report_about = pe.Node(
-        DerivativesDataSink(base_directory=reportlets_dir,
+        DerivativesDataSink(base_directory=output_dir,
                             desc='about', datatype="figures"),
         name='ds_report_about', run_without_submitting=True)
 
@@ -363,7 +357,6 @@ to workflows in *sMRIPrep*'s documentation]\
         t1w=subject_data['t1w'],
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
-        reportlets_dir=reportlets_dir,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
