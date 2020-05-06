@@ -421,8 +421,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (buffernode, t1w_dseg, [('t1w_brain', 'in_files')]),
             (t1w_dseg, lut_t1w_dseg, [('tissue_class_map', 'in_dseg')]),
             (t1w_dseg, anat_norm_wf, [
-                ('probability_maps', 'inputnode.moving_tpms')]),
-            (t1w_dseg, outputnode, [('probability_maps', 't1w_tpms')]),
+                (('probability_maps', _probseg_fast2bids), 'inputnode.moving_tpms')]),
+            (t1w_dseg, outputnode, [
+                (('probability_maps', _probseg_fast2bids), 't1w_tpms')]),
         ])
         return workflow
 
@@ -690,3 +691,7 @@ def _split_segments(in_file):
         out_files.append(out_fname)
 
     return out_files
+
+
+def _probseg_fast2bids(inlist):
+    return (inlist[1], inlist[2], inlist[0])

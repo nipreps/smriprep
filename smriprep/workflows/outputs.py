@@ -9,7 +9,7 @@ from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
 
 from ..interfaces import DerivativesDataSink
 
-FSL_FAST_TISSUE_ORDER = ("CSF", "GM", "WM")
+BIDS_TISSUE_ORDER = ("GM", "WM", "CSF")
 
 
 def init_anat_reports_wf(freesurfer, output_dir,
@@ -103,7 +103,7 @@ def init_anat_reports_wf(freesurfer, output_dir,
 
 
 def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
-                             name='anat_derivatives_wf', tpm_labels=FSL_FAST_TISSUE_ORDER):
+                             name='anat_derivatives_wf', tpm_labels=BIDS_TISSUE_ORDER):
     """Set up a battery of datasinks to store derivatives in the right location."""
     workflow = Workflow(name=name)
 
