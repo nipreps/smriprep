@@ -1,10 +1,13 @@
 0.6.0 (TBD)
 ===========
+<0.6.0rc5 (May 7, 2020) - Release message TBD>
 <0.6.0rc4 (April 19, 2020) - Release message TBD>
 
   * FIX: Make TPMs label ordering in ``io_spec.json`` consistent with workflow (#179)
   * FIX: Correct the ``dseg`` labeling from FSL FAST earlier (#177)
   * FIX: Ensure ``bias_corrected`` is single file, not list (#174)
+  * ENH: Use new ``DerivativesDataSink`` from NiWorkflows 1.2.0 (#183)
+  * ENH: Use FreeSurfer's canary to exit fast and with a clear message when the license is missing (#182)
   * ENH: Execute FSL FAST only with ``--fs-no-reconall`` (#180)
   * ENH: Enable anatomical fast track reusing existing derivatives (#107)
   * ENH: Add option to skip brain extraction (#167)
