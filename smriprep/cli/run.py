@@ -211,7 +211,6 @@ def build_opts(opts):
         plugin_settings = retval['plugin_settings']
         bids_dir = retval['bids_dir']
         output_dir = retval['output_dir']
-        work_dir = retval['work_dir']
         subject_list = retval['subject_list']
         run_uuid = retval['run_uuid']
         retcode = retval['return_code']
@@ -258,7 +257,7 @@ def build_opts(opts):
 
         logger.log(25, 'Writing reports for participants: %s', ', '.join(subject_list))
         # Generate reports phase
-        errno += generate_reports(subject_list, output_dir, work_dir, run_uuid,
+        errno += generate_reports(subject_list, output_dir, run_uuid,
                                   packagename='smriprep')
         write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
     sys.exit(int(errno > 0))
@@ -397,9 +396,8 @@ def build_workflow(opts, retval):
         logger.log(25, 'Running --reports-only on participants %s', ', '.join(subject_list))
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid
-        retval['return_code'] = generate_reports(
-            subject_list, str(output_dir), str(work_dir), run_uuid,
-            config=pkgrf('smriprep', 'data/reports/config.json'))
+        retval['return_code'] = generate_reports(subject_list, str(output_dir), run_uuid,
+                                                 packagename="smriprep")
         return retval
 
     logger.log(25, INIT_MSG(
