@@ -694,4 +694,5 @@ def _split_segments(in_file):
 
 
 def _probseg_fast2bids(inlist):
+    """Reorder a list of probseg maps from FAST (CSF, WM, GM) to BIDS (GM, WM, CSF)."""
     return (inlist[1], inlist[2], inlist[0])
