@@ -2,21 +2,11 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 
 # Load modules for compatibility
-from niworkflows.interfaces import (
-    bids, cifti, freesurfer, images, itk, surf, utils)
+from niworkflows.interfaces.bids import DerivativesDataSink as DDS
 
 
-class DerivativesDataSink(bids.DerivativesDataSink):
+class DerivativesDataSink(DDS):
     out_path_base = 'smriprep'
 
 
-__all__ = [
-    'bids',
-    'cifti',
-    'freesurfer',
-    'images',
-    'itk',
-    'surf',
-    'utils',
-    'DerivativesDataSink',
-]
+del DDS
