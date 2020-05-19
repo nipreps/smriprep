@@ -413,6 +413,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         t1w_dseg = pe.Node(fsl.FAST(segments=True, no_bias=True, probability_maps=True),
                            name='t1w_dseg', mem_gb=3)
         lut_t1w_dseg.inputs.lut = (0, 3, 1, 2)  # Maps: 0 -> 0, 3 -> 1, 1 -> 2, 2 -> 3.
+        fast2bids = pe.Node(niu.Function(function=_probseg_fast2bids), name="fast2bids",
+                            run_without_submitting=True)
 
         workflow.connect([
             (brain_extraction_wf, buffernode, [
@@ -420,10 +422,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 ('outputnode.out_mask', 't1w_mask')]),
             (buffernode, t1w_dseg, [('t1w_brain', 'in_files')]),
             (t1w_dseg, lut_t1w_dseg, [('tissue_class_map', 'in_dseg')]),
-            (t1w_dseg, anat_norm_wf, [
-                (('probability_maps', _probseg_fast2bids), 'inputnode.moving_tpms')]),
-            (t1w_dseg, outputnode, [
-                (('probability_maps', _probseg_fast2bids), 't1w_tpms')]),
+            (t1w_dseg, fast2bids, [('tissue_class_map', 'inlist')]),
+            (fast2bids, anat_norm_wf, [('out', 'inputnode.moving_tpms')]),
+            (fast2bids, outputnode, [('out', 't1w_tpms')]),
         ])
         return workflow
 
@@ -685,7 +686,7 @@ def _split_segments(in_file):
     hdr.set_data_dtype('uint8')
 
     out_files = []
-    for i, label in enumerate(("CSF", "WM", "GM"), 1):
+    for i, label in enumerate(("GM", "WM", "CSF"), 1):
         out_fname = str(Path.cwd() / f"aseg_label-{label}_mask.nii.gz")
         segimg.__class__(data == i, segimg.affine, hdr).to_filename(out_fname)
         out_files.append(out_fname)
