@@ -231,7 +231,7 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         # It is necessary because from is a protected keyword (not allowed as argument name).
         ds_t1w_ref_xfms = pe.MapNode(
             DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
-                                **{'from': 'orig'}),
+                                extension='txt', **{'from': 'orig'}),
             iterfield=['source_file', 'in_file'],
             name='ds_t1w_ref_xfms', run_without_submitting=True)
         workflow.connect([
@@ -250,10 +250,11 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
     lta2itk_inv = pe.Node(ConcatenateXFMs(), name='lta2itk_inv', run_without_submitting=True)
     ds_t1w_fsnative = pe.Node(
         DerivativesDataSink(base_directory=output_dir, mode='image', to='fsnative', suffix='xfm',
-                            dismiss_entities=("session",), **{'from': 'T1w'}),
+                            extension="txt", dismiss_entities=("session",), **{'from': 'T1w'}),
         name='ds_t1w_fsnative', run_without_submitting=True)
     ds_fsnative_t1w = pe.Node(
         DerivativesDataSink(base_directory=output_dir, mode='image', to='T1w', suffix='xfm',
+                            extension="txt",
                             dismiss_entities=("session",), **{'from': 'fsnative'}),
         name='ds_fsnative_t1w', run_without_submitting=True)
     # Surfaces
