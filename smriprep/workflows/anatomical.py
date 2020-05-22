@@ -617,7 +617,7 @@ A T1w-reference map was computed after registration of
         (merge_xfm, concat_xfms, [('out', 'in_xfms')]),
         # Output
         (t1w_reorient, outputnode, [('out_file', 't1w_ref')]),
-        (concat_xfms, outputnode, [('out_inv', 't1w_realign_xfm')]),
+        (concat_xfms, outputnode, [('out_xfm', 't1w_realign_xfm')]),
     ])
 
     return workflow
