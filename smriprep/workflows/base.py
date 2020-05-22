@@ -336,12 +336,12 @@ to workflows in *sMRIPrep*'s documentation]\
                     name='about', run_without_submitting=True)
 
     ds_report_summary = pe.Node(
-        DerivativesDataSink(base_directory=output_dir,
+        DerivativesDataSink(base_directory=output_dir, dismiss_entities=("session",),
                             desc='summary', datatype="figures"),
         name='ds_report_summary', run_without_submitting=True)
 
     ds_report_about = pe.Node(
-        DerivativesDataSink(base_directory=output_dir,
+        DerivativesDataSink(base_directory=output_dir, dismiss_entities=("session",),
                             desc='about', datatype="figures"),
         name='ds_report_about', run_without_submitting=True)
 
