@@ -1,8 +1,15 @@
-0.6.0 (TBD)
-===========
-<0.6.0rc5 (May 7, 2020) - Release message TBD>
-<0.6.0rc4 (April 19, 2020) - Release message TBD>
+0.6.0 (May 21, 2020)
+====================
+Minor release in preparation for fMRIPrep 20.1.x series.
+Features the new implementation of derivatives writers in NiWorkflows,
+and additional flexibility to use previously computed results (in particular,
+skull-stripped brains, and the new *fast-track* that allows skipping the
+anatomical workflow in full, if all the expected derivatives are provided).
+Most of the the bug-fixes correspond to amendments over these newly added
+features.
 
+  * FIX: Dismiss ``session`` entity on most of anatomical derivatives (#193)
+  * FIX: Revise tissue probability maps connections and order (#190)
   * FIX: Make TPMs label ordering in ``io_spec.json`` consistent with workflow (#179)
   * FIX: Correct the ``dseg`` labeling from FSL FAST earlier (#177)
   * FIX: Ensure ``bias_corrected`` is single file, not list (#174)
@@ -11,6 +18,7 @@
   * ENH: Execute FSL FAST only with ``--fs-no-reconall`` (#180)
   * ENH: Enable anatomical fast track reusing existing derivatives (#107)
   * ENH: Add option to skip brain extraction (#167)
+  * MAINT: Remove unused nwf interfaces (#187)
   * MAINT: Pin troublesome sphinx (#175)
   * MAINT: Update dependencies to be inline with fMRIPrep-20.1.x (#173)
 
