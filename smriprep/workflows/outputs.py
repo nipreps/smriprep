@@ -5,7 +5,6 @@ from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.utils.misc import fix_multi_T1w_source_name
-from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
 
 from ..interfaces import DerivativesDataSink
 
@@ -232,7 +231,7 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         # It is necessary because from is a protected keyword (not allowed as argument name).
         ds_t1w_ref_xfms = pe.MapNode(
             DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
-                                **{'from': 'orig'}),
+                                extension='txt', **{'from': 'orig'}),
             iterfield=['source_file', 'in_file'],
             name='ds_t1w_ref_xfms', run_without_submitting=True)
         workflow.connect([
@@ -243,17 +242,19 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
     if not freesurfer:
         return workflow
 
+    from niworkflows.interfaces.nitransforms import ConcatenateXFMs
     from niworkflows.interfaces.surf import Path2BIDS
 
     # FS native space transforms
-    lta2itk_fwd = pe.Node(LTAConvert(out_itk=True), name='lta2itk_fwd')
-    lta2itk_inv = pe.Node(LTAConvert(out_itk=True), name='lta2itk_inv')
+    lta2itk_fwd = pe.Node(ConcatenateXFMs(), name='lta2itk_fwd', run_without_submitting=True)
+    lta2itk_inv = pe.Node(ConcatenateXFMs(), name='lta2itk_inv', run_without_submitting=True)
     ds_t1w_fsnative = pe.Node(
         DerivativesDataSink(base_directory=output_dir, mode='image', to='fsnative', suffix='xfm',
-                            dismiss_entities=("session",), **{'from': 'T1w'}),
+                            extension="txt", dismiss_entities=("session",), **{'from': 'T1w'}),
         name='ds_t1w_fsnative', run_without_submitting=True)
     ds_fsnative_t1w = pe.Node(
         DerivativesDataSink(base_directory=output_dir, mode='image', to='T1w', suffix='xfm',
+                            extension="txt",
                             dismiss_entities=("session",), **{'from': 'fsnative'}),
         name='ds_fsnative_t1w', run_without_submitting=True)
     # Surfaces
@@ -274,12 +275,12 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         name='ds_t1w_fsparc', run_without_submitting=True)
 
     workflow.connect([
-        (inputnode, lta2itk_fwd, [('t1w2fsnative_xfm', 'in_lta')]),
-        (inputnode, lta2itk_inv, [('fsnative2t1w_xfm', 'in_lta')]),
+        (inputnode, lta2itk_fwd, [('t1w2fsnative_xfm', 'in_xfms')]),
+        (inputnode, lta2itk_inv, [('fsnative2t1w_xfm', 'in_xfms')]),
         (t1w_name, ds_t1w_fsnative, [('out', 'source_file')]),
-        (lta2itk_fwd, ds_t1w_fsnative, [('out_itk', 'in_file')]),
+        (lta2itk_fwd, ds_t1w_fsnative, [('out_xfm', 'in_file')]),
         (t1w_name, ds_fsnative_t1w, [('out', 'source_file')]),
-        (lta2itk_inv, ds_fsnative_t1w, [('out_itk', 'in_file')]),
+        (lta2itk_inv, ds_fsnative_t1w, [('out_xfm', 'in_file')]),
         (inputnode, name_surfs, [('surfaces', 'in_file')]),
         (inputnode, ds_surfs, [('surfaces', 'in_file')]),
         (t1w_name, ds_surfs, [('out', 'source_file')]),

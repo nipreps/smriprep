@@ -18,10 +18,10 @@ from nipype.interfaces.ants import N4BiasFieldCorrection
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
-    PatchedConcatenateLTA as ConcatenateLTA,
     PatchedLTAConvert as LTAConvert,
 )
 from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
+from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
@@ -594,12 +594,10 @@ A T1w-reference map was computed after registration of
     # 2. Reorient template to RAS, if needed (mri_robust_template may set to LIA)
     t1w_reorient = pe.Node(image.Reorient(), name='t1w_reorient')
 
-    concat_affines = pe.MapNode(
-        ConcatenateLTA(out_type='RAS2RAS', invert_out=True),
-        iterfield=['in_lta1', 'in_lta2'],
-        name='concat_affines')
-
-    lta_to_itk = pe.MapNode(LTAConvert(out_itk=True), iterfield=['in_lta'], name='lta_to_itk')
+    merge_xfm = pe.MapNode(niu.Merge(2), name='merge_xfm',
+                           iterfield=['in1', 'in2'], run_without_submitting=True)
+    concat_xfms = pe.MapNode(ConcatenateXFMs(inverse=True), name="concat_xfms",
+                             iterfield=['in_xfms'], run_without_submitting=True)
 
     def _set_threads(in_list, maximum):
         return min(len(in_list), maximum)
@@ -614,12 +612,12 @@ A T1w-reference map was computed after registration of
         (n4_correct, t1w_merge, [('output_image', 'in_files')]),
         (t1w_merge, t1w_reorient, [('out_file', 'in_file')]),
         # Combine orientation and template transforms
-        (t1w_conform_xfm, concat_affines, [('out_lta', 'in_lta1')]),
-        (t1w_merge, concat_affines, [('transform_outputs', 'in_lta2')]),
-        (concat_affines, lta_to_itk, [('out_file', 'in_lta')]),
+        (t1w_conform_xfm, merge_xfm, [('out_lta', 'in1')]),
+        (t1w_merge, merge_xfm, [('transform_outputs', 'in2')]),
+        (merge_xfm, concat_xfms, [('out', 'in_xfms')]),
         # Output
         (t1w_reorient, outputnode, [('out_file', 't1w_ref')]),
-        (lta_to_itk, outputnode, [('out_itk', 't1w_realign_xfm')]),
+        (concat_xfms, outputnode, [('out_xfm', 't1w_realign_xfm')]),
     ])
 
     return workflow
