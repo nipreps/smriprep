@@ -1,4 +1,4 @@
-0.6.0 (May 21, 2020)
+0.6.0 (May 22, 2020)
 ====================
 Minor release in preparation for fMRIPrep 20.1.x series.
 Features the new implementation of derivatives writers in NiWorkflows,
@@ -8,19 +8,20 @@ anatomical workflow in full, if all the expected derivatives are provided).
 Most of the the bug-fixes correspond to amendments over these newly added
 features.
 
-  * FIX: Dismiss ``session`` entity on most of anatomical derivatives (#193)
-  * FIX: Revise tissue probability maps connections and order (#190)
-  * FIX: Make TPMs label ordering in ``io_spec.json`` consistent with workflow (#179)
-  * FIX: Correct the ``dseg`` labeling from FSL FAST earlier (#177)
-  * FIX: Ensure ``bias_corrected`` is single file, not list (#174)
-  * ENH: Use new ``DerivativesDataSink`` from NiWorkflows 1.2.0 (#183)
-  * ENH: Use FreeSurfer's canary to exit fast and with a clear message when the license is missing (#182)
-  * ENH: Execute FSL FAST only with ``--fs-no-reconall`` (#180)
-  * ENH: Enable anatomical fast track reusing existing derivatives (#107)
-  * ENH: Add option to skip brain extraction (#167)
-  * MAINT: Remove unused nwf interfaces (#187)
-  * MAINT: Pin troublesome sphinx (#175)
-  * MAINT: Update dependencies to be inline with fMRIPrep-20.1.x (#173)
+* FIX: Convert LTA to ITK with nitransforms (#188)
+* FIX: Dismiss ``session`` entity on most of anatomical derivatives (#193)
+* FIX: Revise tissue probability maps connections and order (#190)
+* FIX: Make TPMs label ordering in ``io_spec.json`` consistent with workflow (#179)
+* FIX: Correct the ``dseg`` labeling from FSL FAST earlier (#177)
+* FIX: Ensure ``bias_corrected`` is single file, not list (#174)
+* ENH: Use new ``DerivativesDataSink`` from NiWorkflows 1.2.0 (#183)
+* ENH: Use FreeSurfer's canary to exit fast and with a clear message when the license is missing (#182)
+* ENH: Execute FSL FAST only with ``--fs-no-reconall`` (#180)
+* ENH: Enable anatomical fast track reusing existing derivatives (#107)
+* ENH: Add option to skip brain extraction (#167)
+* MAINT: Remove unused nwf interfaces (#187)
+* MAINT: Pin troublesome sphinx (#175)
+* MAINT: Update dependencies to be inline with fMRIPrep-20.1.x (#173)
 
 0.5.2 (February 14, 2020)
 =========================
