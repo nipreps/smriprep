@@ -172,11 +172,9 @@ The following template{tpls} selected for spatial normalization:
     tpl_moving = pe.Node(ApplyTransforms(
         dimension=3, default_value=0, float=True,
         interpolation='LanczosWindowedSinc'), name='tpl_moving')
-    std_mask = pe.Node(ApplyTransforms(dimension=3, default_value=0, float=True,
-                                       interpolation='MultiLabel'), name='std_mask')
 
-    std_dseg = pe.Node(ApplyTransforms(dimension=3, default_value=0, float=True,
-                                       interpolation='MultiLabel'), name='std_dseg')
+    std_mask = pe.Node(ApplyTransforms(interpolation='MultiLabel'), name='std_mask')
+    std_dseg = pe.Node(ApplyTransforms(interpolation='MultiLabel'), name='std_dseg')
 
     std_tpms = pe.MapNode(ApplyTransforms(dimension=3, default_value=0, float=True,
                                           interpolation='Gaussian'),
