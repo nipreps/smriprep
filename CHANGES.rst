@@ -1,3 +1,9 @@
+0.6.1 (May 27, 2020)
+====================
+Hotfix release to address an issue recently encountered in fMRIPrep 20.1.0rc3.
+
+  * FIX: ``MultiLabel`` interpolations should not use ``float=True`` (#196)
+
 0.6.0 (May 22, 2020)
 ====================
 Minor release in preparation for fMRIPrep 20.1.x series.
