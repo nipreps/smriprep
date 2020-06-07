@@ -249,7 +249,8 @@ jobs:
             pyenv local $PY2
             echo -n "Python version: "
             python --version
-            pip install --upgrade pip setuptools
+            pip install --upgrade "pip<21"
+            pip install --upgrade setuptools
             pip install --upgrade wrapper/
             which smriprep-docker
             smriprep-docker -i poldracklab/smriprep:latest --help
