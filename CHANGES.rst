@@ -41,7 +41,7 @@ The bug is most likely to occur with pre-run FreeSurfer where multiple T1w image
 It is easily evident in the first figure in the anatomical section of the reports, and will
 show heavily misaligned brain mask.
 
-* FIX: Use t1w2fsnative_xfm to resample segmentations (#201) @effigies
+* FIX: Use ``t1w2fsnative_xfm`` to resample segmentations (#201)
 
 0.5.2 (February 14, 2020)
 =========================
