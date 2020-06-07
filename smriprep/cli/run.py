@@ -176,14 +176,8 @@ def build_opts(opts):
     warnings.showwarning = _warn_redirect
 
     # Precedence: --fs-license-file, $FS_LICENSE, default_license
-    fs_home = os.getenv("FREESURFER_HOME")
-    license_file = (
-        opts.fs_license_file
-        or os.getenv('FS_LICENSE')
-        or (os.path.join(fs_home, "license.txt") if fs_home else None)
-    )
-    if license_file and os.path.isfile(license_file):
-        os.environ["FS_LICENSE"] = license_file
+    if opts.fs_license_file is not None:
+        os.environ["FS_LICENSE"] = opts.fs_license_file
 
     if not check_valid_fs_license():
         raise RuntimeError(
