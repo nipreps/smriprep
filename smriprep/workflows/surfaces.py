@@ -231,10 +231,12 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (autorecon_resume_wf, aseg_to_native_wf, [
             ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ('outputnode.subject_id', 'inputnode.subject_id')]),
+        (fsnative2t1w_xfm, aseg_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
         (autorecon_resume_wf, aparc_to_native_wf, [
             ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ('outputnode.subject_id', 'inputnode.subject_id')]),
+        (fsnative2t1w_xfm, aparc_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
 
         # Output
@@ -502,6 +504,8 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
 
     Outputs
     -------
@@ -510,13 +514,15 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
 
     """
     workflow = Workflow(name='%s_%s' % (name, segmentation))
-    inputnode = pe.Node(niu.IdentityInterface([
-        'in_file', 'subjects_dir', 'subject_id']), name='inputnode')
+    inputnode = pe.Node(
+        niu.IdentityInterface(['in_file', 'subjects_dir', 'subject_id', 'fsnative2t1w_xfm']),
+        name='inputnode')
     outputnode = pe.Node(niu.IdentityInterface(['out_file']), name='outputnode')
     # Extract the aseg and aparc+aseg outputs
     fssource = pe.Node(nio.FreeSurferSource(), name='fs_datasource')
-    tonative = pe.Node(fs.Label2Vol(), name='tonative')
-    tonii = pe.Node(fs.MRIConvert(out_type='niigz', resample_type='nearest'), name='tonii')
+    # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
+    # and convert to NIfTI while we're at it
+    resample = pe.Node(fs.ApplyVolTransform(transformed_file='seg.nii.gz'), name='resample')
 
     if segmentation.startswith('aparc'):
         if segmentation == 'aparc_aseg':
@@ -531,12 +537,10 @@ def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
         (inputnode, fssource, [
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id')]),
-        (inputnode, tonii, [('in_file', 'reslice_like')]),
-        (fssource, tonative, [(segmentation, 'seg_file'),
-                              ('rawavg', 'template_file'),
-                              ('aseg', 'reg_header')]),
-        (tonative, tonii, [('vol_label_file', 'in_file')]),
-        (tonii, outputnode, [('out_file', 'out_file')]),
+        (inputnode, resample, [('in_file', 'target_file'),
+                               ('fsnative2t1w_xfm', 'lta_file')]),
+        (fssource, resample, [(segmentation, 'source_file')]),
+        (resample, outputnode, [('transformed_file', 'out_file')]),
     ])
     return workflow
 
