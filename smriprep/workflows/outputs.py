@@ -11,7 +11,7 @@ from ..interfaces import DerivativesDataSink
 BIDS_TISSUE_ORDER = ("GM", "WM", "CSF")
 
 
-def init_anat_reports_wf(freesurfer, output_dir,
+def init_anat_reports_wf(*, freesurfer, output_dir,
                          name='anat_reports_wf'):
     """Set up a battery of datasinks to store reports in the right location."""
     from niworkflows.interfaces import SimpleBeforeAfter
@@ -105,7 +105,7 @@ def init_anat_reports_wf(freesurfer, output_dir,
     return workflow
 
 
-def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
+def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
                              name='anat_derivatives_wf', tpm_labels=BIDS_TISSUE_ORDER):
     """Set up a battery of datasinks to store derivatives in the right location."""
     workflow = Workflow(name=name)

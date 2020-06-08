@@ -16,6 +16,7 @@ from ..interfaces.templateflow import TemplateFlowSelect, TemplateDesc
 
 
 def init_anat_norm_wf(
+    *,
     debug,
     omp_nthreads,
     templates,
