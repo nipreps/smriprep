@@ -20,6 +20,7 @@ def init_anat_norm_wf(
     debug,
     omp_nthreads,
     templates,
+    name="anat_norm_wf",
 ):
     """
     Build an individual spatial normalization workflow using ``antsRegistration``.
@@ -75,6 +76,8 @@ def init_anat_norm_wf(
         input domain to enable standardization of lesioned brains.
     orig_t1w
         The original T1w image from the BIDS structure.
+    template
+        Template name and specification
 
     Outputs
     -------
@@ -100,7 +103,7 @@ def init_anat_norm_wf(
 
     """
     ntpls = len(templates)
-    workflow = Workflow('anat_norm_wf')
+    workflow = Workflow(name=name)
 
     if templates:
         workflow.__desc__ = """\

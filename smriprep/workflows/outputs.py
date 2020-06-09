@@ -13,7 +13,43 @@ BIDS_TISSUE_ORDER = ("GM", "WM", "CSF")
 
 def init_anat_reports_wf(*, freesurfer, output_dir,
                          name='anat_reports_wf'):
-    """Set up a battery of datasinks to store reports in the right location."""
+    """
+    Set up a battery of datasinks to store reports in the right location.
+
+    Parameters
+    ----------
+    freesurfer : :obj:`bool`
+        FreeSurfer was enabled
+    output_dir : :obj:`str`
+        Directory in which to save derivatives
+    name : :obj:`str`
+        Workflow name (default: anat_reports_wf)
+
+    Inputs
+    ------
+    source_file
+        Input T1w image
+    std_t1w
+        T1w image resampled to standard space
+    std_mask
+        Mask of skull-stripped template
+    subject_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    t1w_conform_report
+        Conformation report
+    t1w_preproc
+        The T1w reference map, which is calculated as the average of bias-corrected
+        and preprocessed T1w images, defining the anatomical space.
+    t1w_dseg
+        Segmentation in T1w space
+    t1w_mask
+        Brain (binary) mask estimated by brain extraction.
+    template
+        Template space and specifications
+
+    """
     from niworkflows.interfaces import SimpleBeforeAfter
     from niworkflows.interfaces.masks import ROIsPlot
     from ..interfaces.templateflow import TemplateFlowSelect
@@ -107,7 +143,68 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
 
 def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
                              name='anat_derivatives_wf', tpm_labels=BIDS_TISSUE_ORDER):
-    """Set up a battery of datasinks to store derivatives in the right location."""
+    """
+    Set up a battery of datasinks to store derivatives in the right location.
+
+    Parameters
+    ----------
+    bids_root : :obj:`str`
+        Root path of BIDS dataset
+    freesurfer : :obj:`bool`
+        FreeSurfer was enabled
+    num_t1w : :obj:`int`
+        Number of T1w images
+    output_dir : :obj:`str`
+        Directory in which to save derivatives
+    name : :obj:`str`
+        Workflow name (default: anat_derivatives_wf)
+    tpm_labels : :obj:`tuple`
+        Tissue probability maps in order
+
+    Inputs
+    ------
+    template
+        Template space and specifications
+    source_files
+        List of input T1w images
+    t1w_ref_xfms
+        List of affine transforms to realign input T1w images
+    t1w_preproc
+        The T1w reference map, which is calculated as the average of bias-corrected
+        and preprocessed T1w images, defining the anatomical space.
+    t1w_mask
+        Mask of the ``t1w_preproc``
+    t1w_dseg
+        Segmentation in T1w space
+    t1w_tpms
+        Tissue probability maps in T1w space
+    anat2std_xfm
+        Nonlinear spatial transform to resample imaging data given in anatomical space
+        into standard space.
+    std2anat_xfm
+        Inverse transform of ``anat2std_xfm``
+    std_t1w
+        T1w reference resampled in one or more standard spaces.
+    std_mask
+        Mask of skull-stripped template, in standard space
+    std_dseg
+        Segmentation, resampled into standard space
+    std_tpms
+        Tissue probability maps in standard space
+    t1w2fsnative_xfm
+        LTA-style affine matrix translating from T1w to
+        FreeSurfer-conformed subject space
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed
+        subject space to T1w
+    surfaces
+        GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
+    t1w_fs_aseg
+        FreeSurfer's aseg segmentation, in native T1w space
+    t1w_fs_aparc
+        FreeSurfer's aparc+aseg segmentation, in native T1w space
+
+    """
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(

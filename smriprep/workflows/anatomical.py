@@ -129,10 +129,14 @@ def init_anat_preproc_wf(
         List of T1-weighted structural images
     t2w
         List of T2-weighted structural images
+    roi
+        A mask to exclude regions during standardization
     flair
         List of FLAIR images
     subjects_dir
         FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
 
     Outputs
     -------
