@@ -1,8 +1,15 @@
+0.6.2 (June 9, 2020)
+====================
+Bug-fix release addressing minor problems related to FreeSurfer handling.
+
+* FIX: Adapt to the new FS canary interface (backwards compatible) (#205)
+* FIX: Use ``t1w2fsnative_xfm`` to resample segmentations (#201)
+
 0.6.1 (May 27, 2020)
 ====================
 Hotfix release to address an issue recently encountered in fMRIPrep 20.1.0rc3.
 
-  * FIX: ``MultiLabel`` interpolations should not use ``float=True`` (#196)
+* FIX: ``MultiLabel`` interpolations should not use ``float=True`` (#196)
 
 0.6.0 (May 22, 2020)
 ====================
@@ -29,8 +36,10 @@ features.
 * MAINT: Pin troublesome sphinx (#175)
 * MAINT: Update dependencies to be inline with fMRIPrep-20.1.x (#173)
 
+0.5.x Series
+============
 0.5.3 (June 7, 2020)
-====================
+--------------------
 Bug-fix release in the 0.5.x series.
 
 This release fixes a bug where pre-run FreeSurfer that was not in alignment with the
@@ -41,23 +50,23 @@ The bug is most likely to occur with pre-run FreeSurfer where multiple T1w image
 It is easily evident in the first figure in the anatomical section of the reports, and will
 show heavily misaligned brain mask.
 
-* FIX: Use ``t1w2fsnative_xfm`` to resample segmentations (#201)
+* FIX: Use t1w2fsnative_xfm to resample segmentations (#201) @effigies
 
 0.5.2 (February 14, 2020)
-=========================
+-------------------------
 Minor tweaks in preparation for fMRIPrep 20.0.0 release.
 
 * ENH: Enable users to pass JSON filters to select subsets of data (#143) @bpinsard
 * MAINT: Add ignore W503 in setup.cfg (#165) @oesteban
 
 0.5.1 (February 7, 2020)
-========================
+------------------------
 A hotfix release updating dependencies
 
 * PIN: Nibabel 3.0.1 and niworkflows 1.1.6 (#166) @mgxd
 
 0.5.0 (February 6, 2020)
-========================
+------------------------
 A new minor release with a focus on improving internal handling and representations
 of spatial references.
 
@@ -67,17 +76,19 @@ of spatial references.
 * FIX: Improvements to the CircleCI workflow (#162) @oesteban
 * CI: Update coverage (#156) @effigies
 
+Pre- 0.5.x Series
+=================
 0.4.2 (January 22, 2020)
-========================
+------------------------
 Bugfix release in the 0.4.x series.
 
 * FIX: Calculate FoV with shape and zooms (#161) @effigies
 * FIX: Package version incorrect within Docker image (#155) @oesteban
-* ENH: Add smriprep.__main__ to allow python -m smriprep (#158) @effigies
+* ENH: Add ``smriprep.__main__`` to allow ``python -m smriprep`` (#158) @effigies
 * MAINT: Revise CircleCI to optimize TemplateFlow and caching (#157) @oesteban
 
 0.4.1 (Decemeber 12, 2019)
-==========================
+--------------------------
 Bugfix release to address some fMRIPrep issues.
 
 * FIX: Use T2/FLAIR refinement at cortribbon stage (#148) @effigies
@@ -85,7 +96,7 @@ Bugfix release to address some fMRIPrep issues.
 * DOC: Refactor of documentation (#144) @oesteban
 
 0.4.0 (November 26, 2019)
-=========================
+-------------------------
 A new 0.4.x series with a number of new features and bugfixes.
 
 * FIX: Allow setting nonstandard spaces for parser (#141) @oesteban
@@ -114,20 +125,20 @@ A new 0.4.x series with a number of new features and bugfixes.
 * PIN: niworkflows ~= 1.0.0rc1
 
 0.3.2 (September 9, 2019)
-=========================
+-------------------------
 Bugfix patch-release
 
 * FIX: Render INU-corrected T1w in Segmentation reportlet (#102) @oesteban
 
 0.3.1 (July 21, 2019)
-=====================
+---------------------
 Minor release to update pinnings of niworkflows and TemplateFlow client.
 
 * PIN: niworkflows-0.10.1 and templateflow-0.4.1
 * CI: Fix PyPI deployment (#99) @effigies
 
 0.3.0 (July 12, 2019)
-=====================
+---------------------
 Minor release to allow dependent tools to upgrade to PyBIDS 0.9 series (minimum 0.9.2).
 We've also moved to a ``setup.cfg``-based setup to standardize configuration.
 
@@ -135,7 +146,7 @@ We've also moved to a ``setup.cfg``-based setup to standardize configuration.
 * MAINT: Use PyBIDS 0.9.x via niworkflows PR (#94) @effigies
 
 0.2.4 (July 9, 2019)
-====================
+--------------------
 Several minor improvements on TemplateFlow integration.
 
 * ENH: Use proper resolution in anatomical outputs (#92) @oesteban
@@ -143,25 +154,25 @@ Several minor improvements on TemplateFlow integration.
 * ENH: Pass template specs on to registration workflow (#90) @oesteban
 
 0.2.3 (June 5, 2019)
-====================
+--------------------
 Enable CLI to set pediatric and infant templates for skull-stripping.
 
 * ENH: Allow template modifiers (a la ``--output-spaces``) in skull-stripping (#89) @oesteban
 
 0.2.2 (June 5, 2019)
-====================
+--------------------
 Enable latest templates added to TemplateFlow.
 
 * PIN: templateflow-0.3.0, which includes infant/pediatric templates (#88) @oesteban
 
 0.2.1 (May 6, 2019)
-===================
+-------------------
 Hotfix release improving the reliability of the brain extraction workflow.
 
 * FIX: Keep header consistency along anatomical workflow (#83) @oesteban
 
 0.2.0 (May 3, 2019)
-===================
+-------------------
 This new release of *sMRIPrep* adds the possibility of specifying several
 spatial normalization targets via the ``--output-spaces`` option drafted
 in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/1588>`__.
@@ -177,29 +188,34 @@ in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/15
 * DOC/STY: Fix documentation build, simplify (non)parametric output nodes (#79) @oesteban
 
 0.1.1 (March 22, 2019)
-======================
+----------------------
+
 * ENH: Pure Nipype brain extraction workflow (#57) @oesteban
 * ENH: Write metadata for anatomical outputs (#62) @oesteban
 
 0.1.0 (March 05, 2019)
-======================
+----------------------
+
 * PIN: Niworkflows 0.8 and TemplateFlow 0.1 (#56) @oesteban
 
 0.0.5 (February 06, 2019)
-=========================
+-------------------------
+
 * MAINT: Update to keep up with poldracklab/niworkflows#299 (#51) @oesteban
 
 0.0.4 (January 25, 2019)
-========================
+------------------------
+
 * ENH: Allow templates other than ``MNI152NLin2009cAsym`` (#47) @oesteban
 * DOC: Fix workflow hierarchy within docstrings so that fMRIPrep docs build (`0110ab2 <https://github.com/poldracklab/smriprep/commit/0110ab277faa525d60263ba085947ef1545898af>`__).
 
 0.0.3 (January 18, 2019)
-========================
+------------------------
+
 * FIX: Add ``-cw256`` flag for images with FoV > 256 voxels (#36) @oesteban
 * ENH: Integrate TemplateFlow to handle templates (#45) @oesteban
 
-
 0.0.2 (January 8, 2019)
-========================
+-----------------------
+
 * First functional version after forking from fMRIPrep
