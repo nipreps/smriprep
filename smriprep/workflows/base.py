@@ -24,6 +24,7 @@ from .anatomical import init_anat_preproc_wf
 
 
 def init_smriprep_wf(
+    *,
     debug,
     fast_track,
     freesurfer,
@@ -175,9 +176,10 @@ def init_smriprep_wf(
 
 
 def init_single_subject_wf(
+    *,
     debug,
-    freesurfer,
     fast_track,
+    freesurfer,
     hires,
     layout,
     longitudinal,
@@ -236,10 +238,10 @@ def init_single_subject_wf(
     ----------
     debug : :obj:`bool`
         Enable debugging outputs
-    freesurfer : :obj:`bool`
-        Enable FreeSurfer surface reconstruction (may increase runtime)
     fast_track : :obj:`bool`
         If ``True``, attempt to collect previously run derivatives.
+    freesurfer : :obj:`bool`
+        Enable FreeSurfer surface reconstruction (may increase runtime)
     hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     layout : BIDSLayout object

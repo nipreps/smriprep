@@ -29,7 +29,7 @@ from niworkflows.interfaces.freesurfer import (
 from niworkflows.interfaces.surf import NormalizeSurf
 
 
-def init_surface_recon_wf(omp_nthreads, hires, name='surface_recon_wf'):
+def init_surface_recon_wf(*, omp_nthreads, hires, name='surface_recon_wf'):
     r"""
     Reconstruct anatomical surfaces using FreeSurfer's ``recon-all``.
 
@@ -253,7 +253,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     return workflow
 
 
-def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
+def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
     r"""
     Resume recon-all execution, assuming the `-autorecon1` stage has been completed.
 
@@ -398,7 +398,7 @@ def init_autorecon_resume_wf(omp_nthreads, name='autorecon_resume_wf'):
     return workflow
 
 
-def init_gifti_surface_wf(name='gifti_surface_wf'):
+def init_gifti_surface_wf(*, name='gifti_surface_wf'):
     r"""
     Prepare GIFTI surfaces from a FreeSurfer subjects directory.
 
@@ -479,7 +479,7 @@ def init_gifti_surface_wf(name='gifti_surface_wf'):
     return workflow
 
 
-def init_segs_to_native_wf(name='segs_to_native', segmentation='aseg'):
+def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
     """
     Get a segmentation from FreeSurfer conformed space into native T1w space.
 

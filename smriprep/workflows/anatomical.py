@@ -35,6 +35,7 @@ LOGGER = logging.getLogger('nipype.workflow')
 
 
 def init_anat_preproc_wf(
+        *,
         bids_root,
         freesurfer,
         hires,
@@ -128,10 +129,14 @@ def init_anat_preproc_wf(
         List of T1-weighted structural images
     t2w
         List of T2-weighted structural images
+    roi
+        A mask to exclude regions during standardization
     flair
         List of FLAIR images
     subjects_dir
         FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
 
     Outputs
     -------
@@ -486,7 +491,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     return workflow
 
 
-def init_anat_template_wf(longitudinal, omp_nthreads, num_t1w, name='anat_template_wf'):
+def init_anat_template_wf(*, longitudinal, omp_nthreads, num_t1w, name='anat_template_wf'):
     """
     Generate a canonically-oriented, structural average from all input T1w images.
 
