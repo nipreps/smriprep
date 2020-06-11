@@ -7,12 +7,12 @@ docs_deploy: &docs
         name: Check whether this is the original repo
         command: |
           if [[ "$CIRCLE_PROJECT_USERNAME" != "nipreps" ]]; then
-              echo "Not in nipreps/sdcflows - skipping docs deploy."
+              echo "Not in nipreps/smriprep - skipping docs deploy."
               circleci step halt
           fi
     - add_ssh_keys:
         fingerprints:
-          - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
+          - "80:ec:ae:e8:92:1f:88:83:2a:e0:ee:35:39:79:85:88"
     - run:
         name: Install gh-pages tool
         command: |
@@ -21,8 +21,8 @@ docs_deploy: &docs
     - run:
         name: Set git settings
         command: |
-          git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
-          git config user.name "ci-build"
+          git config user.email "nipreps@gmail.com"
+          git config user.name "nipreps-bot"
     - attach_workspace:
         at: docs/_build
     - run:
