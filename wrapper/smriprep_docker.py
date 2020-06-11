@@ -9,7 +9,7 @@ running ::
   docker info
 
 Please report any feedback to our GitHub repository
-(https://github.com/poldracklab/smriprep) and do not
+(https://github.com/nipreps/smriprep) and do not
 forget to credit all the authors of software that sMRIPrep
 uses (consider using the citation boilerplate included in the
 individual reports).
@@ -24,7 +24,7 @@ __version__ = '99.99.99'
 __copyright__ = 'Copyright 2019, Center for Reproducible Neuroscience, Stanford University'
 __credits__ = ['Oscar Esteban', 'Chris Gorgolewski', 'Christopher J. Markiewicz',
                'Russell A. Poldrack']
-__bugreports__ = 'https://github.com/poldracklab/smriprep/issues'
+__bugreports__ = 'https://github.com/nipreps/smriprep/issues'
 
 
 MISSING = """
@@ -210,7 +210,7 @@ def get_parser():
 
     # Allow alternative images (semi-developer)
     parser.add_argument('-i', '--image', metavar='IMG', type=str,
-                        default='poldracklab/smriprep:{}'.format(__version__),
+                        default='nipreps/smriprep:{}'.format(__version__),
                         help='image name')
 
     # Options for mapping files and directories into container

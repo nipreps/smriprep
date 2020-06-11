@@ -9,7 +9,7 @@ docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
     -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
     -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
     --entrypoint=coverage \
-    poldracklab/smriprep:latest \
+    nipreps/smriprep:latest \
     run -m smriprep \
     /tmp/data/ds005 /tmp/ds005/derivatives participant \
     -w /tmp/ds005/work \
