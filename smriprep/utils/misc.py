@@ -55,15 +55,12 @@ def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400):
     isrunning = tuple(subj_dir.glob("**/IsRunning*"))
     if not isrunning:
         return subjects_dir
-    try:
-        reconlog = next(subj_dir.glob("**/recon-all.log"))
-    except StopIteration:
-        # problems finding recon-all.log, just return subjects_dir
-        return subjects_dir
-
-    # if any IsRunning files are found, first check on last modified time of log
-    if (time.time() - reconlog.stat().st_mtime) < mtime_tol:
-        return subjects_dir
+    reconlog = subj_dir / "scripts" / "recon-all.log"
+    if not reconlog.is_file() or (time.time() - reconlog.stat().st_mtime) < mtime_tol:
+        raise RuntimeError(f"{subj_dir} contains IsRunning files: {isrunning}\n"
+                           "FreeSurfer will not run if these are present, to avoid "
+                           "interfering with a running process. If no process is running, "
+                           "they may be safely removed.")
 
     for fl in isrunning:
         fl.unlink()
