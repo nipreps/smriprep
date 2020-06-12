@@ -58,10 +58,12 @@ def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400, logger=None):
     # if recon log doesn't exist, just clear IsRunning
     mtime = reconlog.stat().st_mtime if reconlog.exists() else 0
     if (time.time() - mtime) < mtime_tol:
-        raise RuntimeError(f"{subj_dir} contains IsRunning files: {isrunning}\n"
-                           "FreeSurfer will not run if these are present, to avoid "
-                           "interfering with a running process. If no process is running, "
-                           "they may be safely removed.")
+        raise RuntimeError(f"""\
+The FreeSurfer's subject folder <{subj_dir}> contains IsRunning files that \
+may pertain to a current or past execution: {isrunning}.
+FreeSurfer cannot run if these are present, to avoid interfering with a running \
+process. Please, make sure no other process is running ``recon-all`` on this subject \
+and proceed to delete the files listed above.""")
     for fl in isrunning:
         fl.unlink()
     if logger:
