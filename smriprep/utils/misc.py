@@ -23,7 +23,7 @@ def apply_lut(in_dseg, lut, newpath=None):
     return out_file
 
 
-def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400):
+def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400, logger=None):
     """
     Checks FreeSurfer subjects dir for presence of recon-all blocking ``IsRunning`` files,
     and optionally removes any based on the modification time.
@@ -42,7 +42,6 @@ def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400):
     subjects_dir : os.PathLike or None
 
     """
-    import logging
     from pathlib import Path
     import time
 
@@ -52,19 +51,19 @@ def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400):
     if not subj_dir.exists():
         return subjects_dir
 
-    isrunning = tuple(subj_dir.glob("**/IsRunning*"))
+    isrunning = tuple(subj_dir.glob("scripts/IsRunning*"))
     if not isrunning:
         return subjects_dir
     reconlog = subj_dir / "scripts" / "recon-all.log"
-    if not reconlog.is_file() or (time.time() - reconlog.stat().st_mtime) < mtime_tol:
+    # if recon log doesn't exist, just clear IsRunning
+    mtime = reconlog.stat().st_mtime if reconlog.exists() else 0
+    if (time.time() - mtime) < mtime_tol:
         raise RuntimeError(f"{subj_dir} contains IsRunning files: {isrunning}\n"
                            "FreeSurfer will not run if these are present, to avoid "
                            "interfering with a running process. If no process is running, "
                            "they may be safely removed.")
-
     for fl in isrunning:
         fl.unlink()
-
-    logger = logging.getLogger('nipype.interface')
-    logger.warn(f"Removed older IsRunning files found under {subj_dir}")
+    if logger:
+        logger.warn(f'Removed "IsRunning*" files found under {subj_dir}')
     return subjects_dir
