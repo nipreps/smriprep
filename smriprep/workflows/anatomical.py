@@ -436,6 +436,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # check for older IsRunning files and remove accordingly
     fs_isrunning = pe.Node(niu.Function(function=_fs_isRunning),
                            overwrite=True, name='fs_isrunning')
+    fs_isrunning.inputs.logger = LOGGER
 
     # 5. Surface reconstruction (--fs-no-reconall not set)
     surface_recon_wf = init_surface_recon_wf(name='surface_recon_wf',
