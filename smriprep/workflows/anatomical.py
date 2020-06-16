@@ -177,6 +177,8 @@ def init_anat_preproc_wf(
         subject space to T1w
     surfaces
         GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
+    surfs_meta
+        Additional metadata for GIFTI surfaces
 
     See Also
     --------
@@ -477,6 +479,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
             ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
             ('outputnode.surfaces', 'surfaces'),
+            ('outputnode.surfs_meta', 'surfs_meta'),
             ('outputnode.out_aseg', 't1w_aseg'),
             ('outputnode.out_aparc', 't1w_aparc')]),
         (applyrefined, buffernode, [('out_file', 't1w_brain')]),
@@ -493,6 +496,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
             ('surfaces', 'inputnode.surfaces'),
+            ('surfs_meta', 'inputnode.surfs_meta'),
         ]),
     ])
 

@@ -133,6 +133,8 @@ def init_surface_recon_wf(*, omp_nthreads, hires, name='surface_recon_wf'):
     surfaces
         GIFTI surfaces for gray/white matter boundary, pial surface,
         midthickness (or graymid) surface, and inflated surfaces
+    surfs_meta
+        Additional metadata for GIFTI surfaces
     out_brainmask
         Refined brainmask, derived from FreeSurfer's ``aseg`` volume
     out_aseg
@@ -162,8 +164,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     outputnode = pe.Node(
         niu.IdentityInterface(
             fields=['subjects_dir', 'subject_id', 't1w2fsnative_xfm',
-                    'fsnative2t1w_xfm', 'surfaces', 'out_brainmask',
-                    'out_aseg', 'out_aparc']),
+                    'fsnative2t1w_xfm', 'surfaces', 'surfs_meta',
+                    'out_brainmask', 'out_aseg', 'out_aparc']),
         name='outputnode')
 
     recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
@@ -243,6 +245,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
                                            ('outputnode.subject_id', 'subject_id')]),
         (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
+        (gifti_surface_wf, outputnode, [('outputnode.surfs_meta', 'surfs_meta')]),
         (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
         (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
         (refine, outputnode, [('out_file', 'out_brainmask')]),
@@ -432,6 +435,8 @@ def init_gifti_surface_wf(*, name='gifti_surface_wf'):
     surfaces
         GIFTI surfaces for gray/white matter boundary, pial surface,
         midthickness (or graymid) surface, and inflated surfaces
+    surfs_meta
+        Additional metadata for GIFTI surfaces
 
     """
     workflow = Workflow(name=name)
@@ -439,7 +444,7 @@ def init_gifti_surface_wf(*, name='gifti_surface_wf'):
     inputnode = pe.Node(niu.IdentityInterface(['subjects_dir', 'subject_id',
                                                'fsnative2t1w_xfm']),
                         name='inputnode')
-    outputnode = pe.Node(niu.IdentityInterface(['surfaces']), name='outputnode')
+    outputnode = pe.Node(niu.IdentityInterface(['surfaces', 'surfs_meta']), name='outputnode')
 
     get_surfaces = pe.Node(nio.FreeSurferSource(), name='get_surfaces')
 
@@ -456,6 +461,9 @@ def init_gifti_surface_wf(*, name='gifti_surface_wf'):
     fs2gii = pe.MapNode(fs.MRIsConvert(out_datatype='gii'),
                         iterfield='in_file', name='fs2gii')
     fix_surfs = pe.MapNode(NormalizeSurf(), iterfield='in_file', name='fix_surfs')
+    euler = pe.MapNode(fs.EulerNumber(), iterfield='in_file', name='euler')
+    surfs_meta = pe.MapNode(niu.Function(function=_surfs_meta),
+                            iterfield=['euler'], name='surfs_meta')
 
     workflow.connect([
         (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
@@ -474,6 +482,9 @@ def init_gifti_surface_wf(*, name='gifti_surface_wf'):
         (surface_list, fs2gii, [('out', 'in_file')]),
         (fs2gii, fix_surfs, [('converted', 'in_file')]),
         (inputnode, fix_surfs, [('fsnative2t1w_xfm', 'transform_file')]),
+        (fix_surfs, euler, [('out_file', 'in_file')]),
+        (euler, surfs_meta, [('euler', 'euler')]),
+        (surfs_meta, outputnode, [('out', 'surfs_meta')]),
         (fix_surfs, outputnode, [('out_file', 'surfaces')]),
     ])
     return workflow
@@ -555,3 +566,7 @@ def _check_cw256(in_files):
     if np.any(fov > 256):
         return ['-noskullstrip', '-cw256']
     return '-noskullstrip'
+
+def _surfs_meta(euler):
+    """Creates metadata dictionary for surfaces"""
+    return {"EulerNumber": euler}

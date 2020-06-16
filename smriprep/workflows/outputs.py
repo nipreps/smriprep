@@ -199,6 +199,8 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
         subject space to T1w
     surfaces
         GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
+    surfs_meta
+        Additional metadata for GIFTI surfaces
     t1w_fs_aseg
         FreeSurfer's aseg segmentation, in native T1w space
     t1w_fs_aparc
@@ -214,7 +216,7 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
                     'anat2std_xfm', 'std2anat_xfm',
                     'std_t1w', 'std_mask', 'std_dseg', 'std_tpms',
                     't1w2fsnative_xfm', 'fsnative2t1w_xfm', 'surfaces',
-                    't1w_fs_aseg', 't1w_fs_aparc']),
+                    'surfs_meta', 't1w_fs_aseg', 't1w_fs_aparc']),
         name='inputnode')
 
     t1w_name = pe.Node(niu.Function(
@@ -360,7 +362,7 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
     ds_surfs = pe.MapNode(
         DerivativesDataSink(base_directory=output_dir, extension=".surf.gii",
                             dismiss_entities=("session",)),
-        iterfield=['in_file', 'hemi', 'suffix'], name='ds_surfs', run_without_submitting=True)
+        iterfield=['in_file', 'hemi', 'suffix', 'meta_dict'], name='ds_surfs', run_without_submitting=True)
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg',
@@ -379,7 +381,9 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
         (t1w_name, ds_fsnative_t1w, [('out', 'source_file')]),
         (lta2itk_inv, ds_fsnative_t1w, [('out_xfm', 'in_file')]),
         (inputnode, name_surfs, [('surfaces', 'in_file')]),
-        (inputnode, ds_surfs, [('surfaces', 'in_file')]),
+        (inputnode, ds_surfs, [
+            ('surfaces', 'in_file'),
+            ('surfs_meta', 'meta_dict')]),
         (t1w_name, ds_surfs, [('out', 'source_file')]),
         (name_surfs, ds_surfs, [('hemi', 'hemi'),
                                 ('suffix', 'suffix')]),
