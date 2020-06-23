@@ -26,7 +26,7 @@ from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.bids import get_outputnode_spec
-from ..utils.misc import apply_lut as _apply_bids_lut
+from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
@@ -438,16 +438,24 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     split_seg = pe.Node(niu.Function(function=_split_segments),
                         name='split_seg')
 
+    # check for older IsRunning files and remove accordingly
+    fs_isrunning = pe.Node(niu.Function(function=_fs_isRunning),
+                           overwrite=True, name='fs_isrunning')
+    fs_isrunning.inputs.logger = LOGGER
+
     # 5. Surface reconstruction (--fs-no-reconall not set)
     surface_recon_wf = init_surface_recon_wf(name='surface_recon_wf',
                                              omp_nthreads=omp_nthreads, hires=hires)
     applyrefined = pe.Node(fsl.ApplyMask(), name='applyrefined')
     workflow.connect([
+        (inputnode, fs_isrunning, [
+            ('subjects_dir', 'subjects_dir'),
+            ('subject_id', 'subject_id')]),
         (inputnode, surface_recon_wf, [
             ('t2w', 'inputnode.t2w'),
             ('flair', 'inputnode.flair'),
-            ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id')]),
+        (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (brain_extraction_wf, surface_recon_wf, [
             (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
