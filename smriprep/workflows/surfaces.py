@@ -567,6 +567,7 @@ def _check_cw256(in_files):
         return ['-noskullstrip', '-cw256']
     return '-noskullstrip'
 
+
 def _surfs_meta(euler):
     """Creates metadata dictionary for surfaces"""
     return {"EulerNumber": euler}

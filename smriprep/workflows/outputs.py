@@ -362,7 +362,8 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
     ds_surfs = pe.MapNode(
         DerivativesDataSink(base_directory=output_dir, extension=".surf.gii",
                             dismiss_entities=("session",)),
-        iterfield=['in_file', 'hemi', 'suffix', 'meta_dict'], name='ds_surfs', run_without_submitting=True)
+        iterfield=['in_file', 'hemi', 'suffix', 'meta_dict'],
+        name='ds_surfs', run_without_submitting=True)
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg',
