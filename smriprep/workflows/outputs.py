@@ -225,7 +225,7 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
 
     ds_t1w_preproc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True,
-                            dismiss_entities=("session",)),
+                            dismiss_entities=("session",), data_dtype='source'),
         name='ds_t1w_preproc', run_without_submitting=True)
     ds_t1w_preproc.inputs.SkullStripped = False
 
@@ -247,7 +247,7 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
     ds_t1w_tpms.inputs.label = tpm_labels
 
     ds_t1w_tpl = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
+        DerivativesDataSink(base_directory=output_dir, desc='preproc', data_dtype='source',
                             compress=True, dismiss_entities=("session",)),
         name='ds_t1w_tpl', run_without_submitting=True)
     ds_t1w_tpl.inputs.SkullStripped = True
