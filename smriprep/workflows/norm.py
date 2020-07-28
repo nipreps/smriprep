@@ -103,10 +103,11 @@ def init_anat_norm_wf(
         further use in downstream nodes.
 
     """
-    ntpls = len(templates)
     workflow = Workflow(name=name)
 
     if templates:
+        unique_templates = set(space.split(':', 1)[0] for space in templates)
+        ntpls = len(unique_templates)
         workflow.__desc__ = """\
 Volume-based spatial normalization to {targets} ({targets_id}) was performed through
 nonlinear registration with `antsRegistration` (ANTs {ants_ver}),
@@ -117,7 +118,7 @@ The following template{tpls} selected for spatial normalization:
             targets='%s standard space%s' % (defaultdict(
                 'several'.format, {1: 'one', 2: 'two', 3: 'three', 4: 'four'})[ntpls],
                 's' * (ntpls != 1)),
-            targets_id=', '.join(templates),
+            targets_id=', '.join(unique_templates),
             tpls=(' was', 's were')[ntpls != 1]
         )
 
@@ -198,9 +199,10 @@ The following template{tpls} selected for spatial normalization:
         (inputnode, gen_ref, [('moving_image', 'moving_image')]),
         (inputnode, std_mask, [('moving_mask', 'input_image')]),
         (split_desc, tf_select, [('name', 'template'),
-                                 ('spec', 'template_spec')]),
+                                 (('spec', _drop_res), 'template_spec')]),
         (split_desc, registration, [('name', 'template'),
-                                    ('spec', 'template_spec')]),
+                                    (('spec', _drop_res), 'template_spec')]),
+        (split_desc, gen_ref, [(('spec', _is_native), 'keep_native')]),
         (tf_select, gen_ref, [('t1w_file', 'fixed_image')]),
         (gen_ref, tpl_moving, [('out_file', 'reference_image')]),
         (gen_ref, std_mask, [('out_file', 'reference_image')]),
@@ -232,3 +234,16 @@ The following template{tpls} selected for spatial normalization:
     ])
 
     return workflow
+
+
+def _is_native(in_value):
+    return (
+        in_value.get('resolution') == 'native'
+        or in_value.get('res') == 'native'
+    )
+
+
+def _drop_res(spec):
+    for val in ('res', 'resolution'):
+        spec.pop(val, None)
+    return spec
