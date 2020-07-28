@@ -12,6 +12,7 @@ from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.ants import ImageMath
 from niworkflows.interfaces.mni import RobustMNINormalization
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
+from niworkflows.interfaces.utils import GenerateSamplingReference
 from ..interfaces.templateflow import TemplateFlowSelect, TemplateDesc
 
 
@@ -164,6 +165,8 @@ The following template{tpls} selected for spatial normalization:
     tf_select = pe.Node(TemplateFlowSelect(resolution=1 + debug),
                         name='tf_select', run_without_submitting=True)
 
+    gen_ref = pe.Node(GenerateSamplingReference(), name='gen_ref')
+
     # With the improvements from nipreps/niworkflows#342 this truncation is now necessary
     trunc_mov = pe.Node(ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
                         name='trunc_mov')
@@ -192,15 +195,17 @@ The following template{tpls} selected for spatial normalization:
             ('moving_mask', 'moving_mask'),
             ('lesion_mask', 'lesion_mask')]),
         (inputnode, tpl_moving, [('moving_image', 'input_image')]),
+        (inputnode, gen_ref, [('moving_image', 'moving_image')]),
         (inputnode, std_mask, [('moving_mask', 'input_image')]),
         (split_desc, tf_select, [('name', 'template'),
                                  ('spec', 'template_spec')]),
         (split_desc, registration, [('name', 'template'),
                                     ('spec', 'template_spec')]),
-        (tf_select, tpl_moving, [('t1w_file', 'reference_image')]),
-        (tf_select, std_mask, [('t1w_file', 'reference_image')]),
-        (tf_select, std_dseg, [('t1w_file', 'reference_image')]),
-        (tf_select, std_tpms, [('t1w_file', 'reference_image')]),
+        (tf_select, gen_ref, [('t1w_file', 'fixed_image')]),
+        (gen_ref, tpl_moving, [('out_file', 'reference_image')]),
+        (gen_ref, std_mask, [('out_file', 'reference_image')]),
+        (gen_ref, std_dseg, [('out_file', 'reference_image')]),
+        (gen_ref, std_tpms, [('out_file', 'reference_image')]),
         (trunc_mov, registration, [
             ('output_image', 'moving_image')]),
         (registration, tpl_moving, [('composite_transform', 'transforms')]),
