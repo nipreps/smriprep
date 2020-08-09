@@ -11,9 +11,13 @@ from nipype.interfaces.base import (
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
     template = traits.Str('MNI152NLin2009cAsym', mandatory=True, desc='Template ID')
     atlas = InputMultiObject(traits.Str, desc='Specify an atlas')
+    cohort = InputMultiObject(traits.Int, desc='Specify an atlas')
     resolution = InputMultiObject(traits.Int, desc='Specify a template resolution index')
     template_spec = traits.DictStrAny(
-        {'atlas': None}, usedefault=True, desc='Template specifications')
+        {'atlas': None, 'cohort': None},
+        usedefault=True,
+        desc='Template specifications'
+    )
 
 
 class _TemplateFlowSelectOutputSpec(TraitedSpec):
@@ -66,6 +70,8 @@ class TemplateFlowSelect(SimpleInterface):
             specs['resolution'] = self.inputs.resolution
         if isdefined(self.inputs.atlas):
             specs['atlas'] = self.inputs.atlas
+        if isdefined(self.inputs.cohort):
+            specs['cohort'] = self.inputs.cohort
 
         name = self.inputs.template.strip(":").split(":", 1)
         if len(name) > 1:
