@@ -246,33 +246,6 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
         name='ds_t1w_tpms', run_without_submitting=True)
     ds_t1w_tpms.inputs.label = tpm_labels
 
-    ds_t1w_tpl = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
-                            compress=True, dismiss_entities=("session",)),
-        name='ds_t1w_tpl', run_without_submitting=True)
-    ds_t1w_tpl.inputs.SkullStripped = True
-
-    ds_std_mask = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
-                            compress=True, dismiss_entities=("session",)),
-        name='ds_std_mask', run_without_submitting=True)
-    ds_std_mask.inputs.Type = 'Brain'
-
-    ds_std_dseg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='dseg',
-                            compress=True, dismiss_entities=("session",)),
-        name='ds_std_dseg', run_without_submitting=True)
-
-    ds_std_tpms = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='probseg',
-                            compress=True, dismiss_entities=("session",)),
-        name='ds_std_tpms', run_without_submitting=True)
-
-    # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
-    #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
-    #           output in the data/io_spec.json file.
-    ds_std_tpms.inputs.label = tpm_labels
-
     # Transforms
     ds_t1w_tpl_inv_warp = pe.Node(
         DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
@@ -303,24 +276,8 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
         (inputnode, ds_t1w_tpl_inv_warp, [
             ('std2anat_xfm', 'in_file'),
             (('template', _drop_cohort), 'from')]),
-        (inputnode, ds_t1w_tpl, [
-            ('std_t1w', 'in_file'),
-            (('template', _fmt_cohort), 'space')]),
-        (inputnode, ds_std_mask, [
-            ('std_mask', 'in_file'),
-            (('template', _fmt_cohort), 'space'),
-            (('template', _rawsources), 'RawSources')]),
-        (inputnode, ds_std_dseg, [(('template', _fmt_cohort), 'space')]),
-        (inputnode, ds_std_dseg, [('std_dseg', 'in_file')]),
-        (inputnode, ds_std_tpms, [
-            ('std_tpms', 'in_file'),
-            (('template', _fmt_cohort), 'space')]),
         (t1w_name, ds_t1w_tpl_warp, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpl_inv_warp, [('out', 'source_file')]),
-        (t1w_name, ds_t1w_tpl, [('out', 'source_file')]),
-        (t1w_name, ds_std_mask, [('out', 'source_file')]),
-        (t1w_name, ds_std_dseg, [('out', 'source_file')]),
-        (t1w_name, ds_std_tpms, [('out', 'source_file')]),
     ])
 
     if num_t1w > 1:
@@ -335,6 +292,52 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
             (inputnode, ds_t1w_ref_xfms, [('source_files', 'source_file'),
                                           ('t1w_ref_xfms', 'in_file')]),
         ])
+
+    # Write derivatives in standard spaces specified by --output-spaces
+    ds_t1w_tpl = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
+                            compress=True, dismiss_entities=("session",)),
+        name='ds_t1w_tpl', run_without_submitting=True)
+    ds_t1w_tpl.inputs.SkullStripped = True
+
+    ds_std_mask = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
+                            compress=True, dismiss_entities=("session",)),
+        name='ds_std_mask', run_without_submitting=True)
+    ds_std_mask.inputs.Type = 'Brain'
+
+    ds_std_dseg = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, suffix='dseg',
+                            compress=True, dismiss_entities=("session",)),
+        name='ds_std_dseg', run_without_submitting=True)
+
+    ds_std_tpms = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, suffix='probseg',
+                            compress=True, dismiss_entities=("session",)),
+        name='ds_std_tpms', run_without_submitting=True)
+
+    # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
+    #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
+    #           output in the data/io_spec.json file.
+    ds_std_tpms.inputs.label = tpm_labels
+    workflow.connect([
+        (inputnode, ds_t1w_tpl, [
+            ('std_t1w', 'in_file'),
+            (('template', _fmt_cohort), 'space')]),
+        (inputnode, ds_std_mask, [
+            ('std_mask', 'in_file'),
+            (('template', _fmt_cohort), 'space'),
+            (('template', _rawsources), 'RawSources')]),
+        (inputnode, ds_std_dseg, [(('template', _fmt_cohort), 'space')]),
+        (inputnode, ds_std_dseg, [('std_dseg', 'in_file')]),
+        (inputnode, ds_std_tpms, [
+            ('std_tpms', 'in_file'),
+            (('template', _fmt_cohort), 'space')]),
+        (t1w_name, ds_t1w_tpl, [('out', 'source_file')]),
+        (t1w_name, ds_std_mask, [('out', 'source_file')]),
+        (t1w_name, ds_std_dseg, [('out', 'source_file')]),
+        (t1w_name, ds_std_tpms, [('out', 'source_file')]),
+    ])
 
     if not freesurfer:
         return workflow
