@@ -255,19 +255,6 @@ def init_anat_derivatives_wf(
         name='ds_t1w_tpms', run_without_submitting=True)
     ds_t1w_tpms.inputs.label = tpm_labels
 
-    # Transforms
-    ds_std2t1w_xfm = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
-                            dismiss_entities=("session",)),
-        iterfield=('in_file', 'from'),
-        name='ds_std2t1w_xfm', run_without_submitting=True)
-
-    ds_t1w2std_xfm = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir, mode='image', suffix='xfm',
-                            dismiss_entities=("session",), **{'from': 'T1w'}),
-        iterfield=('in_file', 'to'),
-        name='ds_t1w2std_xfm', run_without_submitting=True)
-
     workflow.connect([
         (inputnode, t1w_name, [('source_files', 'in_files')]),
         (inputnode, raw_sources, [('source_files', 'in_files')]),
@@ -280,16 +267,32 @@ def init_anat_derivatives_wf(
         (t1w_name, ds_t1w_dseg, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpms, [('out', 'source_file')]),
         (raw_sources, ds_t1w_mask, [('out', 'RawSources')]),
-        # Template
-        (inputnode, ds_t1w2std_xfm, [
-            ('anat2std_xfm', 'in_file'),
-            (('template', _drop_cohort), 'to')]),
-        (inputnode, ds_std2t1w_xfm, [
-            ('std2anat_xfm', 'in_file'),
-            (('template', _drop_cohort), 'from')]),
-        (t1w_name, ds_t1w2std_xfm, [('out', 'source_file')]),
-        (t1w_name, ds_std2t1w_xfm, [('out', 'source_file')]),
     ])
+
+    # Transforms
+    if spaces.get_spaces(nonstandard=False, dim=(3,)):
+        ds_std2t1w_xfm = pe.MapNode(
+            DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
+                                dismiss_entities=("session",)),
+            iterfield=('in_file', 'from'),
+            name='ds_std2t1w_xfm', run_without_submitting=True)
+
+        ds_t1w2std_xfm = pe.MapNode(
+            DerivativesDataSink(base_directory=output_dir, mode='image', suffix='xfm',
+                                dismiss_entities=("session",), **{'from': 'T1w'}),
+            iterfield=('in_file', 'to'),
+            name='ds_t1w2std_xfm', run_without_submitting=True)
+
+        workflow.connect([
+            (inputnode, ds_t1w2std_xfm, [
+                ('anat2std_xfm', 'in_file'),
+                (('template', _drop_cohort), 'to')]),
+            (inputnode, ds_std2t1w_xfm, [
+                ('std2anat_xfm', 'in_file'),
+                (('template', _drop_cohort), 'from')]),
+            (t1w_name, ds_t1w2std_xfm, [('out', 'source_file')]),
+            (t1w_name, ds_std2t1w_xfm, [('out', 'source_file')]),
+        ])
 
     if num_t1w > 1:
         # Please note the dictionary unpacking to provide the from argument.
@@ -305,7 +308,7 @@ def init_anat_derivatives_wf(
         ])
 
     # Write derivatives in standard spaces specified by --output-spaces
-    if spaces.cached.references:
+    if getattr(spaces, '_cached') is not None and spaces.cached.references:
         from niworkflows.interfaces.space import SpaceDataSource
         from niworkflows.interfaces.utils import GenerateSamplingReference
         from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
