@@ -463,7 +463,7 @@ def init_gifti_surface_wf(*, name='gifti_surface_wf'):
     fix_surfs = pe.MapNode(NormalizeSurf(), iterfield='in_file', name='fix_surfs')
     euler = pe.MapNode(fs.EulerNumber(), iterfield='in_file', name='euler')
     surfs_meta = pe.MapNode(niu.Function(function=_surfs_meta),
-                            iterfield=['euler'], name='surfs_meta')
+                            iterfield=['surface_file', 'euler_number'], name='surfs_meta')
 
     workflow.connect([
         (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
@@ -483,7 +483,8 @@ def init_gifti_surface_wf(*, name='gifti_surface_wf'):
         (fs2gii, fix_surfs, [('converted', 'in_file')]),
         (inputnode, fix_surfs, [('fsnative2t1w_xfm', 'transform_file')]),
         (fix_surfs, euler, [('out_file', 'in_file')]),
-        (euler, surfs_meta, [('euler', 'euler')]),
+        (fix_surfs, surfs_meta, [('out_file', 'surface_file')]),
+        (euler, surfs_meta, [('euler', 'euler_number')]),
         (surfs_meta, outputnode, [('out', 'surfs_meta')]),
         (fix_surfs, outputnode, [('out_file', 'surfaces')]),
     ])
@@ -568,6 +569,13 @@ def _check_cw256(in_files):
     return '-noskullstrip'
 
 
-def _surfs_meta(euler):
-    """Creates metadata dictionary for surfaces"""
-    return {"EulerNumber": euler}
+def _surfs_meta(surface_file, euler_number):
+    """Creates metadata dictionary for pial, white matter surfaces"""
+    from pathlib import Path
+
+    surface = Path(surface_file).stem
+    if 'smoothwm' in surface or 'pial' in surface:
+        return {"EulerNumber": euler_number}
+    # otherwise leave undefined
+    from nipype.interfaces.base import Undefined
+    return Undefined

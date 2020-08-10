@@ -19,17 +19,13 @@ smriprep/sub-01/anat/sub-01_dseg.nii.gz
 smriprep/sub-01/anat/sub-01_from-fsnative_to-T1w_mode-image_xfm.txt
 smriprep/sub-01/anat/sub-01_from-T1w_to-fsnative_mode-image_xfm.txt
 smriprep/sub-01/anat/sub-01_hemi-L_inflated.surf.gii
-smriprep/sub-01/anat/sub-01_hemi-L_inflated.surf.json
 smriprep/sub-01/anat/sub-01_hemi-L_midthickness.surf.gii
-smriprep/sub-01/anat/sub-01_hemi-L_midthickness.surf.json
 smriprep/sub-01/anat/sub-01_hemi-L_pial.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_pial.surf.json
 smriprep/sub-01/anat/sub-01_hemi-L_smoothwm.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_smoothwm.surf.json
 smriprep/sub-01/anat/sub-01_hemi-R_inflated.surf.gii
-smriprep/sub-01/anat/sub-01_hemi-R_inflated.surf.json
 smriprep/sub-01/anat/sub-01_hemi-R_midthickness.surf.gii
-smriprep/sub-01/anat/sub-01_hemi-R_midthickness.surf.json
 smriprep/sub-01/anat/sub-01_hemi-R_pial.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_pial.surf.json
 smriprep/sub-01/anat/sub-01_hemi-R_smoothwm.surf.gii
