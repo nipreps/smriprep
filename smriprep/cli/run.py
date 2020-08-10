@@ -255,13 +255,14 @@ def build_opts(opts):
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
         from niworkflows.reports import generate_reports
-        from ..utils.bids import write_derivative_description
+        from ..utils.bids import write_derivative_description, write_bidsignore
 
         logger.log(25, 'Writing reports for participants: %s', ', '.join(subject_list))
         # Generate reports phase
         errno += generate_reports(subject_list, output_dir, run_uuid,
                                   packagename='smriprep')
         write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
+        write_bidsignore(Path(output_dir) / 'smriprep')
     sys.exit(int(errno > 0))
 
 
