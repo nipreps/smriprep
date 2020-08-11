@@ -11,7 +11,7 @@ from ..interfaces import DerivativesDataSink
 BIDS_TISSUE_ORDER = ("GM", "WM", "CSF")
 
 
-def init_anat_reports_wf(*, freesurfer, output_dir,
+def init_anat_reports_wf(*, freesurfer, num_t1w, output_dir,
                          name='anat_reports_wf'):
     """
     Set up a battery of datasinks to store reports in the right location.
@@ -20,6 +20,8 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
     ----------
     freesurfer : :obj:`bool`
         FreeSurfer was enabled
+    num_t1w : :obj:`int`
+        Number of T1w images that were averaged in the anatomical reference.
     output_dir : :obj:`str`
         Directory in which to save derivatives
     name : :obj:`str`
@@ -54,6 +56,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
     from niworkflows.interfaces.masks import ROIsPlot
     from ..interfaces.templateflow import TemplateFlowSelect
 
+    drop_session = ("session", ) if num_t1w > 1 else None
     workflow = Workflow(name=name)
 
     inputfields = ['source_file', 't1w_conform_report',
@@ -72,12 +75,12 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
 
     ds_t1w_conform_report = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='conform', datatype="figures",
-                            dismiss_entities=("session",)),
+                            dismiss_entities=drop_session),
         name='ds_t1w_conform_report', run_without_submitting=True)
 
     ds_t1w_dseg_mask_report = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='dseg', datatype="figures",
-                            dismiss_entities=("session",)),
+                            dismiss_entities=drop_session),
         name='ds_t1w_dseg_mask_report', run_without_submitting=True)
 
     workflow.connect([
@@ -103,7 +106,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
 
     ds_std_t1w_report = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='T1w', datatype="figures",
-                            dismiss_entities=("session",)),
+                            dismiss_entities=drop_session),
         name='ds_std_t1w_report', run_without_submitting=True)
 
     workflow.connect([
@@ -130,7 +133,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
         ds_recon_report = pe.Node(
             DerivativesDataSink(
                 base_directory=output_dir, desc='reconall', datatype="figures",
-                dismiss_entities=("session",)),
+                dismiss_entities=drop_session),
             name='ds_recon_report', run_without_submitting=True)
         workflow.connect([
             (inputnode, recon_report, [('subjects_dir', 'subjects_dir'),
@@ -217,6 +220,7 @@ def init_anat_derivatives_wf(
     from niworkflows.interfaces.utility import KeySelect
 
     workflow = Workflow(name=name)
+    drop_session = ("session", ) if num_t1w > 1 else None
 
     inputnode = pe.Node(
         niu.IdentityInterface(
@@ -235,24 +239,24 @@ def init_anat_derivatives_wf(
 
     ds_t1w_preproc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True,
-                            dismiss_entities=("session",)),
+                            dismiss_entities=drop_session),
         name='ds_t1w_preproc', run_without_submitting=True)
     ds_t1w_preproc.inputs.SkullStripped = False
 
     ds_t1w_mask = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
-                            compress=True, dismiss_entities=("session",)),
+                            compress=True, dismiss_entities=drop_session),
         name='ds_t1w_mask', run_without_submitting=True)
     ds_t1w_mask.inputs.Type = 'Brain'
 
     ds_t1w_dseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='dseg', compress=True,
-                            dismiss_entities=("session",)),
+                            dismiss_entities=drop_session),
         name='ds_t1w_dseg', run_without_submitting=True)
 
     ds_t1w_tpms = pe.Node(
         DerivativesDataSink(base_directory=output_dir, suffix='probseg', compress=True,
-                            dismiss_entities=("session",)),
+                            dismiss_entities=drop_session),
         name='ds_t1w_tpms', run_without_submitting=True)
     ds_t1w_tpms.inputs.label = tpm_labels
 
@@ -274,13 +278,13 @@ def init_anat_derivatives_wf(
     if spaces.get_spaces(nonstandard=False, dim=(3,)):
         ds_std2t1w_xfm = pe.MapNode(
             DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
-                                dismiss_entities=("session",)),
+                                dismiss_entities=drop_session),
             iterfield=('in_file', 'from'),
             name='ds_std2t1w_xfm', run_without_submitting=True)
 
         ds_t1w2std_xfm = pe.MapNode(
             DerivativesDataSink(base_directory=output_dir, mode='image', suffix='xfm',
-                                dismiss_entities=("session",), **{'from': 'T1w'}),
+                                dismiss_entities=drop_session, **{'from': 'T1w'}),
             iterfield=('in_file', 'to'),
             name='ds_t1w2std_xfm', run_without_submitting=True)
 
@@ -350,24 +354,24 @@ def init_anat_derivatives_wf(
 
         ds_std_t1w = pe.Node(
             DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
-                                compress=True, dismiss_entities=("session",)),
+                                compress=True, dismiss_entities=drop_session),
             name='ds_std_t1w', run_without_submitting=True)
         ds_std_t1w.inputs.SkullStripped = True
 
         ds_std_mask = pe.Node(
             DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
-                                compress=True, dismiss_entities=("session",)),
+                                compress=True, dismiss_entities=drop_session),
             name='ds_std_mask', run_without_submitting=True)
         ds_std_mask.inputs.Type = 'Brain'
 
         ds_std_dseg = pe.Node(
             DerivativesDataSink(base_directory=output_dir, suffix='dseg',
-                                compress=True, dismiss_entities=("session",)),
+                                compress=True, dismiss_entities=drop_session),
             name='ds_std_dseg', run_without_submitting=True)
 
         ds_std_tpms = pe.Node(
             DerivativesDataSink(base_directory=output_dir, suffix='probseg',
-                                compress=True, dismiss_entities=("session",)),
+                                compress=True, dismiss_entities=drop_session),
             name='ds_std_tpms', run_without_submitting=True)
 
         # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
@@ -433,28 +437,28 @@ def init_anat_derivatives_wf(
     lta2itk_inv = pe.Node(ConcatenateXFMs(), name='lta2itk_inv', run_without_submitting=True)
     ds_t1w_fsnative = pe.Node(
         DerivativesDataSink(base_directory=output_dir, mode='image', to='fsnative', suffix='xfm',
-                            extension="txt", dismiss_entities=("session",), **{'from': 'T1w'}),
+                            extension="txt", dismiss_entities=drop_session, **{'from': 'T1w'}),
         name='ds_t1w_fsnative', run_without_submitting=True)
     ds_fsnative_t1w = pe.Node(
         DerivativesDataSink(base_directory=output_dir, mode='image', to='T1w', suffix='xfm',
                             extension="txt",
-                            dismiss_entities=("session",), **{'from': 'fsnative'}),
+                            dismiss_entities=drop_session, **{'from': 'fsnative'}),
         name='ds_fsnative_t1w', run_without_submitting=True)
     # Surfaces
     name_surfs = pe.MapNode(Path2BIDS(), iterfield='in_file', name='name_surfs',
                             run_without_submitting=True)
     ds_surfs = pe.MapNode(
         DerivativesDataSink(base_directory=output_dir, extension=".surf.gii",
-                            dismiss_entities=("session",)),
+                            dismiss_entities=drop_session),
         iterfield=['in_file', 'hemi', 'suffix'], name='ds_surfs', run_without_submitting=True)
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg',
-                            compress=True, dismiss_entities=("session",)),
+                            compress=True, dismiss_entities=drop_session),
         name='ds_t1w_fsaseg', run_without_submitting=True)
     ds_t1w_fsparc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='aparcaseg', suffix='dseg',
-                            compress=True, dismiss_entities=("session",)),
+                            compress=True, dismiss_entities=drop_session),
         name='ds_t1w_fsparc', run_without_submitting=True)
 
     workflow.connect([

@@ -204,6 +204,7 @@ BIDS dataset.""".format(num_t1w=num_t1w)
     # Connect reportlets workflows
     anat_reports_wf = init_anat_reports_wf(
         freesurfer=freesurfer,
+        num_t1w=num_t1w,
         output_dir=output_dir,
     )
     workflow.connect([
