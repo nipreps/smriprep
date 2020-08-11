@@ -107,7 +107,8 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
         name='ds_std_t1w_report', run_without_submitting=True)
 
     workflow.connect([
-        (inputnode, tf_select, [('template', 'template')]),
+        (inputnode, tf_select, [(('template', _drop_cohort), 'template'),
+                                (('template', _pick_cohort), 'cohort')]),
         (inputnode, norm_rpt, [('template', 'before_label')]),
         (inputnode, norm_msk, [('std_t1w', 'after'),
                                ('std_mask', 'after_mask')]),
@@ -116,7 +117,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
         (norm_msk, norm_rpt, [('before', 'before'),
                               ('after', 'after')]),
         (inputnode, ds_std_t1w_report, [
-            (('template', _fmt_cohort), 'space'),
+            (('template', _fmt), 'space'),
             ('source_file', 'source_file')]),
         (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
     ])
@@ -286,10 +287,10 @@ def init_anat_derivatives_wf(
         workflow.connect([
             (inputnode, ds_t1w2std_xfm, [
                 ('anat2std_xfm', 'in_file'),
-                (('template', _drop_cohort), 'to')]),
+                (('template', _combine_cohort), 'to')]),
             (inputnode, ds_std2t1w_xfm, [
                 ('std2anat_xfm', 'in_file'),
-                (('template', _drop_cohort), 'from')]),
+                (('template', _combine_cohort), 'from')]),
             (t1w_name, ds_t1w2std_xfm, [('out', 'source_file')]),
             (t1w_name, ds_std2t1w_xfm, [('out', 'source_file')]),
         ])
@@ -320,6 +321,9 @@ def init_anat_derivatives_wf(
         spacesource.iterables = ('in_tuple', [
             (s.fullname, s.spec) for s in spaces.cached.get_standard(dim=(3,))
         ])
+
+        gen_tplid = pe.Node(niu.Function(function=_fmt_cohort),
+                            name="gen_tplid", run_without_submitting=True)
 
         select_xfm = pe.Node(KeySelect(
             fields=['anat2std_xfm']),
@@ -379,7 +383,9 @@ def init_anat_derivatives_wf(
             (inputnode, select_xfm, [
                 ('anat2std_xfm', 'anat2std_xfm'),
                 ('template', 'keys')]),
-            (spacesource, select_xfm, [('space', 'key')]),
+            (spacesource, gen_tplid, [('space', 'template'),
+                                      ('cohort', 'cohort')]),
+            (gen_tplid, select_xfm, [('out', 'key')]),
             (spacesource, select_tpl, [('space', 'template'),
                                        ('cohort', 'cohort'),
                                        (('resolution', _no_native), 'resolution')]),
@@ -501,7 +507,16 @@ def _drop_cohort(in_template):
     return [_drop_cohort(v) for v in in_template]
 
 
-def _fmt_cohort(in_template):
+def _pick_cohort(in_template):
+    if isinstance(in_template, str):
+        if "cohort-" not in in_template:
+            from nipype.interfaces.base import Undefined
+            return Undefined
+        return in_template.split("cohort-")[-1].split(':')[0]
+    return [_pick_cohort(v) for v in in_template]
+
+
+def _fmt(in_template):
     return in_template.replace(':', '_')
 
 
@@ -533,3 +548,19 @@ def _drop_path(in_path):
     from pathlib import Path
     from templateflow.conf import TF_HOME
     return str(Path(in_path).relative_to(TF_HOME))
+
+
+def _fmt_cohort(template, cohort=None):
+    from nipype.interfaces.base import isdefined
+    if cohort and isdefined(cohort):
+        return f"{template}:cohort-{cohort}"
+    return template
+
+
+def _combine_cohort(in_template):
+    if isinstance(in_template, str):
+        template = in_template.split(':')[0]
+        if "cohort-" not in in_template:
+            return template
+        return f"{template}+{in_template.split('cohort-')[-1].split(':')[0]}"
+    return [_combine_cohort(v) for v in in_template]
