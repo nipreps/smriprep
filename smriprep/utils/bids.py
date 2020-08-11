@@ -175,6 +175,17 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, freesurfer,
     return derivs_cache
 
 
+def write_bidsignore(deriv_dir):
+    bids_ignore = [
+        "*.html", "logs/", "figures/",  # Reports
+        "*_xfm.*",  # Unspecified transform files
+        "*.surf.gii",  # Unspecified structural outputs
+    ]
+    ignore_file = Path(deriv_dir) / ".bidsignore"
+
+    ignore_file.write_text("\n".join(bids_ignore) + "\n")
+
+
 def write_derivative_description(bids_dir, deriv_dir):
     """
     Write a ``dataset_description.json`` for the derivatives folder.
@@ -203,19 +214,19 @@ def write_derivative_description(bids_dir, deriv_dir):
     import os
     from pathlib import Path
     import json
-    from ..__about__ import __version__, __url__, DOWNLOAD_URL
+    from ..__about__ import __version__, DOWNLOAD_URL
 
     bids_dir = Path(bids_dir)
     deriv_dir = Path(deriv_dir)
     desc = {
         'Name': 'sMRIPrep - Structural MRI PREProcessing workflow',
-        'BIDSVersion': '1.1.1',
-        'PipelineDescription': {
+        'BIDSVersion': '1.4.0',
+        'DatasetType': 'derivative',
+        'GeneratedBy': [{
             'Name': 'sMRIPrep',
             'Version': __version__,
             'CodeURL': DOWNLOAD_URL,
-        },
-        'CodeURL': __url__,
+        }],
         'HowToAcknowledge':
             'Please cite our paper (https://doi.org/10.1101/306951), and '
             'include the generated citation boilerplate within the Methods '
@@ -224,31 +235,29 @@ def write_derivative_description(bids_dir, deriv_dir):
 
     # Keys that can only be set by environment
     if 'SMRIPREP_DOCKER_TAG' in os.environ:
-        desc['DockerHubContainerTag'] = os.environ['SMRIPREP_DOCKER_TAG']
+        desc['GeneratedBy'][0]['Container'] = {
+            "Type": "docker",
+            "Tag": f"poldracklab/smriprep:{os.environ['SMRIPREP_DOCKER_TAG']}"
+        }
     if 'SMRIPREP_SINGULARITY_URL' in os.environ:
-        singularity_url = os.environ['SMRIPREP_SINGULARITY_URL']
-        desc['SingularityContainerURL'] = singularity_url
-
-        singularity_md5 = _get_shub_version(singularity_url)
-        if singularity_md5 is not None and singularity_md5 is not NotImplemented:
-            desc['SingularityContainerMD5'] = _get_shub_version(singularity_url)
+        desc['GeneratedBy'][0]['Container'] = {
+            "Type": "singularity",
+            "URI": os.environ['SMRIPREP_SINGULARITY_URL'],
+        }
 
     # Keys deriving from source dataset
     orig_desc = {}
     fname = bids_dir / 'dataset_description.json'
     if fname.exists():
-        with fname.open() as fobj:
-            orig_desc = json.load(fobj)
+        orig_desc = json.loads(fname.read_text())
 
     if 'DatasetDOI' in orig_desc:
-        desc['SourceDatasetsURLs'] = ['https://doi.org/{}'.format(
-            orig_desc['DatasetDOI'])]
+        doi = orig_desc["DatasetDOI"]
+        desc['SourceDatasets'] = [{
+            'URL': f"https://doi.org/{doi}",
+            'DOI': doi,
+        }]
     if 'License' in orig_desc:
         desc['License'] = orig_desc['License']
 
-    with (deriv_dir / 'dataset_description.json').open('w') as fobj:
-        json.dump(desc, fobj, indent=4)
-
-
-def _get_shub_version(singularity_url):
-    return NotImplemented
+    Path.write_text(deriv_dir / 'dataset_description.json', json.dumps(desc, indent=4))

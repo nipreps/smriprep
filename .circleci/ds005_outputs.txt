@@ -1,4 +1,5 @@
 smriprep
+smriprep/.bidsignore
 smriprep/dataset_description.json
 smriprep/desc-aparcaseg_dseg.tsv
 smriprep/desc-aseg_dseg.tsv
