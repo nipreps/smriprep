@@ -403,7 +403,8 @@ def build_workflow(opts, retval):
         return retval
 
     output_spaces = opts.output_spaces
-    output_spaces.checkpoint()
+    if not output_spaces.is_cached():
+        output_spaces.checkpoint()
 
     logger.log(25, INIT_MSG(
         version=__version__,
