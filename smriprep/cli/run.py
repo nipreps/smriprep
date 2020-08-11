@@ -403,12 +403,16 @@ def build_workflow(opts, retval):
                                                  packagename="smriprep")
         return retval
 
+    output_spaces = opts.output_spaces
+    if not output_spaces.is_cached():
+        output_spaces.checkpoint()
+
     logger.log(25, INIT_MSG(
         version=__version__,
         bids_dir=bids_dir,
         subject_list=subject_list,
         uuid=run_uuid,
-        spaces=opts.output_spaces)
+        spaces=output_spaces)
     )
 
     # Build main workflow
@@ -427,7 +431,7 @@ def build_workflow(opts, retval):
         skull_strip_fixed_seed=opts.skull_strip_fixed_seed,
         skull_strip_mode=opts.skull_strip_mode,
         skull_strip_template=opts.skull_strip_template[0],
-        spaces=opts.output_spaces,
+        spaces=output_spaces,
         subject_list=subject_list,
         work_dir=str(work_dir),
         bids_filters=bids_filters,

@@ -107,7 +107,8 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
         name='ds_std_t1w_report', run_without_submitting=True)
 
     workflow.connect([
-        (inputnode, tf_select, [('template', 'template')]),
+        (inputnode, tf_select, [(('template', _drop_cohort), 'template'),
+                                (('template', _pick_cohort), 'cohort')]),
         (inputnode, norm_rpt, [('template', 'before_label')]),
         (inputnode, norm_msk, [('std_t1w', 'after'),
                                ('std_mask', 'after_mask')]),
@@ -116,7 +117,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
         (norm_msk, norm_rpt, [('before', 'before'),
                               ('after', 'after')]),
         (inputnode, ds_std_t1w_report, [
-            (('template', _fmt_cohort), 'space'),
+            (('template', _fmt), 'space'),
             ('source_file', 'source_file')]),
         (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
     ])
@@ -141,8 +142,16 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
     return workflow
 
 
-def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
-                             name='anat_derivatives_wf', tpm_labels=BIDS_TISSUE_ORDER):
+def init_anat_derivatives_wf(
+    *,
+    bids_root,
+    freesurfer,
+    num_t1w,
+    output_dir,
+    spaces,
+    name='anat_derivatives_wf',
+    tpm_labels=BIDS_TISSUE_ORDER
+):
     """
     Set up a battery of datasinks to store derivatives in the right location.
 
@@ -205,6 +214,8 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
         FreeSurfer's aparc+aseg segmentation, in native T1w space
 
     """
+    from niworkflows.interfaces.utility import KeySelect
+
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
@@ -212,7 +223,6 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
             fields=['template', 'source_files', 't1w_ref_xfms',
                     't1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',
                     'anat2std_xfm', 'std2anat_xfm',
-                    'std_t1w', 'std_mask', 'std_dseg', 'std_tpms',
                     't1w2fsnative_xfm', 'fsnative2t1w_xfm', 'surfaces',
                     't1w_fs_aseg', 't1w_fs_aparc']),
         name='inputnode')
@@ -246,44 +256,6 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
         name='ds_t1w_tpms', run_without_submitting=True)
     ds_t1w_tpms.inputs.label = tpm_labels
 
-    ds_t1w_tpl = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
-                            compress=True, dismiss_entities=("session",)),
-        name='ds_t1w_tpl', run_without_submitting=True)
-    ds_t1w_tpl.inputs.SkullStripped = True
-
-    ds_std_mask = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
-                            compress=True, dismiss_entities=("session",)),
-        name='ds_std_mask', run_without_submitting=True)
-    ds_std_mask.inputs.Type = 'Brain'
-
-    ds_std_dseg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='dseg',
-                            compress=True, dismiss_entities=("session",)),
-        name='ds_std_dseg', run_without_submitting=True)
-
-    ds_std_tpms = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix='probseg',
-                            compress=True, dismiss_entities=("session",)),
-        name='ds_std_tpms', run_without_submitting=True)
-
-    # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
-    #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
-    #           output in the data/io_spec.json file.
-    ds_std_tpms.inputs.label = tpm_labels
-
-    # Transforms
-    ds_t1w_tpl_inv_warp = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
-                            dismiss_entities=("session",)),
-        name='ds_t1w_tpl_inv_warp', run_without_submitting=True)
-
-    ds_t1w_tpl_warp = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, mode='image', suffix='xfm',
-                            dismiss_entities=("session",), **{'from': 'T1w'}),
-        name='ds_t1w_tpl_warp', run_without_submitting=True)
-
     workflow.connect([
         (inputnode, t1w_name, [('source_files', 'in_files')]),
         (inputnode, raw_sources, [('source_files', 'in_files')]),
@@ -296,32 +268,32 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
         (t1w_name, ds_t1w_dseg, [('out', 'source_file')]),
         (t1w_name, ds_t1w_tpms, [('out', 'source_file')]),
         (raw_sources, ds_t1w_mask, [('out', 'RawSources')]),
-        # Template
-        (inputnode, ds_t1w_tpl_warp, [
-            ('anat2std_xfm', 'in_file'),
-            (('template', _drop_cohort), 'to')]),
-        (inputnode, ds_t1w_tpl_inv_warp, [
-            ('std2anat_xfm', 'in_file'),
-            (('template', _drop_cohort), 'from')]),
-        (inputnode, ds_t1w_tpl, [
-            ('std_t1w', 'in_file'),
-            (('template', _fmt_cohort), 'space')]),
-        (inputnode, ds_std_mask, [
-            ('std_mask', 'in_file'),
-            (('template', _fmt_cohort), 'space'),
-            (('template', _rawsources), 'RawSources')]),
-        (inputnode, ds_std_dseg, [(('template', _fmt_cohort), 'space')]),
-        (inputnode, ds_std_dseg, [('std_dseg', 'in_file')]),
-        (inputnode, ds_std_tpms, [
-            ('std_tpms', 'in_file'),
-            (('template', _fmt_cohort), 'space')]),
-        (t1w_name, ds_t1w_tpl_warp, [('out', 'source_file')]),
-        (t1w_name, ds_t1w_tpl_inv_warp, [('out', 'source_file')]),
-        (t1w_name, ds_t1w_tpl, [('out', 'source_file')]),
-        (t1w_name, ds_std_mask, [('out', 'source_file')]),
-        (t1w_name, ds_std_dseg, [('out', 'source_file')]),
-        (t1w_name, ds_std_tpms, [('out', 'source_file')]),
     ])
+
+    # Transforms
+    if spaces.get_spaces(nonstandard=False, dim=(3,)):
+        ds_std2t1w_xfm = pe.MapNode(
+            DerivativesDataSink(base_directory=output_dir, to='T1w', mode='image', suffix='xfm',
+                                dismiss_entities=("session",)),
+            iterfield=('in_file', 'from'),
+            name='ds_std2t1w_xfm', run_without_submitting=True)
+
+        ds_t1w2std_xfm = pe.MapNode(
+            DerivativesDataSink(base_directory=output_dir, mode='image', suffix='xfm',
+                                dismiss_entities=("session",), **{'from': 'T1w'}),
+            iterfield=('in_file', 'to'),
+            name='ds_t1w2std_xfm', run_without_submitting=True)
+
+        workflow.connect([
+            (inputnode, ds_t1w2std_xfm, [
+                ('anat2std_xfm', 'in_file'),
+                (('template', _combine_cohort), 'to')]),
+            (inputnode, ds_std2t1w_xfm, [
+                ('std2anat_xfm', 'in_file'),
+                (('template', _combine_cohort), 'from')]),
+            (t1w_name, ds_t1w2std_xfm, [('out', 'source_file')]),
+            (t1w_name, ds_std2t1w_xfm, [('out', 'source_file')]),
+        ])
 
     if num_t1w > 1:
         # Please note the dictionary unpacking to provide the from argument.
@@ -335,6 +307,120 @@ def init_anat_derivatives_wf(*, bids_root, freesurfer, num_t1w, output_dir,
             (inputnode, ds_t1w_ref_xfms, [('source_files', 'source_file'),
                                           ('t1w_ref_xfms', 'in_file')]),
         ])
+
+    # Write derivatives in standard spaces specified by --output-spaces
+    if getattr(spaces, '_cached') is not None and spaces.cached.references:
+        from niworkflows.interfaces.space import SpaceDataSource
+        from niworkflows.interfaces.utils import GenerateSamplingReference
+        from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
+
+        from ..interfaces.templateflow import TemplateFlowSelect
+
+        spacesource = pe.Node(SpaceDataSource(),
+                              name='spacesource', run_without_submitting=True)
+        spacesource.iterables = ('in_tuple', [
+            (s.fullname, s.spec) for s in spaces.cached.get_standard(dim=(3,))
+        ])
+
+        gen_tplid = pe.Node(niu.Function(function=_fmt_cohort),
+                            name="gen_tplid", run_without_submitting=True)
+
+        select_xfm = pe.Node(KeySelect(
+            fields=['anat2std_xfm']),
+            name='select_xfm', run_without_submitting=True)
+        select_tpl = pe.Node(TemplateFlowSelect(), name='select_tpl', run_without_submitting=True)
+
+        gen_ref = pe.Node(GenerateSamplingReference(), name='gen_ref', mem_gb=0.01)
+
+        # Resample T1w-space inputs
+        anat2std_t1w = pe.Node(ApplyTransforms(
+            dimension=3, default_value=0, float=True,
+            interpolation='LanczosWindowedSinc'), name='anat2std_t1w')
+
+        anat2std_mask = pe.Node(ApplyTransforms(
+            interpolation='MultiLabel'), name='anat2std_mask'
+        )
+        anat2std_dseg = pe.Node(ApplyTransforms(
+            interpolation='MultiLabel'), name='anat2std_dseg'
+        )
+        anat2std_tpms = pe.MapNode(ApplyTransforms(
+            dimension=3, default_value=0, float=True, interpolation='Gaussian'),
+            iterfield=['input_image'], name='anat2std_tpms'
+        )
+
+        ds_std_t1w = pe.Node(
+            DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
+                                compress=True, dismiss_entities=("session",)),
+            name='ds_std_t1w', run_without_submitting=True)
+        ds_std_t1w.inputs.SkullStripped = True
+
+        ds_std_mask = pe.Node(
+            DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
+                                compress=True, dismiss_entities=("session",)),
+            name='ds_std_mask', run_without_submitting=True)
+        ds_std_mask.inputs.Type = 'Brain'
+
+        ds_std_dseg = pe.Node(
+            DerivativesDataSink(base_directory=output_dir, suffix='dseg',
+                                compress=True, dismiss_entities=("session",)),
+            name='ds_std_dseg', run_without_submitting=True)
+
+        ds_std_tpms = pe.Node(
+            DerivativesDataSink(base_directory=output_dir, suffix='probseg',
+                                compress=True, dismiss_entities=("session",)),
+            name='ds_std_tpms', run_without_submitting=True)
+
+        # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
+        #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
+        #           output in the data/io_spec.json file.
+        ds_std_tpms.inputs.label = tpm_labels
+        workflow.connect([
+            (inputnode, anat2std_t1w, [('t1w_preproc', 'input_image')]),
+            (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
+            (inputnode, anat2std_dseg, [('t1w_dseg', 'input_image')]),
+            (inputnode, anat2std_tpms, [('t1w_tpms', 'input_image')]),
+            (inputnode, gen_ref, [('t1w_preproc', 'moving_image')]),
+            (inputnode, select_xfm, [
+                ('anat2std_xfm', 'anat2std_xfm'),
+                ('template', 'keys')]),
+            (spacesource, gen_tplid, [('space', 'template'),
+                                      ('cohort', 'cohort')]),
+            (gen_tplid, select_xfm, [('out', 'key')]),
+            (spacesource, select_tpl, [('space', 'template'),
+                                       ('cohort', 'cohort'),
+                                       (('resolution', _no_native), 'resolution')]),
+            (spacesource, gen_ref, [(('resolution', _is_native), 'keep_native')]),
+            (select_tpl, gen_ref, [('t1w_file', 'fixed_image')]),
+            (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
+            (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
+            (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
+            (anat2std_tpms, ds_std_tpms, [('output_image', 'in_file')]),
+            (select_tpl, ds_std_mask, [(('brain_mask', _drop_path), 'RawSources')]),
+        ])
+
+        workflow.connect(
+            # Connect apply transforms nodes
+            [
+                (gen_ref, n, [('out_file', 'reference_image')])
+                for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
+            ]
+            + [
+                (select_xfm, n, [('anat2std_xfm', 'transforms')])
+                for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
+            ]
+            # Connect the source_file input of these datasinks
+            + [
+                (t1w_name, n, [('out', 'source_file')])
+                for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
+            ]
+            # Connect the space input of these datasinks
+            + [
+                (spacesource, n, [
+                    ('space', 'space'), ('cohort', 'cohort'), ('resolution', 'resolution')
+                ])
+                for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
+            ]
+        )
 
     if not freesurfer:
         return workflow
@@ -399,12 +485,6 @@ def _bids_relative(in_files, bids_root):
     return in_files
 
 
-def _rawsources(template):
-    if isinstance(template, tuple):
-        template = template[0]
-    return 'tpl-{0}/tpl-{0}_desc-brain_mask.nii.gz'.format(template)
-
-
 def _rpt_masks(mask_file, before, after, after_mask=None):
     from os.path import abspath
     import nibabel as nb
@@ -422,10 +502,21 @@ def _rpt_masks(mask_file, before, after, after_mask=None):
 
 
 def _drop_cohort(in_template):
-    return in_template.split(':')[0]
+    if isinstance(in_template, str):
+        return in_template.split(':')[0]
+    return [_drop_cohort(v) for v in in_template]
 
 
-def _fmt_cohort(in_template):
+def _pick_cohort(in_template):
+    if isinstance(in_template, str):
+        if "cohort-" not in in_template:
+            from nipype.interfaces.base import Undefined
+            return Undefined
+        return in_template.split("cohort-")[-1].split(':')[0]
+    return [_pick_cohort(v) for v in in_template]
+
+
+def _fmt(in_template):
     return in_template.replace(':', '_')
 
 
@@ -440,3 +531,36 @@ def _empty_report(in_file=None):
                 <h4 class="elem-title">A previously computed T1w template was provided.</h4>
 """)
     return str(out_file)
+
+
+def _is_native(value):
+    return value == 'native'
+
+
+def _no_native(value):
+    try:
+        return int(value)
+    except Exception:
+        return 1
+
+
+def _drop_path(in_path):
+    from pathlib import Path
+    from templateflow.conf import TF_HOME
+    return str(Path(in_path).relative_to(TF_HOME))
+
+
+def _fmt_cohort(template, cohort=None):
+    from nipype.interfaces.base import isdefined
+    if cohort and isdefined(cohort):
+        return f"{template}:cohort-{cohort}"
+    return template
+
+
+def _combine_cohort(in_template):
+    if isinstance(in_template, str):
+        template = in_template.split(':')[0]
+        if "cohort-" not in in_template:
+            return template
+        return f"{template}+{in_template.split('cohort-')[-1].split(':')[0]}"
+    return [_combine_cohort(v) for v in in_template]
