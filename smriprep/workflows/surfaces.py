@@ -576,6 +576,5 @@ def _surfs_meta(surface_file, euler_number):
     surface = Path(surface_file).stem
     if 'smoothwm' in surface or 'pial' in surface:
         return {"EulerNumber": euler_number}
-    # otherwise leave undefined
-    from nipype.interfaces.base import Undefined
-    return Undefined
+    # otherwise return empty dictionary
+    return {}
