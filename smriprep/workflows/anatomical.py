@@ -229,8 +229,7 @@ Anatomical preprocessing was reused from previously existing derivative objects.
         for field, value in existing_derivatives.items():
             setattr(outputnode.inputs, field, value)
 
-        anat_reports_wf.inputs.inputnode.source_file = fix_multi_T1w_source_name(
-            [existing_derivatives['t1w_preproc']])
+        anat_reports_wf.inputs.inputnode.source_file = [existing_derivatives['t1w_preproc']]
 
         stdselect = pe.Node(KeySelect(
             fields=['std_preproc', 'std_mask'], keys=templates),
@@ -371,8 +370,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # Connect reportlets
     workflow.connect([
-        (inputnode, anat_reports_wf, [
-            (('t1w', fix_multi_T1w_source_name), 'inputnode.source_file')]),
+        (inputnode, anat_reports_wf, [('t1w', 'inputnode.source_file')]),
         (outputnode, anat_reports_wf, [
             ('std_preproc', 'inputnode.std_t1w'),
             ('std_mask', 'inputnode.std_mask'),
