@@ -5,11 +5,11 @@ from collections import defaultdict
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 
+from nipype.interfaces import ants
 from nipype.interfaces.ants.base import Info as ANTsInfo
 
 from templateflow.api import get_metadata
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.ants import ImageMath
 from niworkflows.interfaces.mni import RobustMNINormalization
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from ..interfaces.templateflow import TemplateFlowSelect, TemplateDesc
@@ -165,7 +165,7 @@ The following template{tpls} selected for spatial normalization:
                         name='tf_select', run_without_submitting=True)
 
     # With the improvements from nipreps/niworkflows#342 this truncation is now necessary
-    trunc_mov = pe.Node(ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
+    trunc_mov = pe.Node(ants.ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
                         name='trunc_mov')
 
     registration = pe.Node(RobustMNINormalization(
