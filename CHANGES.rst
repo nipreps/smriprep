@@ -1,3 +1,17 @@
+0.7.0 (TBD)
+===========
+Minor release in preparation for fMRIPrep 20.2.x LTS series.
+Includes minor features and bug-fixes over the previous 0.6 series.
+
+  * FIX: Generate anatomical conversions with full spec from ``--output-spaces`` (#219)
+  * FIX: Ordering of ``probseg`` maps with anatomical *fast-track* (#214)
+  * FIX: Progress partial volume maps instead of posteriors (FSL FAST) (#213)
+  * ENH: Retain session info when multi-session data are not averaged (#225)
+  * ENH: Update derivatives description, ``.bidsignore`` for derivatives (#220)
+  * ENH: Add ``--no-tty`` option to Docker wrapper (#216)
+  * ENH: Add function to handle stale ``IsRunning`` files (#207)
+  * MAINT: Make workflows keyword-only (PEP 3102) (#208)
+
 0.6.2 (June 9, 2020)
 ====================
 Bug-fix release addressing minor problems related to FreeSurfer handling.
