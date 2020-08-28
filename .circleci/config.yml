@@ -367,10 +367,10 @@ jobs:
             - /tmp/docker
       - restore_cache:
           keys:
-            - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v6-{{ .Branch }}
-            - ds005-anat-v6-master
-            - ds005-anat-v6-
+            - ds005-anat-v7-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v7-{{ .Branch }}
+            - ds005-anat-v7-master
+            - ds005-anat-v7-
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -406,10 +406,10 @@ jobs:
             docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - restore_cache:
           keys:
-            - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v6-{{ .Branch }}
-            - ds005-anat-v6-master
-            - ds005-anat-v6-
+            - ds005-anat-v7-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v7-{{ .Branch }}
+            - ds005-anat-v7-master
+            - ds005-anat-v7-
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -466,7 +466,7 @@ jobs:
             rm -rf /tmp/ds005/work/reportlets
             rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
       - save_cache:
-         key: ds005-anat-v6-{{ .Branch }}-{{ epoch }}
+         key: ds005-anat-v7-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/ds005/work
 
@@ -564,10 +564,10 @@ jobs:
             docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - restore_cache:
           keys:
-            - ds054-anat-v6-{{ .Branch }}-{{ epoch }}
-            - ds054-anat-v6-{{ .Branch }}
-            - ds054-anat-v6-master
-            - ds054-anat-v6-
+            - ds054-anat-v7-{{ .Branch }}-{{ epoch }}
+            - ds054-anat-v7-{{ .Branch }}
+            - ds054-anat-v7-master
+            - ds054-anat-v7-
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -625,7 +625,7 @@ jobs:
             sudo chown $(id -un):$(id -gn) -R /tmp/ds054
             rm -rf /tmp/ds054/work/reportlets
       - save_cache:
-         key: ds054-anat-v6-{{ .Branch }}-{{ epoch }}
+         key: ds054-anat-v7-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/ds054/work
       - run:
