@@ -1,5 +1,5 @@
-0.7.0 (TBD)
-===========
+0.7.0 (September 27, 2020)
+==========================
 Minor release in preparation for *fMRIPrep* 20.2.x LTS series.
 Includes minor features and bug-fixes over the previous 0.6 series.
 
