@@ -126,7 +126,7 @@ jobs:
 
   get_data:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /home/circleci/data
     steps:
       - restore_cache:
@@ -271,7 +271,7 @@ jobs:
 
   test_deploy_pypi:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/src/smriprep
     steps:
       - checkout
@@ -660,9 +660,10 @@ jobs:
       - store_artifacts:
           path: /tmp/ds054/derivatives
           destination: fasttrack-derivatives
+
   build_docs:
     docker:
-      - image: python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/gh-pages
     environment:
       - FSLOUTPUTTYPE: NIFTI
@@ -718,7 +719,7 @@ jobs:
 
   deploy_pypi:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/src/smriprep
     steps:
       - checkout
