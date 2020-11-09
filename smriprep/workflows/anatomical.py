@@ -26,6 +26,7 @@ from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.bids import get_outputnode_spec
+from ..utils.images import is_skull_stripped
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
@@ -291,20 +292,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # 2. Brain-extraction and INU (bias field) correction.
     if skull_strip_mode == 'auto':
-        import numpy as np
-        import nibabel as nb
-
-        def _is_skull_stripped(imgs):
-            """Check if T1w images are skull-stripped."""
-            def _check_img(img):
-                data = np.abs(nb.load(img).get_fdata(dtype=np.float32))
-                sides = [data[0, :, :], data[:, 0, :], data[:, :, 0],
-                         data[-1, :, :], data[:, -1, :], data[:, :, -1]]
-                return sum(np.sum(side) < 10 for side in sides) > 3
-
-            return all(_check_img(img) for img in imgs)
-
-        skull_strip_mode = _is_skull_stripped(t1w)
+        skull_strip_mode = all(is_skull_stripped(img) for img in t1w)
 
     if skull_strip_mode in (True, 'skip'):
         brain_extraction_wf = init_n4_only_wf(
