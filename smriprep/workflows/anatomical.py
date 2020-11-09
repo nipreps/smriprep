@@ -298,10 +298,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             """Check if T1w images are skull-stripped."""
             def _check_img(img):
                 data = np.abs(nb.load(img).get_fdata(dtype=np.float32))
-                sidevals = data[0, :, :].sum() + data[-1, :, :].sum() + \
-                    data[:, 0, :].sum() + data[:, -1, :].sum() + \
-                    data[:, :, 0].sum() + data[:, :, -1].sum()
-                return sidevals < 10
+                sides = [data[0, :, :], data[:, 0, :], data[:, :, 0],
+                         data[-1, :, :], data[:, -1, :], data[:, :, -1]]
+                return sum(np.sum(side) < 10 for side in sides) > 3
 
             return all(_check_img(img) for img in imgs)
 
