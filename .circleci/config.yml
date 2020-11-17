@@ -36,7 +36,7 @@ version: 2
 jobs:
   build:
     machine:
-      image: circleci/classic:201711-01
+      image: ubuntu-1604:202007-01
     working_directory: /tmp/src/smriprep
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
@@ -50,9 +50,25 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+            - /tmp/images
       - run:
-          name: Set-up a Docker registry
+          name: Docker authentication
           command: |
+            if [[ -n $DOCKER_PASS ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            fi
+      - run:
+          name: Set up Docker registry
+          command: |
+            if [[ -f /tmp/images/registry.tar.gz ]]; then
+              echo "Loading saved registry image"
+              docker load < /tmp/images/registry.tar.gz
+            else
+              echo "Pulling registry image from DockerHub"
+              docker pull registry:2
+              mkdir -p /tmp/images
+              docker save registry:2 | gzip > /tmp/images/registry.tar.gz
+            fi
             docker run -d -p 5000:5000 --restart=always --name=registry \
                 -v /tmp/docker:/var/lib/registry registry:2
       - run:
@@ -117,6 +133,7 @@ jobs:
          key: build-v2-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/docker
+            - /tmp/images
 
       - persist_to_workspace:
           root: /tmp
@@ -125,7 +142,7 @@ jobs:
 
   get_data:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /home/circleci/data
     steps:
       - restore_cache:
@@ -217,7 +234,7 @@ jobs:
 
   test_wrapper:
     machine:
-      image: circleci/classic:201808-01
+      image: ubuntu-1604:202007-01
     steps:
       - attach_workspace:
           at: /tmp
@@ -229,9 +246,23 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+            - /tmp/images
       - run:
-          name: Set-up a Docker registry
+          name: Docker authentication
           command: |
+            if [[ -n $DOCKER_PASS ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            fi
+      - run:
+          name: Set up Docker registry
+          command: |
+            if [[ -f /tmp/images/registry.tar.gz ]]; then
+              echo "Loading saved registry image"
+              docker load < /tmp/images/registry.tar.gz
+            else
+              echo "Pulling registry image from DockerHub"
+              docker pull registry:2
+            fi
             docker run -d -p 5000:5000 --restart=always --name=registry \
                 -v /tmp/docker:/var/lib/registry registry:2
       - run:
@@ -270,7 +301,7 @@ jobs:
 
   test_deploy_pypi:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/src/smriprep
     steps:
       - checkout
@@ -341,7 +372,7 @@ jobs:
 
   ds005:
     machine:
-      image: circleci/classic:201711-01
+      image: ubuntu-1604:202007-01
     working_directory: /tmp/ds005
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
@@ -364,6 +395,7 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+            - /tmp/images
       - run:
           name: Setting up test
           command: |
@@ -382,8 +414,21 @@ jobs:
               python -m pip install -U codecov
               pyenv rehash
       - run:
-          name: Set-up a Docker registry
+          name: Docker authentication
           command: |
+            if [[ -n $DOCKER_PASS ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            fi
+      - run:
+          name: Set up Docker registry
+          command: |
+            if [[ -f /tmp/images/registry.tar.gz ]]; then
+              echo "Loading saved registry image"
+              docker load < /tmp/images/registry.tar.gz
+            else
+              echo "Pulling registry image from DockerHub"
+              docker pull registry:2
+            fi
             docker run -d -p 5000:5000 --restart=always --name=registry \
                 -v /tmp/docker:/var/lib/registry registry:2
       - run:
@@ -504,7 +549,7 @@ jobs:
 
   ds054:
     machine:
-      image: circleci/classic:201711-01
+      image: ubuntu-1604:202007-01
     working_directory: /tmp/ds054
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
@@ -527,6 +572,7 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+            - /tmp/images
       - run:
           name: Setting up test
           command: |
@@ -545,8 +591,21 @@ jobs:
               python -m pip install -U codecov
               pyenv rehash
       - run:
-          name: Set-up a Docker registry
+          name: Docker authentication
           command: |
+            if [[ -n $DOCKER_PASS ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            fi
+      - run:
+          name: Set up Docker registry
+          command: |
+            if [[ -f /tmp/images/registry.tar.gz ]]; then
+              echo "Loading saved registry image"
+              docker load < /tmp/images/registry.tar.gz
+            else
+              echo "Pulling registry image from DockerHub"
+              docker pull registry:2
+            fi
             docker run -d -p 5000:5000 --restart=always --name=registry \
                 -v /tmp/docker:/var/lib/registry registry:2
       - run:
@@ -662,7 +721,7 @@ jobs:
 
   build_docs:
     docker:
-      - image: python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/gh-pages
     environment:
       - FSLOUTPUTTYPE: NIFTI
@@ -671,7 +730,7 @@ jobs:
       - checkout
       - run:
           name: Install Graphviz
-          command: apt update && apt -y install graphviz
+          command: sudo apt update && sudo apt -y install graphviz
       - run:
           name: Install deps
           command: pip install -r docs/requirements.txt
@@ -690,30 +749,34 @@ jobs:
               echo "Not a tag or master branch - skipping versioned docs."
               circleci step halt
             fi
+      - run:
+          name: Clean-up unversioned docs
+          command: make -C docs clean
       - restore_cache:
           keys:
-            - docs-v1-{{ .Branch }}-{{ .Revision }}
-            - docs-v1-{{ .Branch }}-
-            - docs-v1-master
-            - docs-v1-
+            - docs-v2-{{ .Branch }}-{{ .Revision }}
+            - docs-v2-{{ .Branch }}-
+            - docs-v2-master
+            - docs-v2-
           paths:
-            - ./docs/_build/_html
+            - ./docs/_build
       - run:
           name: Generate Versioned Docs
           command: make -f ./docs/Makefile versioned CURBRANCH=${CIRCLE_TAG:-$CIRCLE_BRANCH}
       - save_cache:
-          key: docs-v1-{{ .Branch }}-{{ .Revision }}
+          key: docs-v2-{{ .Branch }}-{{ .Revision }}
           paths:
-            - ./docs/_build/_html
+            - ./docs/_build
       - persist_to_workspace:
           root: docs/_build
           paths: html
       - store_artifacts:
           path: ./docs/_build/html
+          destination: versioned
 
   deploy_pypi:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/src/smriprep
     steps:
       - checkout
@@ -746,7 +809,7 @@ jobs:
 
   deploy_docker:
     machine:
-      image: circleci/classic:201711-01
+      image: ubuntu-1604:202007-01
     working_directory: /tmp/src/smriprep
     steps:
       - restore_cache:
