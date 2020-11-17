@@ -180,7 +180,8 @@ jobs:
           paths:
             - /tmp/data
             - /tmp/ds005/freesurfer
-      - checkout
+      - checkout:
+          path: /tmp/src/smriprep
       - restore_cache:
           keys:
             - templateflow-v1-{{ .Branch }}-{{ epoch }}
