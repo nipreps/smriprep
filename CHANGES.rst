@@ -1,3 +1,19 @@
+0.7.1 (November 18, 2020)
+=========================
+Bug-fix release in the 0.7.x series.
+
+All releases since 0.4.0 have incorrectly labelled T1w images normalized to a
+template space as SkullStripped in the corresponding JSON sidecar files.
+This affects 0.4.x through 0.4.2, 0.5.x through 0.5.3, 0.6.x through 0.6.2, and
+0.7.0. Prior to 0.4.0, the images were actually skull-stripped, and the metadata
+labels were not incorrect.
+
+For backwards compatibility reasons, any future releases of these series will
+have SkullStripped set to False. In 0.8 and above, the images will be skull-stripped
+and the metadata set back to True.
+
+* CI: CircleCI housekeeping (#234, #235)
+
 0.7.0 (September 27, 2020)
 ==========================
 Minor release in preparation for *fMRIPrep* 20.2.x LTS series.
