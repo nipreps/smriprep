@@ -153,7 +153,7 @@ def init_anat_derivatives_wf(bids_root, freesurfer, num_t1w, output_dir,
         DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
                             compress=True, dismiss_entities=("session",)),
         name='ds_t1w_tpl', run_without_submitting=True)
-    ds_t1w_tpl.inputs.SkullStripped = True
+    ds_t1w_tpl.inputs.SkullStripped = False
 
     ds_std_mask = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',

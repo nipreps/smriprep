@@ -223,7 +223,7 @@ apidoc_extra_args = ['--module-first', '-d 1', '-T']
 # Options for github links
 # The following is used by sphinx.ext.linkcode to provide links to github
 linkcode_resolve = make_linkcode_resolve('smriprep',
-                                         'https://github.com/poldracklab/'
+                                         'https://github.com/nipreps/'
                                          'smriprep/blob/{revision}/'
                                          '{package}/{path}#L{lineno}')
 

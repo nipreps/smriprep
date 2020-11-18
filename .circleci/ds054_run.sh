@@ -9,7 +9,7 @@ docker run --rm -it -e FMRIPREP_DEV=1 -u $(id -u) \
     -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
     -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
     --entrypoint=coverage \
-    poldracklab/smriprep:latest \
+    nipreps/smriprep:latest \
     run -m smriprep \
     /tmp/data/ds054 /tmp/ds054/derivatives participant \
     -w /tmp/ds054/work --fs-no-reconall --sloppy \

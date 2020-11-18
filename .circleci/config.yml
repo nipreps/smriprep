@@ -6,13 +6,13 @@ docs_deploy: &docs
     - run:
         name: Check whether this is the original repo
         command: |
-          if [[ "$CIRCLE_PROJECT_USERNAME" != "poldracklab" ]]; then
-              echo "Not in poldracklab/sdcflows - skipping docs deploy."
+          if [[ "$CIRCLE_PROJECT_USERNAME" != "nipreps" ]]; then
+              echo "Not in nipreps/smriprep - skipping docs deploy."
               circleci step halt
           fi
     - add_ssh_keys:
         fingerprints:
-          - "45:a6:cb:50:27:5a:c7:39:4c:1f:aa:2c:0f:87:8a:a6"
+          - "80:ec:ae:e8:92:1f:88:83:2a:e0:ee:35:39:79:85:88"
     - run:
         name: Install gh-pages tool
         command: |
@@ -21,8 +21,8 @@ docs_deploy: &docs
     - run:
         name: Set git settings
         command: |
-          git config user.email "rosswilsonblair+smriprep-circleci@gmail.com"
-          git config user.name "ci-build"
+          git config user.email "nipreps@gmail.com"
+          git config user.name "nipreps-bot"
     - attach_workspace:
         at: docs/_build
     - run:
@@ -36,7 +36,7 @@ version: 2
 jobs:
   build:
     machine:
-      image: circleci/classic:201711-01
+      image: ubuntu-1604:202007-01
     working_directory: /tmp/src/smriprep
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
@@ -50,9 +50,25 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+            - /tmp/images
       - run:
-          name: Set-up a Docker registry
+          name: Docker authentication
           command: |
+            if [[ -n $DOCKER_PASS ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            fi
+      - run:
+          name: Set up Docker registry
+          command: |
+            if [[ -f /tmp/images/registry.tar.gz ]]; then
+              echo "Loading saved registry image"
+              docker load < /tmp/images/registry.tar.gz
+            else
+              echo "Pulling registry image from DockerHub"
+              docker pull registry:2
+              mkdir -p /tmp/images
+              docker save registry:2 | gzip > /tmp/images/registry.tar.gz
+            fi
             docker run -d -p 5000:5000 --restart=always --name=registry \
                 -v /tmp/docker:/var/lib/registry registry:2
       - run:
@@ -66,14 +82,14 @@ jobs:
                 echo "Pulling from local registry"
                 docker tag localhost:5000/ubuntu ubuntu:xenial-20161213
                 docker pull localhost:5000/smriprep
-                docker tag localhost:5000/smriprep poldracklab/smriprep:latest
-                docker tag localhost:5000/smriprep poldracklab/smriprep
+                docker tag localhost:5000/smriprep nipreps/smriprep:latest
+                docker tag localhost:5000/smriprep nipreps/smriprep
             else
                 echo "Pulling from Docker Hub"
                 docker pull ubuntu:xenial-20161213
                 docker tag ubuntu:xenial-20161213 localhost:5000/ubuntu
                 docker push localhost:5000/ubuntu
-                docker pull poldracklab/smriprep:latest
+                docker pull nipreps/smriprep:latest
             fi
       - checkout
       - run:
@@ -94,8 +110,8 @@ jobs:
             # Build docker image
             e=1 && for i in {1..5}; do
               docker build --rm \
-                --cache-from=poldracklab/smriprep \
-                -t poldracklab/smriprep:latest \
+                --cache-from=nipreps/smriprep \
+                -t nipreps/smriprep:latest \
                 --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
                 --build-arg VCS_REF=`git rev-parse --short HEAD` \
                 --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" . \
@@ -106,7 +122,7 @@ jobs:
           name: Docker push to local registry
           no_output_timeout: 40m
           command: |
-            docker tag poldracklab/smriprep:latest localhost:5000/smriprep
+            docker tag nipreps/smriprep:latest localhost:5000/smriprep
             docker push localhost:5000/smriprep
       - run:
           name: Docker registry garbage collection
@@ -117,6 +133,7 @@ jobs:
          key: build-v2-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/docker
+            - /tmp/images
 
       - persist_to_workspace:
           root: /tmp
@@ -126,7 +143,7 @@ jobs:
 
   get_data:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /home/circleci/data
     steps:
       - restore_cache:
@@ -218,7 +235,7 @@ jobs:
 
   test_wrapper:
     machine:
-      image: circleci/classic:201808-01
+      image: ubuntu-1604:202007-01
     steps:
       - attach_workspace:
           at: /tmp
@@ -230,16 +247,30 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+            - /tmp/images
       - run:
-          name: Set-up a Docker registry
+          name: Docker authentication
           command: |
+            if [[ -n $DOCKER_PASS ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            fi
+      - run:
+          name: Set up Docker registry
+          command: |
+            if [[ -f /tmp/images/registry.tar.gz ]]; then
+              echo "Loading saved registry image"
+              docker load < /tmp/images/registry.tar.gz
+            else
+              echo "Pulling registry image from DockerHub"
+              docker pull registry:2
+            fi
             docker run -d -p 5000:5000 --restart=always --name=registry \
                 -v /tmp/docker:/var/lib/registry registry:2
       - run:
           name: Pull images from local registry
           command: |
             docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+            docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - checkout
       - run:
           name: Test smriprep-wrapper (Python 2)
@@ -253,8 +284,8 @@ jobs:
             pip install --upgrade setuptools
             pip install --upgrade wrapper/
             which smriprep-docker
-            smriprep-docker -i poldracklab/smriprep:latest --help
-            smriprep-docker -i poldracklab/smriprep:latest --version
+            smriprep-docker -i nipreps/smriprep:latest --help
+            smriprep-docker -i nipreps/smriprep:latest --version
       - run:
           name: Test smriprep-wrapper (Python 3)
           command: |
@@ -266,12 +297,12 @@ jobs:
             pip install --upgrade pip setuptools
             pip install --upgrade wrapper/
             which smriprep-docker
-            smriprep-docker -i poldracklab/smriprep:latest --help
-            smriprep-docker -i poldracklab/smriprep:latest --version
+            smriprep-docker -i nipreps/smriprep:latest --help
+            smriprep-docker -i nipreps/smriprep:latest --version
 
   test_deploy_pypi:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/src/smriprep
     steps:
       - checkout
@@ -342,7 +373,7 @@ jobs:
 
   ds005:
     machine:
-      image: circleci/classic:201711-01
+      image: ubuntu-1604:202007-01
     working_directory: /tmp/ds005
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
@@ -365,6 +396,7 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+            - /tmp/images
       - restore_cache:
           keys:
             - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
@@ -376,7 +408,6 @@ jobs:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
             - testdata-v2-{{ .Branch }}
             - testdata-v2-
-
       - run:
           name: Setting up test
           command: |
@@ -395,15 +426,28 @@ jobs:
               python -m pip install -U codecov
               pyenv rehash
       - run:
-          name: Set-up a Docker registry
+          name: Docker authentication
           command: |
+            if [[ -n $DOCKER_PASS ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            fi
+      - run:
+          name: Set up Docker registry
+          command: |
+            if [[ -f /tmp/images/registry.tar.gz ]]; then
+              echo "Loading saved registry image"
+              docker load < /tmp/images/registry.tar.gz
+            else
+              echo "Pulling registry image from DockerHub"
+              docker pull registry:2
+            fi
             docker run -d -p 5000:5000 --restart=always --name=registry \
                 -v /tmp/docker:/var/lib/registry registry:2
       - run:
           name: Pull images from local registry
           command: |
             docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+            docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - restore_cache:
           keys:
             - ds005-anat-v6-{{ .Branch }}-{{ epoch }}
@@ -438,7 +482,7 @@ jobs:
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
-                poldracklab/smriprep:latest \
+                nipreps/smriprep:latest \
                 combine /tmp/ds005/work/.coverage.*
             # Convert to XML to freeze
             docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
@@ -448,7 +492,7 @@ jobs:
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
-                poldracklab/smriprep:latest \
+                nipreps/smriprep:latest \
                 xml
       - run:
           name: Combine coverage and submit
@@ -512,7 +556,7 @@ jobs:
           destination: fasttrack
   ds054:
     machine:
-      image: circleci/classic:201711-01
+      image: ubuntu-1604:202007-01
     working_directory: /tmp/ds054
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
@@ -535,6 +579,7 @@ jobs:
             - build-v2-
           paths:
             - /tmp/docker
+            - /tmp/images
       - run:
           name: Setting up test
           command: |
@@ -553,15 +598,28 @@ jobs:
               python -m pip install -U codecov
               pyenv rehash
       - run:
-          name: Set-up a Docker registry
+          name: Docker authentication
           command: |
+            if [[ -n $DOCKER_PASS ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            fi
+      - run:
+          name: Set up Docker registry
+          command: |
+            if [[ -f /tmp/images/registry.tar.gz ]]; then
+              echo "Loading saved registry image"
+              docker load < /tmp/images/registry.tar.gz
+            else
+              echo "Pulling registry image from DockerHub"
+              docker pull registry:2
+            fi
             docker run -d -p 5000:5000 --restart=always --name=registry \
                 -v /tmp/docker:/var/lib/registry registry:2
       - run:
           name: Pull images from local registry
           command: |
             docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+            docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - restore_cache:
           keys:
             - ds054-anat-v6-{{ .Branch }}-{{ epoch }}
@@ -597,7 +655,7 @@ jobs:
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
-                poldracklab/smriprep:latest \
+                nipreps/smriprep:latest \
                 combine /tmp/ds054/work/.coverage.*
             # Convert to XML to freeze
             docker run --rm=false -it \
@@ -608,7 +666,7 @@ jobs:
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
-                poldracklab/smriprep:latest \
+                nipreps/smriprep:latest \
                 xml
       - run:
           name: Submit coverage
@@ -662,7 +720,7 @@ jobs:
           destination: fasttrack-derivatives
   build_docs:
     docker:
-      - image: python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/gh-pages
     environment:
       - FSLOUTPUTTYPE: NIFTI
@@ -671,7 +729,7 @@ jobs:
       - checkout
       - run:
           name: Install Graphviz
-          command: apt update && apt -y install graphviz
+          command: sudo apt update && sudo apt -y install graphviz
       - run:
           name: Install deps
           command: pip install -r docs/requirements.txt
@@ -718,7 +776,7 @@ jobs:
 
   deploy_pypi:
     docker:
-      - image: circleci/python:3.7.4
+      - image: circleci/python:3.8.5
     working_directory: /tmp/src/smriprep
     steps:
       - checkout
@@ -751,7 +809,7 @@ jobs:
 
   deploy_docker:
     machine:
-      image: circleci/classic:201711-01
+      image: ubuntu-1604:202007-01
     working_directory: /tmp/src/smriprep
     steps:
       - restore_cache:
@@ -771,19 +829,19 @@ jobs:
           name: Pull images from local registry
           command: |
             docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep poldracklab/smriprep:latest
+            docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - run:
           name: Deploy to Docker Hub
           no_output_timeout: 40m
           command: |
             if [[ -n "$DOCKER_PASS" ]]; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
-              docker tag poldracklab/smriprep poldracklab/smriprep:unstable
-              docker push poldracklab/smriprep:unstable
+              docker tag nipreps/smriprep nipreps/smriprep:unstable
+              docker push nipreps/smriprep:unstable
               if [[ -n "$CIRCLE_TAG" ]]; then
-                docker push poldracklab/smriprep:latest
-                docker tag poldracklab/smriprep poldracklab/smriprep:$CIRCLE_TAG
-                docker push poldracklab/smriprep:$CIRCLE_TAG
+                docker push nipreps/smriprep:latest
+                docker tag nipreps/smriprep nipreps/smriprep:$CIRCLE_TAG
+                docker push nipreps/smriprep:$CIRCLE_TAG
               fi
             fi
 
