@@ -10,4 +10,4 @@ sphinx-argparse
 sphinx >= 2.1.2, < 3
 sphinx_rtd_theme
 sphinxcontrib-apidoc ~= 0.3.0
-templateflow
+templateflow <0.6.3,>=0.4.2
