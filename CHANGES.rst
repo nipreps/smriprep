@@ -191,7 +191,7 @@ Hotfix release improving the reliability of the brain extraction workflow.
 -------------------
 This new release of *sMRIPrep* adds the possibility of specifying several
 spatial normalization targets via the ``--output-spaces`` option drafted
-in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/1588>`__.
+in `nipreps/fmriprep#1588 <https://github.com/nipreps/fmriprep/issues/1588>`__.
 
 * FIX: Resolve behavior when deprecated ``--template`` is given (#77) @oesteban
 * FIX: Solved problems in report generation (#76) @oesteban

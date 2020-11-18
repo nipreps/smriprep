@@ -1,4 +1,4 @@
-.. _fMRIPrep: https://github.com/poldracklab/fmriprep
+.. _fMRIPrep: https://github.com/nipreps/fmriprep
 .. _FreeSurfer: https://surfer.nmr.mgh.harvard.edu/
 .. _Nipype: http://nipype.readthedocs.io/en/latest/
 .. _BIDS: http://bids.neuroimaging.io

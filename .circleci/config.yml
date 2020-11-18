@@ -408,7 +408,6 @@ jobs:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
             - testdata-v2-{{ .Branch }}
             - testdata-v2-
-
       - run:
           name: Setting up test
           command: |
