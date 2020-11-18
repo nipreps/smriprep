@@ -341,8 +341,7 @@ def init_anat_derivatives_wf(
         )
 
         ds_std_t1w = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
-                                compress=True),
+            DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True),
             name='ds_std_t1w', run_without_submitting=True)
         ds_std_t1w.inputs.SkullStripped = True
 
