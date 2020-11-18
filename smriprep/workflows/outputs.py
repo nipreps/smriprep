@@ -2,7 +2,10 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """Writing outputs."""
 from nipype.pipeline import engine as pe
-from nipype.interfaces import utility as niu
+from nipype.interfaces import (
+    utility as niu,
+    fsl,
+)
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
 from ..interfaces import DerivativesDataSink
@@ -318,6 +321,9 @@ def init_anat_derivatives_wf(
 
         gen_ref = pe.Node(GenerateSamplingReference(), name='gen_ref', mem_gb=0.01)
 
+        # Mask T1w preproc images
+        mask_t1w = pe.Node(fsl.ApplyMask(), name='mask_t1w')
+
         # Resample T1w-space inputs
         anat2std_t1w = pe.Node(ApplyTransforms(
             dimension=3, default_value=0, float=True,
@@ -338,7 +344,7 @@ def init_anat_derivatives_wf(
             DerivativesDataSink(base_directory=output_dir, desc='preproc', keep_dtype=True,
                                 compress=True),
             name='ds_std_t1w', run_without_submitting=True)
-        ds_std_t1w.inputs.SkullStripped = False
+        ds_std_t1w.inputs.SkullStripped = True
 
         ds_std_mask = pe.Node(
             DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
@@ -359,7 +365,9 @@ def init_anat_derivatives_wf(
         #           output in the data/io_spec.json file.
         ds_std_tpms.inputs.label = tpm_labels
         workflow.connect([
-            (inputnode, anat2std_t1w, [('t1w_preproc', 'input_image')]),
+            (inputnode, mask_t1w, [('t1w_preproc', 'in_file'),
+                                   ('t1w_mask', 'mask_file')]),
+            (mask_t1w, anat2std_t1w, [('out_file', 'input_image')]),
             (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
             (inputnode, anat2std_dseg, [('t1w_dseg', 'input_image')]),
             (inputnode, anat2std_tpms, [('t1w_tpms', 'input_image')]),
