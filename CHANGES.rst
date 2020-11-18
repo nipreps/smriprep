@@ -95,7 +95,7 @@ Hotfix release improving the reliability of the brain extraction workflow.
 ===================
 This new release of *sMRIPrep* adds the possibility of specifying several
 spatial normalization targets via the ``--output-spaces`` option drafted
-in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/1588>`__.
+in `nipreps/fmriprep#1588 <https://github.com/nipreps/fmriprep/issues/1588>`__.
 
 * FIX: Resolve behavior when deprecated ``--template`` is given (#77) @oesteban
 * FIX: Solved problems in report generation (#76) @oesteban
@@ -118,12 +118,12 @@ in `poldracklab/fmriprep#1588 <https://github.com/poldracklab/fmriprep/issues/15
 
 0.0.5 (February 06, 2019)
 =========================
-* MAINT: Update to keep up with poldracklab/niworkflows#299 (#51) @oesteban
+* MAINT: Update to keep up with nipreps/niworkflows#299 (#51) @oesteban
 
 0.0.4 (January 25, 2019)
 ========================
 * ENH: Allow templates other than ``MNI152NLin2009cAsym`` (#47) @oesteban
-* DOC: Fix workflow hierarchy within docstrings so that fMRIPrep docs build (`0110ab2 <https://github.com/poldracklab/smriprep/commit/0110ab277faa525d60263ba085947ef1545898af>`__).
+* DOC: Fix workflow hierarchy within docstrings so that fMRIPrep docs build (`0110ab2 <https://github.com/nipreps/smriprep/commit/0110ab277faa525d60263ba085947ef1545898af>`__).
 
 0.0.3 (January 18, 2019)
 ========================

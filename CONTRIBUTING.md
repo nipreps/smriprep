@@ -216,7 +216,7 @@ You're awesome. :wave::smiley:
 [STEMMRoleModels][link_stemmrolemodels] project.*
 
 [link_github]: https://github.com/
-[link_sMRIPrep]: https://github.com/poldracklab/smriprep
+[link_sMRIPrep]: https://github.com/nipreps/smriprep
 [link_signupinstructions]: https://help.github.com/articles/signing-up-for-a-new-github-account
 
 [link_stars]: https://neurostars.org/
@@ -229,13 +229,13 @@ You're awesome. :wave::smiley:
 [markdown]: https://daringfireball.net/projects/markdown
 [rick_roll]: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
-[link_issues]: https://github.com/poldracklab/smriprep/issues
-[link_labels]: https://github.com/poldracklab/smriprep/labels
+[link_issues]: https://github.com/nipreps/smriprep/issues
+[link_labels]: https://github.com/nipreps/smriprep/labels
 [link_discussingissues]: https://help.github.com/articles/discussing-projects-in-issues-and-pull-requests
 
-[link_bugs]: https://github.com/poldracklab/smriprep/labels/bug
-[link_helpwanted]: https://github.com/poldracklab/smriprep/labels/help%20wanted
-[link_feature]: https://github.com/poldracklab/smriprep/labels/feature
+[link_bugs]: https://github.com/nipreps/smriprep/labels/bug
+[link_helpwanted]: https://github.com/nipreps/smriprep/labels/help%20wanted
+[link_feature]: https://github.com/nipreps/smriprep/labels/feature
 
 [link_pullrequest]: https://help.github.com/articles/creating-a-pull-request/
 [link_fork]: https://help.github.com/articles/fork-a-repo/
@@ -243,5 +243,5 @@ You're awesome. :wave::smiley:
 [link_branches]: https://help.github.com/articles/creating-and-deleting-branches-within-your-repository/
 [link_updateupstreamwiki]: https://help.github.com/articles/syncing-a-fork/
 [link_stemmrolemodels]: https://github.com/KirstieJane/STEMMRoleModels
-[link_zenodo]: https://github.com/poldracklab/smriprep/blob/master/.zenodo.json
+[link_zenodo]: https://github.com/nipreps/smriprep/blob/master/.zenodo.json
 [link_devel]: https://smriprep.readthedocs.io/en/latest/contributors.html

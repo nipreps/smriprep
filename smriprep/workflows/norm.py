@@ -143,7 +143,7 @@ The following template{tpls} selected for spatial normalization:
     tf_select = pe.Node(TemplateFlowSelect(resolution=1 + debug),
                         name='tf_select', run_without_submitting=True)
 
-    # With the improvements from poldracklab/niworkflows#342 this truncation is now necessary
+    # With the improvements from nipreps/niworkflows#342 this truncation is now necessary
     trunc_mov = pe.Node(ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
                         name='trunc_mov')
 

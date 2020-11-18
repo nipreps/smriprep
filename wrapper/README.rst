@@ -16,6 +16,6 @@ running ::
   docker info
 
 Please report any feedback to our `GitHub repository
-<https://github.com/poldracklab/smriprep>`_ and do not
+<https://github.com/nipreps/smriprep>`_ and do not
 forget to `credit <https://smriprep.readthedocs.io/en/latest/citing.html>`_ all
 the authors of software that sMRIPrep uses.

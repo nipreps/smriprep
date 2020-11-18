@@ -68,7 +68,7 @@ file on the host system: ::
         -v $HOME/fullds005:/data:ro \
         -v $HOME/dockerout:/out \
         -v $HOME/.licenses/freesurfer/license.txt:/opt/freesurfer/license.txt \
-        poldracklab/smriprep:latest \
+        nipreps/smriprep:latest \
         /data /out/out \
         participant \
         --ignore fieldmaps
@@ -79,7 +79,7 @@ Using FreeSurfer can also be enabled when using ``smriprep-docker``: ::
         /path/to/data/dir /path/to/output/dir participant
     RUNNING: docker run --rm -it -v /path/to/data/dir:/data:ro \
         -v /home/user/.licenses/freesurfer/license.txt:/opt/freesurfer/license.txt \
-        -v /path/to_output/dir:/out poldracklab/smriprep:1.0.0 \
+        -v /path/to_output/dir:/out nipreps/smriprep:1.0.0 \
         /data /out participant
     ...
 
@@ -91,7 +91,7 @@ would be equivalent to the latest example: ::
     $ smriprep-docker /path/to/data/dir /path/to/output/dir participant
     RUNNING: docker run --rm -it -v /path/to/data/dir:/data:ro \
         -v /home/user/.licenses/freesurfer/license.txt:/opt/freesurfer/license.txt \
-        -v /path/to_output/dir:/out poldracklab/smriprep:1.0.0 \
+        -v /path/to_output/dir:/out nipreps/smriprep:1.0.0 \
         /data /out participant
     ...
 
