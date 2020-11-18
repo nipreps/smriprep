@@ -11,8 +11,8 @@ del get_versions
 __copyright__ = 'Copyright 2019, Center for Reproducible Neuroscience, Stanford University'
 __credits__ = ['Oscar Esteban', 'Chris Gorgolewski', 'Christopher J. Markiewicz',
                'Russell A. Poldrack']
-__url__ = 'https://github.com/poldracklab/smriprep'
+__url__ = 'https://github.com/nipreps/smriprep'
 
 DOWNLOAD_URL = (
-    'https://github.com/poldracklab/{name}/archive/{ver}.tar.gz'.format(
+    'https://github.com/nipreps/{name}/archive/{ver}.tar.gz'.format(
         name=__package__, ver=__version__))
