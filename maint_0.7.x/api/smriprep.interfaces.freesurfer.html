@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.7.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="smriprep.interfaces.reports module" href="smriprep.interfaces.reports.html" />
+    <link rel="prev" title="smriprep.interfaces package" href="smriprep.interfaces.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> smriprep
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.7.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Library API (application program interface)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="smriprep.cli.html">smriprep.cli package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="smriprep.interfaces.html">smriprep.interfaces package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="smriprep.interfaces.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">smriprep.interfaces.freesurfer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.reports.html">smriprep.interfaces.reports module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.templateflow.html">smriprep.interfaces.templateflow module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.utils.html">smriprep.utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.workflows.html">smriprep.workflows package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">What’s new?</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">smriprep</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../api.html">Library API (application program interface)</a> &raquo;</li>
+        
+          <li><a href="smriprep.interfaces.html">smriprep.interfaces package</a> &raquo;</li>
+        
+      <li>smriprep.interfaces.freesurfer module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/smriprep.interfaces.freesurfer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../../master/api/smriprep.interfaces.freesurfer.html"><b>Warning:</b> This document is for the development version of smriprep. The main version is master.</a></p>
+<div class="section" id="module-smriprep.interfaces.freesurfer">
+<span id="smriprep-interfaces-freesurfer-module"></span><h1>smriprep.interfaces.freesurfer module<a class="headerlink" href="#module-smriprep.interfaces.freesurfer" title="Permalink to this headline">¶</a></h1>
+<p>Nipype’s recon-all replacement.</p>
+<dl class="class">
+<dt id="smriprep.interfaces.freesurfer.ReconAll">
+<em class="property">class </em><code class="sig-prename descclassname">smriprep.interfaces.freesurfer.</code><code class="sig-name descname">ReconAll</code><span class="sig-paren">(</span><em class="sig-param">command=None</em>, <em class="sig-param">terminal_output=None</em>, <em class="sig-param">**inputs</em><span class="sig-paren">)</span><a class="headerlink" href="#smriprep.interfaces.freesurfer.ReconAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nipype.interfaces.freesurfer.preprocess.ReconAll</span></code></p>
+<dl class="method">
+<dt id="smriprep.interfaces.freesurfer.ReconAll.cmdline">
+<em class="property">property </em><code class="sig-name descname">cmdline</code><a class="headerlink" href="#smriprep.interfaces.freesurfer.ReconAll.cmdline" title="Permalink to this definition">¶</a></dt>
+<dd><p><cite>command</cite> plus any arguments (args)
+validates arguments and generates command line</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="smriprep.interfaces.freesurfer.ReconAll.input_spec">
+<code class="sig-name descname">input_spec</code><a class="headerlink" href="#smriprep.interfaces.freesurfer.ReconAll.input_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">_ReconAllInputSpec</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="smriprep.interfaces.reports.html" class="btn btn-neutral float-right" title="smriprep.interfaces.reports module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="smriprep.interfaces.html" class="btn btn-neutral float-left" title="smriprep.interfaces package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: maint/0.7.x
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../0.4.0/api/smriprep.interfaces.freesurfer.html">0.4.0</a></dd>
+            <dd><a href="../../0.4.0rc1/api/smriprep.interfaces.freesurfer.html">0.4.0rc1</a></dd>
+            <dd><a href="../../0.4.0rc2/api/smriprep.interfaces.freesurfer.html">0.4.0rc2</a></dd>
+            <dd><a href="../../0.4.0rc3/api/smriprep.interfaces.freesurfer.html">0.4.0rc3</a></dd>
+            <dd><a href="../../0.4.0rc4/api/smriprep.interfaces.freesurfer.html">0.4.0rc4</a></dd>
+            <dd><a href="../../0.4.0rc5/api/smriprep.interfaces.freesurfer.html">0.4.0rc5</a></dd>
+            <dd><a href="../../0.4.1-1/api/smriprep.interfaces.freesurfer.html">0.4.1-1</a></dd>
+            <dd><a href="../../0.4.2/api/smriprep.interfaces.freesurfer.html">0.4.2</a></dd>
+            <dd><a href="../../0.5.0/api/smriprep.interfaces.freesurfer.html">0.5.0</a></dd>
+            <dd><a href="../../0.5.1/api/smriprep.interfaces.freesurfer.html">0.5.1</a></dd>
+            <dd><a href="../../0.5.2/api/smriprep.interfaces.freesurfer.html">0.5.2</a></dd>
+            <dd><a href="../../0.5.3/api/smriprep.interfaces.freesurfer.html">0.5.3</a></dd>
+            <dd><a href="../../0.6.0/api/smriprep.interfaces.freesurfer.html">0.6.0</a></dd>
+            <dd><a href="../../0.6.0rc1/api/smriprep.interfaces.freesurfer.html">0.6.0rc1</a></dd>
+            <dd><a href="../../0.6.0rc2/api/smriprep.interfaces.freesurfer.html">0.6.0rc2</a></dd>
+            <dd><a href="../../0.6.0rc3/api/smriprep.interfaces.freesurfer.html">0.6.0rc3</a></dd>
+            <dd><a href="../../0.6.0rc4/api/smriprep.interfaces.freesurfer.html">0.6.0rc4</a></dd>
+            <dd><a href="../../0.6.0rc5/api/smriprep.interfaces.freesurfer.html">0.6.0rc5</a></dd>
+            <dd><a href="../../0.6.1/api/smriprep.interfaces.freesurfer.html">0.6.1</a></dd>
+            <dd><a href="../../0.6.2/api/smriprep.interfaces.freesurfer.html">0.6.2</a></dd>
+            <dd><a href="../../0.7.0/api/smriprep.interfaces.freesurfer.html">0.7.0</a></dd>
+            <dd><a href="../../0.7.0rc1/api/smriprep.interfaces.freesurfer.html">0.7.0rc1</a></dd>
+            <dd><a href="../../0.7.0rc2/api/smriprep.interfaces.freesurfer.html">0.7.0rc2</a></dd>
+            <dd><a href="../../0.7.1/api/smriprep.interfaces.freesurfer.html">0.7.1</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../maint_0.4.x/api/smriprep.interfaces.freesurfer.html">maint/0.4.x</a></dd>
+            <dd><a href="../../maint_0.5.x/api/smriprep.interfaces.freesurfer.html">maint/0.5.x</a></dd>
+            <dd><a href="../../maint_0.6.x/api/smriprep.interfaces.freesurfer.html">maint/0.6.x</a></dd>
+            <dd><a href="smriprep.interfaces.freesurfer.html">maint/0.7.x</a></dd>
+            <dd><a href="../../master/api/smriprep.interfaces.freesurfer.html">master</a></dd>
+        </dl>
+    </div>
+</div>
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>sMRIPrep: Structural MRI PREProcessing pipeline &mdash; smriprep 0.7.0 documentation</title>
+  <title>sMRIPrep: Structural MRI PREProcessing pipeline &mdash; smriprep 0.7.1 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.7.0
+                0.7.1
               </div>
             
           
@@ -167,9 +167,9 @@
     <p class="scv-banner scv-sphinx_rtd_theme"><a href="../master/index.html"><b>Warning:</b> This document is for the development version of smriprep. The main version is master.</a></p>
 <div class="section" id="smriprep-structural-mri-preprocessing-pipeline">
 <h1>sMRIPrep: Structural MRI PREProcessing pipeline<a class="headerlink" href="#smriprep-structural-mri-preprocessing-pipeline" title="Permalink to this headline">¶</a></h1>
-<a class="reference external image-reference" href="https://hub.docker.com/r/poldracklab/smriprep/tags/"><img alt="Docker image available!" src="https://img.shields.io/badge/docker-poldracklab/smriprep-brightgreen.svg?logo=docker&amp;style=flat" /></a>
-<a class="reference external image-reference" href="https://circleci.com/gh/poldracklab/smriprep/tree/master"><img alt="https://circleci.com/gh/poldracklab/smriprep/tree/master.svg?style=shield" src="https://circleci.com/gh/poldracklab/smriprep/tree/master.svg?style=shield" /></a>
-<a class="reference external image-reference" href="https://codecov.io/gh/poldracklab/smriprep"><img alt="Coverage report" src="https://codecov.io/gh/poldracklab/smriprep/branch/master/graph/badge.svg" /></a>
+<a class="reference external image-reference" href="https://hub.docker.com/r/nipreps/smriprep/tags/"><img alt="Docker image available!" src="https://img.shields.io/badge/docker-nipreps/smriprep-brightgreen.svg?logo=docker&amp;style=flat" /></a>
+<a class="reference external image-reference" href="https://circleci.com/gh/nipreps/smriprep/tree/master"><img alt="https://circleci.com/gh/nipreps/smriprep/tree/master.svg?style=shield" src="https://circleci.com/gh/nipreps/smriprep/tree/master.svg?style=shield" /></a>
+<a class="reference external image-reference" href="https://codecov.io/gh/nipreps/smriprep"><img alt="Coverage report" src="https://codecov.io/gh/nipreps/smriprep/branch/master/graph/badge.svg" /></a>
 <a class="reference external image-reference" href="https://pypi.python.org/pypi/smriprep/"><img alt="Latest Version" src="https://img.shields.io/pypi/v/smriprep.svg" /></a>
 <a class="reference external image-reference" href="https://doi.org/10.1038/s41592-018-0235-4"><img alt="Published in Nature Methods" src="https://img.shields.io/badge/doi-10.1038%2Fs41592--018--0235--4-blue.svg" /></a>
 <p><em>sMRIPrep</em> is a structural magnetic resonance imaging (sMRI) data
@@ -180,7 +180,7 @@ interpretable and comprehensive error and output reporting.
 It performs basic processing steps (subject-wise averaging, B1 field correction,
 spatial normalization, segmentation, skullstripping etc.) providing
 outputs that can be easily connected to subsequent tools such as
-<a class="reference external" href="https://github.com/poldracklab/fmriprep">fMRIPrep</a> or
+<a class="reference external" href="https://github.com/nipreps/fmriprep">fMRIPrep</a> or
 <a class="reference external" href="https://github.com/nipreps/dmriprep">dMRIPrep</a>.</p>
 <img alt="https://github.com/oesteban/smriprep/raw/033a6b4a54ecbd9051c45df979619cda69847cd1/docs/_resources/workflow.png" src="https://github.com/oesteban/smriprep/raw/033a6b4a54ecbd9051c45df979619cda69847cd1/docs/_resources/workflow.png" />
 <p>The workflow is based on <a class="reference external" href="https://nipype.readthedocs.io">Nipype</a> and encompases
@@ -190,7 +190,7 @@ a combination of tools from well-known software packages, including
 <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/">FreeSurfer</a>,
 and <a class="reference external" href="https://afni.nimh.nih.gov/">AFNI</a>.</p>
 <p>More information and documentation can be found at
-<a class="reference external" href="https://poldracklab.github.io/smriprep/">https://poldracklab.github.io/smriprep/</a>.
+<a class="reference external" href="https://www.nipreps.org/smriprep/">https://www.nipreps.org/smriprep/</a>.
 Support is provided on <a class="reference external" href="https://neurostars.org/tags/smriprep">neurostars.org</a>.</p>
 <div class="section" id="principles">
 <h2>Principles<a class="headerlink" href="#principles" title="Permalink to this headline">¶</a></h2>
@@ -215,7 +215,7 @@ analysis.</p></li>
 <div class="section" id="acknowledgements">
 <h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h2>
 <p>Please acknowledge this work by mentioning explicitly the name of this software
-(sMRIPrep) and the version, along with a link to the <a class="reference external" href="https://github.com/poldracklab/smriprep">GitHub repository</a> or the Zenodo reference
+(sMRIPrep) and the version, along with a link to the <a class="reference external" href="https://github.com/nipreps/smriprep">GitHub repository</a> or the Zenodo reference
 (doi:<a class="reference external" href="https://doi.org/10.5281/zenodo.2650521">10.5281/zenodo.2650521</a>).</p>
 </div>
 <div class="section" id="contents">
@@ -388,15 +388,15 @@ analysis.</p></li>
             <dd><a href="../0.7.0/index.html">0.7.0</a></dd>
             <dd><a href="../0.7.0rc1/index.html">0.7.0rc1</a></dd>
             <dd><a href="../0.7.0rc2/index.html">0.7.0rc2</a></dd>
+            <dd><a href="../0.7.1/index.html">0.7.1</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../fix_125/index.html">fix/125</a></dd>
+            <dd><a href="../maint_0.4.x/index.html">maint/0.4.x</a></dd>
             <dd><a href="../maint_0.5.x/index.html">maint/0.5.x</a></dd>
             <dd><a href="index.html">maint/0.6.x</a></dd>
+            <dd><a href="../maint_0.7.x/index.html">maint/0.7.x</a></dd>
             <dd><a href="../master/index.html">master</a></dd>
-            <dd><a href="../rel_0.7.0/index.html">rel/0.7.0</a></dd>
-            <dd><a href="../rel_0.7.0rc2/index.html">rel/0.7.0rc2</a></dd>
         </dl>
     </div>
 </div>

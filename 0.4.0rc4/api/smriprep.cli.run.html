@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>smriprep.cli.run module &mdash; smriprep 0.7.0 documentation</title>
+  <title>smriprep.cli.run module &mdash; smriprep 0.7.1 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.7.0
+                0.7.1
               </div>
             
           
@@ -186,13 +186,13 @@
 <p>sMRIPrep: Structural MRI PREProcessing workflow.</p>
 <dl class="function">
 <dt id="smriprep.cli.run.build_opts">
-<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">build_opts</code><span class="sig-paren">(</span><em class="sig-param">opts</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/0a5ae4239310ac7042666dd129300c8f8956fb34/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.build_opts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">build_opts</code><span class="sig-paren">(</span><em class="sig-param">opts</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/2495cf530612db9b2c9af4eeea7a9a19ea9dc0d9/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.build_opts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trigger a new process that builds the workflow graph, based on the input options.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="smriprep.cli.run.build_workflow">
-<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">build_workflow</code><span class="sig-paren">(</span><em class="sig-param">opts</em>, <em class="sig-param">retval</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/0a5ae4239310ac7042666dd129300c8f8956fb34/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.build_workflow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">build_workflow</code><span class="sig-paren">(</span><em class="sig-param">opts</em>, <em class="sig-param">retval</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/2495cf530612db9b2c9af4eeea7a9a19ea9dc0d9/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.build_workflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create the Nipype Workflow that supports the whole execution graph, given the inputs.</p>
 <p>All the checks and the construction of the workflow are done
 inside this function that has pickleable inputs and output
@@ -203,19 +203,19 @@ a hard-limited memory-scope.</p>
 
 <dl class="function">
 <dt id="smriprep.cli.run.check_deps">
-<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">check_deps</code><span class="sig-paren">(</span><em class="sig-param">workflow</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/0a5ae4239310ac7042666dd129300c8f8956fb34/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.check_deps" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">check_deps</code><span class="sig-paren">(</span><em class="sig-param">workflow</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/2495cf530612db9b2c9af4eeea7a9a19ea9dc0d9/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.check_deps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make sure all dependencies are installed.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="smriprep.cli.run.get_parser">
-<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">get_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/0a5ae4239310ac7042666dd129300c8f8956fb34/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.get_parser" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">get_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/2495cf530612db9b2c9af4eeea7a9a19ea9dc0d9/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.get_parser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build parser object.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="smriprep.cli.run.main">
-<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/0a5ae4239310ac7042666dd129300c8f8956fb34/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.main" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.cli.run.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/2495cf530612db9b2c9af4eeea7a9a19ea9dc0d9/smriprep/cli/run.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.cli.run.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set an entrypoint.</p>
 </dd></dl>
 
@@ -296,15 +296,15 @@ a hard-limited memory-scope.</p>
             <dd><a href="../../0.7.0/api/smriprep.cli.run.html">0.7.0</a></dd>
             <dd><a href="../../0.7.0rc1/api/smriprep.cli.run.html">0.7.0rc1</a></dd>
             <dd><a href="../../0.7.0rc2/api/smriprep.cli.run.html">0.7.0rc2</a></dd>
+            <dd><a href="../../0.7.1/api/smriprep.cli.run.html">0.7.1</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../fix_125/api/smriprep.cli.run.html">fix/125</a></dd>
+            <dd><a href="../../maint_0.4.x/api/smriprep.cli.run.html">maint/0.4.x</a></dd>
             <dd><a href="../../maint_0.5.x/api/smriprep.cli.run.html">maint/0.5.x</a></dd>
             <dd><a href="../../maint_0.6.x/api/smriprep.cli.run.html">maint/0.6.x</a></dd>
+            <dd><a href="../../maint_0.7.x/api/smriprep.cli.run.html">maint/0.7.x</a></dd>
             <dd><a href="../../master/api/smriprep.cli.run.html">master</a></dd>
-            <dd><a href="../../rel_0.7.0/api/smriprep.cli.run.html">rel/0.7.0</a></dd>
-            <dd><a href="../../rel_0.7.0rc2/api/smriprep.cli.run.html">rel/0.7.0rc2</a></dd>
         </dl>
     </div>
 </div>

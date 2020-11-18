@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Usage &mdash; smriprep 0.7.0 documentation</title>
+  <title>Usage &mdash; smriprep 0.7.1 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.7.0
+                0.7.1
               </div>
             
           
@@ -210,21 +210,39 @@ Example:</p>
 <h2>Command-Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permalink to this headline">¶</a></h2>
 <p><p>sMRIPrep: Structural MRI PREProcessing workflows</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">participant</span><span class="o">-</span><span class="n">label</span> <span class="n">PARTICIPANT_LABEL</span> <span class="p">[</span><span class="n">PARTICIPANT_LABEL</span> <span class="o">...</span><span class="p">]]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">bids</span><span class="o">-</span><span class="nb">filter</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">omp</span><span class="o">-</span><span class="n">nthreads</span> <span class="n">OMP_NTHREADS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">mem</span><span class="o">-</span><span class="n">gb</span> <span class="n">MEM_GB</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">low</span><span class="o">-</span><span class="n">mem</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">plugin</span> <span class="n">USE_PLUGIN</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">boilerplate</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="n">spaces</span> <span class="p">[</span><span class="n">OUTPUT_SPACES</span> <span class="p">[</span><span class="n">OUTPUT_SPACES</span> <span class="o">...</span><span class="p">]]]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">longitudinal</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">template</span> <span class="n">SKULL_STRIP_TEMPLATE</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">fixed</span><span class="o">-</span><span class="n">seed</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">mode</span> <span class="p">{</span><span class="n">auto</span><span class="p">,</span><span class="n">skip</span><span class="p">,</span><span class="n">force</span><span class="p">}]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">license</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">subjects</span><span class="o">-</span><span class="nb">dir</span> <span class="n">PATH</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">submm</span><span class="o">-</span><span class="n">recon</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">no</span><span class="o">-</span><span class="n">reconall</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WORK_DIR</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">fast</span><span class="o">-</span><span class="n">track</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">resource</span><span class="o">-</span><span class="n">monitor</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">reports</span><span class="o">-</span><span class="n">only</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">run</span><span class="o">-</span><span class="n">uuid</span> <span class="n">RUN_UUID</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">write</span><span class="o">-</span><span class="n">graph</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">stop</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">first</span><span class="o">-</span><span class="n">crash</span><span class="p">]</span>
-                <span class="p">[</span><span class="o">--</span><span class="n">notrack</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">sloppy</span><span class="p">]</span>
-                <span class="n">bids_dir</span> <span class="n">output_dir</span> <span class="p">{</span><span class="n">participant</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">participant</span><span class="o">-</span><span class="n">label</span> <span class="n">PARTICIPANT_LABEL</span> <span class="p">[</span><span class="n">PARTICIPANT_LABEL</span> <span class="o">...</span><span class="p">]]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">bids</span><span class="o">-</span><span class="nb">filter</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">omp</span><span class="o">-</span><span class="n">nthreads</span> <span class="n">OMP_NTHREADS</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">mem</span><span class="o">-</span><span class="n">gb</span> <span class="n">MEM_GB</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">low</span><span class="o">-</span><span class="n">mem</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">plugin</span> <span class="n">USE_PLUGIN</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">boilerplate</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="n">spaces</span> <span class="p">[</span><span class="n">OUTPUT_SPACES</span> <span class="p">[</span><span class="n">OUTPUT_SPACES</span> <span class="o">...</span><span class="p">]]]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">longitudinal</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">template</span> <span class="n">SKULL_STRIP_TEMPLATE</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">fixed</span><span class="o">-</span><span class="n">seed</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">mode</span> <span class="p">{</span><span class="n">auto</span><span class="p">,</span><span class="n">skip</span><span class="p">,</span><span class="n">force</span><span class="p">}]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">license</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">subjects</span><span class="o">-</span><span class="nb">dir</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">submm</span><span class="o">-</span><span class="n">recon</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">no</span><span class="o">-</span><span class="n">reconall</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WORK_DIR</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fast</span><span class="o">-</span><span class="n">track</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">resource</span><span class="o">-</span><span class="n">monitor</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">reports</span><span class="o">-</span><span class="n">only</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">run</span><span class="o">-</span><span class="n">uuid</span> <span class="n">RUN_UUID</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">write</span><span class="o">-</span><span class="n">graph</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">stop</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">first</span><span class="o">-</span><span class="n">crash</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">notrack</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">sloppy</span><span class="p">]</span>
+       <span class="n">bids_dir</span>
+       <span class="n">output_dir</span>
+       <span class="p">{</span><span class="n">participant</span><span class="p">}</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments">
@@ -383,11 +401,23 @@ forget to credit all the authors of software that sMRIPrep
 uses (consider using the citation boilerplate included in the
 individual reports).</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span><span class="o">-</span><span class="n">docker</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WORK_DIR</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">license</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">plugin</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PATH</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">shell</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">config</span> <span class="n">PATH</span><span class="p">]</span>
-                       <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENV_VAR</span> <span class="n">value</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">USER</span><span class="p">]</span>
-                       <span class="p">[</span><span class="n">bids_dir</span><span class="p">]</span> <span class="p">[</span><span class="n">output_dir</span><span class="p">]</span> <span class="p">[{</span><span class="n">participant</span><span class="p">}]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span><span class="o">-</span><span class="n">docker</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMG</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WORK_DIR</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">license</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">plugin</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">shell</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">config</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENV_VAR</span> <span class="n">value</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">USER</span><span class="p">]</span>
+       <span class="p">[</span><span class="n">bids_dir</span><span class="p">]</span>
+       <span class="p">[</span><span class="n">output_dir</span><span class="p">]</span>
+       <span class="p">[{</span><span class="n">participant</span><span class="p">}]</span>
 </pre></div>
 </div>
 <div class="section" id="Positional Arguments">
@@ -583,15 +613,15 @@ RUNNING: docker run --rm -it -v /path/to/data/dir:/data:ro \
             <dd><a href="../0.7.0/usage.html">0.7.0</a></dd>
             <dd><a href="../0.7.0rc1/usage.html">0.7.0rc1</a></dd>
             <dd><a href="../0.7.0rc2/usage.html">0.7.0rc2</a></dd>
+            <dd><a href="../0.7.1/usage.html">0.7.1</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../fix_125/usage.html">fix/125</a></dd>
+            <dd><a href="../maint_0.4.x/usage.html">maint/0.4.x</a></dd>
             <dd><a href="../maint_0.5.x/usage.html">maint/0.5.x</a></dd>
             <dd><a href="../maint_0.6.x/usage.html">maint/0.6.x</a></dd>
+            <dd><a href="../maint_0.7.x/usage.html">maint/0.7.x</a></dd>
             <dd><a href="../master/usage.html">master</a></dd>
-            <dd><a href="../rel_0.7.0/usage.html">rel/0.7.0</a></dd>
-            <dd><a href="../rel_0.7.0rc2/usage.html">rel/0.7.0rc2</a></dd>
         </dl>
     </div>
 </div>

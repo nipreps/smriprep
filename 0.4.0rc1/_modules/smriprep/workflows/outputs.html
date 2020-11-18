@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>smriprep.workflows.outputs &mdash; smriprep 0.7.0 documentation</title>
+  <title>smriprep.workflows.outputs &mdash; smriprep 0.7.1 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.7.0
+                0.7.1
               </div>
             
           
@@ -501,7 +501,7 @@
             <span class="n">DerivativesDataSink</span><span class="p">(</span><span class="n">base_directory</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;preproc&#39;</span><span class="p">,</span> <span class="n">keep_dtype</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                 <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_std_t1w&#39;</span><span class="p">,</span> <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ds_std_t1w</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">SkullStripped</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">ds_std_t1w</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">SkullStripped</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="n">ds_std_mask</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
             <span class="n">DerivativesDataSink</span><span class="p">(</span><span class="n">base_directory</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;brain&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span>
@@ -776,15 +776,15 @@
             <dd><a href="../../../../0.7.0/index.html">0.7.0</a></dd>
             <dd><a href="../../../../0.7.0rc1/index.html">0.7.0rc1</a></dd>
             <dd><a href="../../../../0.7.0rc2/index.html">0.7.0rc2</a></dd>
+            <dd><a href="../../../../0.7.1/index.html">0.7.1</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../fix_125/index.html">fix/125</a></dd>
+            <dd><a href="../../../../maint_0.4.x/index.html">maint/0.4.x</a></dd>
             <dd><a href="../../../../maint_0.5.x/index.html">maint/0.5.x</a></dd>
             <dd><a href="../../../../maint_0.6.x/index.html">maint/0.6.x</a></dd>
+            <dd><a href="../../../../maint_0.7.x/index.html">maint/0.7.x</a></dd>
             <dd><a href="../../../../master/index.html">master</a></dd>
-            <dd><a href="../../../../rel_0.7.0/index.html">rel/0.7.0</a></dd>
-            <dd><a href="../../../../rel_0.7.0rc2/index.html">rel/0.7.0rc2</a></dd>
         </dl>
     </div>
 </div>

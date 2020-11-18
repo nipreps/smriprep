@@ -1,0 +1,646 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Usage &mdash; smriprep 0.7.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/banner.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Library API (application program interface)" href="api.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> smriprep
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.7.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#execution-and-the-bids-format">Execution and the BIDS format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-arguments">Command-Line Arguments</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Options for filtering BIDS queries">Options for filtering BIDS queries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Options to handle performance">Options to handle performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Workflow configuration">Workflow configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Specific options for ANTs registrations">Specific options for ANTs registrations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Specific options for FreeSurfer preprocessing">Specific options for FreeSurfer preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Surface preprocessing options">Surface preprocessing options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Other options">Other options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-command-line-interface-of-the-docker-wrapper">The command-line interface of the docker wrapper</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Positional Arguments">Positional Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Wrapper options">Wrapper options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Developer options">Developer options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-freesurfer-license">The FreeSurfer license</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">What’s new?</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">smriprep</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Usage</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../master/usage.html"><b>Warning:</b> This document is for an old version of smriprep. The main version is master.</a></p>
+<div class="section" id="usage">
+<span id="id1"></span><h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="execution-and-the-bids-format">
+<h2>Execution and the BIDS format<a class="headerlink" href="#execution-and-the-bids-format" title="Permalink to this headline">¶</a></h2>
+<p>The <em>sMRIPrep</em> workflow takes as principal input the path of the dataset
+that is to be processed.
+The input dataset is required to be in valid <abbr title="Brain Imaging Data Structure">BIDS</abbr> format, and it must include at least one T1w structural image and
+(unless disabled with a flag) a BOLD series.
+We highly recommend that you validate your dataset with the free, online
+<a class="reference external" href="http://bids-standard.github.io/bids-validator/">BIDS Validator</a>.</p>
+<p>The exact command to run <em>sMRIPrep</em> depends on the <a class="reference external" href="installation.html">Installation</a> method.
+The common parts of the command follow the <a class="reference external" href="https://github.com/BIDS-Apps">BIDS-Apps</a> definition.
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">smriprep</span> <span class="n">data</span><span class="o">/</span><span class="n">bids_root</span><span class="o">/</span> <span class="n">out</span><span class="o">/</span> <span class="n">participant</span> <span class="o">-</span><span class="n">w</span> <span class="n">work</span><span class="o">/</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="command-line-arguments">
+<h2>Command-Line Arguments<a class="headerlink" href="#command-line-arguments" title="Permalink to this headline">¶</a></h2>
+<p><p>sMRIPrep: Structural MRI PREProcessing workflows</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">participant</span><span class="o">-</span><span class="n">label</span> <span class="n">PARTICIPANT_LABEL</span> <span class="p">[</span><span class="n">PARTICIPANT_LABEL</span> <span class="o">...</span><span class="p">]]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">bids</span><span class="o">-</span><span class="nb">filter</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">omp</span><span class="o">-</span><span class="n">nthreads</span> <span class="n">OMP_NTHREADS</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">mem</span><span class="o">-</span><span class="n">gb</span> <span class="n">MEM_GB</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">low</span><span class="o">-</span><span class="n">mem</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">plugin</span> <span class="n">USE_PLUGIN</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">boilerplate</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="n">spaces</span> <span class="p">[</span><span class="n">OUTPUT_SPACES</span> <span class="p">[</span><span class="n">OUTPUT_SPACES</span> <span class="o">...</span><span class="p">]]]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">longitudinal</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">template</span> <span class="n">SKULL_STRIP_TEMPLATE</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">fixed</span><span class="o">-</span><span class="n">seed</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">skull</span><span class="o">-</span><span class="n">strip</span><span class="o">-</span><span class="n">mode</span> <span class="p">{</span><span class="n">auto</span><span class="p">,</span><span class="n">skip</span><span class="p">,</span><span class="n">force</span><span class="p">}]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">license</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">subjects</span><span class="o">-</span><span class="nb">dir</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">submm</span><span class="o">-</span><span class="n">recon</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">no</span><span class="o">-</span><span class="n">reconall</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WORK_DIR</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fast</span><span class="o">-</span><span class="n">track</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">resource</span><span class="o">-</span><span class="n">monitor</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">reports</span><span class="o">-</span><span class="n">only</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">run</span><span class="o">-</span><span class="n">uuid</span> <span class="n">RUN_UUID</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">write</span><span class="o">-</span><span class="n">graph</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">stop</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">first</span><span class="o">-</span><span class="n">crash</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">notrack</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">sloppy</span><span class="p">]</span>
+       <span class="n">bids_dir</span>
+       <span class="n">output_dir</span>
+       <span class="p">{</span><span class="n">participant</span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>bids_dir</kbd></dt>
+<dd><p>the root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder).</p>
+</dd>
+<dt><kbd>output_dir</kbd></dt>
+<dd><p>the output path for the outcomes of preprocessing and visual reports</p>
+</dd>
+<dt><kbd>analysis_level</kbd></dt>
+<dd><p>Possible choices: participant</p>
+<p>processing stage to be run, only “participant” in the case of sMRIPrep (see BIDS-Apps specification).</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--version</kbd></dt>
+<dd><p>show program’s version number and exit</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Options for filtering BIDS queries">
+<h3>Options for filtering BIDS queries<a class="headerlink" href="#Options for filtering BIDS queries" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--participant-label, --participant_label</kbd></dt>
+<dd><p>a space delimited list of participant identifiers or a single identifier (the sub- prefix can be removed)</p>
+</dd>
+<dt><kbd>--bids-filter-file</kbd></dt>
+<dd><p>a JSON file describing custom BIDS input filters using pybids {&lt;suffix&gt;:{&lt;entity&gt;:&lt;filter&gt;,…},…} (<a class="reference external" href="https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json">https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json</a>)</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Options to handle performance">
+<h3>Options to handle performance<a class="headerlink" href="#Options to handle performance" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--nprocs, --ncpus, --nthreads, --n_cpus, -n-cpus</kbd></dt>
+<dd><p>number of CPUs to be used.</p>
+</dd>
+<dt><kbd>--omp-nthreads</kbd></dt>
+<dd><p>maximum number of threads per-process</p>
+</dd>
+<dt><kbd>--mem-gb, --mem_gb</kbd></dt>
+<dd><p>upper bound memory limit for sMRIPrep processes (in GB).</p>
+</dd>
+<dt><kbd>--low-mem</kbd></dt>
+<dd><p>attempt to reduce memory usage (will increase disk usage in working directory)</p>
+</dd>
+<dt><kbd>--use-plugin</kbd></dt>
+<dd><p>nipype plugin configuration file</p>
+</dd>
+<dt><kbd>--boilerplate</kbd></dt>
+<dd><p>generate boilerplate only</p>
+</dd>
+<dt><kbd>-v, --verbose</kbd></dt>
+<dd><p>increases log verbosity for each occurence, debug level is -vvv</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Workflow configuration">
+<h3>Workflow configuration<a class="headerlink" href="#Workflow configuration" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--output-spaces</kbd></dt>
+<dd><p>paths or keywords prescribing output spaces - standard spaces will be extracted for spatial normalization.</p>
+</dd>
+<dt><kbd>--longitudinal</kbd></dt>
+<dd><p>treat dataset as longitudinal - may increase runtime</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Specific options for ANTs registrations">
+<h3>Specific options for ANTs registrations<a class="headerlink" href="#Specific options for ANTs registrations" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--skull-strip-template</kbd></dt>
+<dd><p>select a template for skull-stripping with antsBrainExtraction</p>
+</dd>
+<dt><kbd>--skull-strip-fixed-seed</kbd></dt>
+<dd><p>do not use a random seed for skull-stripping - will ensure run-to-run replicability when used with –omp-nthreads 1</p>
+</dd>
+<dt><kbd>--skull-strip-mode</kbd></dt>
+<dd><p>Possible choices: auto, skip, force</p>
+<p>determiner for T1-weighted skull stripping (force ensures skull stripping, skip ignores skull stripping, and auto automatically ignores skull stripping if pre-stripped brains are detected).</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Specific options for FreeSurfer preprocessing">
+<h3>Specific options for FreeSurfer preprocessing<a class="headerlink" href="#Specific options for FreeSurfer preprocessing" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--fs-license-file</kbd></dt>
+<dd><p>Path to FreeSurfer license key file. Get it (for free) by registering at <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/registration.html">https://surfer.nmr.mgh.harvard.edu/registration.html</a></p>
+</dd>
+<dt><kbd>--fs-subjects-dir</kbd></dt>
+<dd><p>Path to existing FreeSurfer subjects directory to reuse. (default: OUTPUT_DIR/freesurfer)</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Surface preprocessing options">
+<h3>Surface preprocessing options<a class="headerlink" href="#Surface preprocessing options" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--no-submm-recon</kbd></dt>
+<dd><p>disable sub-millimeter (hires) reconstruction</p>
+</dd>
+<dt><kbd>--fs-no-reconall</kbd></dt>
+<dd><p>disable FreeSurfer surface preprocessing.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Other options">
+<h3>Other options<a class="headerlink" href="#Other options" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-w, --work-dir</kbd></dt>
+<dd><p>path where intermediate results should be stored</p>
+</dd>
+<dt><kbd>--fast-track</kbd></dt>
+<dd><p>fast-track the workflow by searching for existing derivatives.</p>
+</dd>
+<dt><kbd>--resource-monitor</kbd></dt>
+<dd><p>enable Nipype’s resource monitoring to keep track of memory and CPU usage</p>
+</dd>
+<dt><kbd>--reports-only</kbd></dt>
+<dd><p>only generate reports, don’t run workflows. This will only rerun report aggregation, not reportlet generation for specific nodes.</p>
+</dd>
+<dt><kbd>--run-uuid</kbd></dt>
+<dd><p>Specify UUID of previous run, to include error logs in report. No effect without –reports-only.</p>
+</dd>
+<dt><kbd>--write-graph</kbd></dt>
+<dd><p>Write workflow graph.</p>
+</dd>
+<dt><kbd>--stop-on-first-crash</kbd></dt>
+<dd><p>Force stopping on first crash, even if a work directory was specified.</p>
+</dd>
+<dt><kbd>--notrack</kbd></dt>
+<dd><p>Opt-out of sending tracking information of this run to the sMRIPrep developers. This information helps to improve sMRIPrep and provides an indicator of real world usage crucial for obtaining funding.</p>
+</dd>
+<dt><kbd>--sloppy</kbd></dt>
+<dd><p>Use low-quality tools for speed - TESTING ONLY</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="the-command-line-interface-of-the-docker-wrapper">
+<h2>The command-line interface of the docker wrapper<a class="headerlink" href="#the-command-line-interface-of-the-docker-wrapper" title="Permalink to this headline">¶</a></h2>
+<p><p>The sMRIPrep on Docker wrapper.</p>
+<p>This is a lightweight Python wrapper to run sMRIPrep.
+Docker must be installed and running. This can be checked
+running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span> <span class="n">info</span>
+</pre></div>
+</div>
+<p>Please report any feedback to our GitHub repository
+(<a class="reference external" href="https://github.com/nipreps/smriprep">https://github.com/nipreps/smriprep</a>) and do not
+forget to credit all the authors of software that sMRIPrep
+uses (consider using the citation boilerplate included in the
+individual reports).</p>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span><span class="o">-</span><span class="n">docker</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMG</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WORK_DIR</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">license</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">plugin</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">shell</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">config</span> <span class="n">PATH</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENV_VAR</span> <span class="n">value</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">USER</span><span class="p">]</span>
+       <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">tty</span><span class="p">]</span>
+       <span class="p">[</span><span class="n">bids_dir</span><span class="p">]</span>
+       <span class="p">[</span><span class="n">output_dir</span><span class="p">]</span>
+       <span class="p">[{</span><span class="n">participant</span><span class="p">}]</span>
+</pre></div>
+</div>
+<div class="section" id="Positional Arguments">
+<h3>Positional Arguments<a class="headerlink" href="#Positional Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>bids_dir</kbd></dt>
+<dd></dd>
+<dt><kbd>output_dir</kbd></dt>
+<dd></dd>
+<dt><kbd>analysis_level</kbd></dt>
+<dd><p>Possible choices: participant</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>-h, --help</kbd></dt>
+<dd><p>show this help message and exit</p>
+</dd>
+<dt><kbd>--version</kbd></dt>
+<dd><p>show program’s version number and exit</p>
+</dd>
+<dt><kbd>-i, --image</kbd></dt>
+<dd><p>image name</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Wrapper options">
+<h3>Wrapper options<a class="headerlink" href="#Wrapper options" title="Permalink to this headline">¶</a></h3>
+<p>Standard options that require mapping files into the container</p>
+<dl class="option-list">
+<dt><kbd>-w, --work-dir</kbd></dt>
+<dd><p>path where intermediate results should be stored</p>
+</dd>
+<dt><kbd>--fs-license-file</kbd></dt>
+<dd><p>Path to FreeSurfer license key file. Get it (for free) by registering at <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/registration.html">https://surfer.nmr.mgh.harvard.edu/registration.html</a></p>
+</dd>
+<dt><kbd>--use-plugin</kbd></dt>
+<dd><p>nipype plugin configuration file</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="Developer options">
+<h3>Developer options<a class="headerlink" href="#Developer options" title="Permalink to this headline">¶</a></h3>
+<p>Tools for testing and debugging sMRIPrep</p>
+<dl class="option-list">
+<dt><kbd>-f, --patch-smriprep</kbd></dt>
+<dd><p>working smriprep repository</p>
+</dd>
+<dt><kbd>-n, --patch-niworkflows</kbd></dt>
+<dd><p>working niworkflows repository</p>
+</dd>
+<dt><kbd>-p, --patch-nipype</kbd></dt>
+<dd><p>working nipype repository</p>
+</dd>
+<dt><kbd>--shell</kbd></dt>
+<dd><p>open shell in image instead of running sMRIPrep</p>
+</dd>
+<dt><kbd>--config</kbd></dt>
+<dd><p>Use custom nipype.cfg file</p>
+</dd>
+<dt><kbd>-e, --env</kbd></dt>
+<dd><p>Set custom environment variable within container</p>
+</dd>
+<dt><kbd>-u, --user</kbd></dt>
+<dd><p>Run container as a given user/uid</p>
+</dd>
+<dt><kbd>--no-tty</kbd></dt>
+<dd><p>Run docker without TTY flag -it</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="the-freesurfer-license">
+<span id="fs-license"></span><h2>The FreeSurfer license<a class="headerlink" href="#the-freesurfer-license" title="Permalink to this headline">¶</a></h2>
+<p><em>sMRIPrep</em> uses FreeSurfer tools, which require a license to run.</p>
+<p>To obtain a FreeSurfer license, simply register for free at
+<a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/registration.html">https://surfer.nmr.mgh.harvard.edu/registration.html</a>.</p>
+<p>When using manually-prepared environments or singularity, FreeSurfer will search
+for a license key file first using the <code class="docutils literal notranslate"><span class="pre">$FS_LICENSE</span></code> environment variable and then
+in the default path to the license key file (<code class="docutils literal notranslate"><span class="pre">$FREESURFER_HOME/license.txt</span></code>).
+If using the <code class="docutils literal notranslate"><span class="pre">--cleanenv</span></code> flag and <code class="docutils literal notranslate"><span class="pre">$FS_LICENSE</span></code> is set, use <code class="docutils literal notranslate"><span class="pre">--fs-license-file</span> <span class="pre">$FS_LICENSE</span></code>
+to pass the license file location to <em>sMRIPrep</em>.</p>
+<p>It is possible to run the docker container pointing the image to a local path
+where a valid license file is stored.
+For example, if the license is stored in the <code class="docutils literal notranslate"><span class="pre">$HOME/.licenses/freesurfer/license.txt</span></code>
+file on the host system:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker run -ti --rm \
+    -v $HOME/fullds005:/data:ro \
+    -v $HOME/dockerout:/out \
+    -v $HOME/.licenses/freesurfer/license.txt:/opt/freesurfer/license.txt \
+    nipreps/smriprep:latest \
+    /data /out/out \
+    participant \
+    --ignore fieldmaps
+</pre></div>
+</div>
+<p>Using FreeSurfer can also be enabled when using <code class="docutils literal notranslate"><span class="pre">smriprep-docker</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ smriprep-docker --fs-license-file $HOME/.licenses/freesurfer/license.txt \
+    /path/to/data/dir /path/to/output/dir participant
+RUNNING: docker run --rm -it -v /path/to/data/dir:/data:ro \
+    -v /home/user/.licenses/freesurfer/license.txt:/opt/freesurfer/license.txt \
+    -v /path/to_output/dir:/out nipreps/smriprep:1.0.0 \
+    /data /out participant
+...
+</pre></div>
+</div>
+<p>If the environment variable <code class="docutils literal notranslate"><span class="pre">$FS_LICENSE</span></code> is set in the host system, then
+it will automatically used by <code class="docutils literal notranslate"><span class="pre">smriprep-docker</span></code>. For instance, the following
+would be equivalent to the latest example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ export FS_LICENSE=$HOME/.licenses/freesurfer/license.txt
+$ smriprep-docker /path/to/data/dir /path/to/output/dir participant
+RUNNING: docker run --rm -it -v /path/to/data/dir:/data:ro \
+    -v /home/user/.licenses/freesurfer/license.txt:/opt/freesurfer/license.txt \
+    -v /path/to_output/dir:/out nipreps/smriprep:1.0.0 \
+    /data /out participant
+...
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api.html" class="btn btn-neutral float-right" title="Library API (application program interface)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: 0.7.1
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../0.4.0/index.html">0.4.0</a></dd>
+            <dd><a href="../0.4.0rc1/index.html">0.4.0rc1</a></dd>
+            <dd><a href="../0.4.0rc2/index.html">0.4.0rc2</a></dd>
+            <dd><a href="../0.4.0rc3/index.html">0.4.0rc3</a></dd>
+            <dd><a href="../0.4.0rc4/index.html">0.4.0rc4</a></dd>
+            <dd><a href="../0.4.0rc5/index.html">0.4.0rc5</a></dd>
+            <dd><a href="../0.4.1-1/usage.html">0.4.1-1</a></dd>
+            <dd><a href="../0.4.2/usage.html">0.4.2</a></dd>
+            <dd><a href="../0.5.0/usage.html">0.5.0</a></dd>
+            <dd><a href="../0.5.1/usage.html">0.5.1</a></dd>
+            <dd><a href="../0.5.2/usage.html">0.5.2</a></dd>
+            <dd><a href="../0.5.3/usage.html">0.5.3</a></dd>
+            <dd><a href="../0.6.0/usage.html">0.6.0</a></dd>
+            <dd><a href="../0.6.0rc1/usage.html">0.6.0rc1</a></dd>
+            <dd><a href="../0.6.0rc2/usage.html">0.6.0rc2</a></dd>
+            <dd><a href="../0.6.0rc3/usage.html">0.6.0rc3</a></dd>
+            <dd><a href="../0.6.0rc4/usage.html">0.6.0rc4</a></dd>
+            <dd><a href="../0.6.0rc5/usage.html">0.6.0rc5</a></dd>
+            <dd><a href="../0.6.1/usage.html">0.6.1</a></dd>
+            <dd><a href="../0.6.2/usage.html">0.6.2</a></dd>
+            <dd><a href="../0.7.0/usage.html">0.7.0</a></dd>
+            <dd><a href="../0.7.0rc1/usage.html">0.7.0rc1</a></dd>
+            <dd><a href="../0.7.0rc2/usage.html">0.7.0rc2</a></dd>
+            <dd><a href="usage.html">0.7.1</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../maint_0.4.x/usage.html">maint/0.4.x</a></dd>
+            <dd><a href="../maint_0.5.x/usage.html">maint/0.5.x</a></dd>
+            <dd><a href="../maint_0.6.x/usage.html">maint/0.6.x</a></dd>
+            <dd><a href="../maint_0.7.x/usage.html">maint/0.7.x</a></dd>
+            <dd><a href="../master/usage.html">master</a></dd>
+        </dl>
+    </div>
+</div>
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

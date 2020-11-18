@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>What’s new? &mdash; smriprep 0.7.0 documentation</title>
+  <title>What’s new? &mdash; smriprep 0.7.1 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.7.0
+                0.7.1
               </div>
             
           
@@ -91,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#november-18-2020">0.7.1 (November 18, 2020)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#september-27-2020">0.7.0 (September 27, 2020)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#june-9-2020">0.6.2 (June 9, 2020)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#may-27-2020">0.6.1 (May 27, 2020)</a></li>
@@ -197,6 +198,21 @@
 
 <div class="section" id="what-s-new">
 <h1>What’s new?<a class="headerlink" href="#what-s-new" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="november-18-2020">
+<h2>0.7.1 (November 18, 2020)<a class="headerlink" href="#november-18-2020" title="Permalink to this headline">¶</a></h2>
+<p>Bug-fix release in the 0.7.x series.</p>
+<p>All releases since 0.4.0 have incorrectly labelled T1w images normalized to a
+template space as SkullStripped in the corresponding JSON sidecar files.
+This affects 0.4.x through 0.4.2, 0.5.x through 0.5.3, 0.6.x through 0.6.2, and
+0.7.0. Prior to 0.4.0, the images were actually skull-stripped, and the metadata
+labels were not incorrect.</p>
+<p>For backwards compatibility reasons, any future releases of these series will
+have SkullStripped set to False. In 0.8 and above, the images will be skull-stripped
+and the metadata set back to True.</p>
+<ul class="simple">
+<li><p>CI: CircleCI housekeeping (#234, #235)</p></li>
+</ul>
+</div>
 <div class="section" id="september-27-2020">
 <h2>0.7.0 (September 27, 2020)<a class="headerlink" href="#september-27-2020" title="Permalink to this headline">¶</a></h2>
 <p>Minor release in preparation for <em>fMRIPrep</em> 20.2.x LTS series.
@@ -407,7 +423,7 @@ We’ve also moved to a <code class="docutils literal notranslate"><span class="
 <h3>0.2.0 (May 3, 2019)<a class="headerlink" href="#may-3-2019" title="Permalink to this headline">¶</a></h3>
 <p>This new release of <em>sMRIPrep</em> adds the possibility of specifying several
 spatial normalization targets via the <code class="docutils literal notranslate"><span class="pre">--output-spaces</span></code> option drafted
-in <a class="reference external" href="https://github.com/poldracklab/fmriprep/issues/1588">poldracklab/fmriprep#1588</a>.</p>
+in <a class="reference external" href="https://github.com/nipreps/fmriprep/issues/1588">nipreps/fmriprep#1588</a>.</p>
 <ul class="simple">
 <li><p>FIX: Resolve behavior when deprecated <code class="docutils literal notranslate"><span class="pre">--template</span></code> is given (#77) &#64;oesteban</p></li>
 <li><p>FIX: Solved problems in report generation (#76) &#64;oesteban</p></li>
@@ -535,15 +551,15 @@ in <a class="reference external" href="https://github.com/poldracklab/fmriprep/i
             <dd><a href="../0.7.0/changes.html">0.7.0</a></dd>
             <dd><a href="../0.7.0rc1/changes.html">0.7.0rc1</a></dd>
             <dd><a href="../0.7.0rc2/changes.html">0.7.0rc2</a></dd>
+            <dd><a href="../0.7.1/changes.html">0.7.1</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../fix_125/changes.html">fix/125</a></dd>
+            <dd><a href="../maint_0.4.x/changes.html">maint/0.4.x</a></dd>
             <dd><a href="../maint_0.5.x/changes.html">maint/0.5.x</a></dd>
             <dd><a href="../maint_0.6.x/changes.html">maint/0.6.x</a></dd>
+            <dd><a href="../maint_0.7.x/changes.html">maint/0.7.x</a></dd>
             <dd><a href="changes.html">master</a></dd>
-            <dd><a href="../rel_0.7.0/changes.html">rel/0.7.0</a></dd>
-            <dd><a href="../rel_0.7.0rc2/changes.html">rel/0.7.0rc2</a></dd>
         </dl>
     </div>
 </div>

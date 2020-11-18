@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>smriprep.utils.bids module &mdash; smriprep 0.7.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="smriprep.utils.misc module" href="smriprep.utils.misc.html" />
+    <link rel="prev" title="smriprep.utils package" href="smriprep.utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> smriprep
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.7.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Library API (application program interface)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="smriprep.cli.html">smriprep.cli package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.interfaces.html">smriprep.interfaces package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="smriprep.utils.html">smriprep.utils package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="smriprep.utils.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">smriprep.utils.bids module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.utils.misc.html">smriprep.utils.misc module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.workflows.html">smriprep.workflows package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">What’s new?</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">smriprep</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../api.html">Library API (application program interface)</a> &raquo;</li>
+        
+          <li><a href="smriprep.utils.html">smriprep.utils package</a> &raquo;</li>
+        
+      <li>smriprep.utils.bids module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/smriprep.utils.bids.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../../master/api/smriprep.utils.bids.html"><b>Warning:</b> This document is for an old version of smriprep. The main version is master.</a></p>
+<div class="section" id="module-smriprep.utils.bids">
+<span id="smriprep-utils-bids-module"></span><h1>smriprep.utils.bids module<a class="headerlink" href="#module-smriprep.utils.bids" title="Permalink to this headline">¶</a></h1>
+<p>Utilities to handle BIDS inputs.</p>
+<dl class="function">
+<dt id="smriprep.utils.bids.collect_derivatives">
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">collect_derivatives</code><span class="sig-paren">(</span><em class="sig-param">derivatives_dir</em>, <em class="sig-param">subject_id</em>, <em class="sig-param">std_spaces</em>, <em class="sig-param">freesurfer</em>, <em class="sig-param">spec=None</em>, <em class="sig-param">patterns=None</em><span class="sig-paren">)</span><a class="headerlink" href="#smriprep.utils.bids.collect_derivatives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gather existing derivatives and compose a cache.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="smriprep.utils.bids.get_outputnode_spec">
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">get_outputnode_spec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#smriprep.utils.bids.get_outputnode_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate outputnode’s fields from I/O spec file.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_outputnode_spec</span><span class="p">()</span>  
+<span class="go">[&#39;t1w_preproc&#39;, &#39;t1w_mask&#39;, &#39;t1w_dseg&#39;, &#39;t1w_tpms&#39;,</span>
+<span class="go">&#39;std_preproc&#39;, &#39;std_mask&#39;, &#39;std_dseg&#39;, &#39;std_tpms&#39;,</span>
+<span class="go">&#39;anat2std_xfm&#39;, &#39;std2anat_xfm&#39;,</span>
+<span class="go">&#39;t1w_aseg&#39;, &#39;t1w_aparc&#39;,</span>
+<span class="go">&#39;t1w2fsnative_xfm&#39;, &#39;fsnative2t1w_xfm&#39;,</span>
+<span class="go">&#39;surfaces&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="smriprep.utils.bids.predict_derivatives">
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">predict_derivatives</code><span class="sig-paren">(</span><em class="sig-param">subject_id</em>, <em class="sig-param">output_spaces</em>, <em class="sig-param">freesurfer</em><span class="sig-paren">)</span><a class="headerlink" href="#smriprep.utils.bids.predict_derivatives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a list of the files that should be found in the output folder.</p>
+<p>The prediction of outputs serves two purposes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Anticipates the set of outputs that will be generated.</p></li>
+<li><p>Informs the decision of whether the workflow should be staged or some
+sections can be skip.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subject_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – A subject id</p></li>
+<li><p><strong>output_spaces</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a>) – TemplateFlow identifiers of the requested output spaces</p></li>
+<li><p><strong>freesurfer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Whether the <code class="docutils literal notranslate"><span class="pre">--fs-no-reconall</span></code> flag was used.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">predict_derivatives</span><span class="p">(</span><span class="s1">&#39;01&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;MNI152NLin2009cAsym&#39;</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+<span class="go">[&#39;sub-01/anat/sub-01_desc-brain_mask.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_desc-preproc_T1w.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_dseg.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_from-T1w_to-MNI152NLin2009cAsym_mode-image_xfm.h5&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_label-CSF_probseg.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_label-GM_probseg.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_label-WM_probseg.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_space-MNI152NLin2009cAsym_dseg.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_space-MNI152NLin2009cAsym_label-CSF_probseg.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_space-MNI152NLin2009cAsym_label-GM_probseg.nii.gz&#39;,</span>
+<span class="go"> &#39;sub-01/anat/sub-01_space-MNI152NLin2009cAsym_label-WM_probseg.nii.gz&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="smriprep.utils.bids.write_bidsignore">
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">write_bidsignore</code><span class="sig-paren">(</span><em class="sig-param">deriv_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#smriprep.utils.bids.write_bidsignore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="smriprep.utils.bids.write_derivative_description">
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">write_derivative_description</code><span class="sig-paren">(</span><em class="sig-param">bids_dir</em>, <em class="sig-param">deriv_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#smriprep.utils.bids.write_derivative_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a <code class="docutils literal notranslate"><span class="pre">dataset_description.json</span></code> for the derivatives folder.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_filename</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tmpdir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bids_dir</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;smriprep&#39;</span><span class="p">,</span> <span class="s1">&#39;data/tests&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deriv_desc</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmpdir</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;dataset_description.json&#39;</span>
+</pre></div>
+</div>
+<div class="highlight-pycon3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">write_derivative_description</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">,</span> <span class="n">deriv_desc</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">deriv_desc</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tmpdir</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="smriprep.utils.misc.html" class="btn btn-neutral float-right" title="smriprep.utils.misc module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="smriprep.utils.html" class="btn btn-neutral float-left" title="smriprep.utils package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: 0.7.1
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../0.4.0/api/smriprep.utils.bids.html">0.4.0</a></dd>
+            <dd><a href="../../0.4.0rc1/api/smriprep.utils.bids.html">0.4.0rc1</a></dd>
+            <dd><a href="../../0.4.0rc2/api/smriprep.utils.bids.html">0.4.0rc2</a></dd>
+            <dd><a href="../../0.4.0rc3/api/smriprep.utils.bids.html">0.4.0rc3</a></dd>
+            <dd><a href="../../0.4.0rc4/api/smriprep.utils.bids.html">0.4.0rc4</a></dd>
+            <dd><a href="../../0.4.0rc5/api/smriprep.utils.bids.html">0.4.0rc5</a></dd>
+            <dd><a href="../../0.4.1-1/api/smriprep.utils.bids.html">0.4.1-1</a></dd>
+            <dd><a href="../../0.4.2/api/smriprep.utils.bids.html">0.4.2</a></dd>
+            <dd><a href="../../0.5.0/api/smriprep.utils.bids.html">0.5.0</a></dd>
+            <dd><a href="../../0.5.1/api/smriprep.utils.bids.html">0.5.1</a></dd>
+            <dd><a href="../../0.5.2/api/smriprep.utils.bids.html">0.5.2</a></dd>
+            <dd><a href="../../0.5.3/api/smriprep.utils.bids.html">0.5.3</a></dd>
+            <dd><a href="../../0.6.0/api/smriprep.utils.bids.html">0.6.0</a></dd>
+            <dd><a href="../../0.6.0rc1/api/smriprep.utils.bids.html">0.6.0rc1</a></dd>
+            <dd><a href="../../0.6.0rc2/api/smriprep.utils.bids.html">0.6.0rc2</a></dd>
+            <dd><a href="../../0.6.0rc3/api/smriprep.utils.bids.html">0.6.0rc3</a></dd>
+            <dd><a href="../../0.6.0rc4/api/smriprep.utils.bids.html">0.6.0rc4</a></dd>
+            <dd><a href="../../0.6.0rc5/api/smriprep.utils.bids.html">0.6.0rc5</a></dd>
+            <dd><a href="../../0.6.1/api/smriprep.utils.bids.html">0.6.1</a></dd>
+            <dd><a href="../../0.6.2/api/smriprep.utils.bids.html">0.6.2</a></dd>
+            <dd><a href="../../0.7.0/api/smriprep.utils.bids.html">0.7.0</a></dd>
+            <dd><a href="../../0.7.0rc1/api/smriprep.utils.bids.html">0.7.0rc1</a></dd>
+            <dd><a href="../../0.7.0rc2/api/smriprep.utils.bids.html">0.7.0rc2</a></dd>
+            <dd><a href="smriprep.utils.bids.html">0.7.1</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../maint_0.4.x/api/smriprep.utils.bids.html">maint/0.4.x</a></dd>
+            <dd><a href="../../maint_0.5.x/api/smriprep.utils.bids.html">maint/0.5.x</a></dd>
+            <dd><a href="../../maint_0.6.x/api/smriprep.utils.bids.html">maint/0.6.x</a></dd>
+            <dd><a href="../../maint_0.7.x/api/smriprep.utils.bids.html">maint/0.7.x</a></dd>
+            <dd><a href="../../master/api/smriprep.utils.bids.html">master</a></dd>
+        </dl>
+    </div>
+</div>
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

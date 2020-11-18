@@ -82,7 +82,7 @@ After checking your Docker Engine is capable of running Docker images, then go a
 and `check out our documentation <https://fmriprep.readthedocs.io/en/stable/docker.html>`__
 to run the *sMRIPrep* image.
 The list of Docker images ready to use is found at the `Docker Hub`_, 
-under the ``poldracklab/smriprep`` identifier.
+under the ``nipreps/smriprep`` identifier.
 
 The ``smriprep-docker`` wrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -121,7 +121,7 @@ Make sure all of *sMRIPrep*'s `External Dependencies`_ are installed.
 These tools must be installed and their binaries available in the
 system's ``$PATH``.
 A relatively interpretable description of how your environment can be set-up
-is found in the `Dockerfile <https://github.com/poldracklab/smriprep/blob/master/Dockerfile>`_.
+is found in the `Dockerfile <https://github.com/nipreps/smriprep/blob/master/Dockerfile>`_.
 As an additional installation setting, FreeSurfer requires a license file (see :ref:`fs_license`).
 
 On a functional Python 3.5 (or above) environment with ``pip`` installed,
