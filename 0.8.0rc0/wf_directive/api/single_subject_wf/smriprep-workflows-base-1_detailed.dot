@@ -1,0 +1,26 @@
+digraph structs {
+node [shape=record];
+single_subject_wfabout [label="{IN}|{ about | reports |  }|{OUT|<outoutreport> out_report}"];
+single_subject_wfbidssrc [label="{IN}|{ bidssrc | bids |  }|{OUT|<outflair> flair|<outroi> roi|<outt1w> t1w|<outt2w> t2w}"];
+single_subject_wfds_report_about [label="{IN|<ininfile> in_file|<insourcefile> source_file}|{ ds_report_about |  |  }|{OUT}"];
+single_subject_wfbids_info [label="{IN|<ininfile> in_file}|{ bids_info | bids |  }|{OUT|<outsubject> subject}"];
+single_subject_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outsubjectsdir> subjects_dir}"];
+single_subject_wfsummary [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir|<int1w> t1w|<int2w> t2w}|{ summary | reports |  }|{OUT|<outoutreport> out_report}"];
+single_subject_wfds_report_summary [label="{IN|<ininfile> in_file|<insourcefile> source_file}|{ ds_report_summary |  |  }|{OUT}"];
+single_subject_wfanat_preproc_wf [label="{IN|<ininputnodeflair> inputnode.flair|<ininputnoderoi> inputnode.roi|<ininputnodesubjectid> inputnode.subject_id|<ininputnodesubjectsdir> inputnode.subjects_dir|<ininputnodet1w> inputnode.t1w|<ininputnodet2w> inputnode.t2w}|{ anat_preproc_wf |  |  }|{OUT}"];
+single_subject_wfabout:outoutreport:e -> single_subject_wfds_report_about:ininfile:w;
+single_subject_wfbids_info:outsubject:e -> single_subject_wfanat_preproc_wf:ininputnodesubjectid:w;
+single_subject_wfbids_info:outsubject:e -> single_subject_wfsummary:insubjectid:w;
+single_subject_wfbidssrc:outflair:e -> single_subject_wfanat_preproc_wf:ininputnodeflair:w;
+single_subject_wfbidssrc:outroi:e -> single_subject_wfanat_preproc_wf:ininputnoderoi:w;
+single_subject_wfbidssrc:outt1w:e -> single_subject_wfanat_preproc_wf:ininputnodet1w:w;
+single_subject_wfbidssrc:outt1w:e -> single_subject_wfbids_info:ininfile:w;
+single_subject_wfbidssrc:outt1w:e -> single_subject_wfds_report_about:insourcefile:w;
+single_subject_wfbidssrc:outt1w:e -> single_subject_wfds_report_summary:insourcefile:w;
+single_subject_wfbidssrc:outt1w:e -> single_subject_wfsummary:int1w:w;
+single_subject_wfbidssrc:outt2w:e -> single_subject_wfanat_preproc_wf:ininputnodet2w:w;
+single_subject_wfbidssrc:outt2w:e -> single_subject_wfsummary:int2w:w;
+single_subject_wfinputnode:outsubjectsdir:e -> single_subject_wfanat_preproc_wf:ininputnodesubjectsdir:w;
+single_subject_wfinputnode:outsubjectsdir:e -> single_subject_wfsummary:insubjectsdir:w;
+single_subject_wfsummary:outoutreport:e -> single_subject_wfds_report_summary:ininfile:w;
+}

@@ -1,0 +1,21 @@
+strict digraph  {
+"inputnode (utility)";
+anat_preproc_wf;
+"summary (reports)";
+"bidssrc (bids)";
+"bids_info (bids)";
+ds_report_summary;
+ds_report_about;
+"about (reports)";
+"inputnode (utility)" -> anat_preproc_wf;
+"inputnode (utility)" -> "summary (reports)";
+"summary (reports)" -> ds_report_summary;
+"bidssrc (bids)" -> "bids_info (bids)";
+"bidssrc (bids)" -> "summary (reports)";
+"bidssrc (bids)" -> anat_preproc_wf;
+"bidssrc (bids)" -> ds_report_summary;
+"bidssrc (bids)" -> ds_report_about;
+"bids_info (bids)" -> "summary (reports)";
+"bids_info (bids)" -> anat_preproc_wf;
+"about (reports)" -> ds_report_about;
+}

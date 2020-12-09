@@ -1,0 +1,13 @@
+digraph structs {
+node [shape=record];
+segs_to_native_aseginputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outfsnative2t1wxfm> fsnative2t1w_xfm|<outinfile> in_file|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+segs_to_native_asegfs_datasource [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ fs_datasource | io |  }|{OUT|<outaseg> aseg}"];
+segs_to_native_asegresample [label="{IN|<inltafile> lta_file|<insourcefile> source_file|<intargetfile> target_file}|{ resample | freesurfer |  }|{OUT|<outtransformedfile> transformed_file}"];
+segs_to_native_asegoutputnode [label="{IN|<inoutfile> out_file}|{ outputnode | utility |  }|{OUT}"];
+segs_to_native_asegfs_datasource:outaseg:e -> segs_to_native_asegresample:insourcefile:w;
+segs_to_native_aseginputnode:outfsnative2t1wxfm:e -> segs_to_native_asegresample:inltafile:w;
+segs_to_native_aseginputnode:outinfile:e -> segs_to_native_asegresample:intargetfile:w;
+segs_to_native_aseginputnode:outsubjectid:e -> segs_to_native_asegfs_datasource:insubjectid:w;
+segs_to_native_aseginputnode:outsubjectsdir:e -> segs_to_native_asegfs_datasource:insubjectsdir:w;
+segs_to_native_asegresample:outtransformedfile:e -> segs_to_native_asegoutputnode:inoutfile:w;
+}

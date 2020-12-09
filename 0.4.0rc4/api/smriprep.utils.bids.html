@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>smriprep.utils.bids module &mdash; smriprep 0.7.1 documentation</title>
+  <title>smriprep.utils.bids module &mdash; smriprep 0.8.0rc0 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.7.1
+                0.8.0rc0
               </div>
             
           
@@ -186,13 +186,13 @@
 <p>Utilities to handle BIDS inputs.</p>
 <dl class="function">
 <dt id="smriprep.utils.bids.collect_derivatives">
-<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">collect_derivatives</code><span class="sig-paren">(</span><em class="sig-param">derivatives_dir</em>, <em class="sig-param">subject_id</em>, <em class="sig-param">std_spaces</em>, <em class="sig-param">freesurfer</em>, <em class="sig-param">spec=None</em>, <em class="sig-param">patterns=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/162e8dbbc05842fe7eb3105eb85674407977c20f/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.collect_derivatives" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">collect_derivatives</code><span class="sig-paren">(</span><em class="sig-param">derivatives_dir</em>, <em class="sig-param">subject_id</em>, <em class="sig-param">std_spaces</em>, <em class="sig-param">freesurfer</em>, <em class="sig-param">spec=None</em>, <em class="sig-param">patterns=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/fb36542d989d078a13c58f0e1b674714ee0b0d03/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.collect_derivatives" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gather existing derivatives and compose a cache.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="smriprep.utils.bids.get_outputnode_spec">
-<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">get_outputnode_spec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/162e8dbbc05842fe7eb3105eb85674407977c20f/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.get_outputnode_spec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">get_outputnode_spec</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/fb36542d989d078a13c58f0e1b674714ee0b0d03/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.get_outputnode_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate outputnode’s fields from I/O spec file.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_outputnode_spec</span><span class="p">()</span>  
@@ -208,7 +208,7 @@
 
 <dl class="function">
 <dt id="smriprep.utils.bids.predict_derivatives">
-<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">predict_derivatives</code><span class="sig-paren">(</span><em class="sig-param">subject_id</em>, <em class="sig-param">output_spaces</em>, <em class="sig-param">freesurfer</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/162e8dbbc05842fe7eb3105eb85674407977c20f/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.predict_derivatives" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">predict_derivatives</code><span class="sig-paren">(</span><em class="sig-param">subject_id</em>, <em class="sig-param">output_spaces</em>, <em class="sig-param">freesurfer</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/fb36542d989d078a13c58f0e1b674714ee0b0d03/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.predict_derivatives" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a list of the files that should be found in the output folder.</p>
 <p>The prediction of outputs serves two purposes:</p>
 <blockquote>
@@ -249,12 +249,12 @@ sections can be skip.</p></li>
 
 <dl class="function">
 <dt id="smriprep.utils.bids.write_bidsignore">
-<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">write_bidsignore</code><span class="sig-paren">(</span><em class="sig-param">deriv_dir</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/162e8dbbc05842fe7eb3105eb85674407977c20f/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.write_bidsignore" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">write_bidsignore</code><span class="sig-paren">(</span><em class="sig-param">deriv_dir</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/fb36542d989d078a13c58f0e1b674714ee0b0d03/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.write_bidsignore" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="smriprep.utils.bids.write_derivative_description">
-<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">write_derivative_description</code><span class="sig-paren">(</span><em class="sig-param">bids_dir</em>, <em class="sig-param">deriv_dir</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/162e8dbbc05842fe7eb3105eb85674407977c20f/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.write_derivative_description" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">smriprep.utils.bids.</code><code class="sig-name descname">write_derivative_description</code><span class="sig-paren">(</span><em class="sig-param">bids_dir</em>, <em class="sig-param">deriv_dir</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/nipreps/smriprep/blob/fb36542d989d078a13c58f0e1b674714ee0b0d03/smriprep/utils/bids.py"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#smriprep.utils.bids.write_derivative_description" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a <code class="docutils literal notranslate"><span class="pre">dataset_description.json</span></code> for the derivatives folder.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_filename</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
@@ -355,6 +355,7 @@ sections can be skip.</p></li>
             <dd><a href="../../0.7.0rc1/api/smriprep.utils.bids.html">0.7.0rc1</a></dd>
             <dd><a href="../../0.7.0rc2/api/smriprep.utils.bids.html">0.7.0rc2</a></dd>
             <dd><a href="../../0.7.1/api/smriprep.utils.bids.html">0.7.1</a></dd>
+            <dd><a href="../../0.8.0rc0/api/smriprep.utils.bids.html">0.8.0rc0</a></dd>
         </dl>
         <dl>
             <dt>Branches</dt>

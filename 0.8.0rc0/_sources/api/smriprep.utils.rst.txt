@@ -1,0 +1,15 @@
+smriprep.utils package
+======================
+
+.. automodule:: smriprep.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+
+   smriprep.utils.bids
+   smriprep.utils.misc

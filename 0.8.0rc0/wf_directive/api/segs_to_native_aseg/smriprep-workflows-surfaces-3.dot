@@ -1,0 +1,10 @@
+strict digraph  {
+"inputnode (utility)";
+"fs_datasource (io)";
+"resample (freesurfer)";
+"outputnode (utility)";
+"inputnode (utility)" -> "fs_datasource (io)";
+"inputnode (utility)" -> "resample (freesurfer)";
+"fs_datasource (io)" -> "resample (freesurfer)";
+"resample (freesurfer)" -> "outputnode (utility)";
+}

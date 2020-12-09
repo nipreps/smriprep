@@ -1,0 +1,16 @@
+digraph structs {
+node [shape=record];
+anat_template_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outt1w> t1w}"];
+anat_template_wft1w_ref_dimensions [label="{IN|<int1wlist> t1w_list}|{ t1w_ref_dimensions | images |  }|{OUT|<outoutreport> out_report|<outt1wvalidlist> t1w_valid_list|<outtargetshape> target_shape|<outtargetzooms> target_zooms}"];
+anat_template_wft1w_conform [label="{IN|<ininfile> in_file|<intargetshape> target_shape|<intargetzooms> target_zooms}|{ t1w_conform | images |  }|{OUT|<outoutfile> out_file}"];
+anat_template_wfget1st [label="{IN|<ininlist> inlist}|{ get1st | utility |  }|{OUT|<outout> out}"];
+anat_template_wfoutputnode [label="{IN|<inoutreport> out_report|<int1wref> t1w_ref|<int1wvalidlist> t1w_valid_list}|{ outputnode | utility |  }|{OUT}"];
+anat_template_wfget1st:outout:e -> anat_template_wfoutputnode:int1wref:w;
+anat_template_wfinputnode:outt1w:e -> anat_template_wft1w_ref_dimensions:int1wlist:w;
+anat_template_wft1w_conform:outoutfile:e -> anat_template_wfget1st:ininlist:w;
+anat_template_wft1w_ref_dimensions:outoutreport:e -> anat_template_wfoutputnode:inoutreport:w;
+anat_template_wft1w_ref_dimensions:outt1wvalidlist:e -> anat_template_wfoutputnode:int1wvalidlist:w;
+anat_template_wft1w_ref_dimensions:outt1wvalidlist:e -> anat_template_wft1w_conform:ininfile:w;
+anat_template_wft1w_ref_dimensions:outtargetshape:e -> anat_template_wft1w_conform:intargetshape:w;
+anat_template_wft1w_ref_dimensions:outtargetzooms:e -> anat_template_wft1w_conform:intargetzooms:w;
+}

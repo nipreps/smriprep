@@ -1,0 +1,12 @@
+strict digraph  {
+"inputnode (utility)";
+"t1w_ref_dimensions (images)";
+"t1w_conform (images)";
+"outputnode (utility)";
+"get1st (utility)";
+"inputnode (utility)" -> "t1w_ref_dimensions (images)";
+"t1w_ref_dimensions (images)" -> "t1w_conform (images)";
+"t1w_ref_dimensions (images)" -> "outputnode (utility)";
+"t1w_conform (images)" -> "get1st (utility)";
+"get1st (utility)" -> "outputnode (utility)";
+}

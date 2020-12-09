@@ -1,0 +1,26 @@
+digraph structs {
+node [shape=record];
+gifti_surface_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outfsnative2t1wxfm> fsnative2t1w_xfm|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+gifti_surface_wfget_surfaces [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ get_surfaces | io |  }|{OUT|<outgraymid> graymid|<outinflated> inflated|<outpial> pial|<outsmoothwm> smoothwm}"];
+gifti_surface_wfmidthickness [label="{IN|<ingraymid> graymid|<ininfile> in_file}|{ midthickness | freesurfer |  }|{OUT|<outoutfile> out_file}"];
+gifti_surface_wfsave_midthickness [label="{IN|<inbasedirectory> base_directory|<incontainer> container|<insurfgraymid> surf.@graymid}|{ save_midthickness | io |  }|{OUT|<outoutfile> out_file}"];
+gifti_surface_wfsurface_list [label="{IN|<inin1> in1|<inin2> in2|<inin3> in3|<inin4> in4}|{ surface_list | utility |  }|{OUT|<outout> out}"];
+gifti_surface_wffs2gii [label="{IN|<ininfile> in_file}|{ fs2gii | freesurfer |  }|{OUT|<outconverted> converted}"];
+gifti_surface_wffix_surfs [label="{IN|<ininfile> in_file|<intransformfile> transform_file}|{ fix_surfs | surf |  }|{OUT|<outoutfile> out_file}"];
+gifti_surface_wfoutputnode [label="{IN|<insurfaces> surfaces}|{ outputnode | utility |  }|{OUT}"];
+gifti_surface_wffix_surfs:outoutfile:e -> gifti_surface_wfoutputnode:insurfaces:w;
+gifti_surface_wffs2gii:outconverted:e -> gifti_surface_wffix_surfs:ininfile:w;
+gifti_surface_wfget_surfaces:outgraymid:e -> gifti_surface_wfmidthickness:ingraymid:w;
+gifti_surface_wfget_surfaces:outinflated:e -> gifti_surface_wfsurface_list:inin3:w;
+gifti_surface_wfget_surfaces:outpial:e -> gifti_surface_wfsurface_list:inin2:w;
+gifti_surface_wfget_surfaces:outsmoothwm:e -> gifti_surface_wfmidthickness:ininfile:w;
+gifti_surface_wfget_surfaces:outsmoothwm:e -> gifti_surface_wfsurface_list:inin1:w;
+gifti_surface_wfinputnode:outfsnative2t1wxfm:e -> gifti_surface_wffix_surfs:intransformfile:w;
+gifti_surface_wfinputnode:outsubjectid:e -> gifti_surface_wfget_surfaces:insubjectid:w;
+gifti_surface_wfinputnode:outsubjectid:e -> gifti_surface_wfsave_midthickness:incontainer:w;
+gifti_surface_wfinputnode:outsubjectsdir:e -> gifti_surface_wfget_surfaces:insubjectsdir:w;
+gifti_surface_wfinputnode:outsubjectsdir:e -> gifti_surface_wfsave_midthickness:inbasedirectory:w;
+gifti_surface_wfmidthickness:outoutfile:e -> gifti_surface_wfsave_midthickness:insurfgraymid:w;
+gifti_surface_wfsave_midthickness:outoutfile:e -> gifti_surface_wfsurface_list:inin4:w;
+gifti_surface_wfsurface_list:outout:e -> gifti_surface_wffs2gii:ininfile:w;
+}

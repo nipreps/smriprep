@@ -1,0 +1,24 @@
+digraph structs {
+node [shape=record];
+autorecon_resume_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir|<outuseFLAIR> use_FLAIR|<outuseT2> use_T2}"];
+autorecon_resume_wfautorecon2_vol [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ autorecon2_vol | freesurfer |  }|{OUT|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+autorecon_resume_wfautorecon_surfs [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ autorecon_surfs | freesurfer |  }|{OUT|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+autorecon_resume_wfcortribbon [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir|<inuseFLAIR> use_FLAIR|<inuseT2> use_T2}|{ cortribbon | freesurfer |  }|{OUT|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+autorecon_resume_wfparcstats [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ parcstats | freesurfer |  }|{OUT|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+autorecon_resume_wfautorecon3 [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ autorecon3 | freesurfer |  }|{OUT|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+autorecon_resume_wfoutputnode [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ outputnode | utility |  }|{OUT}"];
+autorecon_resume_wfautorecon2_vol:outsubjectid:e -> autorecon_resume_wfautorecon_surfs:insubjectid:w;
+autorecon_resume_wfautorecon2_vol:outsubjectsdir:e -> autorecon_resume_wfautorecon_surfs:insubjectsdir:w;
+autorecon_resume_wfautorecon3:outsubjectid:e -> autorecon_resume_wfoutputnode:insubjectid:w;
+autorecon_resume_wfautorecon3:outsubjectsdir:e -> autorecon_resume_wfoutputnode:insubjectsdir:w;
+autorecon_resume_wfautorecon_surfs:outsubjectid:e -> autorecon_resume_wfcortribbon:insubjectid:w;
+autorecon_resume_wfautorecon_surfs:outsubjectsdir:e -> autorecon_resume_wfcortribbon:insubjectsdir:w;
+autorecon_resume_wfcortribbon:outsubjectid:e -> autorecon_resume_wfparcstats:insubjectid:w;
+autorecon_resume_wfcortribbon:outsubjectsdir:e -> autorecon_resume_wfparcstats:insubjectsdir:w;
+autorecon_resume_wfinputnode:outsubjectid:e -> autorecon_resume_wfautorecon2_vol:insubjectid:w;
+autorecon_resume_wfinputnode:outsubjectsdir:e -> autorecon_resume_wfautorecon2_vol:insubjectsdir:w;
+autorecon_resume_wfinputnode:outuseFLAIR:e -> autorecon_resume_wfcortribbon:inuseFLAIR:w;
+autorecon_resume_wfinputnode:outuseT2:e -> autorecon_resume_wfcortribbon:inuseT2:w;
+autorecon_resume_wfparcstats:outsubjectid:e -> autorecon_resume_wfautorecon3:insubjectid:w;
+autorecon_resume_wfparcstats:outsubjectsdir:e -> autorecon_resume_wfautorecon3:insubjectsdir:w;
+}
