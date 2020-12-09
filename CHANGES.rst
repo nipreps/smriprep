@@ -1,3 +1,8 @@
+0.8.0rc0 (December 09, 2020)
+============================
+A shim release pushing the pinning of *NiWorkflows* to allow the development
+of *dMRIPrep* and *fMRIPrep* with the next 1.4.x series of *SDCFlows*.
+
 0.7.1 (November 18, 2020)
 =========================
 Bug-fix release in the 0.7.x series.
