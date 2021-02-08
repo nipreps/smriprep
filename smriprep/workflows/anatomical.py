@@ -20,7 +20,8 @@ from niworkflows.interfaces.freesurfer import (
     StructuralReference,
     PatchedLTAConvert as LTAConvert,
 )
-from niworkflows.interfaces.images import TemplateDimensions, Conform, ValidateImage
+from niworkflows.interfaces.header import ValidateImage
+from niworkflows.interfaces.images import TemplateDimensions, Conform
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix

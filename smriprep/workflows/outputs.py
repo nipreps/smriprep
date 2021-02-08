@@ -49,8 +49,8 @@ def init_anat_reports_wf(*, freesurfer, output_dir,
         Template space and specifications
 
     """
-    from niworkflows.interfaces import SimpleBeforeAfter
-    from niworkflows.interfaces.masks import ROIsPlot
+    from niworkflows.interfaces.reportlets.registration import SimpleBeforeAfterRPT as SimpleBeforeAfter
+    from niworkflows.interfaces.reportlets.masks import ROIsPlot
     from ..interfaces.templateflow import TemplateFlowSelect
 
     workflow = Workflow(name=name)
@@ -297,7 +297,7 @@ def init_anat_derivatives_wf(
     # Write derivatives in standard spaces specified by --output-spaces
     if getattr(spaces, '_cached') is not None and spaces.cached.references:
         from niworkflows.interfaces.space import SpaceDataSource
-        from niworkflows.interfaces.utils import GenerateSamplingReference
+        from niworkflows.interfaces.nibabel import GenerateSamplingReference
         from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 
         from ..interfaces.templateflow import TemplateFlowSelect

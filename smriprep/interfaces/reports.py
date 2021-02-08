@@ -13,7 +13,7 @@ from nipype.interfaces import freesurfer as fs
 from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
 from nipype.interfaces.mixins import reporting
 
-from niworkflows.interfaces.report_base import _SVGReportCapableInputSpec
+from niworkflows.interfaces.reportlets.base import _SVGReportCapableInputSpec
 
 
 SUBJECT_TEMPLATE = """\
