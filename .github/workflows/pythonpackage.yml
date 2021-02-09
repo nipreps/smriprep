@@ -1,0 +1,98 @@
+name: Python package
+
+on:
+  push:
+    branches: [ '*' ]
+    tags: [ '*' ]
+  pull_request:
+    branches: [ master, 'maint/*' ]
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+        pip: ["pip>=20.3"]
+        
+    steps:
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - uses: actions/checkout@v2
+      with:
+        ssh-key: "${{ secrets.NIPREPS_DEPLOY }}"
+    - name: Fetch all tags (for versioneer to work)
+      if: "!startsWith(github.ref, 'refs/tags/')"
+      run: |
+        /usr/bin/git -c protocol.version=2 fetch --tags --prune --unshallow origin
+    - name: Build in confined, updated environment and interpolate version
+      run: |
+        python -m venv /tmp/buildenv
+        source /tmp/buildenv/bin/activate
+        python -m pip install -U setuptools pip wheel twine docutils
+        python setup.py sdist bdist_wheel
+        python -m twine check dist/smriprep*
+        # Interpolate version
+        if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+          TAG=${GITHUB_REF##*/}
+        fi
+        THISVERSION=$( python get_version.py )
+        THISVERSION=${TAG:-$THISVERSION}
+        echo "Expected VERSION: \"${THISVERSION}\""
+        echo "THISVERSION=${THISVERSION}" >> ${GITHUB_ENV}
+    - name: Install in confined environment [sdist]
+      run: |
+        python -m venv /tmp/install_sdist
+        source /tmp/install_sdist/bin/activate
+        python -m pip install "${{ matrix.pip }}" setuptools
+        python -m pip install dist/smriprep*.tar.gz
+        INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
+        echo "VERSION: \"${THISVERSION}\""
+        echo "INSTALLED: \"${INSTALLED_VERSION}\""
+        test "${INSTALLED_VERSION}" = "${THISVERSION}"
+    - name: Install in confined environment [wheel]
+      run: |
+        python -m venv /tmp/install_wheel
+        source /tmp/install_wheel/bin/activate
+        python -m pip install "${{ matrix.pip }}" setuptools
+        python -m pip install dist/smriprep*.whl
+        INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
+        echo "INSTALLED: \"${INSTALLED_VERSION}\""
+        test "${INSTALLED_VERSION}" = "${THISVERSION}"
+    - name: Install in confined environment [setup.py - install]
+      run: |
+        python -m venv /tmp/setup_install
+        source /tmp/setup_install/bin/activate
+        python -m pip install "${{ matrix.pip }}" setuptools
+        python -m pip install numpy scipy "Cython >= 0.28.5" # sklearn needs this
+        python -m pip install scikit-learn  # otherwise it attempts to build it
+        python setup.py install
+        INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
+        echo "INSTALLED: \"${INSTALLED_VERSION}\""
+        test "${INSTALLED_VERSION}" = "${THISVERSION}"
+    - name: Install in confined environment [setup.py - develop]
+      run: |
+        python -m venv /tmp/setup_develop
+        source /tmp/setup_develop/bin/activate
+        python -m pip install "${{ matrix.pip }}" setuptools
+        # sklearn needs these dependencies
+        python -m pip install numpy scipy "Cython >= 0.28.5"
+        python -m pip install scikit-learn  # otherwise it attempts to build it
+        python setup.py develop
+        INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
+        echo "INSTALLED: \"${INSTALLED_VERSION}\""
+        test "${INSTALLED_VERSION}" = "${THISVERSION}"
+  flake8:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - run: pip install flake8
+    - run: flake8 smriprep

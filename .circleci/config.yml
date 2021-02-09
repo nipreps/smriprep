@@ -44,10 +44,10 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -80,14 +80,14 @@ jobs:
             set -e
             if [[ "$success" = "0" ]]; then
                 echo "Pulling from local registry"
-                docker tag localhost:5000/ubuntu ubuntu:xenial-20161213
+                docker tag localhost:5000/ubuntu ubuntu:xenial-20201030
                 docker pull localhost:5000/smriprep
                 docker tag localhost:5000/smriprep nipreps/smriprep:latest
                 docker tag localhost:5000/smriprep nipreps/smriprep
             else
                 echo "Pulling from Docker Hub"
-                docker pull ubuntu:xenial-20161213
-                docker tag ubuntu:xenial-20161213 localhost:5000/ubuntu
+                docker pull ubuntu:xenial-20201030
+                docker tag ubuntu:xenial-20201030 localhost:5000/ubuntu
                 docker push localhost:5000/ubuntu
                 docker pull nipreps/smriprep:latest
             fi
@@ -130,7 +130,7 @@ jobs:
             docker exec -it registry /bin/registry garbage-collect --delete-untagged \
                 /etc/docker/registry/config.yml
       - save_cache:
-         key: build-v2-{{ .Branch }}-{{ epoch }}
+         key: build-v3-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/docker
             - /tmp/images
@@ -241,10 +241,10 @@ jobs:
           at: /tmp
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -390,10 +390,10 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -573,10 +573,10 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -815,10 +815,10 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
       - run:
