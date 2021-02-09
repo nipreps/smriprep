@@ -46,12 +46,12 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
     "sphinx.ext.ifconfig",
-    "sphinx.ext.linkcode",
+    "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
     "sphinxarg.ext",  # argparse extension
-    "nipype.sphinxext.plot_workflow",
     "sphinxcontrib.apidoc",
-    "sphinxcontrib.napoleon",
+    "nipype.sphinxext.plot_workflow",
+    "nipype.sphinxext.apidoc",
 ]
 
 autodoc_mock_imports = [
@@ -75,6 +75,9 @@ napoleon_use_param = False
 napoleon_custom_sections = [
     ("Inputs", "Parameters"),
     ("Outputs", "Parameters"),
+    ("Attributes", "Parameters"),
+    ("Mandatory Inputs", "Parameters"),
+    ("Optional Inputs", "Parameters"),
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -171,7 +174,7 @@ latex_documents = [
         master_doc,
         "smriprep.tex",
         "sMRIPrep Documentation",
-        "The sMRIPrep Developers",
+        "The NiPreps Developers",
         "manual",
     ),
 ]
@@ -238,11 +241,16 @@ linkcode_resolve = make_linkcode_resolve(
 )
 
 # -- Options for intersphinx extension ---------------------------------------
-
-# Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/", None),
+    "python": ("https://docs.python.org/3/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
+    "matplotlib": ("https://matplotlib.org/", None),
+    "bids": ("https://bids-standard.github.io/pybids/", None),
+    "nibabel": ("https://nipy.org/nibabel/", None),
+    "nipype": ("https://nipype.readthedocs.io/en/latest/", None),
     "niworkflows": ("https://www.nipreps.org/niworkflows/", None),
+    "templateflow": ("https://www.templateflow.org/python-client", None),
 }
 
 # -- Options for versioning extension ----------------------------------------
