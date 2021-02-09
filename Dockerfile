@@ -14,11 +14,7 @@ RUN apt-get update && \
                     libtool \
                     lsb-release \
                     pkg-config \
-<<<<<<< HEAD
                     xvfb && \
-=======
-                    git && \
->>>>>>> 5afd1a385 (maint: refactor Dockerfile and move tests from travis to GHA)
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Installing freesurfer
