@@ -9,16 +9,18 @@ def apply_lut(in_dseg, lut, newpath=None):
 
     if newpath is None:
         from os import getcwd
+
         newpath = getcwd()
 
-    out_file = fname_presuffix(in_dseg, suffix='_dseg', newpath=newpath)
-    lut = np.array(lut, dtype='int16')
+    out_file = fname_presuffix(in_dseg, suffix="_dseg", newpath=newpath)
+    lut = np.array(lut, dtype="int16")
 
     segm = nb.load(in_dseg)
     hdr = segm.header.copy()
-    hdr.set_data_dtype('int16')
-    segm.__class__(lut[np.asanyarray(segm.dataobj, dtype=int)].astype('int16'),
-                   segm.affine, hdr).to_filename(out_file)
+    hdr.set_data_dtype("int16")
+    segm.__class__(
+        lut[np.asanyarray(segm.dataobj, dtype=int)].astype("int16"), segm.affine, hdr
+    ).to_filename(out_file)
 
     return out_file
 
@@ -58,12 +60,14 @@ def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400, logger=None):
     # if recon log doesn't exist, just clear IsRunning
     mtime = reconlog.stat().st_mtime if reconlog.exists() else 0
     if (time.time() - mtime) < mtime_tol:
-        raise RuntimeError(f"""\
+        raise RuntimeError(
+            f"""\
 The FreeSurfer's subject folder <{subj_dir}> contains IsRunning files that \
 may pertain to a current or past execution: {isrunning}.
 FreeSurfer cannot run if these are present, to avoid interfering with a running \
 process. Please, make sure no other process is running ``recon-all`` on this subject \
-and proceed to delete the files listed above.""")
+and proceed to delete the files listed above."""
+        )
     for fl in isrunning:
         fl.unlink()
     if logger:
