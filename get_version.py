@@ -11,8 +11,9 @@ from pathlib import Path
 def main():
     sys.path.insert(0, str(Path().resolve()))
     from smriprep.__about__ import __version__
+
     print(__version__)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

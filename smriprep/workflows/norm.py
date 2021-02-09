@@ -112,78 +112,109 @@ nonlinear registration with `antsRegistration` (ANTs {ants_ver}),
 using brain-extracted versions of both T1w reference and the T1w template.
 The following template{tpls} selected for spatial normalization:
 """.format(
-            ants_ver=ANTsInfo.version() or '(version unknown)',
-            targets='%s standard space%s' % (defaultdict(
-                'several'.format, {1: 'one', 2: 'two', 3: 'three', 4: 'four'})[ntpls],
-                's' * (ntpls != 1)),
-            targets_id=', '.join(templates),
-            tpls=(' was', 's were')[ntpls != 1]
+            ants_ver=ANTsInfo.version() or "(version unknown)",
+            targets="%s standard space%s"
+            % (
+                defaultdict(
+                    "several".format, {1: "one", 2: "two", 3: "three", 4: "four"}
+                )[ntpls],
+                "s" * (ntpls != 1),
+            ),
+            targets_id=", ".join(templates),
+            tpls=(" was", "s were")[ntpls != 1],
         )
 
         # Append template citations to description
         for template in templates:
-            template_meta = get_metadata(template.split(':')[0])
-            template_refs = ['@%s' % template.split(':')[0].lower()]
+            template_meta = get_metadata(template.split(":")[0])
+            template_refs = ["@%s" % template.split(":")[0].lower()]
 
-            if template_meta.get('RRID', None):
-                template_refs += ['RRID:%s' % template_meta['RRID']]
+            if template_meta.get("RRID", None):
+                template_refs += ["RRID:%s" % template_meta["RRID"]]
 
             workflow.__desc__ += """\
 *{template_name}* [{template_refs}; TemplateFlow ID: {template}]""".format(
                 template=template,
-                template_name=template_meta['Name'],
-                template_refs=', '.join(template_refs)
+                template_name=template_meta["Name"],
+                template_refs=", ".join(template_refs),
             )
-            workflow.__desc__ += (', ', '.')[template == templates[-1][0]]
+            workflow.__desc__ += (", ", ".")[template == templates[-1][0]]
 
-    inputnode = pe.Node(niu.IdentityInterface(fields=[
-        'lesion_mask',
-        'moving_image',
-        'moving_mask',
-        'moving_segmentation',
-        'moving_tpms',
-        'orig_t1w',
-        'template',
-    ]), name='inputnode')
-    inputnode.iterables = [('template', templates)]
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "lesion_mask",
+                "moving_image",
+                "moving_mask",
+                "moving_segmentation",
+                "moving_tpms",
+                "orig_t1w",
+                "template",
+            ]
+        ),
+        name="inputnode",
+    )
+    inputnode.iterables = [("template", templates)]
 
     out_fields = [
-        'anat2std_xfm',
-        'standardized',
-        'std2anat_xfm',
-        'std_dseg',
-        'std_mask',
-        'std_tpms',
-        'template',
-        'template_spec',
+        "anat2std_xfm",
+        "standardized",
+        "std2anat_xfm",
+        "std_dseg",
+        "std_mask",
+        "std_tpms",
+        "template",
+        "template_spec",
     ]
-    poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
+    poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name="poutputnode")
 
-    split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name='split_desc')
+    split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name="split_desc")
 
-    tf_select = pe.Node(TemplateFlowSelect(resolution=1 + debug),
-                        name='tf_select', run_without_submitting=True)
+    tf_select = pe.Node(
+        TemplateFlowSelect(resolution=1 + debug),
+        name="tf_select",
+        run_without_submitting=True,
+    )
 
     # With the improvements from nipreps/niworkflows#342 this truncation is now necessary
-    trunc_mov = pe.Node(ants.ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
-                        name='trunc_mov')
+    trunc_mov = pe.Node(
+        ants.ImageMath(operation="TruncateImageIntensity", op2="0.01 0.999 256"),
+        name="trunc_mov",
+    )
 
-    registration = pe.Node(SpatialNormalization(
-        float=True, flavor=['precise', 'testing'][debug],
-    ), name='registration', n_procs=omp_nthreads, mem_gb=2)
+    registration = pe.Node(
+        SpatialNormalization(
+            float=True,
+            flavor=["precise", "testing"][debug],
+        ),
+        name="registration",
+        n_procs=omp_nthreads,
+        mem_gb=2,
+    )
 
     # Resample T1w-space inputs
-    tpl_moving = pe.Node(ApplyTransforms(
-        dimension=3, default_value=0, float=True,
-        interpolation='LanczosWindowedSinc'), name='tpl_moving')
+    tpl_moving = pe.Node(
+        ApplyTransforms(
+            dimension=3,
+            default_value=0,
+            float=True,
+            interpolation="LanczosWindowedSinc",
+        ),
+        name="tpl_moving",
+    )
 
-    std_mask = pe.Node(ApplyTransforms(interpolation='MultiLabel'), name='std_mask')
-    std_dseg = pe.Node(ApplyTransforms(interpolation='MultiLabel'), name='std_dseg')
+    std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="std_mask")
+    std_dseg = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="std_dseg")
 
-    std_tpms = pe.MapNode(ApplyTransforms(dimension=3, default_value=0, float=True,
-                                          interpolation='Gaussian'),
-                          iterfield=['input_image'], name='std_tpms')
+    std_tpms = pe.MapNode(
+        ApplyTransforms(
+            dimension=3, default_value=0, float=True, interpolation="Gaussian"
+        ),
+        iterfield=["input_image"],
+        name="std_tpms",
+    )
 
+    # fmt:off
     workflow.connect([
         (inputnode, split_desc, [('template', 'template')]),
         (inputnode, poutputnode, [('template', 'template')]),
@@ -218,12 +249,18 @@ The following template{tpls} selected for spatial normalization:
         (std_tpms, poutputnode, [('output_image', 'std_tpms')]),
         (split_desc, poutputnode, [('spec', 'template_spec')]),
     ])
+    # fmt:on
 
     # Provide synchronized output
-    outputnode = pe.JoinNode(niu.IdentityInterface(fields=out_fields),
-                             name='outputnode', joinsource='inputnode')
+    outputnode = pe.JoinNode(
+        niu.IdentityInterface(fields=out_fields),
+        name="outputnode",
+        joinsource="inputnode",
+    )
+    # fmt:off
     workflow.connect([
         (poutputnode, outputnode, [(f, f) for f in out_fields]),
     ])
+    # fmt:on
 
     return workflow

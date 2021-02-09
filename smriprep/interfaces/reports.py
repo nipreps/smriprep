@@ -6,9 +6,15 @@ from pathlib import Path
 import time
 
 from nipype.interfaces.base import (
-    TraitedSpec, BaseInterfaceInputSpec,
-    File, Directory, InputMultiObject, Str, isdefined,
-    SimpleInterface)
+    TraitedSpec,
+    BaseInterfaceInputSpec,
+    File,
+    Directory,
+    InputMultiObject,
+    Str,
+    isdefined,
+    SimpleInterface,
+)
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
 from nipype.interfaces.mixins import reporting
@@ -35,7 +41,7 @@ ABOUT_TEMPLATE = """\t<ul>
 
 
 class _SummaryOutputSpec(TraitedSpec):
-    out_report = File(exists=True, desc='HTML segment containing summary')
+    out_report = File(exists=True, desc="HTML segment containing summary")
 
 
 class SummaryInterface(SimpleInterface):
@@ -45,9 +51,9 @@ class SummaryInterface(SimpleInterface):
 
     def _run_interface(self, runtime):
         segment = self._generate_segment()
-        path = Path(runtime.cwd) / 'report.html'
+        path = Path(runtime.cwd) / "report.html"
         path.write_text(segment)
-        self._results['out_report'] = str(path)
+        self._results["out_report"] = str(path)
         return runtime
 
     def _generate_segment(self):
@@ -55,17 +61,17 @@ class SummaryInterface(SimpleInterface):
 
 
 class _SubjectSummaryInputSpec(BaseInterfaceInputSpec):
-    t1w = InputMultiObject(File(exists=True), desc='T1w structural images')
-    t2w = InputMultiObject(File(exists=True), desc='T2w structural images')
-    subjects_dir = Directory(desc='FreeSurfer subjects directory')
-    subject_id = Str(desc='Subject ID')
-    output_spaces = InputMultiObject(Str, desc='list of standard spaces')
+    t1w = InputMultiObject(File(exists=True), desc="T1w structural images")
+    t2w = InputMultiObject(File(exists=True), desc="T2w structural images")
+    subjects_dir = Directory(desc="FreeSurfer subjects directory")
+    subject_id = Str(desc="Subject ID")
+    output_spaces = InputMultiObject(Str, desc="list of standard spaces")
 
 
 class _SubjectSummaryOutputSpec(_SummaryOutputSpec):
     # This exists to ensure that the summary is run prior to the first ReconAll
     # call, allowing a determination whether there is a pre-existing directory
-    subject_id = Str(desc='FreeSurfer subject ID')
+    subject_id = Str(desc="FreeSurfer subject ID")
 
 
 class SubjectSummary(SummaryInterface):
@@ -76,42 +82,46 @@ class SubjectSummary(SummaryInterface):
 
     def _run_interface(self, runtime):
         if isdefined(self.inputs.subject_id):
-            self._results['subject_id'] = self.inputs.subject_id
+            self._results["subject_id"] = self.inputs.subject_id
         return super(SubjectSummary, self)._run_interface(runtime)
 
     def _generate_segment(self):
         if not isdefined(self.inputs.subjects_dir):
-            freesurfer_status = 'Not run'
+            freesurfer_status = "Not run"
         else:
-            recon = fs.ReconAll(subjects_dir=self.inputs.subjects_dir,
-                                subject_id=self.inputs.subject_id,
-                                T1_files=self.inputs.t1w,
-                                flags='-noskullstrip')
-            if recon.cmdline.startswith('echo'):
-                freesurfer_status = 'Pre-existing directory'
+            recon = fs.ReconAll(
+                subjects_dir=self.inputs.subjects_dir,
+                subject_id=self.inputs.subject_id,
+                T1_files=self.inputs.t1w,
+                flags="-noskullstrip",
+            )
+            if recon.cmdline.startswith("echo"):
+                freesurfer_status = "Pre-existing directory"
             else:
-                freesurfer_status = 'Run by sMRIPrep'
+                freesurfer_status = "Run by sMRIPrep"
 
-        t2w_seg = ''
+        t2w_seg = ""
         if self.inputs.t2w:
-            t2w_seg = '(+ {:d} T2-weighted)'.format(len(self.inputs.t2w))
+            t2w_seg = "(+ {:d} T2-weighted)".format(len(self.inputs.t2w))
 
         output_spaces = self.inputs.output_spaces
         if not isdefined(output_spaces):
             output_spaces = "&lt;none given&gt;"
         else:
-            output_spaces = ', '.join(output_spaces)
+            output_spaces = ", ".join(output_spaces)
 
-        return SUBJECT_TEMPLATE.format(subject_id=self.inputs.subject_id,
-                                       n_t1s=len(self.inputs.t1w),
-                                       t2w=t2w_seg,
-                                       output_spaces=output_spaces,
-                                       freesurfer_status=freesurfer_status)
+        return SUBJECT_TEMPLATE.format(
+            subject_id=self.inputs.subject_id,
+            n_t1s=len(self.inputs.t1w),
+            t2w=t2w_seg,
+            output_spaces=output_spaces,
+            freesurfer_status=freesurfer_status,
+        )
 
 
 class _AboutSummaryInputSpec(BaseInterfaceInputSpec):
-    version = Str(desc='sMRIPrep version')
-    command = Str(desc='sMRIPrep command')
+    version = Str(desc="sMRIPrep version")
+    command = Str(desc="sMRIPrep command")
     # Date not included - update timestamp only if version or command changes
 
 
@@ -121,9 +131,11 @@ class AboutSummary(SummaryInterface):
     input_spec = _AboutSummaryInputSpec
 
     def _generate_segment(self):
-        return ABOUT_TEMPLATE.format(version=self.inputs.version,
-                                     command=self.inputs.command,
-                                     date=time.strftime("%Y-%m-%d %H:%M:%S %z"))
+        return ABOUT_TEMPLATE.format(
+            version=self.inputs.version,
+            command=self.inputs.command,
+            date=time.strftime("%Y-%m-%d %H:%M:%S %z"),
+        )
 
 
 class _FSSurfaceReportInputSpec(_SVGReportCapableInputSpec, _FSSourceInputSpec):
@@ -141,12 +153,16 @@ class FSSurfaceReport(SimpleInterface):
     output_spec = _FSSurfaceReportOutputSpec
 
     def _run_interface(self, runtime):
-        from niworkflows.viz.utils import plot_registration, cuts_from_bbox, compose_view
+        from niworkflows.viz.utils import (
+            plot_registration,
+            cuts_from_bbox,
+            compose_view,
+        )
         from nibabel import load
 
         rootdir = Path(self.inputs.subjects_dir) / self.inputs.subject_id
-        _anat_file = str(rootdir / 'mri' / 'brain.mgz')
-        _contour_file = str(rootdir / 'mri' / 'ribbon.mgz')
+        _anat_file = str(rootdir / "mri" / "brain.mgz")
+        _contour_file = str(rootdir / "mri" / "ribbon.mgz")
 
         anat = load(_anat_file)
         contour_nii = load(_contour_file)
@@ -154,16 +170,19 @@ class FSSurfaceReport(SimpleInterface):
         n_cuts = 7
         cuts = cuts_from_bbox(contour_nii, cuts=n_cuts)
 
-        self._results['out_report'] = str(Path(runtime.cwd) / self.inputs.out_report)
+        self._results["out_report"] = str(Path(runtime.cwd) / self.inputs.out_report)
 
         # Call composer
         compose_view(
-            plot_registration(anat, 'fixed-image',
-                              estimate_brightness=True,
-                              cuts=cuts,
-                              contour=contour_nii,
-                              compress=self.inputs.compress_report),
+            plot_registration(
+                anat,
+                "fixed-image",
+                estimate_brightness=True,
+                cuts=cuts,
+                contour=contour_nii,
+                compress=self.inputs.compress_report,
+            ),
             [],
-            out_file=self._results['out_report']
+            out_file=self._results["out_report"],
         )
         return runtime

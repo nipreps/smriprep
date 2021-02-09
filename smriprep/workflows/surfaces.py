@@ -29,7 +29,7 @@ from niworkflows.interfaces.freesurfer import (
 from niworkflows.interfaces.surf import NormalizeSurf
 
 
-def init_surface_recon_wf(*, omp_nthreads, hires, name='surface_recon_wf'):
+def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
     r"""
     Reconstruct anatomical surfaces using FreeSurfer's ``recon-all``.
 
@@ -153,43 +153,71 @@ RRID:SCR_001847, @fs_reconall], and the brain mask estimated
 previously was refined with a custom variation of the method to reconcile
 ANTs-derived and FreeSurfer-derived segmentations of the cortical
 gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
-""".format(fs_ver=fs.Info().looseversion() or '<ver>')
+""".format(
+        fs_ver=fs.Info().looseversion() or "<ver>"
+    )
 
     inputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['t1w', 't2w', 'flair', 'skullstripped_t1', 'corrected_t1', 'ants_segs',
-                    'subjects_dir', 'subject_id']), name='inputnode')
+            fields=[
+                "t1w",
+                "t2w",
+                "flair",
+                "skullstripped_t1",
+                "corrected_t1",
+                "ants_segs",
+                "subjects_dir",
+                "subject_id",
+            ]
+        ),
+        name="inputnode",
+    )
     outputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['subjects_dir', 'subject_id', 't1w2fsnative_xfm',
-                    'fsnative2t1w_xfm', 'surfaces', 'out_brainmask',
-                    'out_aseg', 'out_aparc']),
-        name='outputnode')
+            fields=[
+                "subjects_dir",
+                "subject_id",
+                "t1w2fsnative_xfm",
+                "fsnative2t1w_xfm",
+                "surfaces",
+                "out_brainmask",
+                "out_aseg",
+                "out_aparc",
+            ]
+        ),
+        name="outputnode",
+    )
 
-    recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
+    recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name="recon_config")
 
-    fov_check = pe.Node(niu.Function(function=_check_cw256), name='fov_check')
+    fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
 
     autorecon1 = pe.Node(
-        ReconAll(directive='autorecon1', openmp=omp_nthreads),
-        name='autorecon1', n_procs=omp_nthreads, mem_gb=5)
+        ReconAll(directive="autorecon1", openmp=omp_nthreads),
+        name="autorecon1",
+        n_procs=omp_nthreads,
+        mem_gb=5,
+    )
     autorecon1.interface._can_resume = False
     autorecon1.interface._always_run = True
 
-    skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name='skull_strip_extern')
+    skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
 
-    fsnative2t1w_xfm = pe.Node(RobustRegister(auto_sens=True, est_int_scale=True),
-                               name='fsnative2t1w_xfm')
-    t1w2fsnative_xfm = pe.Node(LTAConvert(out_lta=True, invert=True),
-                               name='t1w2fsnative_xfm')
+    fsnative2t1w_xfm = pe.Node(
+        RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
+    )
+    t1w2fsnative_xfm = pe.Node(
+        LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm"
+    )
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
     gifti_surface_wf = init_gifti_surface_wf()
 
     aseg_to_native_wf = init_segs_to_native_wf()
-    aparc_to_native_wf = init_segs_to_native_wf(segmentation='aparc_aseg')
-    refine = pe.Node(RefineBrainMask(), name='refine')
+    aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
+    refine = pe.Node(RefineBrainMask(), name="refine")
 
+    # fmt:off
     workflow.connect([
         # Configuration
         (inputnode, recon_config, [('t1w', 't1w_list'),
@@ -249,11 +277,12 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
         (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
     ])
+    # fmt:on
 
     return workflow
 
 
-def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
+def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     r"""
     Resume recon-all execution, assuming the `-autorecon1` stage has been completed.
 
@@ -317,28 +346,41 @@ def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
 
     inputnode = pe.Node(
         niu.IdentityInterface(
-            fields=['subjects_dir', 'subject_id', 'use_T2', 'use_FLAIR']),
-        name='inputnode')
+            fields=["subjects_dir", "subject_id", "use_T2", "use_FLAIR"]
+        ),
+        name="inputnode",
+    )
 
     outputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=['subjects_dir', 'subject_id']),
-        name='outputnode')
+        niu.IdentityInterface(fields=["subjects_dir", "subject_id"]), name="outputnode"
+    )
 
     autorecon2_vol = pe.Node(
-        ReconAll(directive='autorecon2-volonly', openmp=omp_nthreads),
-        n_procs=omp_nthreads, mem_gb=5, name='autorecon2_vol')
+        ReconAll(directive="autorecon2-volonly", openmp=omp_nthreads),
+        n_procs=omp_nthreads,
+        mem_gb=5,
+        name="autorecon2_vol",
+    )
     autorecon2_vol.interface._always_run = True
 
     autorecon_surfs = pe.MapNode(
         ReconAll(
-            directive='autorecon-hemi',
-            flags=['-noparcstats', '-noparcstats2', '-noparcstats3',
-                   '-nohyporelabel', '-nobalabels'],
-            openmp=omp_nthreads),
-        iterfield='hemi', n_procs=omp_nthreads, mem_gb=5,
-        name='autorecon_surfs')
-    autorecon_surfs.inputs.hemi = ['lh', 'rh']
+            directive="autorecon-hemi",
+            flags=[
+                "-noparcstats",
+                "-noparcstats2",
+                "-noparcstats3",
+                "-nohyporelabel",
+                "-nobalabels",
+            ],
+            openmp=omp_nthreads,
+        ),
+        iterfield="hemi",
+        n_procs=omp_nthreads,
+        mem_gb=5,
+        name="autorecon_surfs",
+    )
+    autorecon_surfs.inputs.hemi = ["lh", "rh"]
     autorecon_surfs.interface._always_run = True
 
     # -cortribbon is a prerequisite for -parcstats, -parcstats2, -parcstats3
@@ -346,38 +388,46 @@ def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
     # if -T2pial or -FLAIRpial is enabled.
     # Parallelizing by hemisphere saves ~30 minutes over simply enabling
     # OpenMP on an 8 core machine.
-    cortribbon = pe.Node(ReconAll(directive=Undefined, steps=['cortribbon'],
-                                  parallel=True),
-                         n_procs=2, name='cortribbon')
+    cortribbon = pe.Node(
+        ReconAll(directive=Undefined, steps=["cortribbon"], parallel=True),
+        n_procs=2,
+        name="cortribbon",
+    )
     cortribbon.interface._always_run = True
 
     # -parcstats* can be run per-hemisphere
     # -hyporelabel is volumetric, even though it's part of -autorecon-hemi
     parcstats = pe.MapNode(
         ReconAll(
-            directive='autorecon-hemi',
-            flags=['-nohyporelabel'],
-            openmp=omp_nthreads),
-        iterfield='hemi', n_procs=omp_nthreads, mem_gb=5,
-        name='parcstats')
-    parcstats.inputs.hemi = ['lh', 'rh']
+            directive="autorecon-hemi", flags=["-nohyporelabel"], openmp=omp_nthreads
+        ),
+        iterfield="hemi",
+        n_procs=omp_nthreads,
+        mem_gb=5,
+        name="parcstats",
+    )
+    parcstats.inputs.hemi = ["lh", "rh"]
     parcstats.interface._always_run = True
 
     # Runs: -hyporelabel -aparc2aseg -apas2aseg -segstats -wmparc
     # All volumetric, so don't
     autorecon3 = pe.Node(
-        ReconAll(directive='autorecon3', openmp=omp_nthreads),
-        n_procs=omp_nthreads, mem_gb=5,
-        name='autorecon3')
+        ReconAll(directive="autorecon3", openmp=omp_nthreads),
+        n_procs=omp_nthreads,
+        mem_gb=5,
+        name="autorecon3",
+    )
     autorecon3.interface._always_run = True
 
     def _dedup(in_list):
         vals = set(in_list)
         if len(vals) > 1:
             raise ValueError(
-                "Non-identical values can't be deduplicated:\n{!r}".format(in_list))
+                "Non-identical values can't be deduplicated:\n{!r}".format(in_list)
+            )
         return vals.pop()
 
+    # fmt:off
     workflow.connect([
         (inputnode, cortribbon, [('use_T2', 'use_T2'),
                                  ('use_FLAIR', 'use_FLAIR')]),
@@ -394,11 +444,12 @@ def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
         (autorecon3, outputnode, [('subjects_dir', 'subjects_dir'),
                                   ('subject_id', 'subject_id')]),
     ])
+    # fmt:on
 
     return workflow
 
 
-def init_gifti_surface_wf(*, name='gifti_surface_wf'):
+def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     r"""
     Prepare GIFTI surfaces from a FreeSurfer subjects directory.
 
@@ -436,27 +487,35 @@ def init_gifti_surface_wf(*, name='gifti_surface_wf'):
     """
     workflow = Workflow(name=name)
 
-    inputnode = pe.Node(niu.IdentityInterface(['subjects_dir', 'subject_id',
-                                               'fsnative2t1w_xfm']),
-                        name='inputnode')
-    outputnode = pe.Node(niu.IdentityInterface(['surfaces']), name='outputnode')
+    inputnode = pe.Node(
+        niu.IdentityInterface(["subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
+        name="inputnode",
+    )
+    outputnode = pe.Node(niu.IdentityInterface(["surfaces"]), name="outputnode")
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name='get_surfaces')
+    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 
     midthickness = pe.MapNode(
-        MakeMidthickness(thickness=True, distance=0.5, out_name='midthickness'),
-        iterfield='in_file',
-        name='midthickness')
+        MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
+        iterfield="in_file",
+        name="midthickness",
+    )
 
-    save_midthickness = pe.Node(nio.DataSink(parameterization=False),
-                                name='save_midthickness')
+    save_midthickness = pe.Node(
+        nio.DataSink(parameterization=False), name="save_midthickness"
+    )
 
-    surface_list = pe.Node(niu.Merge(4, ravel_inputs=True),
-                           name='surface_list', run_without_submitting=True)
-    fs2gii = pe.MapNode(fs.MRIsConvert(out_datatype='gii'),
-                        iterfield='in_file', name='fs2gii')
-    fix_surfs = pe.MapNode(NormalizeSurf(), iterfield='in_file', name='fix_surfs')
+    surface_list = pe.Node(
+        niu.Merge(4, ravel_inputs=True),
+        name="surface_list",
+        run_without_submitting=True,
+    )
+    fs2gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="fs2gii"
+    )
+    fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
 
+    # fmt:off
     workflow.connect([
         (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
                                    ('subject_id', 'subject_id')]),
@@ -476,10 +535,11 @@ def init_gifti_surface_wf(*, name='gifti_surface_wf'):
         (inputnode, fix_surfs, [('fsnative2t1w_xfm', 'transform_file')]),
         (fix_surfs, outputnode, [('out_file', 'surfaces')]),
     ])
+    # fmt:on
     return workflow
 
 
-def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
+def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     """
     Get a segmentation from FreeSurfer conformed space into native T1w space.
 
@@ -513,26 +573,41 @@ def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
         The selected segmentation, after resampling in native space
 
     """
-    workflow = Workflow(name='%s_%s' % (name, segmentation))
+    workflow = Workflow(name="%s_%s" % (name, segmentation))
     inputnode = pe.Node(
-        niu.IdentityInterface(['in_file', 'subjects_dir', 'subject_id', 'fsnative2t1w_xfm']),
-        name='inputnode')
-    outputnode = pe.Node(niu.IdentityInterface(['out_file']), name='outputnode')
+        niu.IdentityInterface(
+            ["in_file", "subjects_dir", "subject_id", "fsnative2t1w_xfm"]
+        ),
+        name="inputnode",
+    )
+    outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
     # Extract the aseg and aparc+aseg outputs
-    fssource = pe.Node(nio.FreeSurferSource(), name='fs_datasource')
+    fssource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
     # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
     # and convert to NIfTI while we're at it
-    resample = pe.Node(fs.ApplyVolTransform(transformed_file='seg.nii.gz'), name='resample')
+    resample = pe.Node(
+        fs.ApplyVolTransform(transformed_file="seg.nii.gz"), name="resample"
+    )
 
-    if segmentation.startswith('aparc'):
-        if segmentation == 'aparc_aseg':
-            def _sel(x): return [parc for parc in x if 'aparc+' in parc][0]  # noqa
-        elif segmentation == 'aparc_a2009s':
-            def _sel(x): return [parc for parc in x if 'a2009s+' in parc][0]  # noqa
-        elif segmentation == 'aparc_dkt':
-            def _sel(x): return [parc for parc in x if 'DKTatlas+' in parc][0]  # noqa
+    if segmentation.startswith("aparc"):
+        if segmentation == "aparc_aseg":
+
+            def _sel(x):
+                return [parc for parc in x if "aparc+" in parc][0]  # noqa
+
+        elif segmentation == "aparc_a2009s":
+
+            def _sel(x):
+                return [parc for parc in x if "a2009s+" in parc][0]  # noqa
+
+        elif segmentation == "aparc_dkt":
+
+            def _sel(x):
+                return [parc for parc in x if "DKTatlas+" in parc][0]  # noqa
+
         segmentation = (segmentation, _sel)
 
+    # fmt:off
     workflow.connect([
         (inputnode, fssource, [
             ('subjects_dir', 'subjects_dir'),
@@ -542,16 +617,18 @@ def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
         (fssource, resample, [(segmentation, 'source_file')]),
         (resample, outputnode, [('transformed_file', 'out_file')]),
     ])
+    # fmt:on
     return workflow
 
 
 def _check_cw256(in_files):
     import numpy as np
     from nibabel.funcs import concat_images
+
     if isinstance(in_files, str):
         in_files = [in_files]
     summary_img = concat_images(in_files)
     fov = np.array(summary_img.shape[:3]) * summary_img.header.get_zooms()[:3]
     if np.any(fov > 256):
-        return ['-noskullstrip', '-cw256']
-    return '-noskullstrip'
+        return ["-noskullstrip", "-cw256"]
+    return "-noskullstrip"
