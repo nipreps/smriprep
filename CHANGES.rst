@@ -3,6 +3,7 @@
 A new minor release incorporating small iterations and improvements on
 *NiWorkflows*, and including some bug-fixes/enhancements.
 
+  * FIX: Do not use deprecated ``--filter pandoc-citeproc`` generating boilerplate (e72eea5)
   * MAINT: Run ``black`` at the top level of the repo (#241)
   * MAINT: Update to new API of *NiWorkflows* (#239)
   * MAINT: Refactor ``Dockerfile`` and move tests from TravisCI to GHA (#240)
