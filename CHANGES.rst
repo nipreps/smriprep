@@ -1,7 +1,11 @@
-0.8.0rc0 (December 09, 2020)
-============================
-A shim release pushing the pinning of *NiWorkflows* to allow the development
-of *dMRIPrep* and *fMRIPrep* with the next 1.4.x series of *SDCFlows*.
+0.8.0 (TBD)
+===========
+A new minor release incorporating small iterations and improvements on
+*NiWorkflows*, and including some bug-fixes/enhancements.
+
+  * MAINT: Run ``black`` at the top level of the repo (#241)
+  * MAINT: Update to new API of *NiWorkflows* (#239)
+  * MAINT: Refactor ``Dockerfile`` and move tests from TravisCI to GHA (#240)
 
 0.7.1 (November 18, 2020)
 =========================
