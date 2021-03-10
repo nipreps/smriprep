@@ -365,9 +365,16 @@ jobs:
             virtualenv --python=python build
             source build/bin/activate
             pip install --upgrade "pip>=19.1"
-            sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" smriprep_docker.py
+            sed -i -E "s/(__version__ = )\"[A-Za-z0-9.-]+\"/\1\"${CIRCLE_TAG:-$THISVERSION}\"/" smriprep_docker.py
             python setup.py sdist
             pip wheel --no-deps -w dist/ .
+            INSTALLED_VERSION=$(yes n | smriprep-docker --version)
+            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
+            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep wrapper "}
+            INSTALLED_VERSION=$( echo ${INSTALLED_VERSION} | cut -f1 -d" ")
+            echo "VERSION: \"$THISVERSION\""
+            echo "INSTALLED: \"$INSTALLED_VERSION\""
+            test "$INSTALLED_VERSION" = "$THISVERSION"
       - store_artifacts:
           path: /tmp/src/smriprep/wrapper/dist
 
@@ -799,7 +806,7 @@ jobs:
             virtualenv --python=python build
             source build/bin/activate
             pip install --upgrade "pip>=19.1"
-            sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" smriprep_docker.py
+            sed -i -E "s/(__version__ = )\"[A-Za-z0-9.-]+\"/\1\"${CIRCLE_TAG:-$THISVERSION}\"/" smriprep_docker.py
             python setup.py sdist
             pip wheel --no-deps -w dist/ .
       - run:
