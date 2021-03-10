@@ -223,7 +223,9 @@ jobs:
                        tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
                                  desc='BrainCerebellumExtraction', suffix='mask'); \
                        tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
-                                 desc='BrainCerebellumRegistration', suffix='mask');"
+                                 desc='BrainCerebellumRegistration', suffix='mask'); \
+                       tfapi.get('OASIS30ANTs', resolution=1, label=['WM', 'BS'], suffix='probseg'); \
+                       tfapi.get('MNI152NLin2009cAsym', resolution=2, label='WM', suffix='probseg');"
       - save_cache:
           key: templateflow-v1-{{ .Branch }}-{{ epoch }}
           paths:
