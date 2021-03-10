@@ -490,6 +490,7 @@ jobs:
             docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
@@ -500,6 +501,7 @@ jobs:
             docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
@@ -662,6 +664,7 @@ jobs:
             docker run --rm=false -it \
                 -v /tmp/ds054:/tmp/ds054 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
@@ -673,6 +676,7 @@ jobs:
             docker run --rm=false -it \
                 -v /tmp/ds054:/tmp/ds054 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
