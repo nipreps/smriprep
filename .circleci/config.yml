@@ -371,7 +371,9 @@ jobs:
             pip wheel --no-deps -w dist/ .
             twine check dist/smriprep*.whl
             pip install dist/smriprep*.whl
+            set +e
             INSTALLED_VERSION=$(yes n | smriprep-docker --version)
+            set -e
             INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
             INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep wrapper "}
             INSTALLED_VERSION=$( echo ${INSTALLED_VERSION} | cut -f1 -d" ")
