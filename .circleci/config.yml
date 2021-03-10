@@ -367,7 +367,10 @@ jobs:
             pip install --upgrade "pip>=19.1"
             sed -i -E "s/(__version__ = )\"[A-Za-z0-9.-]+\"/\1\"${CIRCLE_TAG:-$THISVERSION}\"/" smriprep_docker.py
             python setup.py sdist
+            twine check dist/smriprep*.tar.gz
             pip wheel --no-deps -w dist/ .
+            twine check dist/smriprep*.whl
+            pip install dist/smriprep*.whl
             INSTALLED_VERSION=$(yes n | smriprep-docker --version)
             INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
             INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep wrapper "}
