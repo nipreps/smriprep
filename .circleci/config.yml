@@ -223,7 +223,9 @@ jobs:
                        tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
                                  desc='BrainCerebellumExtraction', suffix='mask'); \
                        tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
-                                 desc='BrainCerebellumRegistration', suffix='mask');"
+                                 desc='BrainCerebellumRegistration', suffix='mask'); \
+                       tfapi.get('OASIS30ANTs', resolution=1, label=['WM', 'BS'], suffix='probseg'); \
+                       tfapi.get('MNI152NLin2009cAsym', resolution=2, label='WM', suffix='probseg');"
       - save_cache:
           key: templateflow-v1-{{ .Branch }}-{{ epoch }}
           paths:
@@ -490,6 +492,7 @@ jobs:
             docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
@@ -500,6 +503,7 @@ jobs:
             docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
@@ -662,6 +666,7 @@ jobs:
             docker run --rm=false -it \
                 -v /tmp/ds054:/tmp/ds054 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
@@ -673,6 +678,7 @@ jobs:
             docker run --rm=false -it \
                 -v /tmp/ds054:/tmp/ds054 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
