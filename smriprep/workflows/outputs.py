@@ -22,10 +22,8 @@
 #
 """Writing outputs."""
 from nipype.pipeline import engine as pe
-from nipype.interfaces import (
-    utility as niu,
-    fsl,
-)
+from nipype.interfaces import utility as niu
+from niworkflows.interfaces.nibabel import ApplyMask
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
 from ..interfaces import DerivativesDataSink
@@ -435,7 +433,7 @@ def init_anat_derivatives_wf(
         gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
 
         # Mask T1w preproc images
-        mask_t1w = pe.Node(fsl.ApplyMask(), name='mask_t1w')
+        mask_t1w = pe.Node(ApplyMask(), name='mask_t1w')
 
         # Resample T1w-space inputs
         anat2std_t1w = pe.Node(
@@ -505,7 +503,7 @@ def init_anat_derivatives_wf(
         # fmt:off
         workflow.connect([
             (inputnode, mask_t1w, [('t1w_preproc', 'in_file'),
-                                   ('t1w_mask', 'mask_file')]),
+                                   ('t1w_mask', 'in_mask')]),
             (mask_t1w, anat2std_t1w, [('out_file', 'input_image')]),
             (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
             (inputnode, anat2std_dseg, [('t1w_dseg', 'input_image')]),
