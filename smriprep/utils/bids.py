@@ -1,5 +1,25 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
+#
+# Copyright 2021 The NiPreps Developers <nipreps@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# We support and encourage derived works from this project, please read
+# about our expectations at
+#
+#     https://www.nipreps.org/community/licensing/
+#
 """Utilities to handle BIDS inputs."""
 from collections import defaultdict
 from pathlib import Path
@@ -23,8 +43,8 @@ def get_outputnode_spec():
     'surfaces']
 
     """
-    spec = loads(Path(pkgrf('smriprep', 'data/io_spec.json')).read_text())["queries"]
-    fields = ['_'.join((m, s)) for m in ('t1w', 'std') for s in spec["baseline"].keys()]
+    spec = loads(Path(pkgrf("smriprep", "data/io_spec.json")).read_text())["queries"]
+    fields = ["_".join((m, s)) for m in ("t1w", "std") for s in spec["baseline"].keys()]
     fields += [s for s in spec["std_xfms"].keys()]
     fields += [s for s in spec["surfaces"].keys()]
     return fields
@@ -68,32 +88,35 @@ def predict_derivatives(subject_id, output_spaces, freesurfer):
      'sub-01/anat/sub-01_space-MNI152NLin2009cAsym_label-WM_probseg.nii.gz']
 
     """
-    spec = loads(Path(pkgrf('smriprep', 'data/io_spec.json')).read_text())
+    spec = loads(Path(pkgrf("smriprep", "data/io_spec.json")).read_text())
 
     def _normalize_q(query, space=None):
         query = query.copy()
-        query['subject'] = subject_id
+        query["subject"] = subject_id
         if space is not None:
-            query['space'] = space
-        if 'from' in query and not query['from']:
-            query['from'] = output_spaces
-        if 'to' in query and not query['to']:
-            query['to'] = output_spaces
+            query["space"] = space
+        if "from" in query and not query["from"]:
+            query["from"] = output_spaces
+        if "to" in query and not query["to"]:
+            query["to"] = output_spaces
         return query
 
-    queries = [_normalize_q(q, space=None)
-               for q in spec['queries']['baseline'].values()]
+    queries = [
+        _normalize_q(q, space=None) for q in spec["queries"]["baseline"].values()
+    ]
 
-    queries += [_normalize_q(q, space=s) for s in output_spaces
-                for q in spec['queries']['baseline'].values()]
-    queries += [_normalize_q(q) for q in spec['queries']['std_xfms'].values()]
+    queries += [
+        _normalize_q(q, space=s)
+        for s in output_spaces
+        for q in spec["queries"]["baseline"].values()
+    ]
+    queries += [_normalize_q(q) for q in spec["queries"]["std_xfms"].values()]
     if freesurfer:
-        queries += [_normalize_q(q)
-                    for q in spec['queries']['surfaces'].values()]
+        queries += [_normalize_q(q) for q in spec["queries"]["surfaces"].values()]
 
     output = []
     for q in queries:
-        paths = build_path(q, spec['patterns'])
+        paths = build_path(q, spec["patterns"])
         if isinstance(paths, str):
             output.append(paths)
         elif paths:
@@ -102,12 +125,14 @@ def predict_derivatives(subject_id, output_spaces, freesurfer):
     return sorted(output)
 
 
-def collect_derivatives(derivatives_dir, subject_id, std_spaces, freesurfer,
-                        spec=None, patterns=None):
+def collect_derivatives(
+    derivatives_dir, subject_id, std_spaces, freesurfer, spec=None, patterns=None
+):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:
         _spec, _patterns = tuple(
-            loads(Path(pkgrf('smriprep', 'data/io_spec.json')).read_text()).values())
+            loads(Path(pkgrf("smriprep", "data/io_spec.json")).read_text()).values()
+        )
 
         if spec is None:
             spec = _spec
@@ -127,7 +152,7 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, freesurfer,
         result = []
         for i in item:
             if not (derivatives_dir / i).exists():
-                i = i.rstrip('.gz')
+                i = i.rstrip(".gz")
                 if not (derivatives_dir / i).exists():
                     return None
             result.append(str(derivatives_dir / i))
@@ -135,10 +160,10 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, freesurfer,
         return result
 
     for space in [None] + std_spaces:
-        for k, q in spec['baseline'].items():
-            q['subject'] = subject_id
+        for k, q in spec["baseline"].items():
+            q["subject"] = subject_id
             if space is not None:
-                q['space'] = space
+                q["space"] = space
             item = _check_item(build_path(q, patterns, strict=True))
             if not item:
                 return None
@@ -149,10 +174,10 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, freesurfer,
                 derivs_cache["t1w_%s" % k] = item[0] if len(item) == 1 else item
 
     for space in std_spaces:
-        for k, q in spec['std_xfms'].items():
-            q['subject'] = subject_id
-            q['from'] = q['from'] or space
-            q['to'] = q['to'] or space
+        for k, q in spec["std_xfms"].items():
+            q["subject"] = subject_id
+            q["from"] = q["from"] or space
+            q["to"] = q["to"] or space
             item = _check_item(build_path(q, patterns))
             if not item:
                 return None
@@ -161,8 +186,8 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, freesurfer,
     derivs_cache = dict(derivs_cache)  # Back to a standard dictionary
 
     if freesurfer:
-        for k, q in spec['surfaces'].items():
-            q['subject'] = subject_id
+        for k, q in spec["surfaces"].items():
+            q["subject"] = subject_id
             item = _check_item(build_path(q, patterns))
             if not item:
                 return None
@@ -171,13 +196,15 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, freesurfer,
                 item = item[0]
             derivs_cache[k] = item
 
-    derivs_cache['template'] = std_spaces
+    derivs_cache["template"] = std_spaces
     return derivs_cache
 
 
 def write_bidsignore(deriv_dir):
     bids_ignore = [
-        "*.html", "logs/", "figures/",  # Reports
+        "*.html",
+        "logs/",
+        "figures/",  # Reports
         "*_xfm.*",  # Unspecified transform files
         "*.surf.gii",  # Unspecified structural outputs
     ]
@@ -219,45 +246,48 @@ def write_derivative_description(bids_dir, deriv_dir):
     bids_dir = Path(bids_dir)
     deriv_dir = Path(deriv_dir)
     desc = {
-        'Name': 'sMRIPrep - Structural MRI PREProcessing workflow',
-        'BIDSVersion': '1.4.0',
-        'DatasetType': 'derivative',
-        'GeneratedBy': [{
-            'Name': 'sMRIPrep',
-            'Version': __version__,
-            'CodeURL': DOWNLOAD_URL,
-        }],
-        'HowToAcknowledge':
-            'Please cite our paper (https://doi.org/10.1101/306951), and '
-            'include the generated citation boilerplate within the Methods '
-            'section of the text.',
+        "Name": "sMRIPrep - Structural MRI PREProcessing workflow",
+        "BIDSVersion": "1.4.0",
+        "DatasetType": "derivative",
+        "GeneratedBy": [
+            {
+                "Name": "sMRIPrep",
+                "Version": __version__,
+                "CodeURL": DOWNLOAD_URL,
+            }
+        ],
+        "HowToAcknowledge": "Please cite our paper (https://doi.org/10.1101/306951), and "
+        "include the generated citation boilerplate within the Methods "
+        "section of the text.",
     }
 
     # Keys that can only be set by environment
-    if 'SMRIPREP_DOCKER_TAG' in os.environ:
-        desc['GeneratedBy'][0]['Container'] = {
+    if "SMRIPREP_DOCKER_TAG" in os.environ:
+        desc["GeneratedBy"][0]["Container"] = {
             "Type": "docker",
-            "Tag": f"poldracklab/smriprep:{os.environ['SMRIPREP_DOCKER_TAG']}"
+            "Tag": f"poldracklab/smriprep:{os.environ['SMRIPREP_DOCKER_TAG']}",
         }
-    if 'SMRIPREP_SINGULARITY_URL' in os.environ:
-        desc['GeneratedBy'][0]['Container'] = {
+    if "SMRIPREP_SINGULARITY_URL" in os.environ:
+        desc["GeneratedBy"][0]["Container"] = {
             "Type": "singularity",
-            "URI": os.environ['SMRIPREP_SINGULARITY_URL'],
+            "URI": os.environ["SMRIPREP_SINGULARITY_URL"],
         }
 
     # Keys deriving from source dataset
     orig_desc = {}
-    fname = bids_dir / 'dataset_description.json'
+    fname = bids_dir / "dataset_description.json"
     if fname.exists():
         orig_desc = json.loads(fname.read_text())
 
-    if 'DatasetDOI' in orig_desc:
+    if "DatasetDOI" in orig_desc:
         doi = orig_desc["DatasetDOI"]
-        desc['SourceDatasets'] = [{
-            'URL': f"https://doi.org/{doi}",
-            'DOI': doi,
-        }]
-    if 'License' in orig_desc:
-        desc['License'] = orig_desc['License']
+        desc["SourceDatasets"] = [
+            {
+                "URL": f"https://doi.org/{doi}",
+                "DOI": doi,
+            }
+        ]
+    if "License" in orig_desc:
+        desc["License"] = orig_desc["License"]
 
-    Path.write_text(deriv_dir / 'dataset_description.json', json.dumps(desc, indent=4))
+    Path.write_text(deriv_dir / "dataset_description.json", json.dumps(desc, indent=4))

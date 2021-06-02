@@ -1,3 +1,15 @@
+0.8.0 (TBD)
+===========
+A new minor release incorporating small iterations and improvements on
+*NiWorkflows*, and including some bug-fixes/enhancements.
+
+* FIX: Sturdier version check of sMRIPrep-wrapper package (#245)
+* FIX: Do not use deprecated ``--filter pandoc-citeproc`` generating boilerplate (e72eea5)
+* MAINT: Mount TemplateFlow's home directory in CircleCI tests (#246)
+* MAINT: Run ``black`` at the top level of the repo (#241)
+* MAINT: Update to new API of *NiWorkflows* (#239)
+* MAINT: Refactor ``Dockerfile`` and move tests from TravisCI to GHA (#240)
+
 0.7.1 (November 18, 2020)
 =========================
 Bug-fix release in the 0.7.x series.

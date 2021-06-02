@@ -1,5 +1,25 @@
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
+#
+# Copyright 2021 The NiPreps Developers <nipreps@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# We support and encourage derived works from this project, please read
+# about our expectations at
+#
+#     https://www.nipreps.org/community/licensing/
+#
 """*sMRIPrep* base processing workflows."""
 import sys
 import os
@@ -11,9 +31,7 @@ from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.bids import (
-    BIDSInfo, BIDSDataGrabber, BIDSFreeSurferDir
-)
+from niworkflows.interfaces.bids import BIDSInfo, BIDSDataGrabber, BIDSFreeSurferDir
 from niworkflows.utils.bids import collect_data
 from niworkflows.utils.misc import fix_multi_T1w_source_name
 
@@ -128,16 +146,19 @@ def init_smriprep_wf(
         A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
 
     """
-    smriprep_wf = Workflow(name='smriprep_wf')
+    smriprep_wf = Workflow(name="smriprep_wf")
     smriprep_wf.base_dir = work_dir
 
     if freesurfer:
         fsdir = pe.Node(
             BIDSFreeSurferDir(
                 derivatives=output_dir,
-                freesurfer_home=os.getenv('FREESURFER_HOME'),
-                spaces=spaces.get_fs_spaces()),
-            name='fsdir_run_%s' % run_uuid.replace('-', '_'), run_without_submitting=True)
+                freesurfer_home=os.getenv("FREESURFER_HOME"),
+                spaces=spaces.get_fs_spaces(),
+            ),
+            name="fsdir_run_%s" % run_uuid.replace("-", "_"),
+            run_without_submitting=True,
+        )
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
@@ -161,14 +182,15 @@ def init_smriprep_wf(
             bids_filters=bids_filters,
         )
 
-        single_subject_wf.config['execution']['crashdump_dir'] = (
-            os.path.join(output_dir, "smriprep", "sub-" + subject_id, 'log', run_uuid)
+        single_subject_wf.config["execution"]["crashdump_dir"] = os.path.join(
+            output_dir, "smriprep", "sub-" + subject_id, "log", run_uuid
         )
         for node in single_subject_wf._get_all_nodes():
             node.config = deepcopy(single_subject_wf.config)
         if freesurfer:
-            smriprep_wf.connect(fsdir, 'subjects_dir',
-                                single_subject_wf, 'inputnode.subjects_dir')
+            smriprep_wf.connect(
+                fsdir, "subjects_dir", single_subject_wf, "inputnode.subjects_dir"
+            )
         else:
             smriprep_wf.add_nodes([single_subject_wf])
 
@@ -281,17 +303,20 @@ def init_single_subject_wf(
 
     """
     from ..interfaces.reports import AboutSummary, SubjectSummary
-    if name in ('single_subject_wf', 'single_subject_smripreptest_wf'):
+
+    if name in ("single_subject_wf", "single_subject_smripreptest_wf"):
         # for documentation purposes
         subject_data = {
-            't1w': ['/completely/made/up/path/sub-01_T1w.nii.gz'],
+            "t1w": ["/completely/made/up/path/sub-01_T1w.nii.gz"],
         }
     else:
         subject_data = collect_data(layout, subject_id, bids_filters=bids_filters)[0]
 
-    if not subject_data['t1w']:
-        raise Exception("No T1w images found for participant {}. "
-                        "All workflows require T1w images.".format(subject_id))
+    if not subject_data["t1w"]:
+        raise Exception(
+            "No T1w images found for participant {}. "
+            "All workflows require T1w images.".format(subject_id)
+        )
 
     workflow = Workflow(name=name)
     workflow.__desc__ = """
@@ -301,7 +326,9 @@ performed using *sMRIPprep* {smriprep_ver}
 which is based on *Nipype* {nipype_ver}
 (@nipype1; @nipype2; RRID:SCR_002502).
 
-""".format(smriprep_ver=__version__, nipype_ver=nipype_ver)
+""".format(
+        smriprep_ver=__version__, nipype_ver=nipype_ver
+    )
     workflow.__postdesc__ = """
 
 For more details of the pipeline, see [the section corresponding
@@ -317,35 +344,57 @@ to workflows in *sMRIPrep*'s documentation]\
     deriv_cache = None
     if fast_track:
         from ..utils.bids import collect_derivatives
+
         std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
         deriv_cache = collect_derivatives(
-            Path(output_dir) / 'smriprep', subject_id, std_spaces, freesurfer)
+            Path(output_dir) / "smriprep", subject_id, std_spaces, freesurfer
+        )
 
-    inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']),
-                        name='inputnode')
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode"
+    )
 
-    bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True),
-                      name='bidssrc')
+    bidssrc = pe.Node(
+        BIDSDataGrabber(subject_data=subject_data, anat_only=True), name="bidssrc"
+    )
 
-    bids_info = pe.Node(BIDSInfo(bids_dir=layout.root), name='bids_info',
-                        run_without_submitting=True)
+    bids_info = pe.Node(
+        BIDSInfo(bids_dir=layout.root), name="bids_info", run_without_submitting=True
+    )
 
-    summary = pe.Node(SubjectSummary(output_spaces=spaces.get_spaces(nonstandard=False)),
-                      name='summary', run_without_submitting=True)
+    summary = pe.Node(
+        SubjectSummary(output_spaces=spaces.get_spaces(nonstandard=False)),
+        name="summary",
+        run_without_submitting=True,
+    )
 
-    about = pe.Node(AboutSummary(version=__version__,
-                                 command=' '.join(sys.argv)),
-                    name='about', run_without_submitting=True)
+    about = pe.Node(
+        AboutSummary(version=__version__, command=" ".join(sys.argv)),
+        name="about",
+        run_without_submitting=True,
+    )
 
     ds_report_summary = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, dismiss_entities=("session",),
-                            desc='summary', datatype="figures"),
-        name='ds_report_summary', run_without_submitting=True)
+        DerivativesDataSink(
+            base_directory=output_dir,
+            dismiss_entities=("session",),
+            desc="summary",
+            datatype="figures",
+        ),
+        name="ds_report_summary",
+        run_without_submitting=True,
+    )
 
     ds_report_about = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, dismiss_entities=("session",),
-                            desc='about', datatype="figures"),
-        name='ds_report_about', run_without_submitting=True)
+        DerivativesDataSink(
+            base_directory=output_dir,
+            dismiss_entities=("session",),
+            desc="about",
+            datatype="figures",
+        ),
+        name="ds_report_about",
+        run_without_submitting=True,
+    )
 
     # Preprocessing of T1w (includes registration to MNI)
     anat_preproc_wf = init_anat_preproc_wf(
@@ -356,7 +405,7 @@ to workflows in *sMRIPrep*'s documentation]\
         hires=hires,
         longitudinal=longitudinal,
         name="anat_preproc_wf",
-        t1w=subject_data['t1w'],
+        t1w=subject_data["t1w"],
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
@@ -365,6 +414,7 @@ to workflows in *sMRIPrep*'s documentation]\
         spaces=spaces,
     )
 
+    # fmt:off
     workflow.connect([
         (inputnode, anat_preproc_wf, [('subjects_dir', 'inputnode.subjects_dir')]),
         (bidssrc, bids_info, [(('t1w', fix_multi_T1w_source_name), 'in_file')]),
@@ -382,11 +432,12 @@ to workflows in *sMRIPrep*'s documentation]\
         (bidssrc, ds_report_about, [(('t1w', fix_multi_T1w_source_name), 'source_file')]),
         (about, ds_report_about, [('out_report', 'in_file')]),
     ])
+    # fmt:on
 
     return workflow
 
 
 def _prefix(subid):
-    if subid.startswith('sub-'):
+    if subid.startswith("sub-"):
         return subid
-    return '-'.join(('sub', subid))
+    return "-".join(("sub", subid))

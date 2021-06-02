@@ -44,10 +44,10 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -80,14 +80,14 @@ jobs:
             set -e
             if [[ "$success" = "0" ]]; then
                 echo "Pulling from local registry"
-                docker tag localhost:5000/ubuntu ubuntu:xenial-20161213
+                docker tag localhost:5000/ubuntu ubuntu:xenial-20201030
                 docker pull localhost:5000/smriprep
                 docker tag localhost:5000/smriprep nipreps/smriprep:latest
                 docker tag localhost:5000/smriprep nipreps/smriprep
             else
                 echo "Pulling from Docker Hub"
-                docker pull ubuntu:xenial-20161213
-                docker tag ubuntu:xenial-20161213 localhost:5000/ubuntu
+                docker pull ubuntu:xenial-20201030
+                docker tag ubuntu:xenial-20201030 localhost:5000/ubuntu
                 docker push localhost:5000/ubuntu
                 docker pull nipreps/smriprep:latest
             fi
@@ -130,7 +130,7 @@ jobs:
             docker exec -it registry /bin/registry garbage-collect --delete-untagged \
                 /etc/docker/registry/config.yml
       - save_cache:
-         key: build-v2-{{ .Branch }}-{{ epoch }}
+         key: build-v3-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/docker
             - /tmp/images
@@ -223,7 +223,9 @@ jobs:
                        tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
                                  desc='BrainCerebellumExtraction', suffix='mask'); \
                        tfapi.get(['MNI152NLin2009cAsym', 'OASIS30ANTs', 'NKI'], resolution=1, \
-                                 desc='BrainCerebellumRegistration', suffix='mask');"
+                                 desc='BrainCerebellumRegistration', suffix='mask'); \
+                       tfapi.get('OASIS30ANTs', resolution=1, label=['WM', 'BS'], suffix='probseg'); \
+                       tfapi.get('MNI152NLin2009cAsym', resolution=2, label='WM', suffix='probseg');"
       - save_cache:
           key: templateflow-v1-{{ .Branch }}-{{ epoch }}
           paths:
@@ -241,10 +243,10 @@ jobs:
           at: /tmp
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -365,9 +367,21 @@ jobs:
             virtualenv --python=python build
             source build/bin/activate
             pip install --upgrade "pip>=19.1"
-            sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" smriprep_docker.py
+            sed -i -E "s/(__version__ = )\"[A-Za-z0-9.-]+\"/\1\"${CIRCLE_TAG:-$THISVERSION}\"/" smriprep_docker.py
             python setup.py sdist
+            twine check dist/smriprep*.tar.gz
             pip wheel --no-deps -w dist/ .
+            twine check dist/smriprep*.whl
+            pip install dist/smriprep*.whl
+            set +e
+            INSTALLED_VERSION=$(yes n | smriprep-docker --version)
+            set -e
+            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
+            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep wrapper "}
+            INSTALLED_VERSION=$( echo ${INSTALLED_VERSION} | cut -f1 -d" ")
+            echo "VERSION: \"$THISVERSION\""
+            echo "INSTALLED: \"$INSTALLED_VERSION\""
+            test "$INSTALLED_VERSION" = "$THISVERSION"
       - store_artifacts:
           path: /tmp/src/smriprep/wrapper/dist
 
@@ -390,10 +404,10 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -478,6 +492,7 @@ jobs:
             docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
@@ -488,6 +503,7 @@ jobs:
             docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
@@ -573,10 +589,10 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -650,6 +666,7 @@ jobs:
             docker run --rm=false -it \
                 -v /tmp/ds054:/tmp/ds054 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
@@ -661,6 +678,7 @@ jobs:
             docker run --rm=false -it \
                 -v /tmp/ds054:/tmp/ds054 \
                 -v /tmp/src/smriprep:/src/smriprep \
+                -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
                 -e FMRIPREP_DEV=1 -u $(id -u) \
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
@@ -799,7 +817,7 @@ jobs:
             virtualenv --python=python build
             source build/bin/activate
             pip install --upgrade "pip>=19.1"
-            sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'${CIRCLE_TAG:-$THISVERSION}'/" smriprep_docker.py
+            sed -i -E "s/(__version__ = )\"[A-Za-z0-9.-]+\"/\1\"${CIRCLE_TAG:-$THISVERSION}\"/" smriprep_docker.py
             python setup.py sdist
             pip wheel --no-deps -w dist/ .
       - run:
@@ -815,10 +833,10 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - build-v2-{{ .Branch }}-{{ epoch }}
-            - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v3-{{ .Branch }}-{{ epoch }}
+            - build-v3-{{ .Branch }}-
+            - build-v3-master-
+            - build-v3-
           paths:
             - /tmp/docker
       - run:
