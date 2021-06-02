@@ -46,8 +46,7 @@ jobs:
           keys:
             - build-v2-{{ .Branch }}-{{ epoch }}
             - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v2-maint/0.7.x-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -243,8 +242,7 @@ jobs:
           keys:
             - build-v2-{{ .Branch }}-{{ epoch }}
             - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v2-maint/0.7.x-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -392,8 +390,7 @@ jobs:
           keys:
             - build-v2-{{ .Branch }}-{{ epoch }}
             - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v2-maint/0.7.x-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -401,8 +398,7 @@ jobs:
           keys:
             - ds005-anat-v7-{{ .Branch }}-{{ epoch }}
             - ds005-anat-v7-{{ .Branch }}
-            - ds005-anat-v7-master
-            - ds005-anat-v7-
+            - ds005-anat-v7-maint/0.7.x
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -452,8 +448,7 @@ jobs:
           keys:
             - ds005-anat-v7-{{ .Branch }}-{{ epoch }}
             - ds005-anat-v7-{{ .Branch }}
-            - ds005-anat-v7-master
-            - ds005-anat-v7-
+            - ds005-anat-v7-maint/0.7.x
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -575,8 +570,7 @@ jobs:
           keys:
             - build-v2-{{ .Branch }}-{{ epoch }}
             - build-v2-{{ .Branch }}-
-            - build-v2-master-
-            - build-v2-
+            - build-v2-maint/0.7.x-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -624,8 +618,7 @@ jobs:
           keys:
             - ds054-anat-v7-{{ .Branch }}-{{ epoch }}
             - ds054-anat-v7-{{ .Branch }}
-            - ds054-anat-v7-master
-            - ds054-anat-v7-
+            - ds054-anat-v7-maint/0.7.x-
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
