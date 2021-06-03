@@ -47,7 +47,6 @@ jobs:
             - build-v3-{{ .Branch }}-{{ epoch }}
             - build-v3-{{ .Branch }}-
             - build-v3-master-
-            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -246,7 +245,6 @@ jobs:
             - build-v3-{{ .Branch }}-{{ epoch }}
             - build-v3-{{ .Branch }}-
             - build-v3-master-
-            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -407,7 +405,6 @@ jobs:
             - build-v3-{{ .Branch }}-{{ epoch }}
             - build-v3-{{ .Branch }}-
             - build-v3-master-
-            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -416,7 +413,6 @@ jobs:
             - ds005-anat-v7-{{ .Branch }}-{{ epoch }}
             - ds005-anat-v7-{{ .Branch }}
             - ds005-anat-v7-master
-            - ds005-anat-v7-
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -467,7 +463,6 @@ jobs:
             - ds005-anat-v7-{{ .Branch }}-{{ epoch }}
             - ds005-anat-v7-{{ .Branch }}
             - ds005-anat-v7-master
-            - ds005-anat-v7-
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -592,7 +587,6 @@ jobs:
             - build-v3-{{ .Branch }}-{{ epoch }}
             - build-v3-{{ .Branch }}-
             - build-v3-master-
-            - build-v3-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -641,7 +635,6 @@ jobs:
             - ds054-anat-v7-{{ .Branch }}-{{ epoch }}
             - ds054-anat-v7-{{ .Branch }}
             - ds054-anat-v7-master
-            - ds054-anat-v7-
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -836,7 +829,6 @@ jobs:
             - build-v3-{{ .Branch }}-{{ epoch }}
             - build-v3-{{ .Branch }}-
             - build-v3-master-
-            - build-v3-
           paths:
             - /tmp/docker
       - run:
