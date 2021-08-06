@@ -89,6 +89,7 @@ class TemplateFlowSelect(SimpleInterface):
     >>> select = TemplateFlowSelect()
     >>> select.inputs.template = 'UNCInfant:cohort-1'
     >>> result = select.run()
+
     """
 
     input_spec = _TemplateFlowSelectInputSpec
