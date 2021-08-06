@@ -86,6 +86,9 @@ class TemplateFlowSelect(SimpleInterface):
     >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
     '.../tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz'
 
+    >>> select = TemplateFlowSelect()
+    >>> select.inputs.template = 'UNCInfant:cohort-1'
+    >>> result = select.run()
     """
 
     input_spec = _TemplateFlowSelectInputSpec
@@ -113,8 +116,9 @@ class TemplateFlowSelect(SimpleInterface):
 
         self._results["t1w_file"] = tf.get(name[0], desc=None, suffix="T1w", **specs)
 
-        self._results["brain_mask"] = tf.get(
-            name[0], desc="brain", suffix="mask", **specs
+        self._results["brain_mask"] = (
+            tf.get(name[0], desc="brain", suffix="mask", **specs)
+            or tf.get(name[0], label="brain", suffix="mask", **specs)
         )
         return runtime
 
