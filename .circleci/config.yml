@@ -39,7 +39,7 @@ orbs:
 jobs:
   build:
     machine:
-      image: ubuntu-1604:202007-01
+      image: ubuntu-2004:202107-02
     working_directory: /tmp/src/smriprep
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
@@ -240,7 +240,7 @@ jobs:
 
   test_wrapper:
     machine:
-      image: ubuntu-1604:202007-01
+      image: ubuntu-2004:202107-02
     steps:
       - attach_workspace:
           at: /tmp
@@ -390,7 +390,7 @@ jobs:
 
   ds005:
     machine:
-      image: ubuntu-1604:202007-01
+      image: ubuntu-2004:202107-02
     working_directory: /tmp/ds005
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
@@ -427,10 +427,6 @@ jobs:
           name: Setting up test
           command: |
             mkdir -p /tmp/ds005/derivatives /tmp/ds005/work
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
       - run:
           name: Install codecov
           command: |
@@ -490,7 +486,7 @@ jobs:
           command: |
             # Combine coverage and convert to XML inside container because
             # the file format is sensitive to changes in environment
-            docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
+            docker run -it -e FMRIPREP_DEV=1 -u $(id -u):$(id -g) \
                 -v /tmp/ds005:/tmp/ds005 \
                 -v /tmp/src/smriprep:/src/smriprep \
                 -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
@@ -573,7 +569,7 @@ jobs:
           destination: fasttrack
   ds054:
     machine:
-      image: ubuntu-1604:202007-01
+      image: ubuntu-2004:202107-02
     working_directory: /tmp/ds054
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
@@ -600,10 +596,6 @@ jobs:
           name: Setting up test
           command: |
             mkdir -p /tmp/ds054/derivatives /tmp/ds054/work
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/derivatives && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/derivatives
-            sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
-                sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
       - run:
           name: Install codecov
           command: |
@@ -668,7 +660,7 @@ jobs:
                 -v /tmp/src/smriprep:/src/smriprep \
                 -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
-                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e FMRIPREP_DEV=1 -u $(id -u):$(id -g) \
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
@@ -680,7 +672,7 @@ jobs:
                 -v /tmp/src/smriprep:/src/smriprep \
                 -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
                 -w /src/smriprep \
-                -e FMRIPREP_DEV=1 -u $(id -u) \
+                -e FMRIPREP_DEV=1 -u $(id -u):$(id -g) \
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
@@ -828,7 +820,7 @@ jobs:
 
   deploy_docker:
     machine:
-      image: ubuntu-1604:202007-01
+      image: ubuntu-2004:202107-02
     working_directory: /tmp/src/smriprep
     steps:
       - restore_cache:
