@@ -105,6 +105,9 @@ class TemplateFlowSelect(SimpleInterface):
             specs["cohort"] = self.inputs.cohort
 
         name = self.inputs.template.strip(":").split(":", 1)
+        if name in ("UNCInfant", "Fischer344"):
+            specs.pop("resolution")
+
         if len(name) > 1:
             specs.update(
                 {
