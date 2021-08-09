@@ -32,7 +32,10 @@ docs_deploy: &docs
         name: Deploy docs to gh-pages branch
         command: gh-pages --dotfiles --message "doc(update) [skip ci]" --dist docs/_build/html
 
-version: 2
+version: 2.1
+orbs:
+  docker: circleci/docker@1.6.0
+
 jobs:
   build:
     machine:
@@ -50,6 +53,7 @@ jobs:
           paths:
             - /tmp/docker
             - /tmp/images
+      - docker/install-docker-credential-helper
       - run:
           name: Docker authentication
           command: |
@@ -248,6 +252,7 @@ jobs:
           paths:
             - /tmp/docker
             - /tmp/images
+      - docker/install-docker-credential-helper
       - run:
           name: Docker authentication
           command: |
@@ -435,6 +440,7 @@ jobs:
               python -m pip install -U pip
               python -m pip install -U codecov
               pyenv rehash
+      - docker/install-docker-credential-helper
       - run:
           name: Docker authentication
           command: |
@@ -607,6 +613,7 @@ jobs:
               python -m pip install -U pip
               python -m pip install -U codecov
               pyenv rehash
+      - docker/install-docker-credential-helper
       - run:
           name: Docker authentication
           command: |
