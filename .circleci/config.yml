@@ -57,8 +57,8 @@ jobs:
       - run:
           name: Docker authentication
           command: |
-            if [[ -n $DOCKER_PASS ]]; then
-              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            if [[ -n $DOCKER_PAT ]]; then
+              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
             fi
       - run:
           name: Set up Docker registry
@@ -256,8 +256,8 @@ jobs:
       - run:
           name: Docker authentication
           command: |
-            if [[ -n $DOCKER_PASS ]]; then
-              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            if [[ -n $DOCKER_PAT ]]; then
+              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
             fi
       - run:
           name: Set up Docker registry
@@ -440,8 +440,8 @@ jobs:
       - run:
           name: Docker authentication
           command: |
-            if [[ -n $DOCKER_PASS ]]; then
-              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            if [[ -n $DOCKER_PAT ]]; then
+              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
             fi
       - run:
           name: Set up Docker registry
@@ -609,8 +609,8 @@ jobs:
       - run:
           name: Docker authentication
           command: |
-            if [[ -n $DOCKER_PASS ]]; then
-              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            if [[ -n $DOCKER_PAT ]]; then
+              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
             fi
       - run:
           name: Set up Docker registry
@@ -845,8 +845,8 @@ jobs:
           name: Deploy to Docker Hub
           no_output_timeout: 40m
           command: |
-            if [[ -n "$DOCKER_PASS" ]]; then
-              docker login -u $DOCKER_USER -p $DOCKER_PASS
+            if [[ -n "$DOCKER_PAT" ]]; then
+              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
               docker tag nipreps/smriprep nipreps/smriprep:unstable
               docker push nipreps/smriprep:unstable
               if [[ -n "$CIRCLE_TAG" ]]; then
