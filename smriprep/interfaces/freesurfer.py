@@ -24,7 +24,7 @@
 import os
 from nipype import logging
 from nipype.utils.filemanip import check_depends
-from nipype.interfaces.base import traits, InputMultiObject, isdefined
+from nipype.interfaces.base import traits, InputMultiObject, isdefined, File
 from nipype.interfaces import freesurfer as fs
 
 iflogger = logging.getLogger("nipype.interface")
@@ -191,3 +191,57 @@ class ReconAll(fs.ReconAll):
         cmd += " " + " ".join(flags)
         iflogger.info("resume recon-all : %s", cmd)
         return cmd
+
+
+class _CALabelInputSpec(fs.preprocess.CALabelInputSpec):
+    write_probs = traits.Str(
+        argstr="-write_probs %s",
+        desc="write label probabilities to specified location; "
+             "note that this takes a prefix, e.g., `-write_probs a` "
+             "produces a000.mgz, a001.mgz, a002.mgz",
+    )
+
+
+class _CALabelOutputSpec(fs.preprocess.CALabelOutputSpec):
+    label_probabilities = traits.List(
+        File,
+        desc="posterior probabilities, if generated",
+    )
+
+
+class CALabel(fs.preprocess.CALabel):
+    """
+    Patched version of CALabel that allows writing out posterior
+    probabilities for labels.
+
+    Example
+    -------
+    >>> from smriprep.interfaces.freesurfer import CALabel
+    >>> ca_label = CALabel()
+    >>> ca_label.inputs.relabel_unlikely = (9, 0.3)
+    >>> ca_label.inputs.prior = 0.5
+    >>> ca_label.inputs.write_probs = "posterior"
+    >>> ca_label.inputs.align = True
+    >>> ca_label.inputs.in_file = data_path / "norm.mgz"
+    >>> ca_label.inputs.transform = data_path / "talairach.m3z"
+    >>> ca_label.inputs.out_file = "aseg.auto_noCCseg.mgz"
+    >>> ca_label.inputs.template = data_path / "RB_all_2016-05-10.vc700.gca"
+    >>> ca_label.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    'mri_ca_label -align -prior 0.5 -relabel_unlikely 9 0.3 -write_probs posterior \
+        .../norm.mgz .../talairach.m3z .../RB_all_2016-05-10.vc700.gca aseg.auto_noCCseg.mgz'
+
+    >>> expected_outputs = ca_label._list_outputs()
+    >>> expected_outputs["label_probabilities"]  # doctest: +ELLIPSIS
+    ['.../posterior000.mgz', '.../posterior001.mgz', '.../posterior002.mgz']
+    """
+    input_spec = _CALabelInputSpec
+    output_spec = _CALabelOutputSpec
+
+    def _list_outputs(self):
+        outputs = super()._list_outputs()
+        if isdefined(self.inputs.write_probs):
+            outputs["label_probabilities"] = [
+                os.path.abspath(f"{self.inputs.write_probs}{i:03d}.mgz")
+                for i in range(3)
+            ]
+        return outputs
