@@ -475,37 +475,38 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     ])
     # fmt:on
 
-    if not freesurfer:  # Flag --fs-no-reconall is set - return
-        # Brain tissue segmentation - FAST produces: 0 (bg), 1 (wm), 2 (csf), 3 (gm)
-        t1w_dseg = pe.Node(
-            fsl.FAST(segments=True, no_bias=True, probability_maps=True),
-            name="t1w_dseg",
-            mem_gb=3,
-        )
-        lut_t1w_dseg.inputs.lut = (0, 3, 1, 2)  # Maps: 0 -> 0, 3 -> 1, 1 -> 2, 2 -> 3.
-        fast2bids = pe.Node(
-            niu.Function(function=_probseg_fast2bids),
-            name="fast2bids",
-            run_without_submitting=True,
-        )
+    # XXX Keeping FAST separate so that it's easier to swap in ANTs or FreeSurfer
 
+    # Brain tissue segmentation - FAST produces: 0 (bg), 1 (wm), 2 (csf), 3 (gm)
+    t1w_dseg = pe.Node(
+        fsl.FAST(segments=True, no_bias=True, probability_maps=True),
+        name="t1w_dseg",
+        mem_gb=3,
+    )
+    lut_t1w_dseg.inputs.lut = (0, 3, 1, 2)  # Maps: 0 -> 0, 3 -> 1, 1 -> 2, 2 -> 3.
+    fast2bids = pe.Node(
+        niu.Function(function=_probseg_fast2bids),
+        name="fast2bids",
+        run_without_submitting=True,
+    )
+
+    # fmt:off
+    workflow.connect([
+        (buffernode, t1w_dseg, [('t1w_brain', 'in_files')]),
+        (t1w_dseg, lut_t1w_dseg, [('partial_volume_map', 'in_dseg')]),
+        (t1w_dseg, fast2bids, [('partial_volume_files', 'inlist')]),
+        (fast2bids, anat_norm_wf, [('out', 'inputnode.moving_tpms')]),
+        (fast2bids, outputnode, [('out', 't1w_tpms')]),
+    ])
+    # fmt:on
+    if not freesurfer:  # Flag --fs-no-reconall is set - return
         # fmt:off
         workflow.connect([
             (brain_extraction_wf, buffernode, [
                 (('outputnode.out_file', _pop), 't1w_brain'),
                 ('outputnode.out_mask', 't1w_mask')]),
-            (buffernode, t1w_dseg, [('t1w_brain', 'in_files')]),
-            (t1w_dseg, lut_t1w_dseg, [('partial_volume_map', 'in_dseg')]),
-            (t1w_dseg, fast2bids, [('partial_volume_files', 'inlist')]),
-            (fast2bids, anat_norm_wf, [('out', 'inputnode.moving_tpms')]),
-            (fast2bids, outputnode, [('out', 't1w_tpms')]),
         ])
-        # fmt:on
         return workflow
-
-    # Map FS' aseg labels onto three-tissue segmentation
-    lut_t1w_dseg.inputs.lut = _aseg_to_three()
-    split_seg = pe.Node(niu.Function(function=_split_segments), name="split_seg")
 
     # check for older IsRunning files and remove accordingly
     fs_isrunning = pe.Node(
@@ -537,12 +538,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (('outputnode.bias_corrected', _pop), 'in_file')]),
         (surface_recon_wf, applyrefined, [
             ('outputnode.out_brainmask', 'mask_file')]),
-        (surface_recon_wf, lut_t1w_dseg, [
-            ('outputnode.out_aseg', 'in_dseg')]),
-        (lut_t1w_dseg, split_seg, [('out', 'in_file')]),
-        (split_seg, anat_norm_wf, [
-            ('out', 'inputnode.moving_tpms')]),
-        (split_seg, outputnode, [('out', 't1w_tpms')]),
         (surface_recon_wf, outputnode, [
             ('outputnode.subjects_dir', 'subjects_dir'),
             ('outputnode.subject_id', 'subject_id'),
