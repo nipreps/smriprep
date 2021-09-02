@@ -1,13 +1,15 @@
-0.8.0 (TBD)
-===========
+0.8.0 (September 1, 2021)
+=========================
 A new minor release incorporating small iterations and improvements on
 *NiWorkflows*, and including some bug-fixes/enhancements.
 
 * DOC: Ensure copyright notice is found in all Python files (#248)
+* FIX: Revert to FAST for tissue probability segmentations (#263)
 * FIX: Sturdier version check of sMRIPrep-wrapper package (#245)
 * FIX: Do not use deprecated ``--filter pandoc-citeproc`` generating boilerplate (e72eea5)
 * FIX: Mask T1w images before transforming to template (#237)
 * FIX: Account for label entity when querying brain mask (#257)
+* MAINT: Run pytest on GitHub Actions (#262)
 * MAINT: Mount TemplateFlow's home directory in CircleCI tests (#246)
 * MAINT: Run ``black`` at the top level of the repo (#241)
 * MAINT: Update to new API of *NiWorkflows* (#239)

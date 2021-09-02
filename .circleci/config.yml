@@ -415,9 +415,9 @@ jobs:
             - /tmp/images
       - restore_cache:
           keys:
-            - ds005-anat-v8-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v8-{{ .Branch }}
-            - ds005-anat-v8-master
+            - ds005-anat-v9-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v9-{{ .Branch }}
+            - ds005-anat-v9-master
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -631,9 +631,9 @@ jobs:
             docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - restore_cache:
           keys:
-            - ds054-anat-v8-{{ .Branch }}-{{ epoch }}
-            - ds054-anat-v8-{{ .Branch }}
-            - ds054-anat-v8-master
+            - ds054-anat-v9-{{ .Branch }}-{{ epoch }}
+            - ds054-anat-v9-{{ .Branch }}
+            - ds054-anat-v9-master
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
