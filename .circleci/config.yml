@@ -415,9 +415,9 @@ jobs:
             - /tmp/images
       - restore_cache:
           keys:
-            - ds005-anat-v7-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v7-{{ .Branch }}
-            - ds005-anat-v7-master
+            - ds005-anat-v8-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v8-{{ .Branch }}
+            - ds005-anat-v8-master
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -430,8 +430,8 @@ jobs:
       - run:
           name: Install codecov
           command: |
-              pyenv install 3.6.3
-              pyenv global 3.6.3
+              pyenv install 3.8.5
+              pyenv global 3.8.5
               python --version
               python -m pip install -U pip
               python -m pip install -U codecov
@@ -511,7 +511,7 @@ jobs:
           name: Combine coverage and submit
           working_directory: /tmp/src/smriprep
           command: |
-              pyenv local 3.6.3
+              pyenv local 3.8.5
               which python
               python --version
               codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
@@ -599,8 +599,8 @@ jobs:
       - run:
           name: Install codecov
           command: |
-              pyenv install 3.6.3
-              pyenv global 3.6.3
+              pyenv install 3.8.5
+              pyenv global 3.8.5
               python --version
               python -m pip install -U pip
               python -m pip install -U codecov
@@ -631,9 +631,9 @@ jobs:
             docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - restore_cache:
           keys:
-            - ds054-anat-v7-{{ .Branch }}-{{ epoch }}
-            - ds054-anat-v7-{{ .Branch }}
-            - ds054-anat-v7-master
+            - ds054-anat-v8-{{ .Branch }}-{{ epoch }}
+            - ds054-anat-v8-{{ .Branch }}
+            - ds054-anat-v8-master
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -682,7 +682,7 @@ jobs:
           name: Submit coverage
           working_directory: /tmp/src/smriprep
           command: |
-              pyenv local 3.6.3
+              pyenv local 3.8.5
               which python
               python --version
               codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
