@@ -607,7 +607,7 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     # and convert to NIfTI while we're at it
     resample = pe.Node(
         fs.ApplyVolTransform(transformed_file="seg.nii.gz", interp="nearest"),
-        name="resample")
+        name="resample",
     )
 
     if segmentation.startswith("aparc"):
