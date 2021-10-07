@@ -1,3 +1,14 @@
+0.8.1 (October 07, 2021)
+========================
+Bug-fix release in the 0.8.x series.
+
+All releases since 0.5.3 have incorrectly resampled the (aparc+)aseg
+segmentations with trilinear interpolation, rather than nearest-neighbor.
+This fix has also been applied in 0.7.2,
+to provide a fix in the fMRIPrep LTS series.
+
+  * FIX: Resample aseg with nearest-neighbor interpolation (#268)
+
 0.8.0 (September 1, 2021)
 =========================
 A new minor release incorporating small iterations and improvements on
