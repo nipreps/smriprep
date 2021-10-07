@@ -522,7 +522,9 @@ def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
     fssource = pe.Node(nio.FreeSurferSource(), name='fs_datasource')
     # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
     # and convert to NIfTI while we're at it
-    resample = pe.Node(fs.ApplyVolTransform(transformed_file='seg.nii.gz'), name='resample')
+    resample = pe.Node(
+        fs.ApplyVolTransform(transformed_file='seg.nii.gz', interp='nearest'),
+        name='resample')
 
     if segmentation.startswith('aparc'):
         if segmentation == 'aparc_aseg':
