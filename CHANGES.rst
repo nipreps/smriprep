@@ -17,6 +17,19 @@ A new minor release incorporating small iterations and improvements on
 * MAINT: Use separate fallback cache for maint/0.7.x (#250)
 * MAINT: CircleCI housekeeping (#258) (#259)
 
+0.7.2 (October 07, 2021)
+========================
+Bug-fix release in the 0.7.x series.
+
+All releases since 0.5.3 have incorrectly resampled the (aparc+)aseg
+segmentations with trilinear interpolation, rather than nearest-neighbor.
+This also reverts to using FAST for tissue probability maps, as the
+calculations from FreeSurfer's segmentation are less straightforward.
+
+  * FIX: Resample aseg with nearest-neighbor interpolation (#268)
+  * FIX: Revert to FAST for tissue probability maps (#264)
+  * CI: Use separate fallback cache for maint/0.7.x (#250)
+
 0.7.1 (November 18, 2020)
 =========================
 Bug-fix release in the 0.7.x series.
