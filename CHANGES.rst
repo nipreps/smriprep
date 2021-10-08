@@ -1,4 +1,4 @@
-0.8.1 (October 07, 2021)
+0.8.1 (October 08, 2021)
 ========================
 Bug-fix release in the 0.8.x series.
 
