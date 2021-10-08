@@ -413,16 +413,6 @@ jobs:
           paths:
             - /tmp/docker
             - /tmp/images
-      - restore_cache:
-          keys:
-            - ds005-anat-v9-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v9-{{ .Branch }}
-            - ds005-anat-v9-master
-      - restore_cache:
-          keys:
-            - testdata-v2-{{ .Branch }}-{{ epoch }}
-            - testdata-v2-{{ .Branch }}
-            - testdata-v2-
       - run:
           name: Setting up test
           command: |
@@ -462,9 +452,9 @@ jobs:
             docker tag localhost:5000/smriprep nipreps/smriprep:latest
       - restore_cache:
           keys:
-            - ds005-anat-v7-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v7-{{ .Branch }}
-            - ds005-anat-v7-master
+            - ds005-anat-v9-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v9-{{ .Branch }}
+            - ds005-anat-v9-master
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -523,7 +513,7 @@ jobs:
             rm -rf /tmp/ds005/work/reportlets
             rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
       - save_cache:
-         key: ds005-anat-v7-{{ .Branch }}-{{ epoch }}
+         key: ds005-anat-v9-{{ .Branch }}-{{ epoch }}
          paths:
             - /tmp/ds005/work
 
