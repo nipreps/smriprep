@@ -725,6 +725,9 @@ jobs:
           name: Install Graphviz
           command: sudo apt update && sudo apt -y install graphviz
       - run:
+          name: Update pip
+          command: pip install --upgrade pip
+      - run:
           name: Install deps
           command: pip install -r docs/requirements.txt
       - run:
