@@ -26,6 +26,7 @@ from pathlib import Path
 from json import loads
 from pkg_resources import resource_filename as pkgrf
 from bids.layout.writing import build_path
+from bids import BIDSLayout
 
 
 def get_outputnode_spec():
@@ -129,10 +130,15 @@ def collect_derivatives(
     derivatives_dir, subject_id, std_spaces, freesurfer, spec=None, patterns=None
 ):
     """Gather existing derivatives and compose a cache."""
+    layout = BIDSLayout(
+        derivatives_dir,
+        validate=False,
+        config=["bids", "derivatives"]
+    )
+
     if spec is None or patterns is None:
         _spec, _patterns = tuple(
-            loads(Path(pkgrf("smriprep", "data/io_spec.json")).read_text()).values()
-        )
+            loads(Path(pkgrf("smriprep", "data/io_spec.json")).read_text()).values())
 
         if spec is None:
             spec = _spec
@@ -154,6 +160,8 @@ def collect_derivatives(
             if not (derivatives_dir / i).exists():
                 i = i.rstrip(".gz")
                 if not (derivatives_dir / i).exists():
+                    print("derivatives file not found for item: %s, %s" % \
+                            (str(i), str(derivatives_dir / i)))
                     return None
             result.append(str(derivatives_dir / i))
 
@@ -164,24 +172,76 @@ def collect_derivatives(
             q["subject"] = subject_id
             if space is not None:
                 q["space"] = space
-            item = _check_item(build_path(q, patterns, strict=True))
-            if not item:
+
+            # Retrieve paths.
+            paths = layout.get(
+                return_type="filename",
+                subject=q["subject"],
+                suffix=q["suffix"],  # loaded from iospec file == T1w
+                extension=["nii", "nii.gz"],  # json files must not be included.
+                desc=q["desc"] if "desc" in q else None,  # loaded from iospec file == preproc
+                label=q["label"] if "label" in q else None,  # loaded from iospec file == preproc
+                absolute_paths=True
+            )
+
+            # Filter files by space manually, as it can't be used as a pybids
+            # filter.
+            if space is None:
+                paths = list(filter(lambda path: f"_space-" not in path, paths))
+            else:
+                paths = list(filter(lambda path: f"_space-{space}" in path, paths))
+
+            # Log if no path found.
+            if not paths or len(paths) == 0:
+                print(
+                    "space item not found for baseline: %s, %s, %s" % space, k, q)
                 return None
 
             if space:
-                derivs_cache["std_%s" % k] += item if len(item) == 1 else [item]
+                derivs_cache["std_%s" % k] += paths if len(paths) == 1 else [paths]
             else:
-                derivs_cache["t1w_%s" % k] = item[0] if len(item) == 1 else item
+                derivs_cache["t1w_%s" % k] = paths[0] if len(paths) == 1 else paths
 
     for space in std_spaces:
         for k, q in spec["std_xfms"].items():
             q["subject"] = subject_id
             q["from"] = q["from"] or space
             q["to"] = q["to"] or space
-            item = _check_item(build_path(q, patterns))
-            if not item:
+
+            # Retrieve paths.
+            paths = layout.get(
+                return_type="filename",
+                subject=q["subject"],
+                suffix=q["suffix"],  # loaded from iospec file == T1w
+                # sometimes loaded from iospec file as "T1w"
+                extension=q["extension"] if "extension" in q else None,
+                desc=q["desc"] if "desc" in q else None,  # loaded from iospec file == preproc
+                absolute_paths=True
+            )
+
+            # Filter manually by mode, from and to, and hemi, as these can't be
+            # used as pybids filter.
+            if "mode" in q:
+                mode = q["mode"]
+                paths = list(filter(lambda path: f"_mode-{mode}" in path, paths))
+            if "from" in q:
+                from_ = q["from"] or space
+                paths = list(filter(lambda path: f"_from-{from_}" in path, paths))
+            if "to" in q:
+                to = q["to"] or space
+                paths = list(filter(lambda path: f"_to-{to}" in path, paths))
+            if "hemi" in q:
+                hemis = q["hemi"]  # expected to == L or R
+                paths = list(filter(lambda path: any(
+                    f"_hemi-{hemi}" in path for hemi in hemis), paths))
+
+            # Log if no path found.
+            if not paths or len(paths) == 0:
+                print(
+                    "space item not found for std_xfms: %s, %s, %s" % space, k, q)
                 return None
-            derivs_cache[k] += item
+
+            derivs_cache[k] += paths
 
     derivs_cache = dict(derivs_cache)  # Back to a standard dictionary
 
@@ -190,6 +250,8 @@ def collect_derivatives(
             q["subject"] = subject_id
             item = _check_item(build_path(q, patterns))
             if not item:
+                print(
+                    "freesurfer item not found for surfaces: %s, %s" % k, q)
                 return None
 
             if len(item) == 1:
