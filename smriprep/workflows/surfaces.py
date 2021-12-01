@@ -268,7 +268,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         # Construct transform from FreeSurfer conformed image to sMRIPrep
         # reoriented image
         (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
-        (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
+        (autorecon1, fsnative2t1w_xfm, [('nu', 'source_file')]),
         (fsnative2t1w_xfm, gifti_surface_wf, [
             ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (fsnative2t1w_xfm, t1w2fsnative_xfm, [('out_reg_file', 'in_lta')]),
