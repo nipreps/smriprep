@@ -207,7 +207,8 @@ def init_anat_preproc_wf(
     """
     workflow = Workflow(name=name)
     num_t1w = len(t1w)
-    desc = """Anatomical data preprocessing
+    desc = """
+Anatomical data preprocessing
 
 : """
     desc += """\
