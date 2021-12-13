@@ -1,3 +1,13 @@
+0.8.2 (December 13, 2021)
+=========================
+Patch release in the 0.8.x series.
+
+This release includes some minor formatting fixes to the generated workflow boilerplate.
+Additionally, the Docker image environment was updated.
+
+  * DOCKER: Update Dockerfile to match fMRIPrep, using FSL 6 (#274)
+  * FIX: Generated boilerplate formatting (#275)
+
 0.8.1 (October 08, 2021)
 ========================
 Bug-fix release in the 0.8.x series.
