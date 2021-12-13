@@ -158,7 +158,7 @@ The following template{tpls} selected for spatial normalization:
                 template_name=template_meta["Name"],
                 template_refs=", ".join(template_refs),
             )
-            workflow.__desc__ += (", ", ".")[template == templates[-1][0]]
+            workflow.__desc__ += ".\n" if template == templates[-1] else ", "
 
     inputnode = pe.Node(
         niu.IdentityInterface(
