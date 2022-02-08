@@ -1,3 +1,10 @@
+0.8.3 (February 08, 2022)
+=========================
+Patch release in the 0.8.x series. This allows compatibility with the next minor release of `niworkflows`.
+
+  * DOC: Update scipy intersphinx url (#276)
+  * MAINT: Allow compatibility with new niworkflows minor (#277)
+
 0.8.2 (December 13, 2021)
 =========================
 Patch release in the 0.8.x series.
