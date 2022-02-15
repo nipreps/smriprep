@@ -23,7 +23,19 @@
 # SOFTWARE.
 
 # Use Ubuntu 20.04 LTS
-FROM ubuntu:focal-20210416
+#FROM ubuntu:focal-20210416
+
+# Use pytorch official docker image
+FROM pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime
+
+ENV CUDA_VERSION=10.0.130 \ 
+    CUDA_PKG_VERSION=10-0=10.0.130-1 \
+    NCCL_VERSION=2.4.8 \
+    CUDNN_VERSION=7.6.5.32 \
+    PYTHON_VERSION=3.6 \
+    DEBIAN_FRONTEND="noninteractive" \
+    LANG="C.UTF-8" \
+    LC_ALL="C.UTF-8"
 
 # Prepare environment
 RUN apt-get update && \
@@ -36,15 +48,25 @@ RUN apt-get update && \
                     curl \
                     git \
                     libtool \
+                    wget \
                     lsb-release \
                     pkg-config \
                     unzip \
+                    cmake \
+                    gawk \
+                    perl-modules \                     
+                    tcsh \
+                    time \
+                    bzip2 \
+                    libx11-6 \
+                    libjpeg-dev \
+                    bc \
+                    libgomp1 \
+                    libglu1-mesa \
+                    libglu1-mesa-dev \
                     xvfb && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    rm -rf /var/lib/apt/lists/*
 
-ENV DEBIAN_FRONTEND="noninteractive" \
-    LANG="en_US.UTF-8" \
-    LC_ALL="en_US.UTF-8"
 
 # Installing freesurfer
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.1/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.1.tar.gz \
@@ -67,6 +89,25 @@ RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.1/frees
     --exclude='freesurfer/subjects/sample-*.mgz' \
     --exclude='freesurfer/subjects/V1_average' \
     --exclude='freesurfer/trctrain'
+
+# Install miniconda and needed python packages (for FastSurferCNN)
+#RUN wget -qO ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
+#     chmod +x ~/miniconda.sh && \
+#     ~/miniconda.sh -b -p /opt/conda && \
+#     rm ~/miniconda.sh && \
+RUN  /opt/conda/bin/conda install python-dateutil pyyaml numpy scipy matplotlib h5py scikit-image && \
+     /opt/conda/bin/conda install -y -c pytorch cudatoolkit=10.0 "pytorch=1.2.0=py3.6_cuda10.0.130_cudnn7.6.2_0" torchvision=0.4.0 && \
+     /opt/conda/bin/conda install -c conda-forge scikit-sparse nibabel=2.5.1 pillow=8.3.2 && \
+     /opt/conda/bin/conda clean -ya
+ENV PATH /opt/conda/bin:$PATH
+
+# install LaPy for FastSurfer
+RUN python3.6 -m pip install -U git+https://github.com/Deep-MI/LaPy.git#egg=lapy
+
+# Add FastSurfer (copy application code) to docker image
+RUN cd /opt &&  git clone https://github.com/Deep-MI/FastSurfer.git
+ENV FASTSURFER_HOME=/opt/FastSurfer
+
 
 # Simulate SetUpFreeSurfer.sh
 ENV FSL_DIR="/opt/fsl-6.0.5.1" \
@@ -166,12 +207,23 @@ ENV FSLDIR="/opt/fsl-6.0.5.1" \
     FSLREMOTECALL="" \
     FSLGECUDAQ="cuda.q" \
     LD_LIBRARY_PATH="/opt/fsl-6.0.5.1/lib:$LD_LIBRARY_PATH"
+# switch back to en-US utf-8
+RUN apt-get update -qq && apt-get install locales && \
+    sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG="en_US.UTF-8" \
+    LC_ALL="en_US.UTF-8" \
+    LANGUAGE="en_US:en"
+RUN ls /etc/ssl/certs/
 
-# Convert3D (neurodocker build)
-RUN echo "Downloading Convert3D ..." \
-    && mkdir -p /opt/convert3d-1.0.0 \
-    && curl -fsSL --retry 5 https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz/download \
-    | tar -xz -C /opt/convert3d-1.0.0 --strip-components 1 \
+
+# Convert3D (neurodocker build) - adapted to allow for local copy of Convert3D 
+#    my build machine was giving ca-certificates errors for fetching C3D from sourceforge in build
+#RUN echo "Downloading Convert3D ..." \
+#    && mkdir -p /opt/convert3d-1.0.0 \
+#    && cd /opt/ && curl -fsSL https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz \
+COPY c3d-1.0.0-Linux-x86_64.tar.gz /opt/c3d-1.0.0-Linux-x86_64.tar.gz
+RUN cd /opt/ && mkdir -p /opt/convert3d-1.0.0 && tar -xzf c3d-1.0.0-Linux-x86_64.tar.gz -C /opt/convert3d-1.0.0 --strip-components 1 \
     --exclude "c3d-1.0.0-Linux-x86_64/lib" \
     --exclude "c3d-1.0.0-Linux-x86_64/share" \
     --exclude "c3d-1.0.0-Linux-x86_64/bin/c3d_gui"
@@ -194,7 +246,7 @@ RUN apt-get update -qq \
            tcsh \
            xfonts-base \
            xvfb \
-    && apt-get clean \
+    && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/* \
     && curl -sSL --retry 5 -o /tmp/multiarch.deb http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb \
     && dpkg -i /tmp/multiarch.deb \
@@ -205,7 +257,7 @@ RUN apt-get update -qq \
     && curl -sSL --retry 5 -o /tmp/libpng.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%2Bdeb7u2_amd64.deb \
     && dpkg -i /tmp/libpng.deb \
     && rm /tmp/libpng.deb \
-    && apt-get install -f \
+    && apt-get install -f -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && gsl2_path="$(find / -name 'libgsl.so.19' || printf '')" \
