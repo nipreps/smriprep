@@ -99,10 +99,7 @@ and proceed to delete the files listed above."""
 def check_fastsurfer(subjects_dir, subject_id, logger=None):
     """
     Checks FreeSurfer subjects dir for presence of files in mri/ with names indicating processing with FastSurfer,
-    and returns a boolean fastsurfer_bool to indicate that FastSurfer is being used instead of Freesurfer.
-    
-    For development purposes, this also touches files that are expected outputs of Freesurfer, 
-    but not produced by default in FastSurfer.
+    this also touches files that are expected outputs of Freesurfer, but not produced by default in FastSurfer.
 
     Parameters
     ----------
@@ -113,7 +110,6 @@ def check_fastsurfer(subjects_dir, subject_id, logger=None):
 
     Returns
     -------
-    fastsurfer_bool : Boolean
     subjects_dir : os.PathLike or None
 
 
@@ -124,17 +120,16 @@ def check_fastsurfer(subjects_dir, subject_id, logger=None):
         return subjects_dir
     subj_dir = Path(subjects_dir) / subject_id
     if not subj_dir.exists():
-        
         return subjects_dir
 
     fastsurferfiles = tuple(subj_dir.glob("mri/*deep*mgz"))
     if not fastsurferfiles:
         fastsurfer_bool = False
-        return fastsurfer_bool, subjects_dir
+        return subjects_dir
     else:
         fastsurfer_bool = True
         if logger:
             logger.warn(f'Evidence of FastSurfer processing found in {subj_dir}')
         noCCseglabel = Path(subj_dir / 'mri/aseg.auto_noCCseg.label_intensities.txt')
         noCCseglabel.touch(exist_ok=False)
-        return fastsurfer_bool, subjects_dir
+        return subjects_dir
