@@ -96,7 +96,7 @@ and proceed to delete the files listed above."""
         logger.warn(f'Removed "IsRunning*" files found under {subj_dir}')
     return subjects_dir
 
-def check_fastsurfer(subjects_dir, subject_id):
+def check_fastsurfer(subjects_dir, subject_id, logger=None):
     """
     Checks FreeSurfer subjects dir for presence of files in mri/ with names indicating processing with FastSurfer,
     and returns a boolean fastsurfer_bool to indicate that FastSurfer is being used instead of Freesurfer.
@@ -133,6 +133,8 @@ def check_fastsurfer(subjects_dir, subject_id):
         return fastsurfer_bool, subjects_dir
     else:
         fastsurfer_bool = True
+        if logger:
+            logger.warn(f'Evidence of FastSurfer processing found in {subj_dir}')
         noCCseglabel = Path(subj_dir / 'mri/aseg.auto_noCCseg.label_intensities.txt')
         noCCseglabel.touch(exist_ok=False)
         return fastsurfer_bool, subjects_dir
