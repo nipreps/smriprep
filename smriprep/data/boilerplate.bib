@@ -62,6 +62,34 @@
     year = 1999
 }
 
+@article{fastsurfer,
+title = {FastSurfer - A fast and accurate deep learning based neuroimaging pipeline},
+journal = {NeuroImage},
+volume = {219},
+pages = {117012},
+year = {2020},
+issn = {1053-8119},
+doi = {https://doi.org/10.1016/j.neuroimage.2020.117012},
+url = {https://www.sciencedirect.com/science/article/pii/S1053811920304985},
+author = {Leonie Henschel and Sailesh Conjeti and Santiago Estrada and Kersten Diers and Bruce Fischl and Martin Reuter},
+keywords = {Freesurfer, Computational neuroimaging, Deep learning, Structural MRI, Artificial intelligence},
+abstract = {Traditional neuroimage analysis pipelines involve computationally intensive, time-consuming optimization steps, and thus, do not scale well to large cohort studies with thousands or tens of thousands of individuals. In this work we propose a fast and accurate deep learning based neuroimaging pipeline for the automated processing of structural human brain MRI scans, replicating FreeSurfer’s anatomical segmentation including surface reconstruction and cortical parcellation. To this end, we introduce an advanced deep learning architecture capable of whole-brain segmentation into 95 classes. The network architecture incorporates local and global competition via competitive dense blocks and competitive skip pathways, as well as multi-slice information aggregation that specifically tailor network performance towards accurate segmentation of both cortical and subcortical structures. Further, we perform fast cortical surface reconstruction and thickness analysis by introducing a spectral spherical embedding and by directly mapping the cortical labels from the image to the surface. This approach provides a full FreeSurfer alternative for volumetric analysis (in under 1 ​min) and surface-based thickness analysis (within only around 1 ​h runtime). For sustainability of this approach we perform extensive validation: we assert high segmentation accuracy on several unseen datasets, measure generalizability and demonstrate increased test-retest reliability, and high sensitivity to group differences in dementia.}
+}
+
+@article{fastsufrer_hires,
+title = {FastSurferVINN: Building resolution-independence into deep learning segmentation methods—A solution for HighRes brain MRI},
+journal = {NeuroImage},
+volume = {251},
+pages = {118933},
+year = {2022},
+issn = {1053-8119},
+doi = {https://doi.org/10.1016/j.neuroimage.2022.118933},
+url = {https://www.sciencedirect.com/science/article/pii/S1053811922000623},
+author = {Leonie Henschel and David Kügler and Martin Reuter},
+keywords = {Computational neuroimaging, Deep learning, Structural MRI, Artificial intelligence, High-resolution},
+abstract = {Leading neuroimaging studies have pushed 3T MRI acquisition resolutions below 1.0 mm for improved structure definition and morphometry. Yet, only few, time-intensive automated image analysis pipelines have been validated for high-resolution (HiRes) settings. Efficient deep learning approaches, on the other hand, rarely support more than one fixed resolution (usually 1.0 mm). Furthermore, the lack of a standard submillimeter resolution as well as limited availability of diverse HiRes data with sufficient coverage of scanner, age, diseases, or genetic variance poses additional, unsolved challenges for training HiRes networks. Incorporating resolution-independence into deep learning-based segmentation, i.e., the ability to segment images at their native resolution across a range of different voxel sizes, promises to overcome these challenges, yet no such approach currently exists. We now fill this gap by introducing a Voxel-size Independent Neural Network (VINN) for resolution-independent segmentation tasks and present FastSurferVINN, which (i) establishes and implements resolution-independence for deep learning as the first method simultaneously supporting 0.7–1.0 mm whole brain segmentation, (ii) significantly outperforms state-of-the-art methods across resolutions, and (iii) mitigates the data imbalance problem present in HiRes datasets. Overall, internal resolution-independence mutually benefits both HiRes and 1.0 mm MRI segmentation. With our rigorously validated FastSurferVINN we distribute a rapid tool for morphometric neuroimage analysis. The VINN architecture, furthermore, represents an efficient resolution-independent segmentation method for wider application.}
+}
+
 @article{mindboggle,
     author = {Klein, Arno and Ghosh, Satrajit S. and Bao, Forrest S. and Giard, Joachim and Häme, Yrjö and Stavsky, Eliezer and Lee, Noah and Rossa, Brian and Reuter, Martin and Neto, Elias Chaibub and Keshavan, Anisha},
     doi = {10.1371/journal.pcbi.1005350},
