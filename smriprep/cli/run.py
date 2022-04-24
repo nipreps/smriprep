@@ -222,6 +222,14 @@ def get_parser():
         dest="hires",
         help="disable sub-millimeter (hires) reconstruction",
     )
+    
+    g_surfs_xor.add_argument(
+        "--fastsurfer-recon",
+        action="store_true",
+        dest="run_fastsurfer",
+        help="enable FastSurfer surface preprocessing.",
+    )
+    
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
     g_surfs_xor.add_argument(
@@ -391,6 +399,17 @@ def build_opts(opts):
         errno = 1
     else:
         if opts.run_reconall:
+            from templateflow import api
+            from niworkflows.utils.misc import _copy_any
+
+            dseg_tsv = str(api.get("fsaverage", suffix="dseg", extension=[".tsv"]))
+            _copy_any(
+                dseg_tsv, str(Path(output_dir) / "smriprep" / "desc-aseg_dseg.tsv")
+            )
+            _copy_any(
+                dseg_tsv, str(Path(output_dir) / "smriprep" / "desc-aparcaseg_dseg.tsv")
+            )
+        elif opts.run_fastsurfer:
             from templateflow import api
             from niworkflows.utils.misc import _copy_any
 
@@ -584,6 +603,7 @@ def build_workflow(opts, retval):
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,
         hires=opts.hires,
+        fastsurfer=opts.run_fastsurfer,
         layout=layout,
         longitudinal=opts.longitudinal,
         low_mem=opts.low_mem,
