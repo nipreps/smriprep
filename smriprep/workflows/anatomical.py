@@ -48,8 +48,8 @@ from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.bids import get_outputnode_spec
 from ..utils.misc import (
-    apply_lut as _apply_bids_lut, 
-    fs_isRunning as _fs_isRunning, 
+    apply_lut as _apply_bids_lut,
+    fs_isRunning as _fs_isRunning,
     check_fastsurfer as _check_fastsurfer
 )
 from .norm import init_anat_norm_wf
