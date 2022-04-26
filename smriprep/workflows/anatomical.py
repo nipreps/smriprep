@@ -47,7 +47,11 @@ from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.bids import get_outputnode_spec
-from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning, check_fastsurfer as _check_fastsurfer
+from ..utils.misc import (
+    apply_lut as _apply_bids_lut, 
+    fs_isRunning as _fs_isRunning, 
+    check_fastsurfer as _check_fastsurfer
+)
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf
@@ -514,15 +518,15 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         niu.Function(function=_fs_isRunning), overwrite=True, name="fs_isrunning"
     )
     fs_isrunning.inputs.logger = LOGGER
-    
-    # check for FastSurfer .mgz files and 
+
+    # check for FastSurfer .mgz files and
     #   touch mri/aseg.auto_noCCseg.label_intensities.txt
     #   to prevent failure in surfaces.py (temporary fix)
     check_fastsurfer = pe.Node(
         niu.Function(function=_check_fastsurfer), overwrite=True, name="check_fastsurfer"
     )
     check_fastsurfer.inputs.logger = LOGGER
-    
+
     # 5. Surface reconstruction (--fs-no-reconall not set)
     surface_recon_wf = init_surface_recon_wf(
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
