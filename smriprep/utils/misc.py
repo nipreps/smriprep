@@ -124,10 +124,8 @@ def check_fastsurfer(subjects_dir, subject_id, logger=None):
 
     fastsurferfiles = tuple(subj_dir.glob("mri/*deep*mgz"))
     if not fastsurferfiles:
-        fastsurfer_bool = False
         return subjects_dir
     else:
-        fastsurfer_bool = True
         if logger:
             logger.warn(f'Evidence of FastSurfer processing found in {subj_dir}')
         noCCseglabel = Path(subj_dir / 'mri/aseg.auto_noCCseg.label_intensities.txt')
