@@ -516,7 +516,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     fs_isrunning.inputs.logger = LOGGER
     
     # check for FastSurfer .mgz files and 
-    #   touch mri/aseg.auto_noCCseg.label_intensities.txt to prevent failure in surfaces.py (temporary fix)
+    #   touch mri/aseg.auto_noCCseg.label_intensities.txt
+    #   to prevent failure in surfaces.py (temporary fix)
     check_fastsurfer = pe.Node(
         niu.Function(function=_check_fastsurfer), overwrite=True, name="check_fastsurfer"
     )
