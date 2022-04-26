@@ -222,7 +222,7 @@ def get_parser():
         dest="hires",
         help="disable sub-millimeter (hires) reconstruction",
     )
-    g_surfs_xor.add_argument(
+    g_surfs.add_argument(
         "--fastsurfer-recon",
         action="store_true",
         dest="run_fastsurfer",
