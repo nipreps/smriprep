@@ -34,7 +34,7 @@ class FastSInputSpec(CommandLineInputSpec):
     --sd: Output directory $SUBJECTS_DIR
     --sid: Subject ID for directory inside $SUBJECTS_DIR to be created
     --t1: T1 full head input (not bias corrected, global path).
-      The network was trained with conformed images (UCHAR, 256x256x256, 
+      The network was trained with conformed images (UCHAR, 256x256x256,
       1 mm voxels and standard slice orientation).
       These specifications are checked in the eval.py script and the image
       is automatically conformed if it does not comply.
@@ -119,7 +119,7 @@ class FastSInputSpec(CommandLineInputSpec):
         mandatory=False,
         argstr="--seg %s",
         desc="Global path with filename of segmentation"
-    ) 
+    )
     weights_sag = File(
         exists=True,
         mandatory=False,
@@ -210,7 +210,7 @@ class FastSInputSpec(CommandLineInputSpec):
         usedefault=True,
         mandatory=False,
         argstr="--surfreg",
-        desc="""Create Surface-Atlas (sphere.reg) registration with FreeSurfer 
+        desc="""Create Surface-Atlas (sphere.reg) registration with FreeSurfer
         (for cross-subject correspondence or other mappings)"""
     )
     parallel = traits.Bool(
