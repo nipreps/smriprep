@@ -37,7 +37,6 @@ class FastSInputSpec(CommandLineInputSpec):
     
     Optional arguments
     ------------------
-
     Network specific arguments:
     --seg: Global path with filename of segmentation (where and under which name to store it). Default location: $SUBJECTS_DIR/$sid/mri/aparc.DKTatlas+aseg.deep.mgz
     --weights_sag: Pretrained weights of sagittal network. Default: ../checkpoints/Sagittal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl
