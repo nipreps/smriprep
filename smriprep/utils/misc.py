@@ -112,16 +112,15 @@ def check_fastsurfer(subjects_dir, subject_id, logger=None):
     -------
     subjects_dir : os.PathLike or None
 
-
     """
     from pathlib import Path
-
+    
     if subjects_dir is None:
         return subjects_dir
     subj_dir = Path(subjects_dir) / subject_id
     if not subj_dir.exists():
         return subjects_dir
-
+    
     fastsurferfiles = tuple(subj_dir.glob("mri/*deep*mgz"))
     if not fastsurferfiles:
         return subjects_dir
