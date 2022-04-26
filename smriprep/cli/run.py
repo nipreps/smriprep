@@ -222,14 +222,12 @@ def get_parser():
         dest="hires",
         help="disable sub-millimeter (hires) reconstruction",
     )
-    
     g_surfs_xor.add_argument(
         "--fastsurfer-recon",
         action="store_true",
         dest="run_fastsurfer",
         help="enable FastSurfer surface preprocessing.",
     )
-    
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
     g_surfs_xor.add_argument(
