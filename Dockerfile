@@ -105,7 +105,7 @@ ENV PATH /opt/conda/bin:$PATH
 RUN python3.6 -m pip install -U git+https://github.com/Deep-MI/LaPy.git#egg=lapy
 
 # Add FastSurfer (copy application code) to docker image
-RUN cd /opt &&  git clone https://github.com/Deep-MI/FastSurfer.git
+RUN cd /opt && git clone https://github.com/Deep-MI/FastSurfer.git
 ENV FASTSURFER_HOME=/opt/FastSurfer
 
 
@@ -216,12 +216,10 @@ ENV LANG="en_US.UTF-8" \
     LANGUAGE="en_US:en"
 RUN ls /etc/ssl/certs/
 
-
-# Convert3D (neurodocker build) - adapted to allow for local copy of Convert3D 
-#    my build machine was giving ca-certificates errors for fetching C3D from sourceforge in build
-#RUN echo "Downloading Convert3D ..." \
-#    && mkdir -p /opt/convert3d-1.0.0 \
-#    && cd /opt/ && curl -fsSL https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz \
+# Convert3D (neurodocker build)
+RUN echo "Downloading Convert3D ..." \
+    && mkdir -p /opt/convert3d-1.0.0 \
+    && cd /opt/ && curl -fsSL https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz \
 COPY c3d-1.0.0-Linux-x86_64.tar.gz /opt/c3d-1.0.0-Linux-x86_64.tar.gz
 RUN cd /opt/ && mkdir -p /opt/convert3d-1.0.0 && tar -xzf c3d-1.0.0-Linux-x86_64.tar.gz -C /opt/convert3d-1.0.0 --strip-components 1 \
     --exclude "c3d-1.0.0-Linux-x86_64/lib" \
