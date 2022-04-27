@@ -54,7 +54,7 @@ from ..utils.misc import (
 )
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
-from .surfaces import init_surface_recon_wf
+from .surfaces import init_surface_recon_wf, init_fastsurf_recon_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
 
@@ -125,6 +125,10 @@ def init_anat_preproc_wf(
     longitudinal : :obj:`bool`
         Create unbiased structural template, regardless of number of inputs
         (may increase runtime)
+    fastsurfer : :obj:`bool`
+        Enable FastSurfer surface reconstruction (shorter runtime than
+        the FreeSurfer workflow). Uses similar input variables and output
+        file structure as FreeSurfer.
     t1w : :obj:`list`
         List of T1-weighted structural images.
     omp_nthreads : :obj:`int`
@@ -521,14 +525,20 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # check for FastSurfer .mgz files and
     #   touch mri/aseg.auto_noCCseg.label_intensities.txt
-    #   to prevent failure in surfaces.py (temporary fix)
+    #   to prevent failure in surfaces.py (temporary fix - DEPRECATED)
     check_fastsurfer = pe.Node(
         niu.Function(function=_check_fastsurfer), overwrite=True, name="check_fastsurfer"
     )
     check_fastsurfer.inputs.logger = LOGGER
 
+    #Select which surface reconstruction workflow based on CLI arguments
+    if freesurfer:
+        recon_wf = init_surface_recon_wf()
+    elif fastsurfer:
+        recon_wf = init_fastsurf_recon_wf()
+
     # 5. Surface reconstruction (--fs-no-reconall not set)
-    surface_recon_wf = init_surface_recon_wf(
+    surface_recon_wf = recon_wf(
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
     )
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
