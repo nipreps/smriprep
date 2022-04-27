@@ -28,7 +28,7 @@ __docformat__ = "restructuredtext"
 
 
 class FastSInputSpec(CommandLineInputSpec):
-    """
+    r"""
     Required arguments
     ==================
 
@@ -38,8 +38,8 @@ class FastSInputSpec(CommandLineInputSpec):
         Subject ID for directory inside $SUBJECTS_DIR to be created
     t1
         T1 full head input (not bias corrected, global path).
-        The network was trained with conformed images (UCHAR, 256x256x256,
-        1 mm voxels and standard slice orientation).
+        The 'network was trained with conformed images 
+        (UCHAR, 256x256x256, 1 mm voxels and standard slice orientation).
         These specifications are checked in the eval.py script and the image
         is automatically conformed if it does not comply.
     fs_license
@@ -57,21 +57,22 @@ class FastSInputSpec(CommandLineInputSpec):
         Global path with filename of segmentation
         (where and under which name to store it).
         Default location
-            $SUBJECTS_DIR/$sid/mri/aparc.DKTatlas+aseg.deep.mgz
+            ``$SUBJECTS_DIR/$sid/mri/aparc.DKTatlas+aseg.deep.mgz``
     weights_sag
         Pretrained weights of sagittal network.
         Default
-            ../checkpoints/Sagittal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl
+            '../checkpoints/Sagittal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl'
     weights_ax
         Pretrained weights of axial network.
         Default
-         ../checkpoints/Axial_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl
+            '../checkpoints/Axial_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl'
     weights_cor
         Pretrained weights of coronal network.
-        Default ../checkpoints/Coronal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl
+        Default 
+            '../checkpoints/Coronal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl'
     seg_log
         Name and location for the log-file for the segmentation (FastSurferCNN).
-        Default $SUBJECTS_DIR/$sid/scripts/deep-seg.log
+        Default '$SUBJECTS_DIR/$sid/scripts/deep-seg.log'
     clean_seg
         Flag to clean up FastSurferCNN segmentation
     run_viewagg_on
@@ -79,22 +80,22 @@ class FastSInputSpec(CommandLineInputSpec):
         By default, the program checks if you have enough memory to run
         the view aggregation on the gpu. The total memory is considered for this decision.
         If this fails, or you actively overwrote the check with setting
-        "run_viewagg_on cpu", view agg is run on the cpu.
-        Equivalently, if you define "--run_viewagg_on gpu", view agg will be run on the gpu
+        ``run_viewagg_on cpu``, view agg is run on the cpu.
+        Equivalently, if you define ``--run_viewagg_on gpu``, view agg will be run on the gpu
         (no memory check will be done).
     no_cuda
         Flag to disable CUDA usage in FastSurferCNN (no GPU usage, inference on CPU)
     batch
-        Batch size for inference. Default: 16. Lower this to reduce memory requirement
+        Batch size for inference. Default 16. Lower this to reduce memory requirement
     order
         Order of interpolation for mri_convert T1 before segmentation
-        (0=nearest, 1=linear(default), 2=quadratic, 3=cubic)
+        ``(0=nearest, 1=linear(default), 2=quadratic, 3=cubic)``
 
     Surface pipeline arguments
     --------------------------
 
     fstess
-        Use mri_tesselate instead of marching cube (default) for surface creation
+        Use ``mri_tesselate`` instead of marching cube (default) for surface creation
     fsqsphere
         Use FreeSurfer default instead of
         novel spectral spherical projection for qsphere
@@ -102,7 +103,7 @@ class FastSInputSpec(CommandLineInputSpec):
         Use FS aparc segmentations in addition to DL prediction
         (slower in this case and usually the mapped ones from the DL prediction are fine)
     surfreg
-        Create Surface-Atlas (sphere.reg) registration with FreeSurfer
+        Create Surface-Atlas ``sphere.reg`` registration with FreeSurfer
         (for cross-subject correspondence or other mappings)
     parallel
         Run both hemispheres in parallel
@@ -113,12 +114,13 @@ class FastSInputSpec(CommandLineInputSpec):
     ----
 
     py
-        which python version to use. Default: python3.6
+        which python version to use. 
+        Default ``python3.6``
     seg_only
         only run FastSurferCNN
         (generate segmentation, do not run the surface pipeline)
     surf_only
-        only run the surface pipeline recon_surf.
+        only run the surface pipeline ``recon_surf``.
         The segmentation created by FastSurferCNN must already exist in this case.
 
     """
@@ -283,7 +285,7 @@ class FastSInputSpec(CommandLineInputSpec):
 
 
 class FastSTraitedOutputSpec(TraitedSpec):
-    """
+    r"""
     Outputs directory within the FastSurfer subjects_dir/subject_id/
     with structure equivalent to Freesurfer
 
@@ -295,7 +297,7 @@ class FastSTraitedOutputSpec(TraitedSpec):
 
 
 class FastSCommand(CommandLine):
-    """
+    r"""
     Wraps FastSurfer command for segmentation and surface processing.
     
     Example basic commandline usage::
