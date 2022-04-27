@@ -40,7 +40,7 @@ class FastSInputSpec(CommandLineInputSpec):
         T1 full head input (not bias corrected, global path).
         The 'network was trained with conformed images 
         (UCHAR, 256x256x256, 1 mm voxels and standard slice orientation).
-        These specifications are checked in the eval.py script and the image
+        These specifications are checked in the ``eval.py`` script and the image
         is automatically conformed if it does not comply.
     fs_license
         Path to FreeSurfer license key file.
@@ -52,7 +52,6 @@ class FastSInputSpec(CommandLineInputSpec):
 
     Network specific arguments
     --------------------------
-
     seg
         Global path with filename of segmentation
         (where and under which name to store it).
@@ -93,7 +92,6 @@ class FastSInputSpec(CommandLineInputSpec):
 
     Surface pipeline arguments
     --------------------------
-
     fstess
         Use ``mri_tesselate`` instead of marching cube (default) for surface creation
     fsqsphere
@@ -112,7 +110,6 @@ class FastSInputSpec(CommandLineInputSpec):
 
     Other
     ----
-
     py
         which python version to use. 
         Default ``python3.6``
