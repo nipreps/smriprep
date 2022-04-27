@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""The FastSufer module provides basic functions
+"""
+The FastSufer module provides basic functions
 for running FastSurfer CNN and surface processing.
-
-Examples
---------
-See the docstrings for the individual classes for 'working' examples.
 
 """
 from ast import BoolOp
@@ -24,7 +21,6 @@ from nipype.interfaces.base import (
     PackageInfo,
 )
 from nipype.interfaces.base.traits_extension import traits
-__docformat__ = "restructuredtext"
 
 
 class FastSInputSpec(CommandLineInputSpec):
