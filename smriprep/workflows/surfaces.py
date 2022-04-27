@@ -49,8 +49,11 @@ from niworkflows.interfaces.freesurfer import (
     RefineBrainMask,
 )
 from niworkflows.interfaces.surf import NormalizeSurf
+from nipype import logging
 
-def init_fastsurf_recon_wf(*, omp_nthreads, name="fastsurf_recon_wf"):
+LOGGER = logging.getLogger("nipype.workflow")
+
+def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     r"""
     Reconstruct anatomical surfaces using FastSurfer CNN and ``recon_surf``,
     an alternative to FreeSurfer's ``recon-all``.
@@ -240,6 +243,11 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ),
         name="outputnode",
     )
+    
+    #null for now, placeholder for FastSurfer VINN hires support
+    if hires:
+        if logger:
+            logger.warn(f'High-resolution {hires} specified, but not currently supported. Ignoring for now')
 
     #placeholder, create and import FastSurfDetectInputs
     fastsurf_recon_config = pe.Node(fastsurf.FastSurfDetectInputs(), name="fastsurf_recon_config")
