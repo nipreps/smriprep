@@ -295,10 +295,9 @@ class FastSCommand(CommandLine):
     r"""
     Wraps FastSurfer command for segmentation and surface processing.
 
-    Example basic commandline usage
-
     .. code-block:: bash
-    
+
+        #Example basic commandline usage
         /opt/FastSurfer/run_fastsurfer.sh --fs_license /fs60/license \
         --t1 /data/sub-<label>/ses-<label>/anat/sub-<label>_ses-<label>_acq-<label>_T1w.nii.gz \
         --sid sub-<label> --sd /output
