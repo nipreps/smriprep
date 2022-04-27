@@ -29,9 +29,9 @@ class FastSInputSpec(CommandLineInputSpec):
     ==================
 
     sd
-        Output directory $SUBJECTS_DIR
+        Output directory 
     sid
-        Subject ID for directory inside $SUBJECTS_DIR to be created
+        Subject ID for directory inside ``sd`` to be created
     t1
         T1 full head input (not bias corrected, global path).
         The 'network was trained with conformed images 
@@ -40,7 +40,7 @@ class FastSInputSpec(CommandLineInputSpec):
         is automatically conformed if it does not comply.
     fs_license
         Path to FreeSurfer license key file.
-        Register at https://surfer.nmr.mgh.harvard.edu/registration.html
+        Register at `https://surfer.nmr.mgh.harvard.edu/registration.html`_
 
     Optional arguments
     ==================
@@ -55,15 +55,15 @@ class FastSInputSpec(CommandLineInputSpec):
     weights_sag
         Pretrained weights of sagittal network.
         Default
-            '../checkpoints/Sagittal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl'
+            ``../checkpoints/Sagittal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
     weights_ax
         Pretrained weights of axial network.
         Default
-            '../checkpoints/Axial_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl'
+            ``../checkpoints/Axial_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
     weights_cor
         Pretrained weights of coronal network.
         Default 
-            '../checkpoints/Coronal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl'
+            ``../checkpoints/Coronal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
     seg_log
         Name and location for the log-file for the segmentation (FastSurferCNN).
         Default '$SUBJECTS_DIR/$sid/scripts/deep-seg.log'
