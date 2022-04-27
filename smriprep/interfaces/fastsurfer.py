@@ -40,7 +40,7 @@ class FastSInputSpec(CommandLineInputSpec):
         is automatically conformed if it does not comply.
     fs_license
         Path to FreeSurfer license key file.
-        Register at `https://surfer.nmr.mgh.harvard.edu/registration.html`_
+
 
     Optional arguments
     ==================
@@ -85,6 +85,7 @@ class FastSInputSpec(CommandLineInputSpec):
         Order of interpolation for mri_convert T1 before segmentation
         ``(0=nearest, 1=linear(default), 2=quadratic, 3=cubic)``
 
+
     Surface pipeline arguments
     --------------------------
     fstess
@@ -103,6 +104,7 @@ class FastSInputSpec(CommandLineInputSpec):
     threads
         Set openMP and ITK threads
 
+
     Other
     ----
     py
@@ -114,6 +116,7 @@ class FastSInputSpec(CommandLineInputSpec):
     surf_only
         only run the surface pipeline ``recon_surf``.
         The segmentation created by FastSurferCNN must already exist in this case.
+
 
     """
     sd = Directory(
