@@ -41,7 +41,6 @@ class FastSInputSpec(CommandLineInputSpec):
     fs_license
         Path to FreeSurfer license key file.
         Register at https://surfer.nmr.mgh.harvard.edu/registration.html
-        to obtain it if you do not have FreeSurfer installed so far.
 
     Optional arguments
     ==================
