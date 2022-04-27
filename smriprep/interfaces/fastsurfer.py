@@ -28,9 +28,10 @@ __docformat__ = "restructuredtext"
 
 
 class FastSInputSpec(CommandLineInputSpec):
-    """
+    r"""
     Required arguments
     ------------------
+
     --sd: Output directory $SUBJECTS_DIR
     --sid: Subject ID for directory inside $SUBJECTS_DIR to be created
     --t1: T1 full head input (not bias corrected, global path).
@@ -44,6 +45,7 @@ class FastSInputSpec(CommandLineInputSpec):
 
     Optional arguments
     ------------------
+
     Network specific arguments:
     --seg: Global path with filename of segmentation
       (where and under which name to store it).
@@ -89,6 +91,7 @@ class FastSInputSpec(CommandLineInputSpec):
       (generate segmentation, do not run the surface pipeline)
     --surf_only: only run the surface pipeline recon_surf.
       The segmentation created by FastSurferCNN must already exist in this case.
+
     """
     sd = Directory(
         exists=True,
