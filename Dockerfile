@@ -219,9 +219,8 @@ RUN ls /etc/ssl/certs/
 # Convert3D (neurodocker build)
 RUN echo "Downloading Convert3D ..." \
     && mkdir -p /opt/convert3d-1.0.0 \
-    && cd /opt/ && curl -fsSL https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz \
-COPY c3d-1.0.0-Linux-x86_64.tar.gz /opt/c3d-1.0.0-Linux-x86_64.tar.gz
-RUN cd /opt/ && mkdir -p /opt/convert3d-1.0.0 && tar -xzf c3d-1.0.0-Linux-x86_64.tar.gz -C /opt/convert3d-1.0.0 --strip-components 1 \
+    && curl -fsSL --retry 5 https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz/download \
+    | tar -xz -C /opt/convert3d-1.0.0 --strip-components 1 \
     --exclude "c3d-1.0.0-Linux-x86_64/lib" \
     --exclude "c3d-1.0.0-Linux-x86_64/share" \
     --exclude "c3d-1.0.0-Linux-x86_64/bin/c3d_gui"
