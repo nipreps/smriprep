@@ -295,27 +295,70 @@ class FastSTraitedOutputSpec(TraitedSpec):
     
 class FastSurfSourceInputSpec(BaseInterfaceInputSpec):
     sd = Directory(
-        exists=True, mandatory=True, desc="FastSurfer subjects directory."
+        exists=True,
+        argstr="--sd %s",
+        mandatory=True,
+        desc="Subjects directory"
     )
-    sid = Str(mandatory=True, desc="Subject name for whom to retrieve data")
-    t1
+    sid = traits.String(
+        exists=True,
+        argstr="--sid %s",
+        mandatory=True,
+        desc="Subject ID"
+    )
+    t1 = = File(
+        exists=True,
+        mandatory=True,
+        argstr="--t1 %s",
+        desc="T1 full head input (not bias corrected, global path)"
+    )
 
 
 class FastSurfSourceOutputSpec(TraitedSpec):
-    T1 = File(exists=True, desc="Intensity normalized whole-head volume", loc="mri")
+    T1 = File(
+        exists=True,
+        desc="Intensity normalized whole-head volume",
+        loc="mri"
+    )
     aseg = File(
         exists=True,
         loc="mri",
         desc="Volumetric map of regions from automatic segmentation",
     )
-    brain = File(exists=True, desc="Intensity normalized brain-only volume", loc="mri")
-    brainmask = File(exists=True, desc="Skull-stripped (brain-only) volume", loc="mri")
-    filled = File(exists=True, desc="Subcortical mass volume", loc="mri")
-    norm = File(exists=True, desc="Normalized skull-stripped volume", loc="mri")
-    nu = File(exists=True, desc="Non-uniformity corrected whole-head volume", loc="mri")
-    orig = File(exists=True, desc="Base image conformed to Freesurfer space", loc="mri")
+    brain = File(
+        exists=True,
+        desc="Intensity normalized brain-only volume",
+        loc="mri"
+    )
+    brainmask = File(
+        exists=True,
+        desc="Skull-stripped (brain-only) volume",
+        loc="mri"
+    )
+    filled = File(
+        exists=True,
+        desc="Subcortical mass volume",
+        loc="mri"
+    )
+    norm = File(
+        exists=True,
+        desc="Normalized skull-stripped volume",
+        loc="mri"
+    )
+    nu = File(
+        exists=True,
+        desc="Non-uniformity corrected whole-head volume",
+        loc="mri"
+    )
+    orig = File(
+        exists=True,
+        desc="Base image conformed to Freesurfer space",
+        loc="mri"
+    )
     rawavg = File(
-        exists=True, desc="Volume formed by averaging input images", loc="mri"
+        exists=True,
+        desc="Volume formed by averaging input images",
+        loc="mri"
     )
     ribbon = OutputMultiPath(
         File(exists=True),
@@ -323,25 +366,35 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         loc="mri",
         altkey="*ribbon",
     )
-    wm = File(exists=True, desc="Segmented white-matter volume", loc="mri")
+    wm = File(
+        exists=True,
+        desc="Segmented white-matter volume",
+        loc="mri"
+    )
     wmparc = File(
         exists=True,
         loc="mri",
         desc="Aparc parcellation projected into subcortical white matter",
     )
     curv = OutputMultiPath(
-        File(exists=True), desc="Maps of surface curvature", loc="surf"
+        File(exists=True),
+        desc="Maps of surface curvature",
+        loc="surf"
     )
     avg_curv = OutputMultiPath(
         File(exists=True),
-        desc="Average atlas curvature, sampled to subject",
+        desc="Average atlas curvature,sampled to subject",
         loc="surf",
     )
     inflated = OutputMultiPath(
-        File(exists=True), desc="Inflated surface meshes", loc="surf"
+        File(exists=True),
+        desc="Inflated surface meshes",
+        loc="surf"
     )
     pial = OutputMultiPath(
-        File(exists=True), desc="Gray matter/pia mater surface meshes", loc="surf"
+        File(exists=True),
+        desc="Gray matter/pia mater surface meshes",
+        loc="surf"
     )
     area_pial = OutputMultiPath(
         File(exists=True),
@@ -357,22 +410,34 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         altkey="curv.pial",
     )
     smoothwm = OutputMultiPath(
-        File(exists=True), loc="surf", desc="Smoothed original surface meshes"
+        File(exists=True),
+        loc="surf",
+        desc="Smoothed original surface meshes"
     )
     sphere = OutputMultiPath(
-        File(exists=True), desc="Spherical surface meshes", loc="surf"
+        File(exists=True),
+        desc="Spherical surface meshes",
+        loc="surf"
     )
     sulc = OutputMultiPath(
-        File(exists=True), desc="Surface maps of sulcal depth", loc="surf"
+        File(exists=True),
+        desc="Surface maps of sulcal depth",
+        loc="surf"
     )
     thickness = OutputMultiPath(
-        File(exists=True), loc="surf", desc="Surface maps of cortical thickness"
+        File(exists=True),
+        loc="surf",
+        desc="Surface maps of cortical thickness"
     )
     volume = OutputMultiPath(
-        File(exists=True), desc="Surface maps of cortical volume", loc="surf"
+        File(exists=True),
+        desc="Surface maps of cortical volume",
+        loc="surf"
     )
     white = OutputMultiPath(
-        File(exists=True), desc="White/gray matter surface meshes", loc="surf"
+        File(exists=True),
+        desc="White/gray matter surface meshes",
+        loc="surf"
     )
     jacobian_white = OutputMultiPath(
         File(exists=True),
@@ -392,7 +457,10 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         altkey="*label",
     )
     annot = OutputMultiPath(
-        File(exists=True), desc="Surface annotation files", loc="label", altkey="*annot"
+        File(exists=True),
+        desc="Surface annotation files",
+        loc="label",
+        altkey="*annot"
     )
     aparc_aseg = OutputMultiPath(
         File(exists=True),
@@ -431,7 +499,10 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         desc="Brodmann Area statistics files",
     )
     curv_stats = OutputMultiPath(
-        File(exists=True), loc="stats", altkey="curv", desc="Curvature statistics files"
+        File(exists=True),
+        loc="stats",
+        altkey="curv",
+        desc="Curvature statistics files"
     )
     entorhinal_exvivo_stats = OutputMultiPath(
         File(exists=True),
@@ -446,8 +517,8 @@ class FastSurferSource(IOBase):
 
     """
 
-    input_spec = FSSourceInputSpec
-    output_spec = FSSourceOutputSpec
+    input_spec = FastSurfSourceInputSpec
+    output_spec = FastSurfSourceOutputSpec
     _always_run = True
     _additional_metadata = ["loc", "altkey"]
 
