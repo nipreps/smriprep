@@ -306,11 +306,17 @@ class FastSurfSourceInputSpec(BaseInterfaceInputSpec):
         mandatory=True,
         desc="Subject ID"
     )
-    t1 = = File(
+    t1 = File(
         exists=True,
         mandatory=True,
         argstr="--t1 %s",
         desc="T1 full head input (not bias corrected, global path)"
+    )
+    fs_license = File(
+        exists=True,
+        mandatory=True,
+        argstr="--fs_license %s",
+        desc="Path to FreeSurfer license key file."
     )
 
 
@@ -375,6 +381,18 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         exists=True,
         loc="mri",
         desc="Aparc parcellation projected into subcortical white matter",
+    )
+    mni_log = OutputMultiPath(
+        File(exists=True),
+        desc="Non-uniformity correction log",
+        loc="mri",
+        altkey="mri_nu_correct.mni"
+    )
+    mni_log_bak = OutputMultiPath(
+        File(exists=True),
+        desc="Non-uniformity correction log bak",
+        loc="mri",
+        altkey="mri_nu_correct.mni"
     )
     curv = OutputMultiPath(
         File(exists=True),
@@ -468,6 +486,12 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         altkey="aparc*aseg",
         desc="Aparc parcellation projected into aseg volume",
     )
+    aparc_aseg = OutputMultiPath(
+        File(exists=True),
+        loc="mri",
+        altkey="aparc*aseg",
+        desc="Aparc parcellation from DKT atlas projected into aseg volume",
+    )
     sphere_reg = OutputMultiPath(
         File(exists=True),
         loc="surf",
@@ -483,20 +507,14 @@ class FastSurfSourceOutputSpec(TraitedSpec):
     wmparc_stats = OutputMultiPath(
         File(exists=True),
         loc="stats",
-        altkey="wmparc",
+        altkey="wmparc.DKTatlas.mapped",
         desc="White matter parcellation statistics file",
     )
     aparc_stats = OutputMultiPath(
         File(exists=True),
         loc="stats",
-        altkey="aparc",
+        altkey="aparc.DKTatlas.mapped",
         desc="Aparc parcellation statistics files",
-    )
-    BA_stats = OutputMultiPath(
-        File(exists=True),
-        loc="stats",
-        altkey="BA",
-        desc="Brodmann Area statistics files",
     )
     curv_stats = OutputMultiPath(
         File(exists=True),
@@ -504,11 +522,17 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         altkey="curv",
         desc="Curvature statistics files"
     )
-    entorhinal_exvivo_stats = OutputMultiPath(
+    w_g_stats = OutputMultiPath(
         File(exists=True),
         loc="stats",
-        altkey="entorhinal_exvivo",
-        desc="Entorhinal exvivo statistics files",
+        altkey="w*g.pct",
+        desc="White minus gray statistics files"
+    )
+    aseg_presurf_stats = OutputMultiPath(
+        File(exists=True),
+        loc="stats",
+        altkey="aseg.presurf.hypos",
+        desc="Automated segmentation pre-surface recon statistics files"
     )
 
 
@@ -526,21 +550,20 @@ class FastSurferSource(IOBase):
         globsuffix = ""
         if dirval == "mri":
             globsuffix = ".mgz"
+            if key in ("mni_log"):
+                globsuffix = ".mgz"
+            elif key in ("mni_log_bak"):
+                globsuffix = ".log.bak"
         elif dirval == "stats":
             globsuffix = ".stats"
         globprefix = ""
         if dirval in ("surf", "label", "stats"):
-            if self.inputs.hemi != "both":
-                globprefix = self.inputs.hemi + "."
-            else:
-                globprefix = "?h."
-            if key in ("aseg_stats", "wmparc_stats"):
-                globprefix = ""
+            globprefix = "?h."
+        if key in ("aseg_stats", "aseg_presurf_stats". "wmparc_stats"):
+            globprefix = ""
         elif key == "ribbon":
-            if self.inputs.hemi != "both":
-                globprefix = self.inputs.hemi + "."
-            else:
-                globprefix = "*"
+            globprefix = "*"
+        if key in ():
         keys = ensure_list(altkey) if altkey else [key]
         globfmt = os.path.join(path, dirval, "".join((globprefix, "{}", globsuffix)))
         return [
