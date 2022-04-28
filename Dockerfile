@@ -207,15 +207,7 @@ ENV FSLDIR="/opt/fsl-6.0.5.1" \
     FSLREMOTECALL="" \
     FSLGECUDAQ="cuda.q" \
     LD_LIBRARY_PATH="/opt/fsl-6.0.5.1/lib:$LD_LIBRARY_PATH"
-# switch back to en-US utf-8
-RUN apt-get update -qq && apt-get install locales && \
-    sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
-ENV LANG="en_US.UTF-8" \
-    LC_ALL="en_US.UTF-8" \
-    LANGUAGE="en_US:en"
-RUN ls /etc/ssl/certs/
-
+    
 # Convert3D (neurodocker build)
 RUN echo "Downloading Convert3D ..." \
     && mkdir -p /opt/convert3d-1.0.0 \
@@ -226,6 +218,15 @@ RUN echo "Downloading Convert3D ..." \
     --exclude "c3d-1.0.0-Linux-x86_64/bin/c3d_gui"
 ENV C3DPATH="/opt/convert3d-1.0.0" \
     PATH="/opt/convert3d-1.0.0/bin:$PATH"
+    
+# switch back to en-US utf-8
+RUN apt-get update -qq && apt-get install locales && \
+    sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG="en_US.UTF-8" \
+    LC_ALL="en_US.UTF-8" \
+    LANGUAGE="en_US:en"
+RUN ls /etc/ssl/certs/
 
 # AFNI latest (neurodocker build)
 RUN apt-get update -qq \
