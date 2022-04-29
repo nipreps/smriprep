@@ -302,6 +302,7 @@ class FastSCommand(CommandLine):
         --t1 /data/sub-<label>/ses-<label>/anat/sub-<label>_ses-<label>_acq-<label>_T1w.nii.gz \
         --sid sub-<label> --sd /output
 
+
     """
     input_spec = FastSInputSpec
     output_spec = FastSTraitedOutputSpec
@@ -309,4 +310,5 @@ class FastSCommand(CommandLine):
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
+        
         return outputs
