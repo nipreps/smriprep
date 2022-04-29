@@ -245,7 +245,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         name="outputnode",
     )
 
-    #null for now, placeholder for FastSurfer VINN hires support
+    # null for now, placeholder for FastSurfer VINN hires support
     if hires:
         if logger:
             logger.warn(f'High-resolution {hires} specified, not currently supported, ignoring.')
@@ -288,8 +288,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                                      ('t1w', 't1')]),
         (fastsurf_recon, skull_strip_extern, [('sd', 'subjects_dir'),
                                           ('sid', 'subject_id')]),
-        (skull_strip_extern, gifti_surface_wf, [('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                                                ('outputnode.subject_id', 'inputnode.subject_id')]),
+        (skull_strip_extern, gifti_surface_wf, [
+            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+            ('outputnode.subject_id', 'inputnode.subject_id')]),
         (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
         # Construct transform from FreeSurfer conformed image to sMRIPrep
         # reoriented image
@@ -302,9 +303,11 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (inputnode, refine, [('corrected_t1', 'in_anat'),
                              ('ants_segs', 'in_ants')]),
         (inputnode, aseg_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
-        (fsnative2t1w_xfm, aseg_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
+        (fsnative2t1w_xfm, aseg_to_native_wf, [
+            ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
-        (fsnative2t1w_xfm, aparc_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
+        (fsnative2t1w_xfm, aparc_to_native_wf, [
+            ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
 
         # Output
@@ -503,7 +506,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
     gifti_surface_wf = init_gifti_surface_wf()
-
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
