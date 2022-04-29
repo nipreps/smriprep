@@ -45,6 +45,7 @@ RUN apt-get update && \
                     build-essential \
                     bzip2 \
                     ca-certificates \
+                    locales \
                     curl \
                     git \
                     libtool \
@@ -219,9 +220,8 @@ RUN echo "Downloading Convert3D ..." \
 ENV C3DPATH="/opt/convert3d-1.0.0" \
     PATH="/opt/convert3d-1.0.0/bin:$PATH"
     
-# switch back to en-US utf-8
-RUN apt-get update -qq && apt-get install locales && \
-    sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+# switch back to en-US utf-8 apt-get update -qq && apt-get install locales && \
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
 ENV LANG="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8" \
