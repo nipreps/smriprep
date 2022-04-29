@@ -36,9 +36,9 @@ class FastSInputSpec(CommandLineInputSpec):
     sid
         Subject ID for directory inside ``sd`` to be created
     t1
-        T1 full head input (not bias corrected, global path).
+        T1 full head input, not bias corrected, global path.
         The 'network was trained with conformed images
-        (UCHAR, 256x256x256, 1 mm voxels and standard slice orientation).
+        UCHAR, 256 x 256 x 256, 1 mm voxels and standard slice orientation.
         These specifications are checked in the ``eval.py`` script and the image
         is automatically conformed if it does not comply.
     fs_license
@@ -663,18 +663,18 @@ class FastSCommand(CommandLine):
 
     .. code-block:: bash
 
-        #Example basic commandline usage
+        # Example basic commandline usage \
         /opt/FastSurfer/run_fastsurfer.sh --fs_license /fs60/license \
         --t1 /data/sub-<label>/ses-<label>/anat/sub-<label>_ses-<label>_acq-<label>_T1w.nii.gz \
         --sid sub-<label> --sd /output
 
 
     """
+    
     input_spec = FastSInputSpec
     output_spec = FastSurfSourceOutputSpec
     _cmd = '/opt/FastSurfer/run_fastsurfer.sh'
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
-
         return outputs
