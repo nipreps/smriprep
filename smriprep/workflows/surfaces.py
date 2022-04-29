@@ -287,7 +287,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                                      ('subject_id', 'sid'),
                                      ('t1w', 't1')]),
         (fastsurf_recon, skull_strip_extern, [('sd', 'subjects_dir'),
-                                          ('sid', 'subject_id')]),
+                                              ('sid', 'subject_id')]),
         (skull_strip_extern, gifti_surface_wf, [
             ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ('outputnode.subject_id', 'inputnode.subject_id')]),
