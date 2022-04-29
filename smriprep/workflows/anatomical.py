@@ -533,7 +533,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     )
     check_fastsurfer.inputs.logger = LOGGER
 
-    #Select which surface reconstruction workflow based on CLI arguments
+    # Select which surface reconstruction workflow based on CLI arguments
     if freesurfer:
         recon_wf = init_surface_recon_wf()
         applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
@@ -597,7 +597,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         )
         # fmt:off
         workflow.connect([
-            #replace check_fastsurfer with check for only CNN segmentation outputs or full outputs
+            # replace check_fastsurfer with check for only CNN segmentation outputs or full outputs
             (inputnode, check_fastsurfer, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id')]),
@@ -637,7 +637,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ]),
         ])
         # fmt:on
-    
+
     return workflow
 
 
