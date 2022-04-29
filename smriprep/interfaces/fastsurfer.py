@@ -624,7 +624,7 @@ class FastSurferSource(IOBase):
         globprefix = ""
         if dirval in ("surf", "label", "stats"):
             globprefix = "?h."
-        if key in ("aseg_stats", "aseg_presurf_stats". "wmparc_stats"):
+        if key in ("aseg_stats", "aseg_presurf_stats", "wmparc_stats"):
             globprefix = ""
         elif key == "ribbon":
             globprefix = "*"
