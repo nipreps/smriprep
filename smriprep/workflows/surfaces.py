@@ -53,13 +53,14 @@ from nipype import logging
 
 LOGGER = logging.getLogger("nipype.workflow")
 
+
 def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     r"""
     Reconstruct anatomical surfaces using FastSurfer CNN and ``recon_surf``,
     an alternative to FreeSurfer's ``recon-all``.
 
     First, FastSurfer CNN creates a segmentation using the T1w structural image.
-    This is followed by FastSurfer ``recon_surf`` processing of the surface, 
+    This is followed by FastSurfer ``recon_surf`` processing of the surface,
     along with surface registration to support cross-subject comparison
     using the ``--surfeg`` argument to FastSurfer.
 
@@ -101,7 +102,7 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
 
     This procedure is inspired on mindboggle's solution to the problem:
     https://github.com/nipy/mindboggle/blob/7f91faaa7664d820fe12ccc52ebaf21d679795e2/mindboggle/guts/segment.py#L1660
-    
+
     Memory annotations for FastSurfer are based off `their documentation
     <https://github.com/Deep-MI/FastSurfer/tree/9a424a83d2a24d36fe4519c2105c608df71bb2a0#system-requirements>`_.
     They recommend 8GB CPU RAM and 8GB NVIDIA GPU RAM to run a single batch.
@@ -117,12 +118,12 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     Required arguments
     ==================
     sd
-        Output directory 
+        Output directory
     sid
         Subject ID for directory inside ``sd`` to be created
     t1
         T1 full head input (not bias corrected, global path).
-        The 'network was trained with conformed images 
+        The 'network was trained with conformed images
         (UCHAR, 256x256x256, 1 mm voxels and standard slice orientation).
         These specifications are checked in the ``eval.py`` script and the image
         is automatically conformed if it does not comply.
@@ -149,7 +150,7 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
             ``../checkpoints/Axial_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
     weights_cor
         Pretrained weights of coronal network.
-        Default 
+        Default
             ``../checkpoints/Coronal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
     seg_log
         Name and location for the log-file for the segmentation (FastSurferCNN).
@@ -193,7 +194,7 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     Other
     ----
     py
-        which python version to use. 
+        which python version to use.
         Default ``python3.6``
     seg_only
         only run FastSurferCNN
@@ -243,14 +244,14 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ),
         name="outputnode",
     )
-    
+
     #null for now, placeholder for FastSurfer VINN hires support
     if hires:
         if logger:
-            logger.warn(f'High-resolution {hires} specified, but not currently supported. Ignoring for now')
+            logger.warn(f'High-resolution {hires} specified, not currently supported, ignoring.')
 
     fsnative2t1w_xfm = pe.Node(
-        RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm") 
+        RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm")
     t1w2fsnative_xfm = pe.Node(
         LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
 
@@ -259,9 +260,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
 
-    #temporary fix fs_license value to /fs60/license
+    # temporary fix fs_license value to /fs60/license
     fastsurf_recon = pe.Node(
-        fastsurf.FastSCommand(threads=omp_nthreads,fs_license="/fs60/license"),
+        fastsurf.FastSCommand(threads=omp_nthreads, fs_license="/fs60/license"),
         name="fastsurf_recon",
         n_procs=omp_nthreads,
         mem_gb=12,
@@ -277,7 +278,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     t1w2fsnative_xfm = pe.Node(
         LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm"
     )
-    
 
     # fmt:off
     workflow.connect([
@@ -288,9 +288,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                                      ('t1w', 't1')]),
         (fastsurf_recon, skull_strip_extern, [('sd', 'subjects_dir'),
                                           ('sid', 'subject_id')]),
-        (skull_strip_extern, gifti_surface_wf, [
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-            ('outputnode.subject_id', 'inputnode.subject_id')]),
+        (skull_strip_extern, gifti_surface_wf, [('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+                                                ('outputnode.subject_id', 'inputnode.subject_id')]),
         (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
         # Construct transform from FreeSurfer conformed image to sMRIPrep
         # reoriented image
@@ -320,7 +319,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     return workflow
 
-    
+
 def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
     r"""
     Reconstruct anatomical surfaces using FreeSurfer's ``recon-all``.
