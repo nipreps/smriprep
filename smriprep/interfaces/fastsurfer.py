@@ -31,12 +31,12 @@ class FastSInputSpec(CommandLineInputSpec):
     ==================
 
     sd
-        Output directory 
+        Output directory
     sid
         Subject ID for directory inside ``sd`` to be created
     t1
         T1 full head input (not bias corrected, global path).
-        The 'network was trained with conformed images 
+        The 'network was trained with conformed images
         (UCHAR, 256x256x256, 1 mm voxels and standard slice orientation).
         These specifications are checked in the ``eval.py`` script and the image
         is automatically conformed if it does not comply.
@@ -64,7 +64,7 @@ class FastSInputSpec(CommandLineInputSpec):
             ``../checkpoints/Axial_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
     weights_cor
         Pretrained weights of coronal network.
-        Default 
+        Default
             ``../checkpoints/Coronal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
     seg_log
         Name and location for the log-file for the segmentation (FastSurferCNN).
@@ -110,7 +110,7 @@ class FastSInputSpec(CommandLineInputSpec):
     Other
     ----
     py
-        which python version to use. 
+        which python version to use.
         Default ``python3.6``
     seg_only
         only run FastSurferCNN
@@ -292,7 +292,7 @@ class FastSTraitedOutputSpec(TraitedSpec):
         desc="FastSurfer CNN + Surface Pipeline equivalent of recon-all outputs"
     )
 
-    
+
 class FastSurfSourceInputSpec(BaseInterfaceInputSpec):
     sd = Directory(
         exists=True,
@@ -360,7 +360,7 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         exists=True,
         desc="Base image conformed to FastSurfer space",
         loc="mri"
-    ) 
+    )
     orig_nu = File(
         exists=True,
         desc="Base image conformed to Fastsurfer space and nonuniformity corrected",
@@ -654,8 +654,8 @@ class FastSurferSource(IOBase):
             if val:
                 outputs[k] = simplify_list(val)
         return outputs
-    
-    
+
+
 class FastSCommand(CommandLine):
     r"""
     Wraps FastSurfer command for segmentation and surface processing.
@@ -675,5 +675,5 @@ class FastSCommand(CommandLine):
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
-        
+
         return outputs
