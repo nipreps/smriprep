@@ -654,7 +654,8 @@ class FastSurferSource(IOBase):
             if val:
                 outputs[k] = simplify_list(val)
         return outputs
-
+    
+    
 class FastSCommand(CommandLine):
     r"""
     Wraps FastSurfer command for segmentation and surface processing.
@@ -668,7 +669,7 @@ class FastSCommand(CommandLine):
 
     """
     input_spec = FastSInputSpec
-    output_spec = FastSTraitedOutputSpec
+    output_spec = FastSurfSourceOutputSpec
     _cmd = '/opt/FastSurfer/run_fastsurfer.sh'
 
     def _list_outputs(self):
