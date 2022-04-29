@@ -270,7 +270,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         fastsurf.FastSCommand(threads=omp_nthreads),
         name="fastsurf_recon",
         n_procs=omp_nthreads,
-        mem_gb=5,
+        mem_gb=12,
     )
     fastsurf_recon.interface._can_resume = False
     fastsurf_recon.interface._always_run = True
