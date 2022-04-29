@@ -588,7 +588,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ]),
         ])
         # fmt:on
-
     elif fastsurfer:
         recon_wf = init_fastsurf_recon_wf()
         applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
