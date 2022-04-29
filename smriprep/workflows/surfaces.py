@@ -249,25 +249,19 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         if logger:
             logger.warn(f'High-resolution {hires} specified, but not currently supported. Ignoring for now')
 
-    #placeholder, create and import FastSurfDetectInputs
-    fastsurf_recon_config = pe.Node(fastsurf.FastSurfDetectInputs(), name="fastsurf_recon_config")
-
-    fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
-
     fsnative2t1w_xfm = pe.Node(
-    RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm") 
-    t1w2fsnative_xfm = pe.Node( 
-    LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
+        RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm") 
+    t1w2fsnative_xfm = pe.Node(
+        LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
 
     gifti_surface_wf = init_gifti_surface_wf()
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
-    #change below to make FastSurfer specific
-    fastsurfsource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
 
+    #temporary fix fs_license value to /fs60/license
     fastsurf_recon = pe.Node(
-        fastsurf.FastSCommand(threads=omp_nthreads),
+        fastsurf.FastSCommand(threads=omp_nthreads,fs_license="/fs60/license"),
         name="fastsurf_recon",
         n_procs=omp_nthreads,
         mem_gb=12,
@@ -283,23 +277,20 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     t1w2fsnative_xfm = pe.Node(
         LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm"
     )
+    
 
     # fmt:off
     workflow.connect([
         # Configuration
-        (inputnode, fastsurf_recon_config, [('t1w', 't1w_list')]),
-        # Passing subjects_dir / subject_id enforces serial order
-        (inputnode, fastsurf_recon, [('subjects_dir', 'subjects_dir'),
-                                     ('subject_id', 'subject_id')]),
-        (fastsurf_recon, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
-                                          ('subject_id', 'subject_id')]),
+        (inputnode, recon_config, [('t1w', 't1w_list')]),
+        (inputnode, fastsurf_recon, [('subjects_dir', 'sd'),
+                                     ('subject_id', 'sid'),
+                                     ('t1w', 't1')]),
+        (fastsurf_recon, skull_strip_extern, [('sd', 'subjects_dir'),
+                                          ('sid', 'subject_id')]),
         (skull_strip_extern, gifti_surface_wf, [
             ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ('outputnode.subject_id', 'inputnode.subject_id')]),
-        # Reconstruction phases
-        (inputnode, fastsurf_recon, [('t1w', 'T1_files')]),
-        (inputnode, fov_check, [('t1w', 'in_files')]),
-        (fov_check, fastsurf_recon, [('out', 'flags')]),
         (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
         # Construct transform from FreeSurfer conformed image to sMRIPrep
         # reoriented image
@@ -794,7 +785,10 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces"]), name="outputnode")
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+    if freesurfer:
+        get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+    elif fastsurfer:
+        get_surfaces = pe.Node(fastsurf.FastSurferSource(), name="get_surfaces")
 
     midthickness = pe.MapNode(
         MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
