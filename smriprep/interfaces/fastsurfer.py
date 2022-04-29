@@ -17,6 +17,8 @@ from nipype.interfaces.base import (
     CommandLineInputSpec,
     isdefined,
     TraitedSpec,
+    BaseInterface,
+    BaseInterfaceInputSpec,
     File,
     PackageInfo,
 )
@@ -290,7 +292,370 @@ class FastSTraitedOutputSpec(TraitedSpec):
         desc="FastSurfer CNN + Surface Pipeline equivalent of recon-all outputs"
     )
 
+    
+class FastSurfSourceInputSpec(BaseInterfaceInputSpec):
+    sd = Directory(
+        exists=True,
+        argstr="--sd %s",
+        mandatory=True,
+        desc="Subjects directory"
+    )
+    sid = traits.String(
+        exists=True,
+        argstr="--sid %s",
+        mandatory=True,
+        desc="Subject ID"
+    )
+    t1 = File(
+        exists=True,
+        mandatory=True,
+        argstr="--t1 %s",
+        desc="T1 full head input (not bias corrected, global path)"
+    )
+    fs_license = File(
+        exists=True,
+        mandatory=True,
+        argstr="--fs_license %s",
+        desc="Path to FreeSurfer license key file."
+    )
 
+
+class FastSurfSourceOutputSpec(TraitedSpec):
+    T1 = File(
+        exists=True,
+        desc="Intensity normalized whole-head volume",
+        loc="mri"
+    )
+    aseg = File(
+        exists=True,
+        loc="mri",
+        desc="Volumetric map of regions from automatic segmentation",
+    )
+    brain = File(
+        exists=True,
+        desc="Intensity normalized brain-only volume",
+        loc="mri"
+    )
+    brainmask = File(
+        exists=True,
+        desc="Skull-stripped (brain-only) volume",
+        loc="mri"
+    )
+    filled = File(
+        exists=True,
+        desc="Subcortical mass volume",
+        loc="mri"
+    )
+    norm = File(
+        exists=True,
+        desc="Normalized skull-stripped volume",
+        loc="mri"
+    )
+    nu = File(
+        exists=True,
+        desc="Non-uniformity corrected whole-head volume",
+        loc="mri"
+    )
+    orig = File(
+        exists=True,
+        desc="Base image conformed to FastSurfer space",
+        loc="mri"
+    ) 
+    orig_nu = File(
+        exists=True,
+        desc="Base image conformed to Fastsurfer space and nonuniformity corrected",
+        loc="mri"
+    )
+    rawavg = File(
+        exists=True,
+        desc="Volume formed by averaging input images",
+        loc="mri"
+    )
+    ribbon = OutputMultiPath(
+        File(exists=True),
+        desc="Volumetric maps of cortical ribbons",
+        loc="mri",
+        altkey="*ribbon",
+    )
+    wm = File(
+        exists=True,
+        desc="Segmented white-matter volume",
+        loc="mri"
+    )
+    wm_asegedit = OutputMultiPath(
+        File(exists=True),
+        desc="Edited white matter volume post-aseg",
+        loc="mri",
+        altkey="mri_nu_correct.mni"
+    )
+    wmparc = File(
+        exists=True,
+        loc="mri",
+        desc="Aparc parcellation projected into subcortical white matter",
+    )
+    wmparc_mapped = OutputMultiPath(
+        exists=True,
+        loc="mri",
+        desc="DKT atlas mapped Aparc into subcortical white matter",
+        altkey="wmparc.DKTatlas.mapped"
+    )
+    mni_log = OutputMultiPath(
+        File(exists=True),
+        desc="Non-uniformity correction log",
+        loc="mri",
+        altkey="mri_nu_correct.mni"
+    )
+    mni_log_bak = OutputMultiPath(
+        File(exists=True),
+        desc="Non-uniformity correction log bak",
+        loc="mri",
+        altkey="mri_nu_correct.mni"
+    )
+    curv = OutputMultiPath(
+        File(exists=True),
+        desc="Maps of surface curvature",
+        loc="surf"
+    )
+    avg_curv = OutputMultiPath(
+        File(exists=True),
+        desc="Average atlas curvature,sampled to subject",
+        loc="surf",
+    )
+    inflated = OutputMultiPath(
+        File(exists=True),
+        desc="Inflated surface meshes",
+        loc="surf"
+    )
+    pial = OutputMultiPath(
+        File(exists=True),
+        desc="Gray matter/pia mater surface meshes",
+        loc="surf"
+    )
+    area_pial = OutputMultiPath(
+        File(exists=True),
+        desc="Mean area of triangles each vertex on the pial surface is "
+        "associated with",
+        loc="surf",
+        altkey="area.pial",
+    )
+    curv_pial = OutputMultiPath(
+        File(exists=True),
+        desc="Curvature of pial surface",
+        loc="surf",
+        altkey="curv.pial",
+    )
+    smoothwm = OutputMultiPath(
+        File(exists=True),
+        loc="surf",
+        desc="Smoothed original surface meshes"
+    )
+    sphere = OutputMultiPath(
+        File(exists=True),
+        desc="Spherical surface meshes",
+        loc="surf"
+    )
+    sulc = OutputMultiPath(
+        File(exists=True),
+        desc="Surface maps of sulcal depth",
+        loc="surf"
+    )
+    thickness = OutputMultiPath(
+        File(exists=True),
+        loc="surf",
+        desc="Surface maps of cortical thickness"
+    )
+    volume = OutputMultiPath(
+        File(exists=True),
+        desc="Surface maps of cortical volume",
+        loc="surf"
+    )
+    white = OutputMultiPath(
+        File(exists=True),
+        desc="White/gray matter surface meshes",
+        loc="surf"
+    )
+    jacobian_white = OutputMultiPath(
+        File(exists=True),
+        desc="Distortion required to register to spherical atlas",
+        loc="surf",
+    )
+    graymid = OutputMultiPath(
+        File(exists=True),
+        desc="Graymid/midthickness surface meshes",
+        loc="surf",
+        altkey=["graymid", "midthickness"],
+    )
+    defects = OutputMultiPath(
+        File(exists=True),
+        desc="Defects",
+        loc="surf",
+        altkey=["defect_borders", "defect_chull", "defect_labels"],
+    )
+    nofix = OutputMultiPath(
+        File(exists=True),
+        desc="Pre-tessellation original surface",
+        loc="surf",
+        altkey=["nofix"],
+    )
+    label = OutputMultiPath(
+        File(exists=True),
+        desc="Volume and surface label files",
+        loc="label",
+        altkey="*label",
+    )
+    annot = OutputMultiPath(
+        File(exists=True),
+        desc="Surface annotation files",
+        loc="label",
+        altkey="*annot"
+    )
+    aparc_ctab = OutputMultiPath(
+        File(exists=True),
+        loc="label",
+        altkey="aparc.annot.mapped.ctab",
+        desc="Aparc parcellation annotation ctab file",
+    )
+    mapped_024 = OutputMultiPath(
+        File(exists=True),
+        loc="label",
+        altkey="mapped*024",
+        desc="Mapped label files",
+    )
+    cortex = OutputMultiPath(
+        File(exists=True),
+        loc="label",
+        altkey="cortex",
+        desc="Cortex class label files",
+    )
+    aparc_aseg = OutputMultiPath(
+        File(exists=True),
+        loc="mri",
+        altkey="aparc?aseg",
+        desc="Aparc parcellation projected into aseg volume",
+    )
+    aparc_dkt_aseg = OutputMultiPath(
+        File(exists=True),
+        loc="mri",
+        altkey="aparc.DKTatlas*aseg*",
+        desc="Aparc parcellation from DKT atlas projected into aseg volume",
+    )
+    segment_dat = OutputMultiPath(
+        File(exists=True),
+        loc="mri",
+        altkey="segment_dat",
+        desc="Segmentation .dat files",
+    )
+    filled_pretess = OutputMultiPath(
+        File(exists=True),
+        loc="mri",
+        altkey="filled*pretess*",
+        desc="Pre-tessellation filled volume files",
+    )
+    sphere_reg = OutputMultiPath(
+        File(exists=True),
+        loc="surf",
+        altkey="sphere.reg",
+        desc="Spherical registration file",
+    )
+    preaparc = OutputMultiPath(
+        File(exists=True),
+        loc="surf",
+        altkey="preaparc",
+        desc="Pre-Aparc files",
+    )
+    aseg_stats = OutputMultiPath(
+        File(exists=True),
+        loc="stats",
+        altkey="aseg",
+        desc="Automated segmentation statistics file",
+    )
+    wmparc_stats = OutputMultiPath(
+        File(exists=True),
+        loc="stats",
+        altkey="wmparc.DKTatlas.mapped",
+        desc="White matter parcellation statistics file",
+    )
+    aparc_stats = OutputMultiPath(
+        File(exists=True),
+        loc="stats",
+        altkey="aparc.DKTatlas.mapped",
+        desc="Aparc parcellation statistics files",
+    )
+    curv_stats = OutputMultiPath(
+        File(exists=True),
+        loc="stats",
+        altkey="curv",
+        desc="Curvature statistics files"
+    )
+    w_g_stats = OutputMultiPath(
+        File(exists=True),
+        loc="stats",
+        altkey="w*g.pct",
+        desc="White minus gray statistics files"
+    )
+    aseg_presurf_stats = OutputMultiPath(
+        File(exists=True),
+        loc="stats",
+        altkey="aseg.presurf.hypos",
+        desc="Automated segmentation pre-surface recon statistics files"
+    )
+
+
+class FastSurferSource(IOBase):
+    """Generates FastSurfer subject info from their directories.
+
+    """
+
+    input_spec = FastSurfSourceInputSpec
+    output_spec = FastSurfSourceOutputSpec
+    _always_run = True
+    _additional_metadata = ["loc", "altkey"]
+
+    def _get_files(self, path, key, dirval, altkey=None):
+        globsuffix = ""
+        if dirval == "mri":
+            globsuffix = ".mgz"
+            if key in ("mni_log"):
+                globsuffix = ".mgz"
+            elif key in ("mni_log_bak"):
+                globsuffix = ".log.bak"
+        elif dirval == "stats":
+            globsuffix = ".stats"
+        globprefix = ""
+        if dirval in ("surf", "label", "stats"):
+            globprefix = "?h."
+        if key in ("aseg_stats", "aseg_presurf_stats". "wmparc_stats"):
+            globprefix = ""
+        elif key == "ribbon":
+            globprefix = "*"
+        elif key == "aparc_ctab":
+            globprefix = ""
+            globsuffix = ""
+        elif key in ("nofix", "defects", "preaparc"):
+            globsuffix = "*"
+        keys = ensure_list(altkey) if altkey else [key]
+        globfmt = os.path.join(path, dirval, "".join((globprefix, "{}", globsuffix)))
+        return [
+            os.path.abspath(f) for key in keys for f in glob.glob(globfmt.format(key))
+        ]
+
+    def _list_outputs(self):
+        subjects_dir = self.inputs.subjects_dir
+        subject_path = os.path.join(subjects_dir, self.inputs.subject_id)
+        output_traits = self._outputs()
+        outputs = output_traits.get()
+        for k in list(outputs.keys()):
+            val = self._get_files(
+                subject_path,
+                k,
+                output_traits.traits()[k].loc,
+                output_traits.traits()[k].altkey,
+            )
+            if val:
+                outputs[k] = simplify_list(val)
+        return outputs
+    
+    
 class FastSCommand(CommandLine):
     r"""
     Wraps FastSurfer command for segmentation and surface processing.
@@ -305,7 +670,7 @@ class FastSCommand(CommandLine):
 
     """
     input_spec = FastSInputSpec
-    output_spec = FastSTraitedOutputSpec
+    output_spec = FastSurfSourceOutputSpec
     _cmd = '/opt/FastSurfer/run_fastsurfer.sh'
 
     def _list_outputs(self):
