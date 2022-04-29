@@ -24,7 +24,7 @@ from nipype.interfaces.base import (
     PackageInfo,
 )
 from nipype.interfaces.base.traits_extension import traits
-
+from nipype.interfaces.io import IOBase
 
 class FastSInputSpec(CommandLineInputSpec):
     r"""
