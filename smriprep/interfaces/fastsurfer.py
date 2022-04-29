@@ -15,6 +15,7 @@ from nipype.interfaces.base import (
     CommandLine,
     Directory,
     CommandLineInputSpec,
+    OutputMultiPath,
     isdefined,
     TraitedSpec,
     BaseInterface,
