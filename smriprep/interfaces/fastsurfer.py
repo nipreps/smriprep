@@ -358,7 +358,12 @@ class FastSurfSourceOutputSpec(TraitedSpec):
     )
     orig = File(
         exists=True,
-        desc="Base image conformed to Freesurfer space",
+        desc="Base image conformed to FastSurfer space",
+        loc="mri"
+    ) 
+    orig_nu = File(
+        exists=True,
+        desc="Base image conformed to Fastsurfer space and nonuniformity corrected",
         loc="mri"
     )
     rawavg = File(
@@ -377,10 +382,22 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         desc="Segmented white-matter volume",
         loc="mri"
     )
+    wm_asegedit = OutputMultiPath(
+        File(exists=True),
+        desc="Edited white matter volume post-aseg",
+        loc="mri",
+        altkey="mri_nu_correct.mni"
+    )
     wmparc = File(
         exists=True,
         loc="mri",
         desc="Aparc parcellation projected into subcortical white matter",
+    )
+    wmparc_mapped = OutputMultiPath(
+        exists=True,
+        loc="mri",
+        desc="DKT atlas mapped Aparc into subcortical white matter",
+        altkey="wmparc.DKTatlas.mapped"
     )
     mni_log = OutputMultiPath(
         File(exists=True),
@@ -468,6 +485,18 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         loc="surf",
         altkey=["graymid", "midthickness"],
     )
+    defects = OutputMultiPath(
+        File(exists=True),
+        desc="Defects",
+        loc="surf",
+        altkey=["defect_borders", "defect_chull", "defect_labels"],
+    )
+    nofix = OutputMultiPath(
+        File(exists=True),
+        desc="Pre-tessellation original surface",
+        loc="surf",
+        altkey=["nofix"],
+    )
     label = OutputMultiPath(
         File(exists=True),
         desc="Volume and surface label files",
@@ -480,23 +509,59 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         loc="label",
         altkey="*annot"
     )
-    aparc_aseg = OutputMultiPath(
+    aparc_ctab = OutputMultiPath(
         File(exists=True),
-        loc="mri",
-        altkey="aparc*aseg",
-        desc="Aparc parcellation projected into aseg volume",
+        loc="label",
+        altkey="aparc.annot.mapped.ctab",
+        desc="Aparc parcellation annotation ctab file",
+    )
+    mapped_024 = OutputMultiPath(
+        File(exists=True),
+        loc="label",
+        altkey="mapped*024",
+        desc="Mapped label files",
+    )
+    cortex = OutputMultiPath(
+        File(exists=True),
+        loc="label",
+        altkey="cortex",
+        desc="Cortex class label files",
     )
     aparc_aseg = OutputMultiPath(
         File(exists=True),
         loc="mri",
-        altkey="aparc*aseg",
+        altkey="aparc?aseg",
+        desc="Aparc parcellation projected into aseg volume",
+    )
+    aparc_dkt_aseg = OutputMultiPath(
+        File(exists=True),
+        loc="mri",
+        altkey="aparc.DKTatlas*aseg*",
         desc="Aparc parcellation from DKT atlas projected into aseg volume",
+    )
+    segment_dat = OutputMultiPath(
+        File(exists=True),
+        loc="mri",
+        altkey="segment_dat",
+        desc="Segmentation .dat files",
+    )
+    filled_pretess = OutputMultiPath(
+        File(exists=True),
+        loc="mri",
+        altkey="filled*pretess*",
+        desc="Pre-tessellation filled volume files",
     )
     sphere_reg = OutputMultiPath(
         File(exists=True),
         loc="surf",
         altkey="sphere.reg",
         desc="Spherical registration file",
+    )
+    preaparc = OutputMultiPath(
+        File(exists=True),
+        loc="surf",
+        altkey="preaparc",
+        desc="Pre-Aparc files",
     )
     aseg_stats = OutputMultiPath(
         File(exists=True),
@@ -563,7 +628,11 @@ class FastSurferSource(IOBase):
             globprefix = ""
         elif key == "ribbon":
             globprefix = "*"
-        if key in ():
+        elif key == "aparc_ctab":
+            globprefix = ""
+            globsuffix = ""
+        elif key in ("nofix", "defects", "preaparc"):
+            globsuffix = "*"
         keys = ensure_list(altkey) if altkey else [key]
         globfmt = os.path.join(path, dirval, "".join((globprefix, "{}", globsuffix)))
         return [
