@@ -165,9 +165,9 @@ def init_smriprep_wf(
         )
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
-    
+
     if fastsurfer:
-         fastsurfdir = pe.Node(
+        fastsurfdir = pe.Node(
             BIDSFreeSurferDir(
                 derivatives=output_dir,
                 freesurfer_home=os.getenv("FREESURFER_HOME"),
@@ -175,7 +175,7 @@ def init_smriprep_wf(
                 spaces=spaces.get_fs_spaces(),
             ),
             name="fastsurfdir_run_%s" % run_uuid.replace("-", "_"),
-            run_without_submitting=True,
+            run_without_submitting=True
         )
         if fs_subjects_dir is not None:
             fastsurfdir.inputs.sd = str(fs_subjects_dir.absolute())
