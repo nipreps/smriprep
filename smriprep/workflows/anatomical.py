@@ -461,6 +461,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     anat_derivatives_wf = init_anat_derivatives_wf(
         bids_root=bids_root,
         freesurfer=freesurfer,
+        fastsurfer=fastsurfer,
         num_t1w=num_t1w,
         output_dir=output_dir,
         spaces=spaces,
