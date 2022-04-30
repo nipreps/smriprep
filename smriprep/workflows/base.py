@@ -179,7 +179,7 @@ def init_smriprep_wf(
         )
         if fs_subjects_dir is not None:
             fastsurfdir.inputs.sd = str(fs_subjects_dir.absolute())
-            
+
     for subject_id in subject_list:
         single_subject_wf = init_single_subject_wf(
             debug=debug,
@@ -212,7 +212,7 @@ def init_smriprep_wf(
             )
         elif fastsurfer:
             smriprep_wf.connect(
-                fastsurfdir, "sd", single_subject_wf, "inputnode.subjects_dir"               
+                fastsurfdir, "sd", single_subject_wf, "inputnode.subjects_dir"
             )
         else:
             smriprep_wf.add_nodes([single_subject_wf])
