@@ -22,93 +22,93 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Use Ubuntu 20.04 LTS
-#FROM ubuntu:focal-20210416
+## Start with ubuntu base as in FastSurfer Docker image
+## https://github.com/Deep-MI/FastSurfer/blob/0749f38e656ed0da977c408b4383db88e1a8b563/Docker/Dockerfile
 
-# Use pytorch official docker image
-FROM pytorch/pytorch:1.2-cuda10.0-cudnn7-runtime
+FROM ubuntu:20.04 AS build
 
-ENV CUDA_VERSION=10.0.130 \ 
-    CUDA_PKG_VERSION=10-0=10.0.130-1 \
-    NCCL_VERSION=2.4.8 \
-    CUDNN_VERSION=7.6.5.32 \
-    PYTHON_VERSION=3.6 \
-    DEBIAN_FRONTEND="noninteractive" \
-    LANG="C.UTF-8" \
-    LC_ALL="C.UTF-8"
+ENV LANG=C.UTF-8
+ARG PYTHON_VERSION=3.8
+ARG CONDA_FILE=Miniconda3-py38_4.11.0-Linux-x86_64.sh
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Prepare environment
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-                    apt-utils \
-                    autoconf \
-                    build-essential \
-                    bzip2 \
-                    ca-certificates \
-                    locales \
-                    curl \
-                    git \
-                    libtool \
-                    wget \
-                    lsb-release \
-                    pkg-config \
-                    unzip \
-                    cmake \
-                    gawk \
-                    perl-modules \                     
-                    tcsh \
-                    time \
-                    bzip2 \
-                    libx11-6 \
-                    libjpeg-dev \
-                    bc \
-                    libgomp1 \
-                    libglu1-mesa \
-                    libglu1-mesa-dev \
-                    xvfb && \
-    rm -rf /var/lib/apt/lists/*
+# Install packages needed for build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      wget \
+      git \
+      ca-certificates \
+      upx \
+      git \
+      file && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
+# git clone dev branch of FastSurfer
+RUN cd /opt && mkdir /fastsurfer \
+    && git clone -b dev https://github.com/Deep-MI/FastSurfer.git \
+    && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml \
+    && cp /opt/FastSurfer/Docker/install_fs_pruned.sh /fastsurfer/install_fs_pruned.sh
 
-# Installing freesurfer
-RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.1/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.1.tar.gz \
-    | tar zxv --no-same-owner -C /opt \
-    --exclude='freesurfer/diffusion' \
-    --exclude='freesurfer/docs' \
-    --exclude='freesurfer/fsfast' \
-    --exclude='freesurfer/lib/cuda' \
-    --exclude='freesurfer/lib/qt' \
-    --exclude='freesurfer/matlab' \
-    --exclude='freesurfer/mni/share/man' \
-    --exclude='freesurfer/subjects/fsaverage_sym' \
-    --exclude='freesurfer/subjects/fsaverage3' \
-    --exclude='freesurfer/subjects/fsaverage4' \
-    --exclude='freesurfer/subjects/cvs_avg35' \
-    --exclude='freesurfer/subjects/cvs_avg35_inMNI152' \
-    --exclude='freesurfer/subjects/bert' \
-    --exclude='freesurfer/subjects/lh.EC_average' \
-    --exclude='freesurfer/subjects/rh.EC_average' \
-    --exclude='freesurfer/subjects/sample-*.mgz' \
-    --exclude='freesurfer/subjects/V1_average' \
-    --exclude='freesurfer/trctrain'
+# Install conda
+RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/miniconda/$CONDA_FILE  && \
+     chmod +x ~/miniconda.sh && \
+     ~/miniconda.sh -b -p /opt/conda && \
+     rm ~/miniconda.sh 
 
-# Install miniconda and needed python packages (for FastSurferCNN)
-#RUN wget -qO ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
-#     chmod +x ~/miniconda.sh && \
-#     ~/miniconda.sh -b -p /opt/conda && \
-#     rm ~/miniconda.sh && \
-RUN  /opt/conda/bin/conda install python-dateutil pyyaml numpy scipy matplotlib h5py scikit-image && \
-     /opt/conda/bin/conda install -y -c pytorch cudatoolkit=10.0 "pytorch=1.2.0=py3.6_cuda10.0.130_cudnn7.6.2_0" torchvision=0.4.0 && \
-     /opt/conda/bin/conda install -c conda-forge scikit-sparse nibabel=2.5.1 pillow=8.3.2 && \
-     /opt/conda/bin/conda clean -ya
 ENV PATH /opt/conda/bin:$PATH
 
-# install LaPy for FastSurfer
-RUN python3.6 -m pip install -U git+https://github.com/Deep-MI/LaPy.git#egg=lapy
+# Install our dependencies
+RUN conda env create -f /fastsurfer/fastsurfer_env_gpu.yml 
 
-# Add FastSurfer (copy application code) to docker image
-RUN cd /opt && git clone https://github.com/Deep-MI/FastSurfer.git
-ENV FASTSURFER_HOME=/opt/FastSurfer
+# Install conda-pack:
+RUN conda install -c conda-forge conda-pack
 
+# Use conda-pack to create a standalone enviornment in /venv:
+RUN conda-pack -n fastsurfer_gpu -o /tmp/env.tar && \
+  mkdir /venv && cd /venv && tar xf /tmp/env.tar && \
+  rm /tmp/env.tar
+
+# Now that venv in a new location, fix up paths:
+RUN /venv/bin/conda-unpack
+ENV PATH /venv/bin:$PATH
+
+# setup shell for install command below
+RUN echo "source /venv/bin/activate" >> ~/.bashrc
+SHELL ["/bin/bash", "--login", "-c"]
+
+# install freesurfer and point to new python location
+RUN /fastsurfer/install_fs_pruned.sh /opt --upx && \
+    rm /opt/freesurfer/bin/fspython && \
+    ln -s /venv/bin/python3 /opt/freesurfer/bin/fspython
+
+
+# Install required packages for freesurfer to run
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      tcsh \
+      time \
+      bc \
+      gawk \
+      libgomp1 && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+
+# Add FreeSurfer Environment variables
+ENV OS=Linux \
+    FS_OVERRIDE=0 \
+    FIX_VERTEX_AREA= \
+    SUBJECTS_DIR=/opt/freesurfer/subjects \
+    FSF_OUTPUT_FORMAT=nii.gz \
+    FREESURFER_HOME=/opt/freesurfer \
+    PYTHONUNBUFFERED=0 \
+    PATH=/venv/bin:/opt/freesurfer/bin:$PATH
+
+# make sure we use bash and activate conda env
+#  (in case someone starts this interactively)
+RUN echo "source /venv/bin/activate" >> ~/.bashrc
+SHELL ["/bin/bash", "--login", "-c"]
+
+# Copy fastsurfer from git folder
+RUN cp -R /opt/FastSurfer/* /fastsurfer/
 
 # Simulate SetUpFreeSurfer.sh
 ENV FSL_DIR="/opt/fsl-6.0.5.1" \
@@ -148,6 +148,7 @@ RUN apt-get update -qq \
            libxrender1 \
            libxt6 \
            sudo \
+           curl \
            wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
@@ -208,25 +209,17 @@ ENV FSLDIR="/opt/fsl-6.0.5.1" \
     FSLREMOTECALL="" \
     FSLGECUDAQ="cuda.q" \
     LD_LIBRARY_PATH="/opt/fsl-6.0.5.1/lib:$LD_LIBRARY_PATH"
-    
+
 # Convert3D (neurodocker build)
 RUN echo "Downloading Convert3D ..." \
     && mkdir -p /opt/convert3d-1.0.0 \
-    && curl -fsSL --retry 5 https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz \
+    && curl -fsSL --retry 5 https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz/download \
     | tar -xz -C /opt/convert3d-1.0.0 --strip-components 1 \
     --exclude "c3d-1.0.0-Linux-x86_64/lib" \
     --exclude "c3d-1.0.0-Linux-x86_64/share" \
     --exclude "c3d-1.0.0-Linux-x86_64/bin/c3d_gui"
 ENV C3DPATH="/opt/convert3d-1.0.0" \
     PATH="/opt/convert3d-1.0.0/bin:$PATH"
-    
-# switch back to en-US utf-8 apt-get update -qq && apt-get install locales && \
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
-ENV LANG="en_US.UTF-8" \
-    LC_ALL="en_US.UTF-8" \
-    LANGUAGE="en_US:en"
-RUN ls /etc/ssl/certs/
 
 # AFNI latest (neurodocker build)
 RUN apt-get update -qq \
@@ -244,20 +237,20 @@ RUN apt-get update -qq \
            tcsh \
            xfonts-base \
            xvfb \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -sSL --retry 5 -o /tmp/multiarch.deb http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb \
-    && dpkg -i /tmp/multiarch.deb \
-    && rm /tmp/multiarch.deb \
-    && curl -sSL --retry 5 -o /tmp/libxp6.deb http://mirrors.kernel.org/debian/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb \
-    && dpkg -i /tmp/libxp6.deb \
-    && rm /tmp/libxp6.deb \
-    && curl -sSL --retry 5 -o /tmp/libpng.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%2Bdeb7u2_amd64.deb \
-    && dpkg -i /tmp/libpng.deb \
-    && rm /tmp/libpng.deb \
-    && apt-get install -f -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
+#    && curl -sSL --retry 5 -o /tmp/multiarch.deb http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb \
+#    && dpkg -i /tmp/multiarch.deb \
+#    && rm /tmp/multiarch.deb \
+#    && curl -sSL --retry 5 -o /tmp/libxp6.deb http://mirrors.kernel.org/debian/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb \
+#    && dpkg -i /tmp/libxp6.deb \
+#    && rm /tmp/libxp6.deb \
+#    && curl -sSL --retry 5 -o /tmp/libpng.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%2Bdeb7u2_amd64.deb \
+#    && dpkg -i /tmp/libpng.deb \
+#    && rm /tmp/libpng.deb \
+#    && apt-get install -f \
+#    && apt-get clean \
+#    && rm -rf /var/lib/apt/lists/* \
     && gsl2_path="$(find / -name 'libgsl.so.19' || printf '')" \
     && if [ -n "$gsl2_path" ]; then \
          ln -sfv "$gsl2_path" "$(dirname $gsl2_path)/libgsl.so.0"; \
@@ -341,6 +334,7 @@ RUN find $HOME -type d -exec chmod go=u {} + && \
     rm -rf $HOME/.npm $HOME/.conda $HOME/.empty
 
 ENV IS_DOCKER_8395080871=1
+ENV FASTSURFER_HOME=/fastsurfer
 
 RUN ldconfig
 WORKDIR /tmp
