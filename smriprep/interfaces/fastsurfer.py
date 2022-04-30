@@ -26,6 +26,7 @@ from nipype.interfaces.base import (
 from nipype.interfaces.base.traits_extension import traits
 from nipype.interfaces.io import IOBase
 
+
 class FastSInputSpec(CommandLineInputSpec):
     r"""
     Required arguments
@@ -666,7 +667,7 @@ class FastSCommand(CommandLine):
         --sid sub-<label> --sd /output
 
     """
-    
+
     input_spec = FastSInputSpec
     output_spec = FastSurfSourceOutputSpec
     _cmd = '/fastsurfer/run_fastsurfer.sh'
