@@ -50,6 +50,7 @@ def init_smriprep_wf(
     hires,
     layout,
     longitudinal,
+    fastsurfer,
     low_mem,
     omp_nthreads,
     output_dir,
@@ -87,6 +88,7 @@ def init_smriprep_wf(
                 hires=True,
                 layout=BIDSLayout('.'),
                 longitudinal=False,
+                fastsurfer=False,
                 low_mem=False,
                 omp_nthreads=1,
                 output_dir='.',
@@ -117,6 +119,8 @@ def init_smriprep_wf(
     longitudinal : :obj:`bool`
         Treat multiple sessions as longitudinal (may increase runtime)
         See sub-workflows for specific differences
+    fastsurfer : :obj:`bool`
+        Enable FastSurfer segmentation and surface reconstruction
     low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
     omp_nthreads : :obj:`int`
@@ -161,7 +165,21 @@ def init_smriprep_wf(
         )
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
-
+    
+    if fastsurfer:
+         fastsurfdir = pe.Node(
+            BIDSFreeSurferDir(
+                derivatives=output_dir,
+                freesurfer_home=os.getenv("FREESURFER_HOME"),
+                fastsurfer_home=os.getenv("FASTSURFER_HOME"),
+                spaces=spaces.get_fs_spaces(),
+            ),
+            name="fastsurfdir_run_%s" % run_uuid.replace("-", "_"),
+            run_without_submitting=True,
+        )
+        if fs_subjects_dir is not None:
+            fastsurfdir.inputs.sd = str(fs_subjects_dir.absolute())
+            
     for subject_id in subject_list:
         single_subject_wf = init_single_subject_wf(
             debug=debug,
@@ -170,6 +188,7 @@ def init_smriprep_wf(
             hires=hires,
             layout=layout,
             longitudinal=longitudinal,
+            fastsurfer=fastsurfer,
             low_mem=low_mem,
             name="single_subject_%s_wf" % subject_id,
             omp_nthreads=omp_nthreads,
@@ -191,6 +210,10 @@ def init_smriprep_wf(
             smriprep_wf.connect(
                 fsdir, "subjects_dir", single_subject_wf, "inputnode.subjects_dir"
             )
+        elif fastsurfer:
+            smriprep_wf.connect(
+                fastsurfdir, "sd", single_subject_wf, "inputnode.subjects_dir"               
+            )
         else:
             smriprep_wf.add_nodes([single_subject_wf])
 
@@ -205,6 +228,7 @@ def init_single_subject_wf(
     hires,
     layout,
     longitudinal,
+    fastsurfer,
     low_mem,
     name,
     omp_nthreads,
@@ -244,6 +268,7 @@ def init_single_subject_wf(
                 hires=True,
                 layout=BIDSLayout('.'),
                 longitudinal=False,
+                fastsurfer=False,
                 low_mem=False,
                 name='single_subject_wf',
                 omp_nthreads=1,
@@ -271,6 +296,8 @@ def init_single_subject_wf(
     longitudinal : :obj:`bool`
         Treat multiple sessions as longitudinal (may increase runtime)
         See sub-workflows for specific differences
+    fastsurfer : :obj:`bool`
+        Enable FastSurfer segmentation and surface reconstruction
     low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
     name : :obj:`str`
@@ -404,6 +431,7 @@ to workflows in *sMRIPrep*'s documentation]\
         freesurfer=freesurfer,
         hires=hires,
         longitudinal=longitudinal,
+        fastsurfer=fastsurfer,
         name="anat_preproc_wf",
         t1w=subject_data["t1w"],
         omp_nthreads=omp_nthreads,
