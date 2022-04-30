@@ -661,7 +661,7 @@ class FastSCommand(CommandLine):
     r"""
     Wraps FastSurfer command for segmentation and surface processing::
 
-        $ /opt/FastSurfer/run_fastsurfer.sh --fs_license /fs60/license \
+        $ /fastsurfer/run_fastsurfer.sh --fs_license /fs60/license \
         --t1 /data/sub-<label>/ses-<label>/anat/sub-<label>_ses-<label>_acq-<label>_T1w.nii.gz \
         --sid sub-<label> --sd /output
 
@@ -669,7 +669,7 @@ class FastSCommand(CommandLine):
     
     input_spec = FastSInputSpec
     output_spec = FastSurfSourceOutputSpec
-    _cmd = '/opt/FastSurfer/run_fastsurfer.sh'
+    _cmd = '/fastsurfer/run_fastsurfer.sh'
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
