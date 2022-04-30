@@ -103,6 +103,7 @@ class SubjectSummary(SummaryInterface):
 
     input_spec = _SubjectSummaryInputSpec
     output_spec = _SubjectSummaryOutputSpec
+    fastsurfer_bool = False
 
     def _run_interface(self, runtime):
         if isdefined(self.inputs.subject_id):
@@ -117,7 +118,7 @@ class SubjectSummary(SummaryInterface):
             fastsurfer_bool = check_fastsurfer(
                 subjects_dir=self.inputs.subjects_dir,
                 subject_id=self.inputs.subject_id)
-            if fastsurfer_bool == True:
+            if fastsurfer_bool is True:
                 recon = fastsurf.FastSCommand(
                     sd=self.inputs.subjects_dir,
                     sid=self.inputs.subject_id,
