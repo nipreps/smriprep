@@ -114,7 +114,7 @@ class SubjectSummary(SummaryInterface):
             freesurfer_status = "Not run"
             fastsurfer_status = "Not run"
         else:
-            fastsurfer_bool = check_fastsurfer(
+            fastsurfer_bool == check_fastsurfer(
                 subjects_dir=self.inputs.subjects_dir,
                 subject_id=self.inputs.subject_id)
             if fastsurfer_bool = True:
