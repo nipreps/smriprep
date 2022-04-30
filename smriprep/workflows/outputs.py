@@ -39,6 +39,8 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
     ----------
     freesurfer : :obj:`bool`
         FreeSurfer was enabled
+    fastsurfer : :obj:`bool`
+        FastSurfer was enabled
     output_dir : :obj:`str`
         Directory in which to save derivatives
     name : :obj:`str`
@@ -192,6 +194,27 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
             (inputnode, ds_recon_report, [('source_file', 'source_file')])
         ])
         # fmt:on
+    elif fastsurfer:
+        from ..interfaces.reports import FSSurfaceReport
+
+        recon_report = pe.Node(FSSurfaceReport(), name="recon_report")
+        recon_report.interface._always_run = True
+
+        ds_recon_report = pe.Node(
+            DerivativesDataSink(
+                base_directory=output_dir, desc="fastsurf_recon", datatype="figures"
+            ),
+            name="ds_recon_report",
+            run_without_submitting=True,
+        )
+        # fmt:off
+        workflow.connect([
+            (inputnode, recon_report, [('subjects_dir', 'subjects_dir'),
+                                       ('subject_id', 'subject_id')]),
+            (recon_report, ds_recon_report, [('out_report', 'in_file')]),
+            (inputnode, ds_recon_report, [('source_file', 'source_file')])
+        ])
+        # fmt:on
 
     return workflow
 
@@ -200,6 +223,7 @@ def init_anat_derivatives_wf(
     *,
     bids_root,
     freesurfer,
+    fastsurfer,
     num_t1w,
     output_dir,
     spaces,
@@ -215,6 +239,8 @@ def init_anat_derivatives_wf(
         Root path of BIDS dataset
     freesurfer : :obj:`bool`
         FreeSurfer was enabled
+    fastsurfer : :obj:`bool`
+        FastSurfer was enabled
     num_t1w : :obj:`int`
         Number of T1w images
     output_dir : :obj:`str`
@@ -552,7 +578,7 @@ def init_anat_derivatives_wf(
         )
         # fmt:on
 
-    if not freesurfer:
+    if (not freesurfer) and (not fastsurfer):
         return workflow
 
     from niworkflows.interfaces.nitransforms import ConcatenateXFMs
