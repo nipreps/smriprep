@@ -112,23 +112,24 @@ def check_fastsurfer(subjects_dir, subject_id, logger=None):
 
     Returns
     -------
-    subjects_dir : os.PathLike or None
+    fastsurfer_bool : Boolean
 
     """
     from pathlib import Path
 
+    fastsurfer_bool = False
+    
     if subjects_dir is None:
-        return subjects_dir
+        return fastsurfer_bool
     subj_dir = Path(subjects_dir) / subject_id
     if not subj_dir.exists():
-        return subjects_dir
+        return fastsurfer_bool
 
     fastsurferfiles = tuple(subj_dir.glob("mri/*deep*mgz"))
     if not fastsurferfiles:
-        return subjects_dir
+        return fastsurfer_bool
     else:
         if logger:
             logger.warn(f'Evidence of FastSurfer processing found in {subj_dir}')
-        noCCseglabel = Path(subj_dir / 'mri/aseg.auto_noCCseg.label_intensities.txt')
-        noCCseglabel.touch(exist_ok=False)
-        return subjects_dir
+        fastsurfer_bool = True
+        return fastsurfer_bool
