@@ -37,6 +37,9 @@ from nipype.interfaces.base import (
 )
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
+from smriprep.interfaces.fastsurfer import FastSurfSourceInputSpec as _FastSurfSourceInputSpec
+from smriprep.interfaces import fastsurfer as fastsurf
+from smriprep.utils.misc import check_fastsurfer
 from nipype.interfaces.mixins import reporting
 
 from niworkflows.interfaces.reportlets.base import _SVGReportCapableInputSpec
@@ -48,6 +51,7 @@ SUBJECT_TEMPLATE = """\
 \t\t<li>Structural images: {n_t1s:d} T1-weighted {t2w}</li>
 \t\t<li>Standard spaces: {output_spaces}</li>
 \t\t<li>FreeSurfer reconstruction: {freesurfer_status}</li>
+\t\t<li>FreeSurfer reconstruction: {fastsurfer_status}</li>
 \t</ul>
 """
 
@@ -108,13 +112,26 @@ class SubjectSummary(SummaryInterface):
     def _generate_segment(self):
         if not isdefined(self.inputs.subjects_dir):
             freesurfer_status = "Not run"
+            fastsurfer_status = "Not run"
         else:
-            recon = fs.ReconAll(
+            fastsurfer_bool = check_fastsurfer(
+                subjects_dir=self.inputs.subjects_dir,
+                subject_id=self.inputs.subject_id,
+            )
+            if fastsurfer_bool = True:
+                recon = fastsurf.FastSCommand(
+                sd=self.inputs.subjects_dir,
+                sid=self.inputs.subject_id,
+                t1=self.inputs.t1w,
+                )
+                fastsurfer_status = "Run by sMRIPrep"
+            else:    
+                recon = fs.ReconAll(
                 subjects_dir=self.inputs.subjects_dir,
                 subject_id=self.inputs.subject_id,
                 T1_files=self.inputs.t1w,
                 flags="-noskullstrip",
-            )
+                )
             if recon.cmdline.startswith("echo"):
                 freesurfer_status = "Pre-existing directory"
             else:
@@ -136,6 +153,7 @@ class SubjectSummary(SummaryInterface):
             t2w=t2w_seg,
             output_spaces=output_spaces,
             freesurfer_status=freesurfer_status,
+            fastsurfer_status=fastsurfer_status,
         )
 
 
@@ -166,6 +184,14 @@ class _FSSurfaceReportOutputSpec(reporting.ReportCapableOutputSpec):
     pass
 
 
+class _FastSurfSurfaceReportInputSpec(_SVGReportCapableInputSpec, _FastSurfSourceInputSpec):
+    pass
+
+
+class _FastSurfSurfaceReportOutputSpec(reporting.ReportCapableOutputSpec):
+    pass
+
+
 class FSSurfaceReport(SimpleInterface):
     """Replaces ``ReconAllRPT``, without need of calling recon-all."""
 
@@ -181,6 +207,48 @@ class FSSurfaceReport(SimpleInterface):
         from nibabel import load
 
         rootdir = Path(self.inputs.subjects_dir) / self.inputs.subject_id
+        _anat_file = str(rootdir / "mri" / "brain.mgz")
+        _contour_file = str(rootdir / "mri" / "ribbon.mgz")
+
+        anat = load(_anat_file)
+        contour_nii = load(_contour_file)
+
+        n_cuts = 7
+        cuts = cuts_from_bbox(contour_nii, cuts=n_cuts)
+
+        self._results["out_report"] = str(Path(runtime.cwd) / self.inputs.out_report)
+
+        # Call composer
+        compose_view(
+            plot_registration(
+                anat,
+                "fixed-image",
+                estimate_brightness=True,
+                cuts=cuts,
+                contour=contour_nii,
+                compress=self.inputs.compress_report,
+            ),
+            [],
+            out_file=self._results["out_report"],
+        )
+        return runtime
+
+
+class FastSurfSurfaceReport(SimpleInterface):
+    """Replaces ``ReconAllRPT``, without need of calling recon-all."""
+
+    input_spec = _FastSurfSurfaceReportInputSpec
+    output_spec = _FastSurfSurfaceReportOutputSpec
+
+    def _run_interface(self, runtime):
+        from niworkflows.viz.utils import (
+            plot_registration,
+            cuts_from_bbox,
+            compose_view,
+        )
+        from nibabel import load
+
+        rootdir = Path(self.inputs.sd) / self.inputs.sid
         _anat_file = str(rootdir / "mri" / "brain.mgz")
         _contour_file = str(rootdir / "mri" / "ribbon.mgz")
 
