@@ -142,6 +142,7 @@ class FastSInputSpec(CommandLineInputSpec):
         desc="T1 full head input (not bias corrected, global path)"
     )
     fs_license = File(
+        "/opt/freesurfer/license.txt"
         exists=True,
         mandatory=True,
         argstr="--fs_license %s",
@@ -662,7 +663,7 @@ class FastSCommand(CommandLine):
     r"""
     Wraps FastSurfer command for segmentation and surface processing::
 
-        $ /fastsurfer/run_fastsurfer.sh --fs_license /fs60/license \
+        $ /fastsurfer/run_fastsurfer.sh --fs_license /opt/freesurfer/license \
         --t1 /data/sub-<label>/ses-<label>/anat/sub-<label>_ses-<label>_acq-<label>_T1w.nii.gz \
         --sid sub-<label> --sd /output
 
