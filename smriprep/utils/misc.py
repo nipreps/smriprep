@@ -117,7 +117,7 @@ def check_fastsurfer(subjects_dir, subject_id, logger=None):
     from pathlib import Path
 
     fastsurfer_bool = False
-    
+
     if subjects_dir is None:
         return fastsurfer_bool
     subj_dir = Path(subjects_dir) / subject_id
