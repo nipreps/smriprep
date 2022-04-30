@@ -100,8 +100,7 @@ and proceed to delete the files listed above."""
 def check_fastsurfer(subjects_dir, subject_id, logger=None):
     """
     Checks FreeSurfer subjects dir for presence of files in mri/ with names \
-    indicating processing with FastSurfer, this also touches files that are \
-    expected outputs of Freesurfer, but not produced by default in FastSurfer.
+    indicating processing with FastSurfer.
 
     Parameters
     ----------
