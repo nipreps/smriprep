@@ -116,14 +116,13 @@ class SubjectSummary(SummaryInterface):
         else:
             fastsurfer_bool = check_fastsurfer(
                 subjects_dir=self.inputs.subjects_dir,
-                subject_id=self.inputs.subject_id,
-            )
+                subject_id=self.inputs.subject_id)
             if fastsurfer_bool = True:
                 recon = fastsurf.FastSCommand(
-                sd=self.inputs.subjects_dir,
-                sid=self.inputs.subject_id,
-                t1=self.inputs.t1w,
-            )
+                    sd=self.inputs.subjects_dir,
+                    sid=self.inputs.subject_id,
+                    t1=self.inputs.t1w,
+                )
                 fastsurfer_status = "Run by sMRIPrep"
             else:
                 recon = fs.ReconAll(
