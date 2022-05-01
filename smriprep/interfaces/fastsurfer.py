@@ -142,7 +142,7 @@ class FastSInputSpec(CommandLineInputSpec):
         desc="T1 full head input (not bias corrected, global path)"
     )
     fs_license = File(
-        os.environ["FS_LICENSE"],
+        os.environ["FREESUFER_HOME"]+"/license.txt",
         exists=True,
         mandatory=True,
         argstr="--fs_license %s",
@@ -316,7 +316,7 @@ class FastSurfSourceInputSpec(BaseInterfaceInputSpec):
         desc="T1 full head input (not bias corrected, global path)"
     )
     fs_license = File(
-        os.environ["FS_LICENSE"],
+        os.environ["FREESUFER_HOME"]+"/license.txt",
         exists=True,
         mandatory=True,
         argstr="--fs_license %s",
