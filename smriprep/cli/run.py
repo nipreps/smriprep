@@ -225,6 +225,7 @@ def get_parser():
     g_surfs.add_argument(
         "--fastsurfer-recon",
         action="store_true",
+        default=False,
         dest="run_fastsurfer",
         help="enable FastSurfer surface preprocessing.",
     )
