@@ -223,10 +223,10 @@ def get_parser():
         help="disable sub-millimeter (hires) reconstruction",
     )
     g_surfs.add_argument(
-        "--fastsurfer-recon",
+        "--fastsurfer",
         action="store_true",
         default=False,
-        dest="run_fastsurfer",
+        dest="fastsurfer",
         help="enable FastSurfer surface preprocessing.",
     )
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
@@ -331,6 +331,8 @@ def build_opts(opts):
     # Precedence: --fs-license-file, $FS_LICENSE, default_license
     if opts.fs_license_file is not None:
         os.environ["FS_LICENSE"] = os.path.abspath(opts.fs_license_file)
+    elif os.path.(exists(os.path.abspath("/opt/freesurfer/license.txt"))):
+        os.environ["FS_LICENSE"] = os.path.abspath("/opt/freesurfer/license.txt")
 
     if not check_valid_fs_license():
         raise RuntimeError(
@@ -602,7 +604,7 @@ def build_workflow(opts, retval):
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,
         hires=opts.hires,
-        fastsurfer=opts.run_fastsurfer,
+        fastsurfer=opts.fastsurfer,
         layout=layout,
         longitudinal=opts.longitudinal,
         low_mem=opts.low_mem,
