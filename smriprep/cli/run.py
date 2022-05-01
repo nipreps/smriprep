@@ -331,7 +331,7 @@ def build_opts(opts):
     # Precedence: --fs-license-file, $FS_LICENSE, default_license
     if opts.fs_license_file is not None:
         os.environ["FS_LICENSE"] = os.path.abspath(opts.fs_license_file)
-    elif os.path.(exists(os.path.abspath("/opt/freesurfer/license.txt"))):
+    elif os.path.exists(os.path.abspath("/opt/freesurfer/license.txt")):
         os.environ["FS_LICENSE"] = os.path.abspath("/opt/freesurfer/license.txt")
 
     if not check_valid_fs_license():
