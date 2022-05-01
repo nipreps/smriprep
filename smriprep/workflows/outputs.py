@@ -31,7 +31,7 @@ from ..interfaces import DerivativesDataSink
 BIDS_TISSUE_ORDER = ("GM", "WM", "CSF")
 
 
-def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
+def init_anat_reports_wf(*, freesurfer, fastsurfer, output_dir, name="anat_reports_wf"):
     """
     Set up a battery of datasinks to store reports in the right location.
 
