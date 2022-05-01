@@ -244,6 +244,7 @@ BIDS dataset.""".format(
     # Connect reportlets workflows
     anat_reports_wf = init_anat_reports_wf(
         freesurfer=freesurfer,
+        fastsurfer=fastsurfer,
         output_dir=output_dir,
     )
     # fmt:off
