@@ -255,7 +255,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     t1w2fsnative_xfm = pe.Node(
         LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
 
-    gifti_surface_wf = init_gifti_surface_wf()
+    gifti_surface_wf = init_gifti_surface_wf(fastsurfer=True)
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
@@ -282,7 +282,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     # fmt:off
     workflow.connect([
         # Configuration
-        (inputnode, recon_config, [('t1w', 't1w_list')]),
         (inputnode, fastsurf_recon, [('subjects_dir', 'sd'),
                                      ('subject_id', 'sid'),
                                      ('t1w', 't1')]),
@@ -770,6 +769,8 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         FreeSurfer subject ID
     fsnative2t1w_xfm
         LTA formatted affine transform file (inverse)
+    fastsurfer
+        Boolean when true uses FastSurferSource for get_surfaces
 
     Outputs
     -------
@@ -786,10 +787,14 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces"]), name="outputnode")
 
-    if freesurfer:
-        get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
-    elif fastsurfer:
+    subs_dir = 'subjects_dir'
+    subj = 'subject_id'
+    if fastsurfer:
         get_surfaces = pe.Node(fastsurf.FastSurferSource(), name="get_surfaces")
+        subs_dir = 'sd'
+        subj = 'sid'
+    else:
+        get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 
     midthickness = pe.MapNode(
         MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
@@ -813,8 +818,8 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
 
     # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
-                                   ('subject_id', 'subject_id')]),
+        (inputnode, get_surfaces, [('subjects_dir', subs_dir),
+                                   ('subject_id', subj)]),
         (inputnode, save_midthickness, [('subjects_dir', 'base_directory'),
                                         ('subject_id', 'container')]),
         # Generate midthickness surfaces and save to FreeSurfer derivatives
@@ -862,6 +867,8 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
         FreeSurfer subject ID
     fsnative2t1w_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    fastsurfer
+        Boolean when true uses FastSurferSource for get_surfaces
 
     Outputs
     -------
@@ -878,7 +885,15 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     )
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
     # Extract the aseg and aparc+aseg outputs
-    fssource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
+    subs_dir = 'subjects_dir'
+    subj = 'subject_id'
+    if fastsurfer:
+        fssource = pe.Node(fastsurf.FastSurferSource(), name="fs_datasource")
+        subs_dir = 'sd'
+        subj = 'sid'
+    else:
+        fssource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
+
     # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
     # and convert to NIfTI while we're at it
     resample = pe.Node(
@@ -907,8 +922,8 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     # fmt:off
     workflow.connect([
         (inputnode, fssource, [
-            ('subjects_dir', 'subjects_dir'),
-            ('subject_id', 'subject_id')]),
+            ('subjects_dir', subs_dir),
+            ('subject_id', subj)]),
         (inputnode, resample, [('in_file', 'target_file'),
                                ('fsnative2t1w_xfm', 'lta_file')]),
         (fssource, resample, [(segmentation, 'source_file')]),
