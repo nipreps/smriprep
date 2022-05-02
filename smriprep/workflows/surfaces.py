@@ -50,6 +50,7 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.surf import NormalizeSurf
 from nipype import logging
+import os
 
 LOGGER = logging.getLogger("nipype.workflow")
 
@@ -259,10 +260,15 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
+    fs_license_file = "/opt/freesurfer/license.txt"
+    if os.path.exists("/tmp/freesurfer/license.txt"):
+        fs_license_file = "/tmp/freesurfer/license.txt"
+    elif os.environ['FS_LICENSE']:
+        fs_license_file = os.environ['FS_LICENSE']
 
     # temporary fix fs_license value to /fs60/license
     fastsurf_recon = pe.Node(
-        fastsurf.FastSCommand(threads=omp_nthreads, fs_license="/fs60/license"),
+        fastsurf.FastSCommand(threads=omp_nthreads, fs_license=fs_license_file),
         name="fastsurf_recon",
         n_procs=omp_nthreads,
         mem_gb=12,
