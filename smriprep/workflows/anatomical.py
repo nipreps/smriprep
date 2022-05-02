@@ -546,9 +546,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         )
         # fmt:off
         workflow.connect([
-            (inputnode, check_fastsurfer, [
-                ('subjects_dir', 'subjects_dir'),
-                ('subject_id', 'subject_id')]),
             (inputnode, fs_isrunning, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id')]),
@@ -601,12 +598,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         )
         # fmt:off
         workflow.connect([
-            # replace check_fastsurfer with check for only CNN segmentation outputs or full outputs
-            (inputnode, check_fastsurfer, [
-                ('subjects_dir', 'subjects_dir'),
-                ('subject_id', 'subject_id')]),
             (inputnode, fastsurf_recon_wf, [
-                ('subject_id', 'inputnode.subject_id')]),
+                ('subject_id', 'inputnode.subject_id'),
+                ('subjects_dir', 'inputnode.subjects_dir']),
             (anat_validate, fastsurf_recon_wf, [('out_file', 'inputnode.t1w')]),
             (brain_extraction_wf, fastsurf_recon_wf, [
                 (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
