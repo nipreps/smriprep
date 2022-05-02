@@ -38,6 +38,7 @@ from nipype.interfaces import (
 
 from ..interfaces.freesurfer import ReconAll
 from ..interfaces import fastsurfer as fastsurf
+from ..utils.misc import check_fastsurfer
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -792,10 +793,13 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="inputnode",
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces"]), name="outputnode")
-
+    fastsurfer_bool = False
+    fastsurfer_bool = check_fastsurfer(
+        subjects_dir=self.inputs.subjects_dir,
+        subject_id=self.inputs.subject_id)
     subs_dir = 'subjects_dir'
     subj = 'subject_id'
-    if fastsurfer:
+    if fastsurfer_bool is True:
         get_surfaces = pe.Node(fastsurf.FastSurferSource(), name="get_surfaces")
         subs_dir = 'sd'
         subj = 'sid'
@@ -891,9 +895,13 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     )
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
     # Extract the aseg and aparc+aseg outputs
+    fastsurfer_bool = False
+    fastsurfer_bool = check_fastsurfer(
+        subjects_dir=self.inputs.subjects_dir,
+        subject_id=self.inputs.subject_id)
     subs_dir = 'subjects_dir'
     subj = 'subject_id'
-    if fastsurfer:
+    if fastsurfer_bool is True:
         fssource = pe.Node(fastsurf.FastSurferSource(), name="fs_datasource")
         subs_dir = 'sd'
         subj = 'sid'
