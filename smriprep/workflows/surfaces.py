@@ -38,7 +38,6 @@ from nipype.interfaces import (
 
 from ..interfaces.freesurfer import ReconAll
 from ..interfaces import fastsurfer as fastsurf
-from ..utils.misc import check_fastsurfer
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -258,8 +257,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
 
     gifti_surface_wf = init_gifti_surface_wf(fastsurfer=True)
-    aseg_to_native_wf = init_segs_to_native_wf()
-    aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
+    aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=True)
+    aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=True,segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
     fs_license_file = "/opt/freesurfer/license.txt"
     if os.path.exists("/tmp/freesurfer/license.txt"):
@@ -511,9 +510,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     )
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
-    gifti_surface_wf = init_gifti_surface_wf()
-    aseg_to_native_wf = init_segs_to_native_wf()
-    aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
+    gifti_surface_wf = init_gifti_surface_wf(fastsurfer=False)
+    aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=False)
+    aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=False,segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
 
     # fmt:off
@@ -777,7 +776,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     fsnative2t1w_xfm
         LTA formatted affine transform file (inverse)
     fastsurfer
-        Boolean when true uses FastSurferSource for get_surfaces
+        Boolean to indicate FastSurfer surface processing
 
     Outputs
     -------
@@ -793,13 +792,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="inputnode",
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces"]), name="outputnode")
-    fastsurfer_bool = False
-    fastsurfer_bool = check_fastsurfer(
-        subjects_dir=self.inputs.subjects_dir,
-        subject_id=self.inputs.subject_id)
     subs_dir = 'subjects_dir'
     subj = 'subject_id'
-    if fastsurfer_bool is True:
+    if fastsurfer is True:
         get_surfaces = pe.Node(fastsurf.FastSurferSource(), name="get_surfaces")
         subs_dir = 'sd'
         subj = 'sid'
@@ -878,7 +873,7 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     fsnative2t1w_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
     fastsurfer
-        Boolean when true uses FastSurferSource for get_surfaces
+        Boolean to indicate FastSurfer processing
 
     Outputs
     -------
@@ -895,13 +890,9 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     )
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
     # Extract the aseg and aparc+aseg outputs
-    fastsurfer_bool = False
-    fastsurfer_bool = check_fastsurfer(
-        subjects_dir=self.inputs.subjects_dir,
-        subject_id=self.inputs.subject_id)
     subs_dir = 'subjects_dir'
     subj = 'subject_id'
-    if fastsurfer_bool is True:
+    if fastsurfer is True:
         fssource = pe.Node(fastsurf.FastSurferSource(), name="fs_datasource")
         subs_dir = 'sd'
         subj = 'sid'
