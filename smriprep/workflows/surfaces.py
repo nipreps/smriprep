@@ -747,7 +747,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     return workflow
 
 
-def init_gifti_surface_wf(*, name="gifti_surface_wf"):
+def init_gifti_surface_wf(*, fastsurfer, name="gifti_surface_wf"):
     r"""
     Prepare GIFTI surfaces from a FreeSurfer subjects directory.
 
@@ -845,7 +845,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     return workflow
 
 
-def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
+def init_segs_to_native_wf(*, fastsurfer, name="segs_to_native", segmentation="aseg"):
     """
     Get a segmentation from FreeSurfer conformed space into native T1w space.
 
