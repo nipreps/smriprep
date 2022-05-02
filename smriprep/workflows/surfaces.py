@@ -258,7 +258,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     gifti_surface_wf = init_gifti_surface_wf(fastsurfer=True)
     aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=True)
-    aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=True,segmentation="aparc_aseg")
+    aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=True, segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
     fs_license_file = "/opt/freesurfer/license.txt"
     if os.path.exists("/tmp/freesurfer/license.txt"):
@@ -512,7 +512,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
     gifti_surface_wf = init_gifti_surface_wf(fastsurfer=False)
     aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=False)
-    aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=False,segmentation="aparc_aseg")
+    aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=False, segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
 
     # fmt:off
