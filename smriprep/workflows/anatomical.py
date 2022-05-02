@@ -600,8 +600,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         workflow.connect([
             (inputnode, fastsurf_recon_wf, [
                 ('subject_id', 'inputnode.subject_id'),
-                ('subjects_dir', 'inputnode.subjects_dir']),
-            (anat_validate, fastsurf_recon_wf, [('out_file', 'inputnode.t1w')]),
+                ('subjects_dir', 'inputnode.subjects_dir')]),
+            (anat_validate, fastsurf_recon_wf, [
+                ('out_file', 'inputnode.t1w')]),
             (brain_extraction_wf, fastsurf_recon_wf, [
                 (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
                 ('outputnode.out_segm', 'inputnode.ants_segs'),
@@ -619,11 +620,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 ('outputnode.out_aseg', 't1w_aseg'),
                 ('outputnode.out_aparc', 't1w_aparc')]),
             (applyrefined, buffernode, [('out_file', 't1w_brain')]),
-            (fastsurf_recon_wf, buffernode, [
-                ('outputnode.out_brainmask', 't1w_mask')]),
+            (fastsurf_recon_wf, buffernode, [('outputnode.out_brainmask', 't1w_mask')]),
             (fastsurf_recon_wf, anat_reports_wf, [
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.subjects_dir', 'inputnode.subjects_dir')]),
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+            ]),
             (fastsurf_recon_wf, anat_derivatives_wf, [
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
