@@ -537,13 +537,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # Select which surface reconstruction workflow based on CLI arguments
     if freesurfer:
-        recon_wf = init_surface_recon_wf(
+        surface_recon_wf = init_surface_recon_wf(
             name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
         applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
-        # 5. Surface reconstruction (--fs-no-reconall not set)
-        surface_recon_wf = recon_wf(
-            name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
-        )
         # fmt:off
         workflow.connect([
             (inputnode, fs_isrunning, [
@@ -589,13 +585,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         ])
         # fmt:on
     elif fastsurfer:
-        recon_wf = init_fastsurf_recon_wf(
-            name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
+        fastsurf_recon_wf = init_fastsurf_recon_wf(
+            name="fastsurf_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
         applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
-        # 5. Surface reconstruction (--fs-no-reconall not set)
-        fastsurf_recon_wf = recon_wf(
-            name="fastsurf_recon_wf", omp_nthreads=omp_nthreads, hires=hires
-        )
         # fmt:off
         workflow.connect([
             (inputnode, fastsurf_recon_wf, [
