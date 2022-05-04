@@ -410,7 +410,7 @@ def build_opts(opts):
             _copy_any(
                 dseg_tsv, str(Path(output_dir) / "smriprep" / "desc-aparcaseg_dseg.tsv")
             )
-        elif fastsurfer:
+        elif opts.fastsurfer:
             from templateflow import api
             from niworkflows.utils.misc import _copy_any
 
