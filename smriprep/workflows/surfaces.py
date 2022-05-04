@@ -208,7 +208,7 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     """
     workflow = Workflow(name=name)
     workflow.__desc__ = """\
-Brain surfaces were reconstructed using `recon-surf` [FastSurfer (fastsurfer_version},
+Brain surfaces were reconstructed using `recon-surf` [FastSurfer {fastsurfer_version},
 @fastsurfer], and the brain mask estimated
 previously was refined with a custom variation of the method to reconcile
 ANTs-derived and FastSurfer-derived segmentations of the cortical
@@ -248,8 +248,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     # null for now, placeholder for FastSurfer VINN hires support
     if hires:
-        if logger:
-            logger.warn(f'High-resolution {hires} specified, not currently supported, ignoring.')
+        if LOGGER:
+            LOGGER.warn(f'High-resolution {hires} specified, not currently supported, ignoring.')
 
     fsnative2t1w_xfm = pe.Node(
         RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm")
