@@ -308,6 +308,9 @@ RUN ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo "conda activate base" >> ~/.bashrc
 
+# Install FastSurfer dependencies to base
+RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml 
+
 # Set CPATH for packages relying on compiled libs (e.g. indexed_gzip)
 ENV PATH="/opt/conda/bin:$PATH" \
     CPATH="/opt/conda/include:$CPATH" \
