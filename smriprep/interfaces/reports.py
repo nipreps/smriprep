@@ -111,6 +111,7 @@ class SubjectSummary(SummaryInterface):
         return super(SubjectSummary, self)._run_interface(runtime)
 
     def _generate_segment(self):
+        fastsurfer_status = "Not run"
         if not isdefined(self.inputs.subjects_dir):
             freesurfer_status = "Not run"
             fastsurfer_status = "Not run"
