@@ -659,14 +659,7 @@ class FastSurferSource(IOBase):
 
 
 class FastSCommand(CommandLine):
-    r"""
-    Wraps FastSurfer command for segmentation and surface processing::
-
-        $ /fastsurfer/run_fastsurfer.sh --fs_license /opt/freesurfer/license \
-        --t1 /data/sub-<label>/ses-<label>/anat/sub-<label>_ses-<label>_acq-<label>_T1w.nii.gz \
-        --sid sub-<label> --sd /output
-
-    Note that T2w and FLAIR are not used for this surface reconstruction
+    """Wraps FastSurfer command for segmentation and surface processing
 
     """
 
