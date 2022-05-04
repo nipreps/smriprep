@@ -659,9 +659,7 @@ class FastSurferSource(IOBase):
 
 
 class FastSCommand(CommandLine):
-    """Wraps FastSurfer command for segmentation and surface processing.
-
-    """
+    """Wraps FastSurfer command for segmentation and surface processing."""
 
     input_spec = FastSInputSpec
     output_spec = FastSurfSourceOutputSpec
