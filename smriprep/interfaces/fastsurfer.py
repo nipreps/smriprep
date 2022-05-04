@@ -6,26 +6,24 @@ The FastSufer module provides basic functions
 for running FastSurfer CNN and surface processing.
 
 """
-from ast import BoolOp
-from genericpath import exists
 import os
-from xmlrpc.client import Boolean
+import glob
 
 from nipype.interfaces.base import (
     CommandLine,
     Directory,
     CommandLineInputSpec,
     OutputMultiPath,
-    isdefined,
     TraitedSpec,
-    BaseInterface,
     BaseInterfaceInputSpec,
     File,
-    PackageInfo,
 )
 from nipype.interfaces.base.traits_extension import traits
 from nipype.interfaces.io import IOBase
-
+from nipype.utils.filemanip import (
+    simplify_list,
+    ensure_list,
+)
 
 class FastSInputSpec(CommandLineInputSpec):
     r"""
