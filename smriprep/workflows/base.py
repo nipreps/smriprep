@@ -171,14 +171,13 @@ def init_smriprep_wf(
             BIDSFreeSurferDir(
                 derivatives=output_dir,
                 freesurfer_home=os.getenv("FREESURFER_HOME"),
-                fastsurfer_home=os.getenv("FASTSURFER_HOME"),
                 spaces=spaces.get_fs_spaces(),
             ),
             name="fastsurfdir_run_%s" % run_uuid.replace("-", "_"),
             run_without_submitting=True
         )
         if fs_subjects_dir is not None:
-            fastsurfdir.inputs.sd = str(fs_subjects_dir.absolute())
+            fastsurfdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
     for subject_id in subject_list:
         single_subject_wf = init_single_subject_wf(
