@@ -25,6 +25,7 @@ from nipype.utils.filemanip import (
     ensure_list,
 )
 
+
 class FastSInputSpec(CommandLineInputSpec):
     r"""
     Required arguments
