@@ -128,11 +128,11 @@ class SubjectSummary(SummaryInterface):
                 fastsurfer_status = "Run by sMRIPrep"
             else:
                 recon = fs.ReconAll(
-                subjects_dir=self.inputs.subjects_dir,
-                subject_id=self.inputs.subject_id,
-                T1_files=self.inputs.t1w,
-                flags="-noskullstrip",
-            )
+                    subjects_dir=self.inputs.subjects_dir,
+                    subject_id=self.inputs.subject_id,
+                    T1_files=self.inputs.t1w,
+                    flags="-noskullstrip",
+                )
             if recon.cmdline.startswith("echo"):
                 freesurfer_status = "Pre-existing directory"
             else:
