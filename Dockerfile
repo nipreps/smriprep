@@ -25,8 +25,8 @@
 FROM ubuntu:20.04 AS build
 
 ENV LANG=C.UTF-8
-ARG PYTHON_VERSION=3.8
-ARG CONDA_FILE=Miniconda3-py38_4.11.0-Linux-x86_64.sh
+ARG PYTHON_VERSION=3.6
+ARG CONDA_FILE=Miniconda3-py37_4.10.3-Linux-x86_64.sh
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install packages needed for build
