@@ -44,8 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # git clone dev branch of FastSurfer
 RUN cd /opt && mkdir /fastsurfer \
     && git clone -b stable https://github.com/Deep-MI/FastSurfer.git \
-    && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml \
-    && cp /opt/FastSurfer/Docker/install_fs_pruned.sh /fastsurfer/install_fs_pruned.sh
+    && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml
 
 # Install conda
 RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/miniconda/$CONDA_FILE  && \
