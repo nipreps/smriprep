@@ -22,6 +22,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+## Start with ubuntu base as in FastSurfer Docker image
+## https://github.com/Deep-MI/FastSurfer/blob/0749f38e656ed0da977c408b4383db88e1a8b563/Docker/Dockerfile
+
 FROM ubuntu:20.04 AS build
 
 ENV LANG=C.UTF-8
@@ -54,24 +57,24 @@ RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/min
 
 ENV PATH /opt/conda/bin:$PATH
 
-# # Install our dependencies
-# RUN conda env create -f /fastsurfer/fastsurfer_env_gpu.yml 
-#
-# # Install conda-pack:
-# RUN conda install -c conda-forge conda-pack
+# Install our dependencies
+RUN conda env create -f /fastsurfer/fastsurfer_env_gpu.yml 
 
-# # Use conda-pack to create a standalone enviornment in /venv:
-# RUN conda-pack -n fastsurfer_gpu -o /tmp/env.tar && \
-# mkdir /venv && cd /venv && tar xf /tmp/env.tar && \
-# rm /tmp/env.tar
+# Install conda-pack:
+RUN conda install -c conda-forge conda-pack
 
-# # Now that venv in a new location, fix up paths:
-# RUN /venv/bin/conda-unpack
-# ENV PATH /venv/bin:$PATH
+# Use conda-pack to create a standalone enviornment in /venv:
+RUN conda-pack -n fastsurfer_gpu -o /tmp/env.tar && \
+  mkdir /venv && cd /venv && tar xf /tmp/env.tar && \
+  rm /tmp/env.tar
 
-# # setup shell for install command below
-# RUN echo "source /venv/bin/activate" >> ~/.bashrc
-# SHELL ["/bin/bash", "--login", "-c"]
+# Now that venv in a new location, fix up paths:
+RUN /venv/bin/conda-unpack
+ENV PATH /venv/bin:$PATH
+
+# setup shell for install command below
+RUN echo "source /venv/bin/activate" >> ~/.bashrc
+SHELL ["/bin/bash", "--login", "-c"]
 
 # install freesurfer from sMRIPrep version
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.1/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.1-f53a55a.tar.gz \
@@ -113,12 +116,12 @@ ENV OS=Linux \
     FSF_OUTPUT_FORMAT=nii.gz \
     FREESURFER_HOME=/opt/freesurfer \
     PYTHONUNBUFFERED=0 \
-    PATH=/opt/freesurfer/bin:$PATH
+    PATH=/venv/bin:/opt/freesurfer/bin:$PATH
 
-# # make sure we use bash and activate conda env
-# #  (in case someone starts this interactively)
-# RUN echo "source /venv/bin/activate" >> ~/.bashrc
-# SHELL ["/bin/bash", "--login", "-c"]
+# make sure we use bash and activate conda env
+#  (in case someone starts this interactively)
+RUN echo "source /venv/bin/activate" >> ~/.bashrc
+SHELL ["/bin/bash", "--login", "-c"]
 
 # Copy fastsurfer from git folder
 RUN cp -R /opt/FastSurfer/* /fastsurfer/
@@ -304,9 +307,6 @@ RUN ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo "conda activate base" >> ~/.bashrc
 
-# Install FastSurfer dependencies to base
-RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml 
-
 # Set CPATH for packages relying on compiled libs (e.g. indexed_gzip)
 ENV PATH="/opt/conda/bin:$PATH" \
     CPATH="/opt/conda/include:$CPATH" \
@@ -327,7 +327,8 @@ ENV HOME="/home/smriprep" \
     LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
 
 RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> $HOME/.bashrc && \
-    echo "conda activate base" >> $HOME/.bashrc
+    echo "conda activate base" >> $HOME/.bashrc && \
+    echo "$FREESURFER_HOME/SetUpFreeSurfer.sh" >> $HOME/.bashrc
 
 # Precaching atlases
 COPY scripts/fetch_templates.py fetch_templates.py
@@ -344,6 +345,8 @@ ARG VERSION
 RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
     echo "include smriprep/VERSION" >> /src/smriprep/MANIFEST.in && \
     /opt/conda/bin/python -m pip install --no-cache-dir "/src/smriprep[all]"
+
+RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml
 
 RUN find $HOME -type d -exec chmod go=u {} + && \
     find $HOME -type f -exec chmod go=u {} + && \
