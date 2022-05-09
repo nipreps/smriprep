@@ -57,25 +57,6 @@ RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/min
 
 ENV PATH /opt/conda/bin:$PATH
 
-# Install our dependencies
-RUN conda env create -f /fastsurfer/fastsurfer_env_gpu.yml 
-
-# Install conda-pack:
-RUN conda install -c conda-forge conda-pack
-
-# Use conda-pack to create a standalone enviornment in /venv:
-RUN conda-pack -n fastsurfer_gpu -o /tmp/env.tar && \
-  mkdir /venv && cd /venv && tar xf /tmp/env.tar && \
-  rm /tmp/env.tar
-
-# Now that venv in a new location, fix up paths:
-RUN /venv/bin/conda-unpack
-ENV PATH /venv/bin:$PATH
-
-# setup shell for install command below
-RUN echo "source /venv/bin/activate" >> ~/.bashrc
-SHELL ["/bin/bash", "--login", "-c"]
-
 # install freesurfer from sMRIPrep version
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.1/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.1-f53a55a.tar.gz \
     | tar zxv --no-same-owner -C /opt \
@@ -116,12 +97,7 @@ ENV OS=Linux \
     FSF_OUTPUT_FORMAT=nii.gz \
     FREESURFER_HOME=/opt/freesurfer \
     PYTHONUNBUFFERED=0 \
-    PATH=/venv/bin:/opt/freesurfer/bin:$PATH
-
-# make sure we use bash and activate conda env
-#  (in case someone starts this interactively)
-RUN echo "source /venv/bin/activate" >> ~/.bashrc
-SHELL ["/bin/bash", "--login", "-c"]
+    PATH=/opt/freesurfer/bin:$PATH
 
 # Copy fastsurfer from git folder
 RUN cp -R /opt/FastSurfer/* /fastsurfer/
