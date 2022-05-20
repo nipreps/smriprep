@@ -113,6 +113,7 @@ class _ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
         xor=["directive"],
         position=0,
     )
+    hemi = traits.Enum("lh", "rh", desc="hemisphere to process", argstr="-%s-only")
 
 
 class ReconAll(fs.ReconAll):
@@ -191,3 +192,10 @@ class ReconAll(fs.ReconAll):
         cmd += " " + " ".join(flags)
         iflogger.info("resume recon-all : %s", cmd)
         return cmd
+
+    def _format_arg(self, name, trait_spec, value):
+        # Nipype disables this if -autorecon-hemi is passed
+        # We need to use it either way to prevent undesired behavior
+        if name == "hemi":
+            return trait_spec.argstr % value
+        return super()._format_arg(name, trait_spec, value)
