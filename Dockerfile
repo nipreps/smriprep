@@ -32,16 +32,6 @@ ENV LANG=C.UTF-8
 ARG PYTHON_VERSION=3.6
 ARG CONDA_FILE=Miniconda3-py37_4.10.3-Linux-x86_64.sh
 ENV DEBIAN_FRONTEND=noninteractive
-# git clone dev branch of FastSurfer
-RUN cd /opt && mkdir /fastsurfer \
-    && git clone -b dev https://github.com/Deep-MI/FastSurfer.git \
-    && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml 
-    
-# Install conda
-RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/miniconda/$CONDA_FILE  && \
-     chmod +x ~/miniconda.sh && \
-     ~/miniconda.sh -b -p /opt/conda && \
-     rm ~/miniconda.sh 
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -60,11 +50,21 @@ RUN apt-get update && \
                     xvfb && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# git clone dev branch of FastSurfer
+RUN cd /opt && mkdir /fastsurfer \
+    && git clone -b dev https://github.com/Deep-MI/FastSurfer.git \
+    && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml 
+    
+# Install conda
+RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/miniconda/$CONDA_FILE  && \
+     chmod +x ~/miniconda.sh && \
+     ~/miniconda.sh -b -p /opt/conda && \
+     rm ~/miniconda.sh 
+
 # Installing freesurfer
 COPY docker/files/freesurfer7.2-exclude.txt /usr/local/etc/freesurfer7.2-exclude.txt
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.2.0/freesurfer-linux-ubuntu18_amd64-7.2.0.tar.gz \
      | tar zxv --no-same-owner -C /opt --exclude-from=/usr/local/etc/freesurfer7.2-exclude.txt
-
 
 # Install required packages for freesurfer to run
 RUN apt-get update && apt-get install -y --no-install-recommends \
