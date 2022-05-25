@@ -41,6 +41,9 @@ RUN apt-get update && \
                     bzip2 \
                     ca-certificates \
                     curl \
+                    wget \
+                    upx \
+                    file \
                     git \
                     libtool \
                     lsb-release \
