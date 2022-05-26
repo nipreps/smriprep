@@ -1,3 +1,11 @@
+0.9.0 (May 26, 2022)
+====================
+A new minor release incorporating support for FreeSurfer 7.2.
+
+  * DOC: Fix build (#283)
+  * DOCKER: Bundle FreeSurfer 7.2 (#281)
+  * FIX: Override nipype handling of recon-all hemi input (#282)
+
 0.8.3 (February 08, 2022)
 =========================
 Patch release in the 0.8.x series. This allows compatibility with the next minor release of `niworkflows`.
