@@ -188,7 +188,6 @@ freesurfer/bin/fslorient.fsl
 freesurfer/bin/fslregister
 freesurfer/bin/fslswapdim.fsl
 freesurfer/bin/fspalm
-freesurfer/bin/fsr-checkxopts
 freesurfer/bin/fsr-coreg
 freesurfer/bin/fsr-import
 freesurfer/bin/fsvglrun
