@@ -68,7 +68,8 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     For example, a subject with only one session with a T1w image
     would be processed by the following command::
 
-        $ /opt/FastSurfer/run_fastsurfer.sh --t1 <bids-root>/sub-<subject_label>/anat/sub-<subject_label>_T1w.nii.gz \
+        $ /opt/FastSurfer/run_fastsurfer.sh \
+        --t1 <bids-root>/sub-<subject_label>/anat/sub-<subject_label>_T1w.nii.gz \
         --sid sub-<subject_label> --sd <output dir>/fastsurfer --surfreg
 
     Similar to the Freesurfer workflow second phase, we then
@@ -322,7 +323,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
         # Output
         (inputnode, outputnode, [('sd', 'sd'),
-                                ('sid', 'sid')]),
+                                 ('sid', 'sid')]),
         (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
         (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
         (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
