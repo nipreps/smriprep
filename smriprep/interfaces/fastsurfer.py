@@ -125,24 +125,24 @@ class FastSInputSpec(CommandLineInputSpec):
     sd = Directory(
         exists=True,
         argstr="--sd %s",
-        mandatory=True,
+        mandatory=False,
         desc="Subjects directory"
     )
     sid = traits.String(
         exists=True,
         argstr="--sid %s",
-        mandatory=True,
+        mandatory=False,
         desc="Subject ID"
     )
     t1 = File(
         exists=True,
-        mandatory=True,
+        mandatory=False,
         argstr="--t1 %s",
         desc="T1 full head input (not bias corrected, global path)"
     )
     fs_license = File(
         exists=True,
-        mandatory=True,
+        mandatory=False,
         argstr="--fs_license %s",
         desc="Path to FreeSurfer license key file."
     )
@@ -298,28 +298,21 @@ class FastSurfSourceInputSpec(BaseInterfaceInputSpec):
     sd = Directory(
         exists=True,
         argstr="--sd %s",
-        mandatory=True,
+        mandatory=False,
         desc="Subjects directory"
     )
     sid = traits.String(
         exists=True,
         argstr="--sid %s",
-        mandatory=True,
+        mandatory=False,
         desc="Subject ID"
     )
     t1 = File(
         exists=True,
-        mandatory=True,
+        mandatory=False,
         argstr="--t1 %s",
         desc="T1 full head input (not bias corrected, global path)"
     )
-    fs_license = File(
-        exists=True,
-        mandatory=True,
-        argstr="--fs_license %s",
-        desc="Path to FreeSurfer license key file."
-    )
-
 
 class FastSurfSourceOutputSpec(TraitedSpec):
     T1 = File(
@@ -600,6 +593,16 @@ class FastSurfSourceOutputSpec(TraitedSpec):
         altkey="aseg.presurf.hypos",
         desc="Automated segmentation pre-surface recon statistics files"
     )
+    sd = Directory(
+        exists=True,
+        argstr="--sd %s",
+        desc="Subjects directory"
+    )
+    sid = traits.String(
+        exists=True,
+        argstr="--sid %s",
+        desc="Subject ID"
+    )
 
 
 class FastSurferSource(IOBase):
@@ -641,8 +644,9 @@ class FastSurferSource(IOBase):
         ]
 
     def _list_outputs(self):
-        subjects_dir = self.inputs.subjects_dir
-        subject_path = os.path.join(subjects_dir, self.inputs.subject_id)
+        subjects_dir = self.inputs.sd
+        subject_id = self.inputs.sid
+        subject_path = os.path.join(subjects_dir, subject_id)
         output_traits = self._outputs()
         outputs = output_traits.get()
         for k in list(outputs.keys()):
@@ -663,9 +667,9 @@ class FastSCommand(CommandLine):
 
     """
 
-    input_spec = FastSInputSpec
+    input_spec = FastSurfSourceInputSpec
     output_spec = FastSurfSourceOutputSpec
-    _cmd = '/fastsurfer/run_fastsurfer.sh'
+    _cmd = '/fastsurfer/run_fastsurfer.sh --surfreg'
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
