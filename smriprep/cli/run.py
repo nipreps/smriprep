@@ -229,8 +229,10 @@ def get_parser():
         dest="fastsurfer",
         help="enable FastSurfer surface preprocessing.",
     )
-    g_surfs_xor = g_surfs.add_mutually_exclusive_group()
-
+    # g_surfs_xor = g_surfs.add_mutually_exclusive_group()
+    
+    g_surfs_xor = g_surfs
+    
     g_surfs_xor.add_argument(
         "--fs-no-reconall",
         action="store_false",
@@ -414,6 +416,8 @@ def build_opts(opts):
             from templateflow import api
             from niworkflows.utils.misc import _copy_any
 
+            # developer note - remove
+            print(string(fastsurfer))
             dseg_tsv = str(api.get("fsaverage", suffix="dseg", extension=[".tsv"]))
             _copy_any(
                 dseg_tsv, str(Path(output_dir) / "smriprep" / "desc-aseg_dseg.tsv")
