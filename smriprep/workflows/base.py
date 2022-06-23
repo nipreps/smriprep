@@ -167,6 +167,7 @@ def init_smriprep_wf(
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
     if fastsurfer:
+        freesurfer = False
         fastsurfdir = pe.Node(
             BIDSFreeSurferDir(
                 derivatives=output_dir,
@@ -211,7 +212,7 @@ def init_smriprep_wf(
             )
         elif fastsurfer:
             smriprep_wf.connect(
-                fastsurfdir, "sd", single_subject_wf, "inputnode.subjects_dir"
+                fastsurfdir, "subjects_dir", single_subject_wf, "inputnode.subjects_dir"
             )
         else:
             smriprep_wf.add_nodes([single_subject_wf])
@@ -375,6 +376,9 @@ to workflows in *sMRIPrep*'s documentation]\
         deriv_cache = collect_derivatives(
             Path(output_dir) / "smriprep", subject_id, std_spaces, freesurfer
         )
+
+    if fastsurfer:
+       freesurfer = False
 
     inputnode = pe.Node(
         niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode"

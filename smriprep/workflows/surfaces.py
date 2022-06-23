@@ -68,8 +68,7 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     For example, a subject with only one session with a T1w image
     would be processed by the following command::
 
-        $ /opt/FastSurfer/run_fastsurfer.sh --fs_license /path/to/freesurfer/license \
-        --t1 <bids-root>/sub-<subject_label>/anat/sub-<subject_label>_T1w.nii.gz \
+        $ /opt/FastSurfer/run_fastsurfer.sh --t1 <bids-root>/sub-<subject_label>/anat/sub-<subject_label>_T1w.nii.gz \
         --sid sub-<subject_label> --sd <output dir>/fastsurfer --surfreg
 
     Similar to the Freesurfer workflow second phase, we then
@@ -128,8 +127,6 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
         (UCHAR, 256x256x256, 1 mm voxels and standard slice orientation).
         These specifications are checked in the ``eval.py`` script and the image
         is automatically conformed if it does not comply.
-    fs_license
-        Path to FreeSurfer license key file.
 
     Optional arguments
     ==================
@@ -214,18 +211,18 @@ previously was refined with a custom variation of the method to reconcile
 ANTs-derived and FastSurfer-derived segmentations of the cortical
 gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 """.format(
-        fastsurfer_version="1.0.1"
+        fastsurfer_version="1.1.0"
     )
 
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
+                "sd",
+                "sid",
                 "t1w",
                 "skullstripped_t1",
                 "corrected_t1",
                 "ants_segs",
-                "subjects_dir",
-                "subject_id",
             ]
         ),
         name="inputnode",
@@ -233,8 +230,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     outputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "subjects_dir",
-                "subject_id",
+                "sd",
+                "sid",
                 "t1w2fsnative_xfm",
                 "fsnative2t1w_xfm",
                 "surfaces",
@@ -256,6 +253,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     t1w2fsnative_xfm = pe.Node(
         LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
 
+    # inputnode.in_file = inputnode.t1w
     gifti_surface_wf = init_gifti_surface_wf(fastsurfer=True)
     aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=True)
     aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=True, segmentation="aparc_aseg")
@@ -266,15 +264,19 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     elif os.environ['FS_LICENSE']:
         fs_license_file = os.environ['FS_LICENSE']
 
-    # temporary fix fs_license value to /fs60/license
+    # recon_conf = pe.Node(
+    #     fastsurf.FastSurferSource(), name="recon_conf")
+
     fastsurf_recon = pe.Node(
-        fastsurf.FastSCommand(threads=omp_nthreads, fs_license=fs_license_file),
+        fastsurf.FastSCommand(),
         name="fastsurf_recon",
         n_procs=omp_nthreads,
         mem_gb=12,
     )
     fastsurf_recon.interface._can_resume = False
     fastsurf_recon.interface._always_run = True
+
+    # fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
 
     skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
 
@@ -288,14 +290,17 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     # fmt:off
     workflow.connect([
         # Configuration
-        (inputnode, fastsurf_recon, [('subjects_dir', 'sd'),
-                                     ('subject_id', 'sid'),
+        # (inputnode, recon_conf, [('t1w', 't1'),
+        #                          ('sd', 'sd'),
+        #                          ('sid', 'sid')]),
+        (inputnode, fastsurf_recon, [('sd', 'sd'),
+                                     ('sid', 'sid'),
                                      ('t1w', 't1')]),
         (fastsurf_recon, skull_strip_extern, [('sd', 'subjects_dir'),
                                               ('sid', 'subject_id')]),
-        (skull_strip_extern, gifti_surface_wf, [
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-            ('outputnode.subject_id', 'inputnode.subject_id')]),
+        (fastsurf_recon, gifti_surface_wf, [
+            ('sd', 'inputnode.subjects_dir'),
+            ('sid', 'inputnode.subject_id')]),
         (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
         # Construct transform from FreeSurfer conformed image to sMRIPrep
         # reoriented image
@@ -316,6 +321,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
 
         # Output
+        (inputnode, outputnode, [('sd', 'sd'),
+                                ('sid', 'sid')]),
         (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
         (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
         (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),

@@ -421,10 +421,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (('outputnode.bias_corrected', _pop), 'inputnode.moving_image')]),
         (buffernode, anat_norm_wf, [('t1w_mask', 'inputnode.moving_mask')]),
         (anat_norm_wf, outputnode, [
-            ('poutputnode.standardized', 'std_preproc'),
-            ('poutputnode.std_mask', 'std_mask'),
-            ('poutputnode.std_dseg', 'std_dseg'),
-            ('poutputnode.std_tpms', 'std_tpms'),
+            ('outputnode.standardized', 'std_preproc'),
+            ('outputnode.std_mask', 'std_mask'),
+            ('outputnode.std_dseg', 'std_dseg'),
+            ('outputnode.std_tpms', 'std_tpms'),
             ('outputnode.template', 'template'),
             ('outputnode.anat2std_xfm', 'anat2std_xfm'),
             ('outputnode.std2anat_xfm', 'std2anat_xfm'),
@@ -454,11 +454,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (anat_template_wf, anat_reports_wf, [
             ('outputnode.out_report', 'inputnode.t1w_conform_report')]),
         (anat_norm_wf, anat_reports_wf, [
-            ('poutputnode.template', 'inputnode.template')]),
+            ('outputnode.template', 'inputnode.template')]),
     ])
     # fmt:on
 
-    # Write outputs ############################################3
+    # Write outputs #
     anat_derivatives_wf = init_anat_derivatives_wf(
         bids_root=bids_root,
         freesurfer=freesurfer,
@@ -512,7 +512,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (fast2bids, outputnode, [('out', 't1w_tpms')]),
     ])
     # fmt:on
-    if not freesurfer:  # Flag --fs-no-reconall is set - return
+    if (not freesurfer) and (not fastsurfer):  # Flag --fs-no-reconall is set - return
         # fmt:off
         workflow.connect([
             (brain_extraction_wf, buffernode, [
@@ -536,7 +536,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     check_fastsurfer.inputs.logger = LOGGER
 
     # Select which surface reconstruction workflow based on CLI arguments
-    if freesurfer:
+    if freesurfer and (not freesurfer):
         surface_recon_wf = init_surface_recon_wf(
             name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
         applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
@@ -591,8 +591,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         # fmt:off
         workflow.connect([
             (inputnode, fastsurf_recon_wf, [
-                ('subject_id', 'inputnode.subject_id'),
-                ('subjects_dir', 'inputnode.subjects_dir')]),
+                ('subject_id', 'inputnode.sid'),
+                ('subjects_dir', 'inputnode.sd')]),
             (anat_validate, fastsurf_recon_wf, [
                 ('out_file', 'inputnode.t1w')]),
             (brain_extraction_wf, fastsurf_recon_wf, [
@@ -604,8 +604,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (fastsurf_recon_wf, applyrefined, [
                 ('outputnode.out_brainmask', 'mask_file')]),
             (fastsurf_recon_wf, outputnode, [
-                ('outputnode.subjects_dir', 'subjects_dir'),
-                ('outputnode.subject_id', 'subject_id'),
+                ('inputnode.sd', 'subjects_dir'),
+                ('inputnode.sid', 'subject_id'),
                 ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
                 ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
                 ('outputnode.surfaces', 'surfaces'),
@@ -614,8 +614,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (applyrefined, buffernode, [('out_file', 't1w_brain')]),
             (fastsurf_recon_wf, buffernode, [('outputnode.out_brainmask', 't1w_mask')]),
             (fastsurf_recon_wf, anat_reports_wf, [
-                ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+                ('inputnode.sid', 'inputnode.subject_id'),
+                ('inputnode.sd', 'inputnode.subjects_dir'),
             ]),
             (fastsurf_recon_wf, anat_derivatives_wf, [
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
