@@ -200,7 +200,6 @@ freesurfer/bin/gcatrainskull
 freesurfer/bin/gdcmconv.fs
 freesurfer/bin/gems_compute_binary_atlas_probs
 freesurfer/bin/get_label_thickness
-freesurfer/bin/getfullpath
 freesurfer/bin/grad_unwarp
 freesurfer/bin/groupstats
 freesurfer/bin/groupstatsdiff
