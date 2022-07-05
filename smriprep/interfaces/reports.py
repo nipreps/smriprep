@@ -38,7 +38,7 @@ from nipype.interfaces.base import (
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
 from smriprep.interfaces.fastsurfer import FastSurfSourceInputSpec as _FastSurfSourceInputSpec
-from smriprep.interfaces.fastsurfer import FastSurfSourceOutputSpec as _FastSurfSourceOutputSpec
+# from smriprep.interfaces.fastsurfer import FastSurfSourceOutputSpec as _FastSurfSourceOutputSpec
 from smriprep.interfaces import fastsurfer as fastsurf
 from smriprep.utils.misc import check_fastsurfer
 from nipype.interfaces.mixins import reporting
