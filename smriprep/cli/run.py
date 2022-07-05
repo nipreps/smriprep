@@ -230,9 +230,9 @@ def get_parser():
         help="enable FastSurfer surface preprocessing.",
     )
     # g_surfs_xor = g_surfs.add_mutually_exclusive_group()
-    
+
     g_surfs_xor = g_surfs
-    
+
     g_surfs_xor.add_argument(
         "--fs-no-reconall",
         action="store_false",
