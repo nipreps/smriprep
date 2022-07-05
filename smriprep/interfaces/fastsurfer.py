@@ -314,7 +314,6 @@ class FastSurfSourceInputSpec(BaseInterfaceInputSpec):
         desc="T1 full head input (not bias corrected, global path)"
     )
 
-
 class FastSurfSourceOutputSpec(TraitedSpec):
     T1 = File(
         exists=True,
