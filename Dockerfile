@@ -29,7 +29,7 @@ FROM ubuntu:focal-20210416
 # Prepare environment
 ENV DEBIAN_FRONTEND="noninteractive"
 ENV LANG=C.UTF-8
-ARG PYTHON_VERSION=3.6
+ARG PYTHON_VERSION=3.8
 ARG CONDA_FILE=Miniconda3-py37_4.10.3-Linux-x86_64.sh
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -55,7 +55,7 @@ RUN apt-get update && \
 
 # git clone dev branch of FastSurfer
 RUN cd /opt && mkdir /fastsurfer \
-    && git clone -b dev https://github.com/Deep-MI/FastSurfer.git \
+    && git clone -b v1.1.0 https://github.com/Deep-MI/FastSurfer.git \
     && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml 
     
 # Install conda
@@ -267,8 +267,8 @@ WORKDIR $ANTSPATH
 RUN curl -sSL "https://dl.dropbox.com/s/gwf51ykkk5bifyj/ants-Linux-centos6_x86_64-v2.3.4.tar.gz" \
     | tar -xzC $ANTSPATH --strip-components 1
 
-# nipreps/miniconda:py39_0525.0
-COPY --from=nipreps/miniconda@sha256:40fffd37963502dcd8549773559fc21182f52460e59e0ad6398a84faf6055641 /opt/conda /opt/conda
+# nipreps/miniconda:py38_1.4.1
+COPY --from=nipreps/miniconda@sha256:ebbff214e6c9dc50ccc6fdbe679df1ffcbceaa45b47a75d6e34e8a064ef178da /opt/conda /opt/conda
 
 RUN ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
@@ -310,7 +310,7 @@ COPY . /src/smriprep
 ARG VERSION
 # Force static versioning within container
 RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
-    echo "include smriprep/VERSION" >> /src/smriprep/MANIFEST.in && \
+    echo "include smriprep/${VERSION}" >> /src/smriprep/MANIFEST.in && \
     /opt/conda/bin/python -m pip install --no-cache-dir "/src/smriprep[all]"
 
 RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml
