@@ -740,7 +740,7 @@ jobs:
       - run:
           name: Build only this commit
           no_output_timeout: 30m
-          command: make -C docs SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
+          command: make -C docs NO_ET=1 SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
       - store_artifacts:
           path: ./docs/_build/no_version_html/html
           destination: noversion
@@ -767,7 +767,7 @@ jobs:
             - ./docs/_build
       - run:
           name: Generate Versioned Docs
-          command: make -f ./docs/Makefile versioned CURBRANCH=${CIRCLE_TAG:-$CIRCLE_BRANCH}
+          command: make -f ./docs/Makefile NO_ET=1 versioned CURBRANCH=${CIRCLE_TAG:-$CIRCLE_BRANCH}
       - save_cache:
           key: docs-v2-{{ .Branch }}-{{ .Revision }}
           paths:
