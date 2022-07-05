@@ -259,11 +259,12 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=True)
     aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=True, segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
-    fs_license_file = "/opt/freesurfer/license.txt"
-    if os.path.exists("/tmp/freesurfer/license.txt"):
-        fs_license_file = "/tmp/freesurfer/license.txt"
-    elif os.environ['FS_LICENSE']:
-        fs_license_file = os.environ['FS_LICENSE']
+    # fs_license_file variable not used, uncomment if this changes!
+    # fs_license_file = "/opt/freesurfer/license.txt"
+    # if os.path.exists("/tmp/freesurfer/license.txt"):
+    #     fs_license_file = "/tmp/freesurfer/license.txt"
+    # elif os.environ['FS_LICENSE']:
+    #     fs_license_file = os.environ['FS_LICENSE']
 
     # recon_conf = pe.Node(
     #     fastsurf.FastSurferSource(), name="recon_conf")
