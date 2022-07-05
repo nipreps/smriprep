@@ -378,7 +378,7 @@ to workflows in *sMRIPrep*'s documentation]\
         )
 
     if fastsurfer:
-        freesurfer = False
+       freesurfer = False
 
     inputnode = pe.Node(
         niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode"
