@@ -566,7 +566,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         (get_surfaces, surfmorph_list, [('thickness', 'in1'),
                                         ('sulc', 'in2'),
                                         ('curv', 'in3')]),
-        (surfmorph_list, fscurv2funcgii, [('out', 'in_file')]),
+        (surface_list, fscurv2funcgii, [('in1', 'in_file')]),
         (surfmorph_list, fscurv2funcgii, [('out', 'scalarcurv_file')]),
         (fs2gii, allsurf_list, [('converted', 'in1')]),
         (fscurv2funcgii, allsurf_list, [('converted', 'in2')]),
