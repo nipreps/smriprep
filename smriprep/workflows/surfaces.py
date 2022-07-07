@@ -542,7 +542,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         iterfield=["in_file", "scalarcurv_file"], name="fscurv2funcgii"
     )
     allsurf_list = pe.Node(
-        niu.merge(7),
+        niu.Merge(7),
         name="allsurf_list",
         run_without_submitting=True,
     )
