@@ -46,7 +46,6 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
-from niworkflows.interfaces.surf import NormalizeSurf
 
 
 def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
