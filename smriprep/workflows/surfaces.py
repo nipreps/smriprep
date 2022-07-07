@@ -536,7 +536,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         run_without_submitting=True,
     )
     whitesurf_list = pe.Node(
-        niu.Merge(3,ravel_inputs=True),
+        niu.Merge(3, ravel_inputs=True),
         name="whitesurf_list",
         run_without_submitting=True,
     )
@@ -569,9 +569,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         (get_surfaces, surfmorph_list, [('thickness', 'in1'),
                                         ('sulc', 'in2'),
                                         ('curv', 'in3')]),
-        (get_surfaces,whitesurf_list, [('smoothwm','in1'),
-                                       ('smoothwm','in2'),
-                                       ('smoothwm','in3')]),
+        (get_surfaces, whitesurf_list, [('smoothwm', 'in1'),
+                                        ('smoothwm', 'in2'),
+                                        ('smoothwm', 'in3')]),
         (whitesurf_list, fscurv2funcgii, [('out', 'in_file')]),
         (surfmorph_list, fscurv2funcgii, [('out', 'scalarcurv_file')]),
         (fs2gii, allsurf_list, [('converted', 'in1')]),
