@@ -529,18 +529,19 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         run_without_submitting=True,
     )
     fs2gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii",to_scanner=True), iterfield="in_file", name="fs2gii"
+        fs.MRIsConvert(out_datatype="gii", to_scanner=True), iterfield="in_file", name="fs2gii"
     )
     surfmorph_list = pe.Node(
-        niu.Merge(3,ravel_inputs=True),
+        niu.Merge(3, ravel_inputs=True),
         name="surfmorph_list",
         run_without_submitting=True,
     )
     fscurv2funcgii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii",to_scanner=True,scalarcurv_file=True),iterfield="in_file", name="fscurv2funcgii"
+        fs.MRIsConvert(out_datatype="gii", to_scanner=True),
+        iterfield=["in_file", "scalarcurv_file"], name="fscurv2funcgii"
     )
     allsurf_list = pe.Node(
-        niu.merge(7,ravel_inputs=True),
+        niu.merge(7),
         name="allsurf_list",
         run_without_submitting=True,
     )
@@ -561,13 +562,14 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
                                       ('inflated', 'in3')]),
         (save_midthickness, surface_list, [('out_file', 'in4')]),
         (surface_list, fs2gii, [('out', 'in_file')]),
-        (get_surfaces, surfmorph_list, [('thickness','in1'),
-                                      ('sulc','in2'),
-                                      ('curv','in3')]),
-        (surfmorph_list, fscurv2funcgii, [('out','in_file')]),
-        (fs2gii, allsurf_list, [('converted','in1')]),
-        (fscurv2funcgii, allsurf_list, [('converted','in2')]),
-        (allsurf_list,outputnode, [('out', 'surfaces')])
+        (get_surfaces, surfmorph_list, [('thickness', 'in1'),
+                                        ('sulc', 'in2'),
+                                        ('curv', 'in3')]),
+        (surfmorph_list, fscurv2funcgii, [('out', 'in_file')]),
+        (surfmorph_list, fscurv2funcgii, [('out', 'scalarcurv_file')]),
+        (fs2gii, allsurf_list, [('converted', 'in1')]),
+        (fscurv2funcgii, allsurf_list, [('converted', 'in2')]),
+        (allsurf_list, outputnode, [('out', 'surfaces')])
     ])
     # fmt:on
     return workflow
