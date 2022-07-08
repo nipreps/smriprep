@@ -620,9 +620,7 @@ class FastSurferSource(IOBase):
         globsuffix = ""
         if dirval == "mri":
             globsuffix = ".mgz"
-            if key in ("mni_log"):
-                globsuffix = ".mgz"
-            elif key in ("mni_log_bak"):
+            if key in ("mni_log_bak"):
                 globsuffix = ".log.bak"
         elif dirval == "stats":
             globsuffix = ".stats"
@@ -645,9 +643,7 @@ class FastSurferSource(IOBase):
         ]
 
     def _list_outputs(self):
-        subjects_dir = self.inputs.sd
-        subject_id = self.inputs.sid
-        subject_path = os.path.join(subjects_dir, subject_id)
+        subject_path = os.path.join(self.inputs.sd, self.inputs.sid)
         output_traits = self._outputs()
         outputs = output_traits.get()
         for k in list(outputs.keys()):
