@@ -50,7 +50,7 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.surf import NormalizeSurf
 from nipype import logging
-import os
+# import os
 
 LOGGER = logging.getLogger("nipype.workflow")
 
