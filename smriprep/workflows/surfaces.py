@@ -36,6 +36,7 @@ from nipype.interfaces import (
 )
 
 from ..interfaces.freesurfer import ReconAll
+from ..interfaces.surf import NormalizeSurf
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -46,7 +47,6 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
-from niworkflows.interfaces.surf import NormalizeSurf
 
 
 def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
