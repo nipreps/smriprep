@@ -36,6 +36,7 @@ from nipype.interfaces import (
 )
 
 from ..interfaces.freesurfer import ReconAll
+from ..interfaces.surf import NormalizeSurf
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -46,7 +47,6 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
-from niworkflows.interfaces.surf import NormalizeSurf
 
 
 def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
@@ -532,7 +532,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         run_without_submitting=True,
     )
     fs2gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="fs2gii"
+        fs.MRIsConvert(out_datatype="gii", to_scanner=True), iterfield="in_file", name="fs2gii"
     )
     fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
 
