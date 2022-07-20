@@ -270,6 +270,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         # reoriented image
         (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
         (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
+        (fsnative2t1w_xfm, gifti_surface_wf, [
+            ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (fsnative2t1w_xfm, t1w2fsnative_xfm, [('out_reg_file', 'in_lta')]),
         # Refine ANTs mask, deriving new mask from FS' aseg
         (inputnode, refine, [('corrected_t1', 'in_anat'),
@@ -530,8 +532,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         run_without_submitting=True,
     )
     fs2gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii",to_scanner=True), iterfield="in_file", name="fs2gii"
+        fs.MRIsConvert(out_datatype="gii", to_scanner=True), iterfield="in_file", name="fs2gii"
     )
+    fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
 
     # fmt:off
     workflow.connect([
@@ -549,7 +552,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
                                       ('inflated', 'in3')]),
         (save_midthickness, surface_list, [('out_file', 'in4')]),
         (surface_list, fs2gii, [('out', 'in_file')]),
-        (fs2gii, outputnode, [('converted', 'surfaces')])
+        (fs2gii, fix_surfs, [('converted', 'in_file')]),
+        (inputnode, fix_surfs, [('fsnative2t1w_xfm', 'transform_file')]),
+        (fix_surfs, outputnode, [('out_file', 'surfaces')]),
     ])
     # fmt:on
     return workflow
