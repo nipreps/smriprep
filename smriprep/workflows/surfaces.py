@@ -36,7 +36,6 @@ from nipype.interfaces import (
 )
 
 from ..interfaces.freesurfer import ReconAll
-from ..interfaces.surf import NormalizeSurf
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -531,7 +530,6 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     )
     fs2gii = pe.MapNode(
         fs.MRIsConvert(out_datatype="gii", to_scanner=True), iterfield="in_file", name="fs2gii"
-<<<<<<< HEAD
     )
     surfmorph_list = pe.Node(
         niu.Merge(3, ravel_inputs=True),
@@ -545,14 +543,12 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     )
     fscurv2funcgii = pe.MapNode(
         fs.MRIsConvert(out_datatype="gii", to_scanner=True),
-        iterfield=["in_file", "scalarcurv_file"], name="fscurv2funcgii"
+        iterfield=["in_file", "scalarcurv_file"], name="fscurv2funcgii",
     )
     allsurf_list = pe.Node(
         niu.Merge(7),
         name="allsurf_list",
         run_without_submitting=True,
-=======
->>>>>>> 0163512d6a73be46b350fc1098fe10e5eab50596
     )
 
     # fmt:off
