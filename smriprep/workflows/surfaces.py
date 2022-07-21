@@ -36,6 +36,7 @@ from nipype.interfaces import (
 )
 
 from ..interfaces.freesurfer import ReconAll
+from ..interfaces.surf import NormalizeSurf
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -63,7 +64,7 @@ def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
             -i <bids-root>/sub-<subject_label>/anat/sub-<subject_label>_T1w.nii.gz \
             -T2 <bids-root>/sub-<subject_label>/anat/sub-<subject_label>_T2w.nii.gz \
             -autorecon1 \
-            -noskullstrip
+            -noskullstrip -noT2pial -noFLAIRpial
 
     The second phase imports an externally computed skull-stripping mask.
     This workflow refines the external brainmask using the internal mask
@@ -210,6 +211,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name="recon_config")
 
     fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
+    fov_check.inputs.default_flags = ['-noskullstrip', '-noT2pial', '-noFLAIRpial']
 
     autorecon1 = pe.Node(
         ReconAll(directive="autorecon1", openmp=omp_nthreads),
@@ -529,6 +531,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     )
     fs2gii = pe.MapNode(
         fs.MRIsConvert(out_datatype="gii", to_scanner=True), iterfield="in_file", name="fs2gii"
+<<<<<<< HEAD
     )
     surfmorph_list = pe.Node(
         niu.Merge(3, ravel_inputs=True),
@@ -548,6 +551,8 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         niu.Merge(7),
         name="allsurf_list",
         run_without_submitting=True,
+=======
+>>>>>>> 0163512d6a73be46b350fc1098fe10e5eab50596
     )
 
     # fmt:off
@@ -665,7 +670,7 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     return workflow
 
 
-def _check_cw256(in_files):
+def _check_cw256(in_files, default_flags):
     import numpy as np
     from nibabel.funcs import concat_images
 
@@ -673,6 +678,7 @@ def _check_cw256(in_files):
         in_files = [in_files]
     summary_img = concat_images(in_files)
     fov = np.array(summary_img.shape[:3]) * summary_img.header.get_zooms()[:3]
+    flags = list(default_flags)
     if np.any(fov > 256):
-        return ["-noskullstrip", "-cw256"]
-    return "-noskullstrip"
+        flags.append("-cw256")
+    return flags
