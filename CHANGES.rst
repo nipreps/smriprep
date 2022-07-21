@@ -1,3 +1,11 @@
+0.9.2 (July 20, 2022)
+=====================
+Bug-fix release in the 0.9.x series.
+
+With thanks to Eric Feczko for tracking down a fiddly bug.
+
+  * FIX: Use mris_convert --to-scanner, and update normalization step (#295)
+
 0.9.1 (July 14, 2022)
 =====================
 Bug-fix release in the 0.9.x series.
