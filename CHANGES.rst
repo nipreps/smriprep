@@ -1,3 +1,21 @@
+0.9.2 (July 20, 2022)
+=====================
+Bug-fix release in the 0.9.x series.
+
+With thanks to Eric Feczko for tracking down a fiddly bug.
+
+  * FIX: Use mris_convert --to-scanner, and update normalization step (#295)
+
+0.9.1 (July 14, 2022)
+=====================
+Bug-fix release in the 0.9.x series.
+
+This release contains patches for supporting FreeSurfer 7.2.
+
+  * FIX: Disable -T2pial and -FLAIRpial at -autorecon1 stage (#291)
+  * FIX: Re-add missing getfullpath FreeSurfer binary (#290)
+  * FIX: Re-add fsr-checkxopts to Docker image (#287)
+
 0.9.0 (May 26, 2022)
 ====================
 A new minor release incorporating support for FreeSurfer 7.2.
