@@ -122,16 +122,16 @@ class FastSInputSpec(CommandLineInputSpec):
 
 
     """
-    sd = Directory(
+    subjects_dir = Directory(
         exists=True,
         argstr="--sd %s",
-        mandatory=False,
-        desc="Subjects directory"
+        hash_files=False,
+        desc="Subjects directory",
+        genfile=True,
     )
-    sid = traits.String(
-        exists=True,
+    subject_id = traits.String(
         argstr="--sid %s",
-        mandatory=False,
+        mandatory=True,
         desc="Subject ID"
     )
     T1_files = File(
@@ -142,15 +142,13 @@ class FastSInputSpec(CommandLineInputSpec):
     )
     fs_license = File(
         exists=True,
-        mandatory=False,
         argstr="--fs_license %s",
         desc="Path to FreeSurfer license key file."
     )
     seg = File(
         exists=True,
-        mandatory=False,
         argstr="--seg %s",
-        desc="Global path with filename of segmentation"
+        desc="Pre-computed segmentation file"
     )
     weights_sag = File(
         exists=True,
@@ -279,18 +277,6 @@ class FastSInputSpec(CommandLineInputSpec):
         mandatory=False,
         argstr="--surf_only",
         desc="only run the surface pipeline recon_surf."
-    )
-
-
-class FastSTraitedOutputSpec(TraitedSpec):
-    r"""
-    Outputs directory within the FastSurfer subjects_dir/subject_id/
-    with structure equivalent to Freesurfer
-
-    """
-    outputs = Directory(
-        exists=True,
-        desc="FastSurfer CNN + Surface Pipeline equivalent of recon-all outputs"
     )
 
 
@@ -606,67 +592,23 @@ class FastSurfSourceOutputSpec(TraitedSpec):
     )
 
 
-class FastSurferSource(IOBase):
+class FastSurferSource(FreeSurferSource):
     """Generates FastSurfer subject info from their directories.
 
     """
 
-    input_spec = FastSurfSourceInputSpec
     output_spec = FastSurfSourceOutputSpec
-    _always_run = True
-    _additional_metadata = ["loc", "altkey"]
-
-    def _get_files(self, path, key, dirval, altkey=None):
-        globsuffix = ""
-        if dirval == "mri":
-            globsuffix = ".mgz"
-            if key in ("mni_log_bak"):
-                globsuffix = ".log.bak"
-        elif dirval == "stats":
-            globsuffix = ".stats"
-        globprefix = ""
-        if dirval in ("surf", "label", "stats"):
-            globprefix = "?h."
-        if key in ("aseg_stats", "aseg_presurf_stats", "wmparc_stats"):
-            globprefix = ""
-        elif key == "ribbon":
-            globprefix = "*"
-        elif key == "aparc_ctab":
-            globprefix = ""
-            globsuffix = ""
-        elif key in ("nofix", "defects", "preaparc"):
-            globsuffix = "*"
-        keys = ensure_list(altkey) if altkey else [key]
-        globfmt = os.path.join(path, dirval, "".join((globprefix, "{}", globsuffix)))
-        return [
-            os.path.abspath(f) for key in keys for f in glob.glob(globfmt.format(key))
-        ]
-
-    def _list_outputs(self):
-        subject_path = os.path.join(self.inputs.sd, self.inputs.sid)
-        output_traits = self._outputs()
-        outputs = output_traits.get()
-        for k in list(outputs.keys()):
-            val = self._get_files(
-                subject_path,
-                k,
-                output_traits.traits()[k].loc,
-                output_traits.traits()[k].altkey,
-            )
-            if val:
-                outputs[k] = simplify_list(val)
-        return outputs
 
 
-class FastSCommand(CommandLine):
+class FastSurfer(CommandLine):
     """
     Wraps FastSurfer command for segmentation and surface processing
 
     """
 
-    input_spec = FastSurfSourceInputSpec
+    input_spec = FastSInputSpec
     output_spec = FastSurfSourceOutputSpec
-    _cmd = '/fastsurfer/run_fastsurfer.sh --surfreg'
+    _cmd = 'run_fastsurfer.sh --surfreg'
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
