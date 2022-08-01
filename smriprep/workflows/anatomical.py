@@ -536,7 +536,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     check_fastsurfer.inputs.logger = LOGGER
 
     # Select which surface reconstruction workflow based on CLI arguments
-    if freesurfer and (not freesurfer):
+    if freesurfer and (not fastsurfer):
         surface_recon_wf = init_surface_recon_wf(
             name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
         applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
