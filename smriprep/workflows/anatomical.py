@@ -421,10 +421,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (('outputnode.bias_corrected', _pop), 'inputnode.moving_image')]),
         (buffernode, anat_norm_wf, [('t1w_mask', 'inputnode.moving_mask')]),
         (anat_norm_wf, outputnode, [
-            ('outputnode.standardized', 'std_preproc'),
-            ('outputnode.std_mask', 'std_mask'),
-            ('outputnode.std_dseg', 'std_dseg'),
-            ('outputnode.std_tpms', 'std_tpms'),
+            ('poutputnode.standardized', 'std_preproc'),
+            ('poutputnode.std_mask', 'std_mask'),
+            ('poutputnode.std_dseg', 'std_dseg'),
+            ('poutputnode.std_tpms', 'std_tpms'),
             ('outputnode.template', 'template'),
             ('outputnode.anat2std_xfm', 'anat2std_xfm'),
             ('outputnode.std2anat_xfm', 'std2anat_xfm'),
@@ -454,7 +454,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (anat_template_wf, anat_reports_wf, [
             ('outputnode.out_report', 'inputnode.t1w_conform_report')]),
         (anat_norm_wf, anat_reports_wf, [
-            ('outputnode.template', 'inputnode.template')]),
+            ('poutputnode.template', 'inputnode.template')]),
     ])
     # fmt:on
 
