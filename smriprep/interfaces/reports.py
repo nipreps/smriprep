@@ -37,8 +37,6 @@ from nipype.interfaces.base import (
 )
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
-from smriprep.interfaces.fastsurfer import FastSurfSourceInputSpec as _FastSurfSourceInputSpec
-# from smriprep.interfaces.fastsurfer import FastSurfSourceOutputSpec as _FastSurfSourceOutputSpec
 from smriprep.interfaces import fastsurfer as fastsurf
 from smriprep.utils.misc import check_fastsurfer
 from nipype.interfaces.mixins import reporting
@@ -184,15 +182,7 @@ class _FSSurfaceReportInputSpec(_SVGReportCapableInputSpec, _FSSourceInputSpec):
 
 class _FSSurfaceReportOutputSpec(reporting.ReportCapableOutputSpec):
     pass
-
-
-class _FastSurfSurfaceReportInputSpec(_SVGReportCapableInputSpec, _FastSurfSourceInputSpec):
-    pass
-
-
-class _FastSurfSurfaceReportOutputSpec(reporting.ReportCapableOutputSpec):
-    pass
-
+ 
 
 class FSSurfaceReport(SimpleInterface):
     """Replaces ``ReconAllRPT``, without need of calling recon-all."""
@@ -209,48 +199,6 @@ class FSSurfaceReport(SimpleInterface):
         from nibabel import load
 
         rootdir = Path(self.inputs.subjects_dir) / self.inputs.subject_id
-        _anat_file = str(rootdir / "mri" / "brain.mgz")
-        _contour_file = str(rootdir / "mri" / "ribbon.mgz")
-
-        anat = load(_anat_file)
-        contour_nii = load(_contour_file)
-
-        n_cuts = 7
-        cuts = cuts_from_bbox(contour_nii, cuts=n_cuts)
-
-        self._results["out_report"] = str(Path(runtime.cwd) / self.inputs.out_report)
-
-        # Call composer
-        compose_view(
-            plot_registration(
-                anat,
-                "fixed-image",
-                estimate_brightness=True,
-                cuts=cuts,
-                contour=contour_nii,
-                compress=self.inputs.compress_report,
-            ),
-            [],
-            out_file=self._results["out_report"],
-        )
-        return runtime
-
-
-class FastSurfSurfaceReport(SimpleInterface):
-    """Replaces ``ReconAllRPT``, without need of calling recon-all."""
-
-    input_spec = _FastSurfSurfaceReportInputSpec
-    output_spec = _FastSurfSurfaceReportOutputSpec
-
-    def _run_interface(self, runtime):
-        from niworkflows.viz.utils import (
-            plot_registration,
-            cuts_from_bbox,
-            compose_view,
-        )
-        from nibabel import load
-
-        rootdir = Path(self.inputs.sd) / self.inputs.sid
         _anat_file = str(rootdir / "mri" / "brain.mgz")
         _contour_file = str(rootdir / "mri" / "ribbon.mgz")
 
