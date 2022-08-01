@@ -112,7 +112,7 @@ class FastSInputSpec(CommandLineInputSpec):
     ----
     py
         which python version to use.
-        Default ``python3.6``
+        Default ``python3.8``
     seg_only
         only run FastSurferCNN
         (generate segmentation, do not run the surface pipeline)
@@ -153,23 +153,18 @@ class FastSInputSpec(CommandLineInputSpec):
     weights_sag = File(
         exists=True,
         mandatory=False,
-        default="../checkpoints/Sagittal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl",
-        usedefault=False, argstr="--weights_sag %s",
+        argstr="--weights_sag %s",
         desc="Pretrained weights of sagittal network"
     )
     weights_ax = File(
         exists=True,
         mandatory=False,
-        default="../checkpoints/Axial_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl",
-        usedefault=False,
         argstr="--weights_ax %s",
         desc="Pretrained weights of axial network"
     )
     weights_cor = File(
         exists=True,
         mandatory=False,
-        default="../checkpoints/Coronal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl",
-        usedefault=False,
         argstr="--weights_cor %s",
         desc="Pretrained weights of coronal network"
     )
@@ -182,7 +177,6 @@ class FastSInputSpec(CommandLineInputSpec):
     clean_seg = traits.Bool(
         False,
         mandatory=False,
-        usedefault=False,
         argstr="--clean_seg",
         desc="Flag to clean up FastSurferCNN segmentation"
     )
@@ -195,7 +189,6 @@ class FastSInputSpec(CommandLineInputSpec):
     no_cuda = traits.Bool(
         False,
         mandatory=False,
-        usedefault=False,
         argstr="--no_cuda",
         desc="Flag to disable CUDA usage in FastSurferCNN (no GPU usage, inference on CPU)"
     )
@@ -216,21 +209,18 @@ class FastSInputSpec(CommandLineInputSpec):
     )
     fstess = traits.Bool(
         False,
-        usedefault=False,
         mandatory=False,
         argstr="--fstess",
         desc="Use mri_tesselate instead of marching cube (default) for surface creation"
     )
     fsqsphere = traits.Bool(
         False,
-        usedefault=False,
         mandatory=False,
         argstr="--fsqsphere",
         desc="Use FreeSurfer default instead of novel spectral spherical projection for qsphere"
     )
     fsaparc = traits.Bool(
         False,
-        usedefault=False,
         mandatory=False,
         argstr="--fsaparc",
         desc="Use FS aparc segmentations in addition to DL prediction"
@@ -258,7 +248,7 @@ class FastSInputSpec(CommandLineInputSpec):
         desc="Set openMP and ITK threads to"
     )
     py = traits.String(
-        "python3.6",
+        "python3.8",
         usedefault=True,
         mandatory=False,
         argstr="--py %s",
@@ -266,14 +256,12 @@ class FastSInputSpec(CommandLineInputSpec):
     )
     seg_only = traits.Bool(
         False,
-        usedefault=False,
         mandatory=False,
         argstr="--seg_only",
         desc="only run FastSurferCNN (generate segmentation, do not surface)"
     )
     surf_only = traits.Bool(
         False,
-        usedefault=False,
         mandatory=False,
         argstr="--surf_only",
         desc="only run the surface pipeline recon_surf."
