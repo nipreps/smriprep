@@ -802,14 +802,8 @@ def init_gifti_surface_wf(*, fastsurfer, name="gifti_surface_wf"):
         name="inputnode",
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces"]), name="outputnode")
-    subs_dir = 'subjects_dir'
-    subj = 'subject_id'
-    if fastsurfer is True:
-        get_surfaces = pe.Node(fastsurf.FastSurferSource(), name="get_surfaces")
-        subs_dir = 'sd'
-        subj = 'sid'
-    else:
-        get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+    
+    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 
     midthickness = pe.MapNode(
         MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
@@ -900,14 +894,7 @@ def init_segs_to_native_wf(*, fastsurfer, name="segs_to_native", segmentation="a
     )
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
     # Extract the aseg and aparc+aseg outputs
-    subs_dir = 'subjects_dir'
-    subj = 'subject_id'
-    if fastsurfer is True:
-        fssource = pe.Node(fastsurf.FastSurferSource(), name="fs_datasource")
-        subs_dir = 'sd'
-        subj = 'sid'
-    else:
-        fssource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
+    fssource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
 
     # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
     # and convert to NIfTI while we're at it
