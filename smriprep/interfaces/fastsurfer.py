@@ -134,7 +134,7 @@ class FastSInputSpec(CommandLineInputSpec):
         mandatory=False,
         desc="Subject ID"
     )
-    t1 = File(
+    T1_files = File(
         exists=True,
         mandatory=False,
         argstr="--t1 %s",
