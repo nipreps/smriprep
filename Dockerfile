@@ -325,6 +325,7 @@ ENV FREESURFER="/opt/freesurfer"
 
 ENV IS_DOCKER_8395080871=1
 ENV FASTSURFER_HOME=/fastsurfer
+ENV PATH="/fastsurfer:/$PATH"
 
 RUN ldconfig
 WORKDIR /tmp
