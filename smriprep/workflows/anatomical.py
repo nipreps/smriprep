@@ -512,7 +512,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (fast2bids, outputnode, [('out', 't1w_tpms')]),
     ])
     # fmt:on
-    if (not freesurfer) and (not fastsurfer):  # Flag --fs-no-reconall is set - return
+    if not freesurfer and not fastsurfer:  # Flag --fs-no-reconall is set - return
         # fmt:off
         workflow.connect([
             (brain_extraction_wf, buffernode, [
