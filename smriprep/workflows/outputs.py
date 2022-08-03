@@ -173,7 +173,7 @@ def init_anat_reports_wf(*, freesurfer, fastsurfer, output_dir, name="anat_repor
     ])
     # fmt:on
 
-    if freesurfer:
+    if freesurfer or fastsurfer:
         from ..interfaces.reports import FSSurfaceReport
 
         recon_report = pe.Node(FSSurfaceReport(), name="recon_report")
@@ -190,27 +190,6 @@ def init_anat_reports_wf(*, freesurfer, fastsurfer, output_dir, name="anat_repor
         workflow.connect([
             (inputnode, recon_report, [('subjects_dir', 'subjects_dir'),
                                        ('subject_id', 'subject_id')]),
-            (recon_report, ds_recon_report, [('out_report', 'in_file')]),
-            (inputnode, ds_recon_report, [('source_file', 'source_file')])
-        ])
-        # fmt:on
-    elif fastsurfer:
-        from ..interfaces.reports import FastSurfSurfaceReport
-
-        recon_report = pe.Node(FastSurfSurfaceReport(), name="recon_report")
-        recon_report.interface._always_run = True
-
-        ds_recon_report = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, desc="fastsurf_recon", datatype="figures"
-            ),
-            name="ds_recon_report",
-            run_without_submitting=True,
-        )
-        # fmt:off
-        workflow.connect([
-            (inputnode, recon_report, [('subjects_dir', 'sd'),
-                                       ('subject_id', 'sid')]),
             (recon_report, ds_recon_report, [('out_report', 'in_file')]),
             (inputnode, ds_recon_report, [('source_file', 'source_file')])
         ])
