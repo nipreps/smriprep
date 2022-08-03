@@ -539,7 +539,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     if freesurfer and (not fastsurfer):
         surface_recon_wf = init_surface_recon_wf(
             name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
-        applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
         # fmt:off
         workflow.connect([
             (inputnode, fs_isrunning, [
@@ -550,84 +549,62 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 ('flair', 'inputnode.flair'),
                 ('subject_id', 'inputnode.subject_id')]),
             (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
-            (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
-            (brain_extraction_wf, surface_recon_wf, [
-                (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
-                ('outputnode.out_segm', 'inputnode.ants_segs'),
-                (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
-            (brain_extraction_wf, applyrefined, [
-                (('outputnode.bias_corrected', _pop), 'in_file')]),
-            (surface_recon_wf, applyrefined, [
-                ('outputnode.out_brainmask', 'mask_file')]),
-            (surface_recon_wf, outputnode, [
-                ('outputnode.subjects_dir', 'subjects_dir'),
-                ('outputnode.subject_id', 'subject_id'),
-                ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
-                ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
-                ('outputnode.surfaces', 'surfaces'),
-                ('outputnode.out_aseg', 't1w_aseg'),
-                ('outputnode.out_aparc', 't1w_aparc')]),
-            (applyrefined, buffernode, [('out_file', 't1w_brain')]),
-            (surface_recon_wf, buffernode, [
-                ('outputnode.out_brainmask', 't1w_mask')]),
             (surface_recon_wf, anat_reports_wf, [
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir')]),
-            (surface_recon_wf, anat_derivatives_wf, [
-                ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-                ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-            ]),
-            (outputnode, anat_derivatives_wf, [
-                ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
-                ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
-                ('surfaces', 'inputnode.surfaces'),
             ]),
         ])
         # fmt:on
     elif fastsurfer:
-        fastsurf_recon_wf = init_fastsurf_recon_wf(
-            name="fastsurf_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
-        applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
+        surface_recon_wf = init_fastsurf_recon_wf(
+            name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
         # fmt:off
         workflow.connect([
-            (inputnode, fastsurf_recon_wf, [
+            (inputnode, surface_recon_wf, [
                 ('subject_id', 'inputnode.sid'),
                 ('subjects_dir', 'inputnode.sd')]),
-            (anat_validate, fastsurf_recon_wf, [
-                ('out_file', 'inputnode.t1w')]),
-            (brain_extraction_wf, fastsurf_recon_wf, [
-                (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
-                ('outputnode.out_segm', 'inputnode.ants_segs'),
-                (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
-            (brain_extraction_wf, applyrefined, [
-                (('outputnode.bias_corrected', _pop), 'in_file')]),
-            (fastsurf_recon_wf, applyrefined, [
+            (surface_recon_wf, applyrefined, [
                 ('outputnode.out_brainmask', 'mask_file')]),
-            (fastsurf_recon_wf, outputnode, [
-                ('inputnode.sd', 'subjects_dir'),
-                ('inputnode.sid', 'subject_id'),
-                ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
-                ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
-                ('outputnode.surfaces', 'surfaces'),
-                ('outputnode.out_aseg', 't1w_aseg'),
-                ('outputnode.out_aparc', 't1w_aparc')]),
-            (applyrefined, buffernode, [('out_file', 't1w_brain')]),
-            (fastsurf_recon_wf, buffernode, [('outputnode.out_brainmask', 't1w_mask')]),
-            (fastsurf_recon_wf, anat_reports_wf, [
+            (surface_recon_wf, anat_reports_wf, [
                 ('inputnode.sid', 'inputnode.subject_id'),
                 ('inputnode.sd', 'inputnode.subjects_dir'),
             ]),
-            (fastsurf_recon_wf, anat_derivatives_wf, [
-                ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-                ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-            ]),
-            (outputnode, anat_derivatives_wf, [
-                ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
-                ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
-                ('surfaces', 'inputnode.surfaces'),
-            ]),
         ])
         # fmt:on
+
+    #Identical connections
+    applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
+    workflow.connect([
+       (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
+       (brain_extraction_wf, surface_recon_wf, [
+           (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
+           ('outputnode.out_segm', 'inputnode.ants_segs'),
+           (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
+       (brain_extraction_wf, applyrefined, [
+           (('outputnode.bias_corrected', _pop), 'in_file')]),
+       (surface_recon_wf, applyrefined, [
+           ('outputnode.out_brainmask', 'mask_file')]),
+       (surface_recon_wf, outputnode, [
+           ('outputnode.subjects_dir', 'subjects_dir'),
+           ('outputnode.subject_id', 'subject_id'),
+           ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
+           ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+           ('outputnode.surfaces', 'surfaces'),
+           ('outputnode.out_aseg', 't1w_aseg'),
+           ('outputnode.out_aparc', 't1w_aparc')]),
+       (applyrefined, buffernode, [('out_file', 't1w_brain')]),
+       (surface_recon_wf, buffernode, [
+           ('outputnode.out_brainmask', 't1w_mask')]),
+       (surface_recon_wf, anat_derivatives_wf, [
+           ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
+           ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
+           ]),
+       (outputnode, anat_derivatives_wf, [
+           ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
+           ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+           ('surfaces', 'inputnode.surfaces'),
+           ]),
+       ])
 
     return workflow
 
