@@ -406,8 +406,7 @@ class FastSurferSource(FreeSurferSource):
 
 
 class FastSurfer(CommandLine):
-    """
-    Wraps FastSurfer command for segmentation and surface processing
+    """Wraps FastSurfer command for segmentation and surface processing.
 
     """
 
