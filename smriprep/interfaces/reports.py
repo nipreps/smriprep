@@ -182,7 +182,7 @@ class _FSSurfaceReportInputSpec(_SVGReportCapableInputSpec, _FSSourceInputSpec):
 
 class _FSSurfaceReportOutputSpec(reporting.ReportCapableOutputSpec):
     pass
- 
+
 
 class FSSurfaceReport(SimpleInterface):
     """Replaces ``ReconAllRPT``, without need of calling recon-all."""
