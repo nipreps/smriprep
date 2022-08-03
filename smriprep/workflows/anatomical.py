@@ -597,14 +597,13 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.out_brainmask', 't1w_mask')]),
         (surface_recon_wf, anat_derivatives_wf, [
             ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-            ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-            ]),
+            ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc')]),
         (outputnode, anat_derivatives_wf, [
             ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
             ('surfaces', 'inputnode.surfaces'),
-            ]),
-        ])
+        ]),
+    ])
 
     return workflow
 
