@@ -412,7 +412,7 @@ class FastSurfer(CommandLine):
     """
 
     input_spec = FastSInputSpec
-    output_spec = FastSurfSourceOutputSpec
+    output_spec = FastSurferSourceOutputSpec
     _cmd = 'run_fastsurfer.sh --surfreg'
 
     def _list_outputs(self):
