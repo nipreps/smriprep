@@ -551,7 +551,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
             (surface_recon_wf, anat_reports_wf, [
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.subjects_dir', 'inputnode.subjects_dir')]),
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ]),
         ])
         # fmt:on
@@ -572,39 +572,39 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         ])
         # fmt:on
 
-    #Identical connections
+    # Identical connections
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
     workflow.connect([
-       (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
-       (brain_extraction_wf, surface_recon_wf, [
-           (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
-           ('outputnode.out_segm', 'inputnode.ants_segs'),
-           (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
-       (brain_extraction_wf, applyrefined, [
-           (('outputnode.bias_corrected', _pop), 'in_file')]),
-       (surface_recon_wf, applyrefined, [
-           ('outputnode.out_brainmask', 'mask_file')]),
-       (surface_recon_wf, outputnode, [
-           ('outputnode.subjects_dir', 'subjects_dir'),
-           ('outputnode.subject_id', 'subject_id'),
-           ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
-           ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
-           ('outputnode.surfaces', 'surfaces'),
-           ('outputnode.out_aseg', 't1w_aseg'),
-           ('outputnode.out_aparc', 't1w_aparc')]),
-       (applyrefined, buffernode, [('out_file', 't1w_brain')]),
-       (surface_recon_wf, buffernode, [
-           ('outputnode.out_brainmask', 't1w_mask')]),
-       (surface_recon_wf, anat_derivatives_wf, [
-           ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-           ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-           ]),
-       (outputnode, anat_derivatives_wf, [
-           ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
-           ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
-           ('surfaces', 'inputnode.surfaces'),
-           ]),
-       ])
+        (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
+        (brain_extraction_wf, surface_recon_wf, [
+            (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
+            ('outputnode.out_segm', 'inputnode.ants_segs'),
+            (('outputnode.bias_corrected', _pop), 'inputnode.corrected_t1')]),
+        (brain_extraction_wf, applyrefined, [
+            (('outputnode.bias_corrected', _pop), 'in_file')]),
+        (surface_recon_wf, applyrefined, [
+            ('outputnode.out_brainmask', 'mask_file')]),
+        (surface_recon_wf, outputnode, [
+            ('outputnode.subjects_dir', 'subjects_dir'),
+            ('outputnode.subject_id', 'subject_id'),
+            ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
+            ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+            ('outputnode.surfaces', 'surfaces'),
+            ('outputnode.out_aseg', 't1w_aseg'),
+            ('outputnode.out_aparc', 't1w_aparc')]),
+        (applyrefined, buffernode, [('out_file', 't1w_brain')]),
+        (surface_recon_wf, buffernode, [
+            ('outputnode.out_brainmask', 't1w_mask')]),
+        (surface_recon_wf, anat_derivatives_wf, [
+            ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
+            ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
+            ]),
+        (outputnode, anat_derivatives_wf, [
+            ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('surfaces', 'inputnode.surfaces'),
+            ]),
+        ])
 
     return workflow
 
