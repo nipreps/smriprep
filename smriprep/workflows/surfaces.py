@@ -802,7 +802,7 @@ def init_gifti_surface_wf(*, fastsurfer, name="gifti_surface_wf"):
         name="inputnode",
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces"]), name="outputnode")
-    
+
     get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 
     midthickness = pe.MapNode(
