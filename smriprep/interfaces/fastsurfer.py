@@ -19,7 +19,7 @@ from nipype.interfaces.base import (
     File,
 )
 from nipype.interfaces.base.traits_extension import traits
-from nipype.interfaces.io import IOBase, FSSourceOutputSpec
+from nipype.interfaces.io import IOBase, FSSourceOutputSpec, FreeSurferSource
 from nipype.utils.filemanip import (
     simplify_list,
     ensure_list,
