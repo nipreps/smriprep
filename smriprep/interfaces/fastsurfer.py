@@ -402,7 +402,7 @@ class FastSurferSource(FreeSurferSource):
 
     """
 
-    output_spec = FastSurfSourceOutputSpec
+    output_spec = FastSurferSourceOutputSpec
 
 
 class FastSurfer(CommandLine):
