@@ -827,8 +827,8 @@ def init_gifti_surface_wf(*, fastsurfer, name="gifti_surface_wf"):
 
     # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [('subjects_dir', subs_dir),
-                                   ('subject_id', subj)]),
+        (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
+                                   ('subject_id', 'subject_id')]),
         (inputnode, save_midthickness, [('subjects_dir', 'base_directory'),
                                         ('subject_id', 'container')]),
         # Generate midthickness surfaces and save to FreeSurfer derivatives
@@ -924,8 +924,8 @@ def init_segs_to_native_wf(*, fastsurfer, name="segs_to_native", segmentation="a
     # fmt:off
     workflow.connect([
         (inputnode, fssource, [
-            ('subjects_dir', subs_dir),
-            ('subject_id', subj)]),
+            ('subjects_dir', 'subjects_dir'),
+            ('subject_id', 'subject_id')]),
         (inputnode, resample, [('in_file', 'target_file'),
                                ('fsnative2t1w_xfm', 'lta_file')]),
         (fssource, resample, [(segmentation, 'source_file')]),
