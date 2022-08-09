@@ -37,6 +37,8 @@ from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
+
+from niworkflows.workflows.gradunwarp import init_gradunwarp_wf
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
     PatchedLTAConvert as LTAConvert,
@@ -80,12 +82,14 @@ def init_anat_preproc_wf(
     existing_derivatives=None,
     name="anat_preproc_wf",
     skull_strip_fixed_seed=False,
+    gradunwarp_file=None,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
 
     This includes:
 
+      - Correct gradient distortion in each T1w and T2w
       - T1w reference: realigning and then averaging T1w images.
       - Brain extraction and INU (bias field) correction.
       - Brain tissue segmentation.
@@ -155,6 +159,8 @@ def init_anat_preproc_wf(
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
+    gradunwarp_file: :obj:`str`
+        Vendor provided .coeff or .grad file for gradient distortion correction.
 
     Inputs
     ------
@@ -338,6 +344,13 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         niu.IdentityInterface(fields=["t1w_brain", "t1w_mask"]), name="buffernode"
     )
 
+    # 0.1 Optional: gradient distortion correction
+    if gradunwarp_file:
+        gradunwarp_t1w_wf = init_gradunwarp_wf("gradunwarp_t1w")
+        gradunwarp_t1w_wf.input_node.gradfile = gradunwarp_file
+        gradunwarp_t2w_wf = init_gradunwarp_wf("gradunwarp_t2w")
+        gradunwarp_t2w_wf.input_node.gradfile = gradunwarp_file
+
     # 1. Anatomical reference generation - average input T1w images.
     anat_template_wf = init_anat_template_wf(
         longitudinal=longitudinal,
@@ -392,6 +405,18 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         omp_nthreads=omp_nthreads,
         templates=spaces.get_spaces(nonstandard=False, dim=(3,)),
     )
+
+
+    if gradunwarp_file:
+    # fmt:off
+        workflow.connect([
+            # Step 1.
+            (inputnode, gradunwarp_t1w, [('t1w', 'inputnode.input_file')]),
+            (gradunwarp_t1w.corrected_file, anat_template_wf, [('corrected_file', 'inputnode.t1w')]),
+            ])
+    else:
+        workflow.connect([(inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')])])
+    # fmt:on
 
     # fmt:off
     workflow.connect([
