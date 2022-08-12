@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2021 The NiPreps Developers
+# Copyright (c) 2022 The NiPreps Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,7 @@ RUN apt-get update && \
                     libtool \
                     wget \
                     lsb-release \
+                    netbase \
                     pkg-config \
                     unzip \
                     cmake \
@@ -69,26 +70,9 @@ RUN apt-get update && \
 
 
 # Installing freesurfer
-RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/6.0.1/freesurfer-Linux-centos6_x86_64-stable-pub-v6.0.1.tar.gz \
-    | tar zxv --no-same-owner -C /opt \
-    --exclude='freesurfer/diffusion' \
-    --exclude='freesurfer/docs' \
-    --exclude='freesurfer/fsfast' \
-    --exclude='freesurfer/lib/cuda' \
-    --exclude='freesurfer/lib/qt' \
-    --exclude='freesurfer/matlab' \
-    --exclude='freesurfer/mni/share/man' \
-    --exclude='freesurfer/subjects/fsaverage_sym' \
-    --exclude='freesurfer/subjects/fsaverage3' \
-    --exclude='freesurfer/subjects/fsaverage4' \
-    --exclude='freesurfer/subjects/cvs_avg35' \
-    --exclude='freesurfer/subjects/cvs_avg35_inMNI152' \
-    --exclude='freesurfer/subjects/bert' \
-    --exclude='freesurfer/subjects/lh.EC_average' \
-    --exclude='freesurfer/subjects/rh.EC_average' \
-    --exclude='freesurfer/subjects/sample-*.mgz' \
-    --exclude='freesurfer/subjects/V1_average' \
-    --exclude='freesurfer/trctrain'
+COPY docker/files/freesurfer7.2-exclude.txt /usr/local/etc/freesurfer7.2-exclude.txt
+RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.2.0/freesurfer-linux-ubuntu18_amd64-7.2.0.tar.gz \
+￼    | tar zxv --no-same-owner -C /opt --exclude-from=/usr/local/etc/freesurfer7.2-exclude.txt
 
 # Install miniconda and needed python packages (for FastSurferCNN)
 #RUN wget -qO ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh  && \
@@ -125,7 +109,7 @@ ENV SUBJECTS_DIR="$FREESURFER_HOME/subjects" \
     MNI_DATAPATH="$FREESURFER_HOME/mni/data"
 ENV PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
     MNI_PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
-    PATH="$FREESURFER_HOME/bin:$FSFAST_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH"
+    PATH="$FREESURFER_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH"
 
 # FSL 6.0.5.1
 RUN apt-get update -qq \
@@ -248,7 +232,7 @@ RUN apt-get update -qq \
            xvfb \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/* \
-    && curl -sSL --retry 5 -o /tmp/multiarch.deb http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb \
+    && curl -sSL --retry 5 -o /tmp/multiarch.deb http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.5_amd64.deb \
     && dpkg -i /tmp/multiarch.deb \
     && rm /tmp/multiarch.deb \
     && curl -sSL --retry 5 -o /tmp/libxp6.deb http://mirrors.kernel.org/debian/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb \
@@ -294,7 +278,8 @@ WORKDIR $ANTSPATH
 RUN curl -sSL "https://dl.dropbox.com/s/gwf51ykkk5bifyj/ants-Linux-centos6_x86_64-v2.3.4.tar.gz" \
     | tar -xzC $ANTSPATH --strip-components 1
 
-COPY --from=nipreps/miniconda@sha256:4d0dc0fabb794e9fe22ee468ae5f86c2c8c2b4cd9d7b7fdf0c134d9e13838729 /opt/conda /opt/conda
+# nipreps/miniconda:py39_0525.0
+COPY --from=nipreps/miniconda@sha256:40fffd37963502dcd8549773559fc21182f52460e59e0ad6398a84faf6055641 /opt/conda /opt/conda
 
 RUN ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
@@ -341,6 +326,10 @@ RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
 RUN find $HOME -type d -exec chmod go=u {} + && \
     find $HOME -type f -exec chmod go=u {} + && \
     rm -rf $HOME/.npm $HOME/.conda $HOME/.empty
+
+# HACK for FreeSurfer 7.2.0
+# Fixed in https://github.com/freesurfer/freesurfer/pull/886, so remove on release
+ENV FREESURFER="/opt/freesurfer"
 
 ENV IS_DOCKER_8395080871=1
 

@@ -25,6 +25,8 @@ from smriprep import (
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "sphinxext")))
 from github_link import make_linkcode_resolve
 
+os.environ['NO_ET'] = '1'
+
 sys.path.insert(0, os.path.abspath("../wrapper"))
 
 # -- Project information -----------------------------------------------------
@@ -97,7 +99,7 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
