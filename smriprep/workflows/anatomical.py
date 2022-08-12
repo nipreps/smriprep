@@ -350,6 +350,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         gradunwarp_t1w_wf.input_node.gradfile = gradunwarp_file
         gradunwarp_t2w_wf = init_gradunwarp_wf("gradunwarp_t2w")
         gradunwarp_t2w_wf.input_node.gradfile = gradunwarp_file
+        gradunwarp_flair_wf = init_gradunwarp_wf("gradunwarp_flair")
+        gradunwarp_flair_wf.input_node.gradfile = gradunwarp_file
 
     # 1. Anatomical reference generation - average input T1w images.
     anat_template_wf = init_anat_template_wf(
@@ -412,6 +414,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         workflow.connect([
             # Step 1.
             (inputnode, gradunwarp_t1w, [('t1w', 'inputnode.input_file')]),
+            (inputnode, gradunwarp_t2w, [('t2w', 'inputnode.input_file')]),
+            (inputnode, gradunwarp_flair, [('flair', 'inputnode.input_file')]),
             (gradunwarp_t1w.corrected_file, anat_template_wf, [('corrected_file', 'inputnode.t1w')]),
             ])
     else:
@@ -608,13 +612,22 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # Anatomical ribbon file using HCP signed-distance volume method
     anat_ribbon_wf = init_anat_ribbon_wf()
     # fmt:off
+    if gradunwarp_file:
+        workflow.connect([
+            (gradunwarp_t2w.corrected_file, surface_recon_wf, [('corrected_file', 'inputnode.t2w')]),
+            (gradunwarp_flair.corrected_file, surface_recon_wf, [('corrected_file', 'inputnode.flair')]),
+            ])
+    else:
+        workflow.connect([(inputnode, surface_recon_wf, [
+            ('t2w', 'inputnode.t2w'),
+            ('flair', 'inputnode.flair'),
+            ])])
+
     workflow.connect([
         (inputnode, fs_isrunning, [
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id')]),
         (inputnode, surface_recon_wf, [
-            ('t2w', 'inputnode.t2w'),
-            ('flair', 'inputnode.flair'),
             ('subject_id', 'inputnode.subject_id')]),
         (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
