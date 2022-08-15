@@ -311,10 +311,11 @@ ARG VERSION
 # Force static versioning within container
 RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
     echo "include smriprep/${VERSION}" >> /src/smriprep/MANIFEST.in && \
-    /opt/conda/bin/python -m pip install --no-cache-dir "/src/smriprep[all]" && \
-    /opt/conda/bin/python -m pip install nibabel==4.0.1
+    /opt/conda/bin/python -m pip install --no-cache-dir "/src/smriprep[all]"
 
 RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml
+
+RUN /opt/conda/bin/python -m pip install nibabel==4.0.1
 
 RUN find $HOME -type d -exec chmod go=u {} + && \
     find $HOME -type f -exec chmod go=u {} + && \
