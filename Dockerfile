@@ -29,8 +29,8 @@ FROM ubuntu:focal-20210416
 # Prepare environment
 ENV DEBIAN_FRONTEND="noninteractive"
 ENV LANG=C.UTF-8
-ARG PYTHON_VERSION=3.9
-ARG CONDA_FILE=Miniconda3-py39_4.12.0-Linux-x86_64.sh
+ARG PYTHON_VERSION=3.8
+ARG CONDA_FILE=Miniconda3-py38_4.11.0-Linux-x86_64.sh
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
@@ -311,7 +311,8 @@ ARG VERSION
 # Force static versioning within container
 RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
     echo "include smriprep/${VERSION}" >> /src/smriprep/MANIFEST.in && \
-    /opt/conda/bin/python -m pip install --use-feature=in-tree-build --no-cache-dir "/src/smriprep[all]"
+    /opt/conda/bin/python -m pip install --no-cache-dir "/src/smriprep[all]" && \
+    /opt/conda/bin/python -m pip install nibabel==4.0.1
 
 RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml
 
