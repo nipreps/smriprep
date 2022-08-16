@@ -267,8 +267,8 @@ WORKDIR $ANTSPATH
 RUN curl -sSL "https://dl.dropbox.com/s/gwf51ykkk5bifyj/ants-Linux-centos6_x86_64-v2.3.4.tar.gz" \
     | tar -xzC $ANTSPATH --strip-components 1
 
-# nipreps/miniconda:py39_0525.0
-COPY --from=nipreps/miniconda@sha256:40fffd37963502dcd8549773559fc21182f52460e59e0ad6398a84faf6055641 /opt/conda /opt/conda
+# nipreps/miniconda:py38_1.4.1
+COPY --from=nipreps/miniconda@sha256:ebbff214e6c9dc50ccc6fdbe679df1ffcbceaa45b47a75d6e34e8a064ef178da /opt/conda /opt/conda
 
 RUN ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
