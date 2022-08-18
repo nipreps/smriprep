@@ -150,4 +150,4 @@ the ``smriprep`` package:
 - `C3D <https://sourceforge.net/projects/c3d/>`_ (version 1.0.0)
 - FreeSurfer_ (version 7.2.0)
 - `bids-validator <https://github.com/bids-standard/bids-validator>`_ (version 1.1.0)
-- FastSurfer_ (version 1.1.0)
+- FastSurfer_ (version 1.1.1)
