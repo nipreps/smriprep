@@ -99,7 +99,7 @@ class _ReconAllInputSpec(fs.preprocess.ReconAllInputSpec):
             "parcstats2",
             "cortparc3",
             "parcstats3",
-            "label-exvivo-ec",
+            "label-exvivo-ec-avg",
             # autorecon vol
             "cortribbon",
             "hyporelabel",  # 6.0
