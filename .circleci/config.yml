@@ -738,6 +738,9 @@ jobs:
           name: Install deps
           command: pip install -r docs/requirements.txt
       - run:
+          name: Install package in editable mode
+          command: pip install -e .
+      - run:
           name: Build only this commit
           no_output_timeout: 30m
           command: make -C docs NO_ET=1 SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
