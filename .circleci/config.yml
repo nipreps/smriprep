@@ -738,8 +738,8 @@ jobs:
           name: Install deps
           command: pip install -r docs/requirements.txt
       - run:
-          name: Install package in editable mode
-          command: pip install -e .
+          name: Install package
+          command: pip install .
       - run:
           name: Build only this commit
           no_output_timeout: 30m
