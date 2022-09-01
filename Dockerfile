@@ -315,7 +315,7 @@ RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
 
 RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml
 
-RUN /opt/conda/bin/python -m pip install nibabel==4.0.1
+RUN /opt/conda/bin/python -m pip install nibabel==4.0.2
 
 RUN find $HOME -type d -exec chmod go=u {} + && \
     find $HOME -type f -exec chmod go=u {} + && \
