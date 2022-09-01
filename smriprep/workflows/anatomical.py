@@ -563,8 +563,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (inputnode, surface_recon_wf, [
                 ('subject_id', 'inputnode.sid'),
                 ('subjects_dir', 'inputnode.sd')]),
-            (surface_recon_wf, applyrefined, [
-                ('outputnode.out_brainmask', 'mask_file')]),
             (surface_recon_wf, anat_reports_wf, [
                 ('inputnode.sid', 'inputnode.subject_id'),
                 ('inputnode.sd', 'inputnode.subjects_dir'),
