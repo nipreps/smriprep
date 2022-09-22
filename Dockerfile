@@ -55,7 +55,7 @@ RUN apt-get update && \
 
 # git clone dev branch of FastSurfer
 RUN cd /opt && mkdir /fastsurfer \
-    && git clone -b v1.1.1 https://github.com/Deep-MI/FastSurfer.git \
+    && git clone -b v1.1.2 https://github.com/Deep-MI/FastSurfer.git \
     && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml 
     
 # Install conda
