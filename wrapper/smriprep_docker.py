@@ -132,7 +132,7 @@ def merge_help(wrapper_help, target_help):
         and the docker wrapper (`smriprep-docker -h`).
         """
         posargs = []
-        for targ in usage.split('\n')[-3:]:
+        for targ in usage.split()[-3:]:
             line = targ.lstrip()
             if line.startswith('usage'):
                 continue
