@@ -149,22 +149,12 @@ def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
         LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
     fsnative2t1w_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
-    surfaces
-        GIFTI surfaces for gray/white matter boundary, pial surface,
-        midthickness (or graymid) surface, and inflated surfaces
     out_brainmask
         Refined brainmask, derived from FreeSurfer's ``aseg`` volume
-    out_aseg
-        FreeSurfer's aseg segmentation, in native T1w space
-    out_aparc
-        FreeSurfer's aparc+aseg segmentation, in native T1w space
-    morphometrics
-        GIFTIs of cortical thickness, curvature, and sulcal depth
 
     See also
     --------
     * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
-    * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
 
     """
     workflow = Workflow(name=name)
@@ -234,10 +224,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     )
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
-    gifti_surface_wf = init_gifti_surface_wf()
 
     aseg_to_native_wf = init_segs_to_native_wf()
-    aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
 
     # fmt:off
@@ -253,9 +241,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                                           ('subject_id', 'subject_id')]),
         (skull_strip_extern, autorecon_resume_wf, [('subjects_dir', 'inputnode.subjects_dir'),
                                                    ('subject_id', 'inputnode.subject_id')]),
-        (autorecon_resume_wf, gifti_surface_wf, [
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-            ('outputnode.subject_id', 'inputnode.subject_id')]),
         # Reconstruction phases
         (inputnode, autorecon1, [('t1w', 'T1_files')]),
         (inputnode, fov_check, [('t1w', 'in_files')]),
@@ -281,23 +266,14 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ('outputnode.subject_id', 'inputnode.subject_id')]),
         (fsnative2t1w_xfm, aseg_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
-        (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
-        (autorecon_resume_wf, aparc_to_native_wf, [
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-            ('outputnode.subject_id', 'inputnode.subject_id')]),
-        (fsnative2t1w_xfm, aparc_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
 
         # Output
         (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
                                            ('outputnode.subject_id', 'subject_id')]),
-        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
-                                        ('outputnode.morphometrics', 'morphometrics')]),
         (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
         (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
         (refine, outputnode, [('out_file', 'out_brainmask')]),
-        (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
-        (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
     ])
     # fmt:on
 
@@ -465,6 +441,106 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
                                  (('subject_id', _dedup), 'subject_id')]),
         (autorecon3, outputnode, [('subjects_dir', 'subjects_dir'),
                                   ('subject_id', 'subject_id')]),
+    ])
+    # fmt:on
+
+    return workflow
+
+
+def init_surface_derivatives_wf(*, name="surface_derivatives_wf"):
+    r"""
+    Generate sMRIPrep derivatives from FreeSurfer derivatives
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_surface_derivatives_wf
+            wf = init_surface_derivatives_wf()
+
+    Inputs
+    ------
+    reference
+        Reference image in native T1w space, for defining a resampling grid
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+
+    Outputs
+    -------
+    surfaces
+        GIFTI surfaces for gray/white matter boundary, pial surface,
+        midthickness (or graymid) surface, and inflated surfaces
+    morphometrics
+        GIFTIs of cortical thickness, curvature, and sulcal depth
+    out_aseg
+        FreeSurfer's aseg segmentation, in native T1w space
+    out_aparc
+        FreeSurfer's aparc+aseg segmentation, in native T1w space
+
+    See also
+    --------
+    * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
+
+    """
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "subjects_dir",
+                "subject_id",
+                "fsnative2t1w_xfm",
+                "reference",
+            ]
+        ),
+        name="inputnode",
+    )
+    outputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "surfaces",
+                "out_aseg",
+                "out_aparc",
+            ]
+        ),
+        name="outputnode",
+    )
+
+    gifti_surface_wf = init_gifti_surface_wf()
+    aseg_to_native_wf = init_segs_to_native_wf()
+    aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
+
+    # fmt:off
+    workflow.connect([
+        # Configuration
+        (inputnode, gifti_surface_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+        (inputnode, aseg_to_native_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+            ('reference', 'inputnode.in_file'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+        (inputnode, aparc_to_native_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+            ('reference', 'inputnode.in_file'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+
+        # Output
+        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
+                                        ('outputnode.morphometrics', 'morphometrics')]),
+        (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
+        (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
     ])
     # fmt:on
 

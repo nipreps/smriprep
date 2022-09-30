@@ -50,7 +50,7 @@ from ..utils.bids import get_outputnode_spec
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
-from .surfaces import init_surface_recon_wf
+from .surfaces import init_surface_derivatives_wf, init_surface_recon_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
 
@@ -522,6 +522,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
     )
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
+    surface_derivatives_wf = init_surface_derivatives_wf()
     # fmt:off
     workflow.connect([
         (inputnode, fs_isrunning, [
@@ -541,30 +542,39 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (('outputnode.bias_corrected', _pop), 'in_file')]),
         (surface_recon_wf, applyrefined, [
             ('outputnode.out_brainmask', 'mask_file')]),
+        (inputnode, surface_derivatives_wf, [
+            ('t1w', 'inputnode.reference'),
+        ]),
+        (surface_recon_wf, surface_derivatives_wf, [
+            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+            ('outputnode.subject_id', 'inputnode.subject_id'),
+            ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
         (surface_recon_wf, outputnode, [
             ('outputnode.subjects_dir', 'subjects_dir'),
             ('outputnode.subject_id', 'subject_id'),
             ('outputnode.t1w2fsnative_xfm', 't1w2fsnative_xfm'),
             ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+        ]),
+        (surface_derivatives_wf, outputnode, [
             ('outputnode.surfaces', 'surfaces'),
             ('outputnode.morphometrics', 'morphometrics'),
             ('outputnode.out_aseg', 't1w_aseg'),
-            ('outputnode.out_aparc', 't1w_aparc')]),
+            ('outputnode.out_aparc', 't1w_aparc'),
+        ]),
         (applyrefined, buffernode, [('out_file', 't1w_brain')]),
         (surface_recon_wf, buffernode, [
             ('outputnode.out_brainmask', 't1w_mask')]),
         (surface_recon_wf, anat_reports_wf, [
             ('outputnode.subject_id', 'inputnode.subject_id'),
             ('outputnode.subjects_dir', 'inputnode.subjects_dir')]),
-        (surface_recon_wf, anat_derivatives_wf, [
-            ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-            ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-        ]),
         (outputnode, anat_derivatives_wf, [
             ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
             ('surfaces', 'inputnode.surfaces'),
             ('morphometrics', 'inputnode.morphometrics'),
+            ('t1w_aseg', 'inputnode.t1w_fs_aseg'),
+            ('t1w_aparc', 'inputnode.t1w_fs_aparc'),
         ]),
     ])
     # fmt:on
