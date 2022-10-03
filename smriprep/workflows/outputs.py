@@ -196,14 +196,14 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
     return workflow
 
 
-def init_anat_derivatives_wf(
+def init_anat_first_derivatives_wf(
     *,
     bids_root,
     freesurfer,
     num_t1w,
     output_dir,
     spaces,
-    name="anat_derivatives_wf",
+    name="anat_first_derivatives_wf",
     tpm_labels=BIDS_TISSUE_ORDER,
 ):
     """
@@ -246,32 +246,14 @@ def init_anat_derivatives_wf(
         into standard space.
     std2anat_xfm
         Inverse transform of ``anat2std_xfm``
-    std_t1w
-        T1w reference resampled in one or more standard spaces.
-    std_mask
-        Mask of skull-stripped template, in standard space
-    std_dseg
-        Segmentation, resampled into standard space
-    std_tpms
-        Tissue probability maps in standard space
     t1w2fsnative_xfm
         LTA-style affine matrix translating from T1w to
         FreeSurfer-conformed subject space
     fsnative2t1w_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed
         subject space to T1w
-    surfaces
-        GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
-    morphometrics
-        GIFTIs of cortical thickness, curvature, and sulcal depth
-    t1w_fs_aseg
-        FreeSurfer's aseg segmentation, in native T1w space
-    t1w_fs_aparc
-        FreeSurfer's aparc+aseg segmentation, in native T1w space
 
     """
-    from niworkflows.interfaces.utility import KeySelect
-
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
@@ -288,10 +270,6 @@ def init_anat_derivatives_wf(
                 "std2anat_xfm",
                 "t1w2fsnative_xfm",
                 "fsnative2t1w_xfm",
-                "surfaces",
-                "morphometrics",
-                "t1w_fs_aseg",
-                "t1w_fs_aparc",
             ]
         ),
         name="inputnode",
@@ -399,6 +377,135 @@ def init_anat_derivatives_wf(
                                           ('t1w_ref_xfms', 'in_file')]),
         ])
         # fmt:on
+
+    if not freesurfer:
+        return workflow
+
+    from niworkflows.interfaces.nitransforms import ConcatenateXFMs
+
+    # FS native space transforms
+    lta2itk_fwd = pe.Node(
+        ConcatenateXFMs(), name="lta2itk_fwd", run_without_submitting=True
+    )
+    lta2itk_inv = pe.Node(
+        ConcatenateXFMs(), name="lta2itk_inv", run_without_submitting=True
+    )
+    ds_t1w_fsnative = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            mode="image",
+            to="fsnative",
+            suffix="xfm",
+            extension="txt",
+            **{"from": "T1w"},
+        ),
+        name="ds_t1w_fsnative",
+        run_without_submitting=True,
+    )
+    ds_fsnative_t1w = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            mode="image",
+            to="T1w",
+            suffix="xfm",
+            extension="txt",
+            **{"from": "fsnative"},
+        ),
+        name="ds_fsnative_t1w",
+        run_without_submitting=True,
+    )
+
+    # fmt:off
+    workflow.connect([
+        (inputnode, lta2itk_fwd, [('t1w2fsnative_xfm', 'in_xfms')]),
+        (inputnode, lta2itk_inv, [('fsnative2t1w_xfm', 'in_xfms')]),
+        (inputnode, ds_t1w_fsnative, [('source_files', 'source_file')]),
+        (lta2itk_fwd, ds_t1w_fsnative, [('out_xfm', 'in_file')]),
+        (inputnode, ds_fsnative_t1w, [('source_files', 'source_file')]),
+        (lta2itk_inv, ds_fsnative_t1w, [('out_xfm', 'in_file')]),
+    ])
+    # fmt:on
+    return workflow
+
+
+def init_anat_second_derivatives_wf(
+    *,
+    bids_root,
+    freesurfer,
+    output_dir,
+    spaces,
+    name="anat_second_derivatives_wf",
+    tpm_labels=BIDS_TISSUE_ORDER,
+):
+    """
+    Set up a battery of datasinks to store derivatives in the right location.
+
+    Parameters
+    ----------
+    bids_root : :obj:`str`
+        Root path of BIDS dataset
+    freesurfer : :obj:`bool`
+        FreeSurfer was enabled
+    output_dir : :obj:`str`
+        Directory in which to save derivatives
+    name : :obj:`str`
+        Workflow name (default: anat_derivatives_wf)
+    tpm_labels : :obj:`tuple`
+        Tissue probability maps in order
+
+    Inputs
+    ------
+    template
+        Template space and specifications
+    source_files
+        List of input T1w images
+    t1w_preproc
+        The T1w reference map, which is calculated as the average of bias-corrected
+        and preprocessed T1w images, defining the anatomical space.
+    t1w_mask
+        Mask of the ``t1w_preproc``
+    t1w_dseg
+        Segmentation in T1w space
+    t1w_tpms
+        Tissue probability maps in T1w space
+    anat2std_xfm
+        Nonlinear spatial transform to resample imaging data given in anatomical space
+        into standard space.
+    surfaces
+        GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
+    morphometrics
+        GIFTIs of cortical thickness, curvature, and sulcal depth
+    t1w_fs_aseg
+        FreeSurfer's aseg segmentation, in native T1w space
+    t1w_fs_aparc
+        FreeSurfer's aparc+aseg segmentation, in native T1w space
+
+    """
+    from niworkflows.interfaces.utility import KeySelect
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "template",
+                "source_files",
+                "t1w_preproc",
+                "t1w_mask",
+                "t1w_dseg",
+                "t1w_tpms",
+                "anat2std_xfm",
+                "surfaces",
+                "morphometrics",
+                "t1w_fs_aseg",
+                "t1w_fs_aparc",
+            ]
+        ),
+        name="inputnode",
+    )
+
+    raw_sources = pe.Node(niu.Function(function=_bids_relative), name="raw_sources")
+    raw_sources.inputs.bids_root = bids_root
 
     # Write derivatives in standard spaces specified by --output-spaces
     if getattr(spaces, "_cached") is not None and spaces.cached.references:
@@ -558,40 +665,8 @@ def init_anat_derivatives_wf(
     if not freesurfer:
         return workflow
 
-    from niworkflows.interfaces.nitransforms import ConcatenateXFMs
     from niworkflows.interfaces.surf import Path2BIDS
 
-    # FS native space transforms
-    lta2itk_fwd = pe.Node(
-        ConcatenateXFMs(), name="lta2itk_fwd", run_without_submitting=True
-    )
-    lta2itk_inv = pe.Node(
-        ConcatenateXFMs(), name="lta2itk_inv", run_without_submitting=True
-    )
-    ds_t1w_fsnative = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir,
-            mode="image",
-            to="fsnative",
-            suffix="xfm",
-            extension="txt",
-            **{"from": "T1w"},
-        ),
-        name="ds_t1w_fsnative",
-        run_without_submitting=True,
-    )
-    ds_fsnative_t1w = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir,
-            mode="image",
-            to="T1w",
-            suffix="xfm",
-            extension="txt",
-            **{"from": "fsnative"},
-        ),
-        name="ds_fsnative_t1w",
-        run_without_submitting=True,
-    )
     # Surfaces
     name_surfs = pe.MapNode(
         Path2BIDS(), iterfield="in_file", name="name_surfs", run_without_submitting=True
@@ -630,12 +705,6 @@ def init_anat_derivatives_wf(
 
     # fmt:off
     workflow.connect([
-        (inputnode, lta2itk_fwd, [('t1w2fsnative_xfm', 'in_xfms')]),
-        (inputnode, lta2itk_inv, [('fsnative2t1w_xfm', 'in_xfms')]),
-        (inputnode, ds_t1w_fsnative, [('source_files', 'source_file')]),
-        (lta2itk_fwd, ds_t1w_fsnative, [('out_xfm', 'in_file')]),
-        (inputnode, ds_fsnative_t1w, [('source_files', 'source_file')]),
-        (lta2itk_inv, ds_fsnative_t1w, [('out_xfm', 'in_file')]),
         (inputnode, name_surfs, [('surfaces', 'in_file')]),
         (inputnode, ds_surfs, [('surfaces', 'in_file'),
                                ('source_files', 'source_file')]),

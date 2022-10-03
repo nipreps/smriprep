@@ -49,7 +49,9 @@ from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.bids import get_outputnode_spec
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .norm import init_anat_norm_wf
-from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
+from .outputs import (
+    init_anat_reports_wf, init_anat_first_derivatives_wf, init_anat_second_derivatives_wf
+)
 from .surfaces import init_surface_derivatives_wf, init_surface_recon_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
@@ -450,10 +452,16 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # fmt:on
 
     # Write outputs ############################################3
-    anat_derivatives_wf = init_anat_derivatives_wf(
+    anat_first_derivatives_wf = init_anat_first_derivatives_wf(
         bids_root=bids_root,
         freesurfer=freesurfer,
         num_t1w=num_t1w,
+        output_dir=output_dir,
+        spaces=spaces,
+    )
+    anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+        bids_root=bids_root,
+        freesurfer=freesurfer,
         output_dir=output_dir,
         spaces=spaces,
     )
@@ -461,15 +469,27 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # fmt:off
     workflow.connect([
         # Connect derivatives
-        (anat_template_wf, anat_derivatives_wf, [
+        (anat_template_wf, anat_first_derivatives_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
-        (anat_norm_wf, anat_derivatives_wf, [
+        (anat_template_wf, anat_second_derivatives_wf, [
+            ('outputnode.t1w_valid_list', 'inputnode.source_files')]),
+        (anat_norm_wf, anat_first_derivatives_wf, [
             ('outputnode.template', 'inputnode.template'),
             ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
             ('outputnode.std2anat_xfm', 'inputnode.std2anat_xfm')
         ]),
-        (outputnode, anat_derivatives_wf, [
+        (anat_norm_wf, anat_second_derivatives_wf, [
+            ('outputnode.template', 'inputnode.template'),
+            ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
+        ]),
+        (outputnode, anat_first_derivatives_wf, [
             ('t1w_ref_xfms', 'inputnode.t1w_ref_xfms'),
+            ('t1w_preproc', 'inputnode.t1w_preproc'),
+            ('t1w_mask', 'inputnode.t1w_mask'),
+            ('t1w_dseg', 'inputnode.t1w_dseg'),
+            ('t1w_tpms', 'inputnode.t1w_tpms'),
+        ]),
+        (outputnode, anat_second_derivatives_wf, [
             ('t1w_preproc', 'inputnode.t1w_preproc'),
             ('t1w_mask', 'inputnode.t1w_mask'),
             ('t1w_dseg', 'inputnode.t1w_dseg'),
@@ -568,9 +588,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (surface_recon_wf, anat_reports_wf, [
             ('outputnode.subject_id', 'inputnode.subject_id'),
             ('outputnode.subjects_dir', 'inputnode.subjects_dir')]),
-        (outputnode, anat_derivatives_wf, [
+        (outputnode, anat_first_derivatives_wf, [
             ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+        (outputnode, anat_second_derivatives_wf, [
             ('surfaces', 'inputnode.surfaces'),
             ('morphometrics', 'inputnode.morphometrics'),
             ('t1w_aseg', 'inputnode.t1w_fs_aseg'),
