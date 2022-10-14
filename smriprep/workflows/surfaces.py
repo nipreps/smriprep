@@ -501,8 +501,12 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     surfaces
         GIFTI surfaces for gray/white matter boundary, pial surface,
         midthickness (or graymid) surface, and inflated surfaces
+    morphometrics
+        GIFTIs of cortical thickness, curvature, and sulcal depth
 
     """
+    from ..interfaces.freesurfer import MRIsConvertData
+
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
@@ -536,19 +540,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="surfmorph_list",
         run_without_submitting=True,
     )
-    whitesurf_list = pe.Node(
-        niu.Merge(3, ravel_inputs=True),
-        name="whitesurf_list",
-        run_without_submitting=True,
-    )
     fscurv2funcgii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii", to_scanner=True),
-        iterfield=["in_file", "scalarcurv_file"], name="fscurv2funcgii",
-    )
-    allsurf_list = pe.Node(
-        niu.Merge(7),
-        name="allsurf_list",
-        run_without_submitting=True,
+        MRIsConvertData(out_datatype="gii", to_scanner=True, target_surface="smoothwm"),
+        iterfield="scalarcurv_file", name="fscurv2funcgii",
     )
 
     # fmt:off
@@ -570,14 +564,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         (get_surfaces, surfmorph_list, [('thickness', 'in1'),
                                         ('sulc', 'in2'),
                                         ('curv', 'in3')]),
-        (get_surfaces, whitesurf_list, [('smoothwm', 'in1'),
-                                        ('smoothwm', 'in2'),
-                                        ('smoothwm', 'in3')]),
-        (whitesurf_list, fscurv2funcgii, [('out', 'in_file')]),
         (surfmorph_list, fscurv2funcgii, [('out', 'scalarcurv_file')]),
-        (fs2gii, allsurf_list, [('converted', 'in1')]),
-        (fscurv2funcgii, allsurf_list, [('converted', 'in2')]),
-        (allsurf_list, outputnode, [('out', 'surfaces')])
+        (fs2gii, outputnode, [('converted', 'surfaces')]),
+        (fscurv2funcgii, outputnode, [('converted', 'morphometrics')]),
     ])
     # fmt:on
     return workflow
