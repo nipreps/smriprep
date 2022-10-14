@@ -6,91 +6,131 @@ on:
     tags: [ '*' ]
   pull_request:
     branches: [ master, 'maint/*' ]
+  schedule:
+    - cron: '0 0 * * *'
+
+concurrency:
+  group: python-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  check_if_skip:
+    runs-on: ubuntu-latest
+    outputs:
+      commit_message: ${{ steps.get_commit_message.outputs.commit_message }}
+    steps:
+      - name: Get repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Print head git commit message
+        id: get_commit_message
+        run: |
+          if [[ -z "$COMMIT_MSG" ]]; then
+            COMMIT_MSG=$(git show -s --format=%s)
+          fi
+          echo $COMMIT_MSG
+          echo "::set-output name=commit_message::$COMMIT_MSG"
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+
   build:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    needs: check_if_skip
+    if: "!contains(needs.check_if_skip.outputs.commit_message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - name: Set up Python 3
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3
+    - name: Display Python version
+      run: python -c "import sys; print(sys.version)"
+    - name: Check python version and install build
+      run: |
+        python --version
+        python -m pip install -U build twine
+    - name: Build smriprep
+      run: python -m build
+    - name: Check distributions
+      run: twine check dist/*
+    - uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
+
+  test:
+    needs: [build]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
-        pip: ["pip>=20.3"]
-        
+        python-version: [3.7, 3.8, 3.9, "3.10"]
+        install: [repo]
+        include:
+          - python-version: 3
+            install: sdist
+          - python-version: 3
+            install: wheel
+          - python-version: 3
+            install: editable
+
+    env:
+      INSTALL_TYPE: ${{ matrix.install }}
+
     steps:
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: actions/checkout@v3
+    - name: Fetch packages
+      uses: actions/download-artifact@v3
       with:
-        ssh-key: "${{ secrets.NIPREPS_DEPLOY }}"
-    - name: Fetch all tags (for versioneer to work)
-      if: "!startsWith(github.ref, 'refs/tags/')"
+        name: dist
+        path: dist/
+    - name: Select archive
       run: |
-        /usr/bin/git -c protocol.version=2 fetch --tags --prune --unshallow origin
-    - name: Build in confined, updated environment and interpolate version
+        if [ "$INSTALL_TYPE" = "sdist" ]; then
+          ARCHIVE=$( ls dist/*.tar.gz )
+        elif [ "$INSTALL_TYPE" = "wheel" ]; then
+          ARCHIVE=$( ls dist/*.whl )
+        elif [ "$INSTALL_TYPE" = "repo" ]; then
+          ARCHIVE="."
+        elif [ "$INSTALL_TYPE" = "editable" ]; then
+          ARCHIVE="-e ."
+        fi
+        echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
+    - name: Install package
+      run: python -m pip install $ARCHIVE
+    - name: Check version
       run: |
-        python -m venv /tmp/buildenv
-        source /tmp/buildenv/bin/activate
-        python -m pip install -U setuptools pip wheel twine docutils
-        python setup.py sdist bdist_wheel
-        python -m twine check dist/smriprep*
         # Interpolate version
         if [[ "$GITHUB_REF" == refs/tags/* ]]; then
           TAG=${GITHUB_REF##*/}
         fi
         THISVERSION=$( python get_version.py )
         THISVERSION=${TAG:-$THISVERSION}
-        echo "Expected VERSION: \"${THISVERSION}\""
-        echo "THISVERSION=${THISVERSION}" >> ${GITHUB_ENV}
-    - name: Install in confined environment [sdist]
-      run: |
-        python -m venv /tmp/install_sdist
-        source /tmp/install_sdist/bin/activate
-        python -m pip install "${{ matrix.pip }}" setuptools
-        python -m pip install dist/smriprep*.tar.gz
         INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
         echo "VERSION: \"${THISVERSION}\""
         echo "INSTALLED: \"${INSTALLED_VERSION}\""
         test "${INSTALLED_VERSION}" = "${THISVERSION}"
-    - name: Install in confined environment [wheel]
-      run: |
-        python -m venv /tmp/install_wheel
-        source /tmp/install_wheel/bin/activate
-        python -m pip install "${{ matrix.pip }}" setuptools
-        python -m pip install dist/smriprep*.whl
-        INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
-        echo "INSTALLED: \"${INSTALLED_VERSION}\""
-        test "${INSTALLED_VERSION}" = "${THISVERSION}"
-    - name: Install in confined environment [pip install source]
-      run: |
-        python -m venv /tmp/setup_install
-        source /tmp/setup_install/bin/activate
-        python -m pip install "${{ matrix.pip }}" setuptools
-        python -m pip install .
-        INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
-        echo "INSTALLED: \"${INSTALLED_VERSION}\""
-        test "${INSTALLED_VERSION}" = "${THISVERSION}"
-    - name: Install in confined environment [pip install editable]
-      run: |
-        python -m venv /tmp/setup_develop
-        source /tmp/setup_develop/bin/activate
-        python -m pip install "${{ matrix.pip }}" setuptools
-        # sklearn needs these dependencies
-        python -m pip install numpy scipy "Cython >= 0.28.5"
-        python -m pip install scikit-learn  # otherwise it attempts to build it
-        python -m pip install -e .
-        INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
-        echo "INSTALLED: \"${INSTALLED_VERSION}\""
-        test "${INSTALLED_VERSION}" = "${THISVERSION}"
+    - name: Install test dependencies
+      run: python -m pip install "smriprep[tests]"
+    - name: Run tests
+      run: pytest -sv --doctest-modules --cov smriprep smriprep
+    - uses: codecov/codecov-action@v2
+      name: Submit to CodeCov
+
   flake8:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v1
+    - name: Set up Python 3
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3
     - run: pip install flake8
     - run: flake8 smriprep
