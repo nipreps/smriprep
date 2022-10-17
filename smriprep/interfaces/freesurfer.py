@@ -287,6 +287,7 @@ class MRIsConvertData(fs.utils.MRIsConvert):
             hemi = basename.split('.', 1)[0]
             if hemi not in ('lh', 'rh'):
                 return None
-            return os.path.join(dirname, f"{hemi}.{self.inputs.target_surface}")
+            self.inputs.in_file = os.path.join(dirname, f"{hemi}.{self.inputs.target_surface}")
+            return self.inputs.in_file
 
         return super()._gen_filename(name)
