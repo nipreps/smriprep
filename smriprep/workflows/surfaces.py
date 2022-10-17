@@ -567,11 +567,13 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
                                       ('inflated', 'in3')]),
         (save_midthickness, surface_list, [('out_file', 'in4')]),
         (surface_list, fs2gii, [('out', 'in_file')]),
+        (fs2gii, fix_surfs, [('converted', 'in_file')]),
+        (inputnode, fix_surfs, [('fsnative2t1w_xfm', 'transform_file')]),
+        (fix_surfs, outputnode, [('out_file', 'surfaces')]),
         (get_surfaces, surfmorph_list, [('thickness', 'in1'),
                                         ('sulc', 'in2'),
                                         ('curv', 'in3')]),
         (surfmorph_list, fscurv2funcgii, [('out', 'scalarcurv_file')]),
-        (fs2gii, outputnode, [('converted', 'surfaces')]),
         (fscurv2funcgii, outputnode, [('converted', 'morphometrics')]),
     ])
     # fmt:on
