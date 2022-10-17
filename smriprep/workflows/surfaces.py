@@ -158,6 +158,8 @@ def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
         FreeSurfer's aseg segmentation, in native T1w space
     out_aparc
         FreeSurfer's aparc+aseg segmentation, in native T1w space
+    morphometrics
+        GIFTIs of cortical thickness, curvature, and sulcal depth
 
     See also
     --------
@@ -202,6 +204,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                 "out_brainmask",
                 "out_aseg",
                 "out_aparc",
+                "morphometrics",
             ]
         ),
         name="outputnode",
@@ -288,7 +291,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         # Output
         (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
                                            ('outputnode.subject_id', 'subject_id')]),
-        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
+        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
+                                        ('outputnode.morphometrics', 'morphometrics')]),
         (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
         (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
         (refine, outputnode, [('out_file', 'out_brainmask')]),
@@ -513,7 +517,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         niu.IdentityInterface(["subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
         name="inputnode",
     )
-    outputnode = pe.Node(niu.IdentityInterface(["surfaces"]), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(["surfaces", "morphometrics"]), name="outputnode")
 
     get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 

@@ -262,6 +262,8 @@ def init_anat_derivatives_wf(
         subject space to T1w
     surfaces
         GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
+    morphometrics
+        GIFTIs of cortical thickness, curvature, and sulcal depth
     t1w_fs_aseg
         FreeSurfer's aseg segmentation, in native T1w space
     t1w_fs_aparc
@@ -287,6 +289,7 @@ def init_anat_derivatives_wf(
                 "t1w2fsnative_xfm",
                 "fsnative2t1w_xfm",
                 "surfaces",
+                "morphometrics",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
             ]
