@@ -204,7 +204,6 @@ class ReconAll(fs.ReconAll):
 class _MRIsConvertDataInputSpec(fs.utils.MRIsConvertInputSpec):
     in_file = File(
         exists=True,
-        mandatory=True,
         position=-2,
         genfile=True,
         argstr="%s",
