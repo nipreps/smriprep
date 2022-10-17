@@ -510,6 +510,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
 
     """
     from ..interfaces.freesurfer import MRIsConvertData
+    from ..interfaces.surf import NormalizeSurf
 
     workflow = Workflow(name=name)
 
@@ -539,6 +540,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     fs2gii = pe.MapNode(
         fs.MRIsConvert(out_datatype="gii", to_scanner=True), iterfield="in_file", name="fs2gii",
     )
+    fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
     surfmorph_list = pe.Node(
         niu.Merge(3, ravel_inputs=True),
         name="surfmorph_list",
