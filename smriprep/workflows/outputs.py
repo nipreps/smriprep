@@ -602,6 +602,16 @@ def init_anat_derivatives_wf(
         name="ds_surfs",
         run_without_submitting=True,
     )
+    # Morphometrics
+    name_morphs = pe.MapNode(
+        Path2BIDS(), iterfield="in_file", name="name_morphs", run_without_submitting=True,
+    )
+    ds_morphs = pe.MapNode(
+        DerivativesDataSink(base_directory=output_dir, extension=".shape.gii"),
+        iterfield=["in_file", "hemi", "suffix"],
+        name="ds_morphs",
+        run_without_submitting=True,
+    )
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(
@@ -631,6 +641,9 @@ def init_anat_derivatives_wf(
                                ('source_files', 'source_file')]),
         (name_surfs, ds_surfs, [('hemi', 'hemi'),
                                 ('suffix', 'suffix')]),
+        (inputnode, name_morphs, [('surfaces', 'in_file')]),
+        (name_morphs, ds_morphs, [('hemi', 'hemi'),
+                                  ('suffix', 'suffix')]),
         (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file'),
                                     ('source_files', 'source_file')]),
         (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),
