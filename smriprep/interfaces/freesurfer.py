@@ -24,7 +24,7 @@
 import os
 from nipype import logging
 from nipype.utils.filemanip import check_depends
-from nipype.interfaces.base import traits, InputMultiObject, isdefined
+from nipype.interfaces.base import traits, InputMultiObject, isdefined, File
 from nipype.interfaces import freesurfer as fs
 
 iflogger = logging.getLogger("nipype.interface")
@@ -199,3 +199,87 @@ class ReconAll(fs.ReconAll):
         if name == "hemi":
             return trait_spec.argstr % value
         return super()._format_arg(name, trait_spec, value)
+
+
+class _MRIsConvertDataInputSpec(fs.utils.MRIsConvertInputSpec):
+    in_file = File(
+        exists=True,
+        position=-2,
+        genfile=True,
+        argstr="%s",
+        desc="Surface file",
+    )
+    _xor = ('annot_file', 'parcstats_file', 'label_file', 'scalarcurv_file', 'functional_file')
+    annot_file = File(
+        exists=True,
+        argstr="--annot %s",
+        mandatory=True,
+        xor=_xor,
+        desc="input is annotation or gifti label data",
+    )
+
+    parcstats_file = File(
+        exists=True,
+        argstr="--parcstats %s",
+        mandatory=True,
+        xor=_xor,
+        desc="infile is name of text file containing label/val pairs",
+    )
+
+    label_file = File(
+        exists=True,
+        argstr="--label %s",
+        mandatory=True,
+        xor=_xor,
+        desc="infile is .label file, label is name of this label",
+    )
+
+    scalarcurv_file = File(
+        exists=True,
+        argstr="-c %s",
+        mandatory=True,
+        xor=_xor,
+        desc="input is scalar curv overlay file (must still specify surface)",
+    )
+
+    functional_file = File(
+        exists=True,
+        argstr="-f %s",
+        mandatory=True,
+        xor=_xor,
+        desc="input is functional time-series or other multi-frame data (must specify surface)",
+    )
+
+
+class MRIsConvertData(fs.utils.MRIsConvert):
+    """Convert surface data files (label, curvature, functional, etc)
+    Wraps mris_convert to automatically select the correct ?h.white surface if
+    passed a file from the subject's surf/ directory
+    """
+    input_spec = _MRIsConvertDataInputSpec
+
+    def _gen_filename(self, name):
+        if name == "in_file":
+            if isdefined(self.inputs.in_file):
+                return self.inputs.in_file
+
+            # Find file we're trying to convert
+            fname = None
+            for opt in ('annot', 'parcstats', 'label', 'scalarcurv', 'functional'):
+                input_file = getattr(self.inputs, f"{opt}_file")
+                if isdefined(input_file):
+                    fname = input_file
+                    break
+
+            if fname is None:
+                raise ValueError("Missing file to derive filename from.")
+
+            # $SUB/lh.curv -> $SUB/lh.white, etc
+            dirname, basename = os.path.split(fname)
+            hemi = basename.split('.', 1)[0]
+            if hemi not in ('lh', 'rh'):
+                return None
+            self.inputs.in_file = os.path.join(dirname, f"{hemi}.white")
+            return self.inputs.in_file
+
+        return super()._gen_filename(name)
