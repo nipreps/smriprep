@@ -38,7 +38,6 @@ from nipype.interfaces import (
 
 from ..interfaces.freesurfer import ReconAll
 from ..interfaces import fastsurfer as fastsurf
-from ..interfaces.surf import NormalizeSurf
 
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
