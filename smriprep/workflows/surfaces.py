@@ -546,9 +546,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="surfmorph_list",
         run_without_submitting=True,
     )
-    fscurv2funcgii = pe.MapNode(
-        MRIsConvertData(out_datatype="gii", to_scanner=True, target_surface="smoothwm"),
-        iterfield="scalarcurv_file", name="fscurv2funcgii",
+    morphs2gii = pe.MapNode(
+        MRIsConvertData(out_datatype="gii"),
+        iterfield="scalarcurv_file", name="morphs2gii",
     )
 
     # fmt:off
@@ -573,8 +573,8 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         (get_surfaces, surfmorph_list, [('thickness', 'in1'),
                                         ('sulc', 'in2'),
                                         ('curv', 'in3')]),
-        (surfmorph_list, fscurv2funcgii, [('out', 'scalarcurv_file')]),
-        (fscurv2funcgii, outputnode, [('converted', 'morphometrics')]),
+        (surfmorph_list, morphs2gii, [('out', 'scalarcurv_file')]),
+        (morphs2gii, outputnode, [('converted', 'morphometrics')]),
     ])
     # fmt:on
     return workflow

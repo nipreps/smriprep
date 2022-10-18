@@ -249,13 +249,6 @@ class _MRIsConvertDataInputSpec(fs.utils.MRIsConvertInputSpec):
         xor=_xor,
         desc="input is functional time-series or other multi-frame data (must specify surface)",
     )
-    target_surface = traits.Enum(
-        "white",
-        "smoothwm",
-        usedefault=True,
-        mandatory=True,
-        desc="Target surface type to return if deriving",
-    )
 
 
 class MRIsConvertData(fs.utils.MRIsConvert):
@@ -286,7 +279,7 @@ class MRIsConvertData(fs.utils.MRIsConvert):
             hemi = basename.split('.', 1)[0]
             if hemi not in ('lh', 'rh'):
                 return None
-            self.inputs.in_file = os.path.join(dirname, f"{hemi}.{self.inputs.target_surface}")
+            self.inputs.in_file = os.path.join(dirname, f"{hemi}.white")
             return self.inputs.in_file
 
         return super()._gen_filename(name)
