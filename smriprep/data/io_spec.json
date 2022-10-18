@@ -71,6 +71,12 @@
         "hemi": ["L", "R"],
         "extension": "surf.gii",
         "suffix": [ "inflated", "midthickness", "pial", "smoothwm"]
+      },
+      "morphometrics": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "extension": "shape.gii",
+        "suffix": ["thickness", "sulc", "curv"]
       }
     }
   },
