@@ -145,6 +145,7 @@ The following template{tpls} selected for spatial normalization:
             fields=[
                 "lesion_mask",
                 "moving_image",
+                "moving_mask",
                 "template",
             ]
         ),

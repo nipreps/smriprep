@@ -341,7 +341,7 @@ to workflows in *sMRIPrep*'s documentation]\
 
 """
 
-    deriv_cache = None
+    deriv_cache = {}
     if fast_track:
         from ..utils.bids import collect_derivatives
 
@@ -400,7 +400,7 @@ to workflows in *sMRIPrep*'s documentation]\
     anat_preproc_wf = init_anat_preproc_wf(
         bids_root=layout.root,
         debug=debug,
-        existing_derivatives=deriv_cache,
+        precomputed=deriv_cache,
         freesurfer=freesurfer,
         hires=hires,
         longitudinal=longitudinal,

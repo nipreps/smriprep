@@ -268,7 +268,6 @@ def init_anat_first_derivatives_wf(
                 "t1w_tpms",
                 "anat2std_xfm",
                 "std2anat_xfm",
-                "t1w2fsnative_xfm",
                 "fsnative2t1w_xfm",
             ]
         ),
@@ -384,11 +383,8 @@ def init_anat_first_derivatives_wf(
     from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 
     # FS native space transforms
-    lta2itk_fwd = pe.Node(
-        ConcatenateXFMs(), name="lta2itk_fwd", run_without_submitting=True
-    )
-    lta2itk_inv = pe.Node(
-        ConcatenateXFMs(), name="lta2itk_inv", run_without_submitting=True
+    lta2itk = pe.Node(
+        ConcatenateXFMs(inverse=True), name="lta2itk", run_without_submitting=True
     )
     ds_t1w_fsnative = pe.Node(
         DerivativesDataSink(
@@ -417,12 +413,11 @@ def init_anat_first_derivatives_wf(
 
     # fmt:off
     workflow.connect([
-        (inputnode, lta2itk_fwd, [('t1w2fsnative_xfm', 'in_xfms')]),
-        (inputnode, lta2itk_inv, [('fsnative2t1w_xfm', 'in_xfms')]),
+        (inputnode, lta2itk, [('fsnative2t1w_xfm', 'in_xfms')]),
         (inputnode, ds_t1w_fsnative, [('source_files', 'source_file')]),
-        (lta2itk_fwd, ds_t1w_fsnative, [('out_xfm', 'in_file')]),
+        (lta2itk, ds_t1w_fsnative, [('out_inv', 'in_file')]),
         (inputnode, ds_fsnative_t1w, [('source_files', 'source_file')]),
-        (lta2itk_inv, ds_fsnative_t1w, [('out_xfm', 'in_file')]),
+        (lta2itk, ds_fsnative_t1w, [('out_xfm', 'in_file')]),
     ])
     # fmt:on
     return workflow

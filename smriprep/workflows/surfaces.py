@@ -206,9 +206,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     fsnative2t1w_xfm = pe.Node(
         RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
     )
-    t1w2fsnative_xfm = pe.Node(
-        LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm"
-    )
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
 
@@ -241,12 +238,10 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         # reoriented image
         (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
         (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
-        (fsnative2t1w_xfm, t1w2fsnative_xfm, [('out_reg_file', 'in_lta')]),
 
         # Output
         (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
                                            ('outputnode.subject_id', 'subject_id')]),
-        (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
         (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
     ])
     # fmt:on
