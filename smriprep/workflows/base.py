@@ -44,7 +44,7 @@ from .anatomical import init_anat_preproc_wf
 def init_smriprep_wf(
     *,
     debug,
-    fast_track,
+    derivatives,
     freesurfer,
     fs_subjects_dir,
     hires,
@@ -81,7 +81,7 @@ def init_smriprep_wf(
             from niworkflows.utils.spaces import SpatialReferences, Reference
             wf = init_smriprep_wf(
                 debug=False,
-                fast_track=False,
+                derivatives=[],
                 freesurfer=True,
                 fs_subjects_dir=None,
                 hires=True,
@@ -104,7 +104,7 @@ def init_smriprep_wf(
     ----------
     debug : :obj:`bool`
         Enable debugging outputs
-    fast_track : :obj:`bool`
+    derivatives : :obj:`list` of directories
         Fast-track the workflow by searching for existing derivatives.
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
@@ -166,7 +166,7 @@ def init_smriprep_wf(
         single_subject_wf = init_single_subject_wf(
             debug=debug,
             freesurfer=freesurfer,
-            fast_track=fast_track,
+            derivatives=derivatives,
             hires=hires,
             layout=layout,
             longitudinal=longitudinal,
@@ -200,7 +200,7 @@ def init_smriprep_wf(
 def init_single_subject_wf(
     *,
     debug,
-    fast_track,
+    derivatives,
     freesurfer,
     hires,
     layout,
@@ -240,7 +240,7 @@ def init_single_subject_wf(
             wf = init_single_subject_wf(
                 debug=False,
                 freesurfer=True,
-                fast_track=False,
+                derivatives=[],
                 hires=True,
                 layout=BIDSLayout('.'),
                 longitudinal=False,
@@ -260,8 +260,8 @@ def init_single_subject_wf(
     ----------
     debug : :obj:`bool`
         Enable debugging outputs
-    fast_track : :obj:`bool`
-        If ``True``, attempt to collect previously run derivatives.
+    derivatives : :obj:`list` of directories
+        Fast-track the workflow by searching for existing derivatives.
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
     hires : :obj:`bool`
@@ -341,14 +341,11 @@ to workflows in *sMRIPrep*'s documentation]\
 
 """
 
+    from ..utils.bids import collect_derivatives
     deriv_cache = {}
-    if fast_track:
-        from ..utils.bids import collect_derivatives
-
-        std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
-        deriv_cache = collect_derivatives(
-            Path(output_dir) / "smriprep", subject_id, std_spaces, freesurfer
-        )
+    std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
+    for deriv_dir in derivatives:
+        deriv_cache.update(collect_derivatives(deriv_dir, subject_id, std_spaces, freesurfer))
 
     inputnode = pe.Node(
         niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode"

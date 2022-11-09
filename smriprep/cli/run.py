@@ -99,6 +99,15 @@ def get_parser():
         "identifier (the sub- prefix can be removed)",
     )
     g_bids.add_argument(
+        "-d",
+        "--derivatives",
+        action="store",
+        metavar="PATH",
+        type=Path,
+        nargs="*",
+        help="Search PATH(s) for pre-computed derivatives.",
+    )
+    g_bids.add_argument(
         "--bids-filter-file",
         action="store",
         type=Path,
@@ -244,7 +253,8 @@ def get_parser():
         "--fast-track",
         action="store_true",
         default=False,
-        help="fast-track the workflow by searching for existing derivatives.",
+        help="fast-track the workflow by searching for existing derivatives. "
+        "(DEPRECATED for --derivatives).",
     )
     g_other.add_argument(
         "--resource-monitor",
@@ -430,6 +440,7 @@ def build_workflow(opts, retval):
     from shutil import copyfile
     from os import cpu_count
     import uuid
+    import warnings
     from time import strftime
     from subprocess import check_call, CalledProcessError, TimeoutExpired
     from pkg_resources import resource_filename as pkgrf
@@ -577,10 +588,20 @@ def build_workflow(opts, retval):
         ),
     )
 
+    derivatives = opts.derivatives or []
+    if opts.fast_track:
+        # XXX Makes strong assumption of legacy layout
+        smriprep_dir = str(output_dir / "smriprep")
+        warnings.warn(
+            f"Received DEPRECATED --fast-track flag. "
+            "Adding {smriprep_dir} to --derivatives list."
+        )
+        derivatives.append(smriprep_dir)
+
     # Build main workflow
     retval["workflow"] = init_smriprep_wf(
         debug=opts.sloppy,
-        fast_track=opts.fast_track,
+        derivatives=derivatives,
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,
         hires=opts.hires,

@@ -724,7 +724,12 @@ def _bids_relative(in_files, bids_root):
 
     if not isinstance(in_files, (list, tuple)):
         in_files = [in_files]
-    in_files = [str(Path(p).relative_to(bids_root)) for p in in_files]
+    ret = []
+    for file in in_files:
+        try:
+            ret.append(str(Path(file).relative_to(bids_root)))
+        except ValueError:
+            ret.append(file)
     return in_files
 
 
