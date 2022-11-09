@@ -281,6 +281,7 @@ def init_anat_fit_wf(
     # If desc-preproc_T1w.nii.gz is provided, just validate it
     anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
     if not have_t1w:
+        LOGGER.info("Stage 1: Adding template workflow")
         anat_template_wf = init_anat_template_wf(
             longitudinal=longitudinal, omp_nthreads=omp_nthreads, num_t1w=num_t1w
         )
@@ -295,6 +296,7 @@ def init_anat_fit_wf(
         ])
         # fmt:on
     else:
+        LOGGER.info("Found preprocessed T1w - skipping Stage 1")
         anat_validate.inputs.in_file = precomputed["t1w_preproc"]
         outputnode.inputs.t1w_valid_list = [precomputed["t1w_preproc"]]
         workflow.connect([(anat_validate, t1w_buffer, [("out_file", "t1w_preproc")])])
@@ -303,6 +305,7 @@ def init_anat_fit_wf(
     # We always need to generate t1w_brain; how to do that depends on whether we have
     # a pre-corrected T1w or precomputed mask, or are given an already masked image
     if not have_mask:
+        LOGGER.info("Stage 2: Preparing brain extraction workflow")
         if skull_strip_mode == "auto":
             skull_strip_mode = all(_is_skull_stripped(img) for img in t1w)
 
@@ -333,6 +336,7 @@ def init_anat_fit_wf(
             # fmt:on
         # Determine mask from T1w and uniformize
         elif not have_t1w:
+            LOGGER.info("Stage 2: Skipping skull-strip, INU-correction only")
             n4_only_wf = init_n4_only_wf(
                 omp_nthreads=omp_nthreads,
                 atropos_use_random_seed=not skull_strip_fixed_seed,
@@ -349,6 +353,7 @@ def init_anat_fit_wf(
             # fmt:on
         # Binarize the already uniformized image
         else:
+            LOGGER.info("Stage 2: Skipping skull-strip, generating mask from input")
             binarize = pe.Node(Binarize(thresh_low=2), name="binarize")
             # fmt:off
             workflow.connect([
@@ -358,12 +363,14 @@ def init_anat_fit_wf(
             ])
             # fmt:on
     else:
+        LOGGER.info("Found brain mask")
         t1w_buffer.inputs.t1w_mask = precomputed["t1w_mask"]
         # If we have a mask, always apply it
         apply_mask = pe.Node(ApplyMask(in_mask=precomputed["t1w_mask"]), name="apply_mask")
         workflow.connect([(anat_validate, apply_mask, [("out_file", "in_file")])])
         # Run N4 if it hasn't been pre-run
         if not have_t1w:
+            LOGGER.info("Skipping skull-strip, INU-correction only")
             n4_only_wf = init_n4_only_wf(
                 omp_nthreads=omp_nthreads,
                 atropos_use_random_seed=not skull_strip_fixed_seed,
@@ -378,10 +385,12 @@ def init_anat_fit_wf(
             ])
             # fmt:on
         else:
+            LOGGER.info("Skipping Stage 2")
             workflow.connect([(apply_mask, t1w_buffer, [("out_file", "t1w_brain")])])
 
     # Stage 3: Segmentation
     if not (have_dseg and have_tpms):
+        LOGGER.info("Stage 3: Preparing segmentation workflow")
         fast = pe.Node(
             fsl.FAST(segments=True, no_bias=True, probability_maps=True),
             name="fast",
@@ -408,14 +417,19 @@ def init_anat_fit_wf(
                 (fast2bids, seg_buffer, [("out", "t1w_tpms")]),
             ])
         # fmt:on
+    else:
+        LOGGER.info("Skipping Stage 3")
     if have_dseg:
+        LOGGER.info("Found discrete segmentation")
         seg_buffer.inputs.t1w_dseg = precomputed["t1w_dseg"]
     if have_tpms:
+        LOGGER.info("Found tissue probability maps")
         seg_buffer.inputs.t1w_tpms = precomputed["t1w_tpms"]
 
     # Stage 4: Normalization
     # TODO: handle pre-run registrations
     templates = spaces.get_spaces(nonstandard=False, dim=(3,))
+    LOGGER.info(f"Stage 4: Preparing normalization workflow for {templates}")
     register_template_wf = init_register_template_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
@@ -447,6 +461,7 @@ def init_anat_fit_wf(
         # fmt:on
 
     if not freesurfer:
+        LOGGER.info("Skipping Stages 5 and 6")
         return workflow
 
     fs_isrunning = pe.Node(
@@ -455,6 +470,7 @@ def init_anat_fit_wf(
     fs_isrunning.inputs.logger = LOGGER
 
     # Stage 5: Surface reconstruction (--fs-no-reconall not set)
+    LOGGER.info("Stage 5: Preparing surface reconstruction workflow")
     surface_recon_wf = init_surface_recon_wf(
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
     )
@@ -482,6 +498,7 @@ def init_anat_fit_wf(
     # fmt:on
 
     if not have_mask:
+        LOGGER.info("Stage 6: Preparing mask refinement workflow")
         # Stage 6: Refine ANTs mask with FreeSurfer segmentation
         refinement_wf = init_refinement_wf()
         applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
@@ -503,6 +520,8 @@ def init_anat_fit_wf(
             (applyrefined, refined_buffer, [('out_file', 't1w_brain')]),
         ])
         # fmt:on
+    else:
+        LOGGER.info("Found brain mask - skipping Stage 6")
 
     return workflow
 
