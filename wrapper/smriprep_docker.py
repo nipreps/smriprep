@@ -18,7 +18,6 @@ import sys
 import os
 import re
 import subprocess
-from warnings import warn
 
 __version__ = "99.99.99"
 __copyright__ = (
@@ -28,6 +27,7 @@ __credits__ = [
     "Oscar Esteban",
     "Chris Gorgolewski",
     "Christopher J. Markiewicz",
+    "Mathias Goncalves",
     "Russell A. Poldrack",
 ]
 __bugreports__ = "https://github.com/nipreps/smriprep/issues"
@@ -36,7 +36,7 @@ __bugreports__ = "https://github.com/nipreps/smriprep/issues"
 MISSING = """
 Image '{}' is missing
 Would you like to download? [Y/n] """
-PKG_PATH = "/usr/local/miniconda/lib/python3.7/site-packages"
+PKG_PATH = '/opt/conda/lib/python3.9/site-packages'
 
 # Monkey-patch Py2 subprocess
 if not hasattr(subprocess, "DEVNULL"):
@@ -222,12 +222,30 @@ def merge_help(wrapper_help, target_help):
 def get_parser():
     """Defines the command line interface of the wrapper"""
     import argparse
+    from functools import partial
+
+    class ToDict(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            d = {}
+            for kv in values:
+                k, v = kv.split("=")
+                d[k] = os.path.abspath(v)
+            setattr(namespace, self.dest, d)
+
+    def _is_file(path, parser):
+        """Ensure a given path exists and it is a file."""
+        path = os.path.abspath(path)
+        if not os.path.isfile(path):
+            raise parser.error("Path should point to a file (or symlink of file): <%s>." % path)
+        return path
 
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         add_help=False,
     )
+
+    IsFile = partial(_is_file, parser=parser)
 
     # Standard sMRIPrep arguments
     parser.add_argument("bids_dir", nargs="?", type=os.path.abspath, default="")
@@ -269,7 +287,7 @@ def get_parser():
     g_wrap.add_argument(
         "--fs-license-file",
         metavar="PATH",
-        type=os.path.abspath,
+        type=IsFile,
         default=os.getenv("FS_LICENSE", None),
         help="Path to FreeSurfer license key file. Get it (for free) by registering"
         " at https://surfer.nmr.mgh.harvard.edu/registration.html",
@@ -288,25 +306,11 @@ def get_parser():
         "Developer options", "Tools for testing and debugging sMRIPrep"
     )
     g_dev.add_argument(
-        "-f",
-        "--patch-smriprep",
-        metavar="PATH",
-        type=os.path.abspath,
-        help="working smriprep repository",
-    )
-    g_dev.add_argument(
-        "-n",
-        "--patch-niworkflows",
-        metavar="PATH",
-        type=os.path.abspath,
-        help="working niworkflows repository",
-    )
-    g_dev.add_argument(
-        "-p",
-        "--patch-nipype",
-        metavar="PATH",
-        type=os.path.abspath,
-        help="working nipype repository",
+        '--patch',
+        nargs="+",
+        metavar="PACKAGE=PATH",
+        action=ToDict,
+        help='local repository to use within container',
     )
     g_dev.add_argument(
         "--shell",
@@ -422,10 +426,9 @@ def main():
         command.append("-it")
 
     # Patch working repositories into installed package directories
-    for pkg in ("smriprep", "niworkflows", "nipype"):
-        repo_path = getattr(opts, "patch_" + pkg)
-        if repo_path is not None:
-            command.extend(["-v", "{}:{}/{}:ro".format(repo_path, PKG_PATH, pkg)])
+    if opts.patch:
+        for pkg, repo_path in opts.patch.items():
+            command.extend(['-v', '{}:{}/{}:ro'.format(repo_path, PKG_PATH, pkg)])
 
     if opts.env:
         for envvar in opts.env:
