@@ -27,6 +27,7 @@ __credits__ = [
     "Oscar Esteban",
     "Chris Gorgolewski",
     "Christopher J. Markiewicz",
+    "Mathias Goncalves",
     "Russell A. Poldrack",
 ]
 __bugreports__ = "https://github.com/nipreps/smriprep/issues"
