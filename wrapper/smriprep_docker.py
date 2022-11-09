@@ -170,7 +170,7 @@ def merge_help(wrapper_help, target_help):
 
     # Make sure we're not clobbering options we don't mean to
     overlap = set(w_flags).intersection(t_flags)
-    expected_overlap = set(["h", "version", "w", "fs-license-file", "use-plugin", "fs-subjects-dir"])
+    expected_overlap = set(["h", "version", "w", "d", "fs-license-file", "use-plugin", "fs-subjects-dir"])
 
     assert overlap == expected_overlap, "Clobbering options: {}".format(
         ", ".join(overlap - expected_overlap)
@@ -283,6 +283,14 @@ def get_parser():
         action="store",
         type=os.path.abspath,
         help="path where intermediate results should be stored",
+    )
+    g_wrap.add_argument(
+        "-d",
+        "--derivatives",
+        nargs="+",
+        metavar="PATH",
+        action=ToDict,
+        help="Search PATH(s) for pre-computed derivatives.",
     )
     g_wrap.add_argument(
         "--fs-license-file",
@@ -465,6 +473,13 @@ def main():
     if opts.fs_subjects_dir:
         command.extend(['-v', '{}:/opt/subjects'.format(opts.fs_subjects_dir)])
         unknown_args.extend(['--fs-subjects-dir', '/opt/subjects'])
+
+    # Patch derivatives for searching
+    if opts.derivatives:
+        unknown_args.append("--derivatives")
+        for deriv, deriv_path in opts.derivatives.items():
+            command.extend(['-v', '{}:/deriv/{}:ro'.format(deriv_path, deriv)])
+            unknown_args.append("/deriv/{}".format(deriv))
 
     if opts.config:
         command.extend(
