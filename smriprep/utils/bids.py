@@ -166,7 +166,7 @@ def collect_derivatives(
                 q["space"] = space
             item = _check_item(build_path(q, patterns, strict=True))
             if not item:
-                return None
+                continue
 
             if space:
                 derivs_cache["std_%s" % k] += item if len(item) == 1 else [item]
@@ -180,7 +180,7 @@ def collect_derivatives(
             q["to"] = q["to"] or space
             item = _check_item(build_path(q, patterns))
             if not item:
-                return None
+                continue
             derivs_cache[k] += item
 
     derivs_cache = dict(derivs_cache)  # Back to a standard dictionary
@@ -190,7 +190,7 @@ def collect_derivatives(
             q["subject"] = subject_id
             item = _check_item(build_path(q, patterns))
             if not item:
-                return None
+                continue
 
             if len(item) == 1:
                 item = item[0]
