@@ -3,22 +3,71 @@
     "baseline": {
       "preproc": {
         "datatype": "anat",
+        "space": null,
         "desc": "preproc",
-        "suffix": "T1w"
+        "suffix": "T1w",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       },
       "mask": {
         "datatype": "anat",
+        "space": null,
         "desc": "brain",
-        "suffix": "mask"
+        "suffix": "mask",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       },
       "dseg": {
         "datatype": "anat",
-        "suffix": "dseg"
+        "space": null,
+        "desc": null,
+        "suffix": "dseg",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       },
       "tpms": {
         "datatype": "anat",
-        "label": ["GM", "WM", "CSF"],
-        "suffix": "probseg"
+        "space": null,
+        "label": [
+          "GM",
+          "WM",
+          "CSF"
+        ],
+        "suffix": "probseg",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
+      }
+    },
+    "transforms": {
+      "forward": {
+        "datatype": "anat",
+        "extension": [
+          "h5",
+          "txt"
+        ],
+        "from": "T1w",
+        "to": null,
+        "suffix": "xfm",
+        "mode": "image"
+      },
+      "reverse": {
+        "datatype": "anat",
+        "extension": [
+          "h5",
+          "txt"
+        ],
+        "from": null,
+        "to": "T1w",
+        "suffix": "xfm",
+        "mode": "image"
       }
     },
     "std_xfms": {

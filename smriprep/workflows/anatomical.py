@@ -223,7 +223,6 @@ def init_anat_fit_wf(
     have_mask = "t1w_mask" in precomputed
     have_dseg = "t1w_dseg" in precomputed
     have_tpms = "t1w_tpms" in precomputed
-    # registrations = precomputed.get("anat2std_xfm", [])
 
     inputnode = pe.Node(
         niu.IdentityInterface(
@@ -264,7 +263,12 @@ def init_anat_fit_wf(
         niu.IdentityInterface(fields=["t1w_mask", "t1w_brain"]),
         name="refined_buffer"
     )
+    # Stage 3 results
     seg_buffer = pe.Node(niu.IdentityInterface(fields=["t1w_dseg", "t1w_tpms"]), name="seg_buffer")
+    # Stage 4 results: collated template names, forward and reverse transforms
+    template_buffer = pe.Node(niu.Merge(2), name="template_buffer")
+    anat2std_buffer = pe.Node(niu.Merge(2), name="anat2std_buffer")
+    std2anat_buffer = pe.Node(niu.Merge(2), name="std2anat_buffer")
 
     # fmt:off
     workflow.connect([
@@ -274,6 +278,9 @@ def init_anat_fit_wf(
             ("t1w_dseg", "t1w_dseg"),
             ("t1w_tpms", "t1w_tpms"),
         ]),
+        (anat2std_buffer, outputnode, [("out", "anat2std_xfm")]),
+        (std2anat_buffer, outputnode, [("out", "std2anat_xfm")]),
+        (template_buffer, outputnode, [("out", "template")]),
     ])
     # fmt:on
 
@@ -427,27 +434,39 @@ def init_anat_fit_wf(
         seg_buffer.inputs.t1w_tpms = precomputed["t1w_tpms"]
 
     # Stage 4: Normalization
-    # TODO: handle pre-run registrations
-    templates = spaces.get_spaces(nonstandard=False, dim=(3,))
-    LOGGER.info(f"Stage 4: Preparing normalization workflow for {templates}")
-    register_template_wf = init_register_template_wf(
-        debug=debug,
-        omp_nthreads=omp_nthreads,
-        templates=templates,
-    )
+    templates = []
+    found_xfms = {}
+    for template in spaces.get_spaces(nonstandard=False, dim=(3,)):
+        xfms = precomputed.get("transforms", {}).get(template, {})
+        if set(xfms) != {"forward", "reverse"}:
+            templates.append(template)
+        else:
+            found_xfms[template] = xfms
 
-    # fmt:off
-    workflow.connect([
-        (inputnode, register_template_wf, [('roi', 'inputnode.lesion_mask')]),
-        (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
-        (refined_buffer, register_template_wf, [('t1w_mask', 'inputnode.moving_mask')]),
-        (register_template_wf, outputnode, [
-            ('outputnode.template', 'template'),
-            ('outputnode.anat2std_xfm', 'anat2std_xfm'),
-            ('outputnode.std2anat_xfm', 'std2anat_xfm'),
-        ]),
-    ])
-    # fmt:on
+    template_buffer.inputs.in1 = list(found_xfms)
+    anat2std_buffer.inputs.in1 = [xfm["forward"] for xfm in found_xfms.values()]
+    std2anat_buffer.inputs.in1 = [xfm["reverse"] for xfm in found_xfms.values()]
+
+    if templates:
+        LOGGER.info(f"Stage 4: Preparing normalization workflow for {templates}")
+        register_template_wf = init_register_template_wf(
+            debug=debug,
+            omp_nthreads=omp_nthreads,
+            templates=templates,
+        )
+
+        # fmt:off
+        workflow.connect([
+            (inputnode, register_template_wf, [('roi', 'inputnode.lesion_mask')]),
+            (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
+            (refined_buffer, register_template_wf, [('t1w_mask', 'inputnode.moving_mask')]),
+            (register_template_wf, anat2std_buffer, [('outputnode.anat2std_xfm', 'in2')]),
+            (register_template_wf, std2anat_buffer, [('outputnode.std2anat_xfm', 'in2')]),
+            (register_template_wf, template_buffer, [('outputnode.template', 'in2')]),
+        ])
+        # fmt:on
+    if found_xfms:
+        LOGGER.info(f"Stage 4: Found pre-computed registrations for {found_xfms}")
 
     # Do not attempt refinement (Stage 6, below)
     if have_mask or not freesurfer:

@@ -25,6 +25,7 @@ from collections import defaultdict
 from pathlib import Path
 from json import loads
 from pkg_resources import resource_filename as pkgrf
+from bids.layout import BIDSLayout
 from bids.layout.writing import build_path
 
 
@@ -140,6 +141,7 @@ def collect_derivatives(
             patterns = _patterns
 
     derivs_cache = defaultdict(list, {})
+    layout = BIDSLayout(derivatives_dir, config=["bids", "derivatives"])
     derivatives_dir = Path(derivatives_dir)
 
     def _check_item(item):
@@ -159,31 +161,37 @@ def collect_derivatives(
 
         return result
 
-    for space in [None] + std_spaces:
-        for k, q in spec["baseline"].items():
-            q["subject"] = subject_id
-            if space is not None:
-                q["space"] = space
-            item = _check_item(build_path(q, patterns, strict=True))
-            if not item:
-                continue
+    for k, q in spec["baseline"].items():
+        q["subject"] = subject_id
+        item = layout.get(return_type='filename', **q)
+        if not item:
+            continue
 
-            if space:
-                derivs_cache["std_%s" % k] += item if len(item) == 1 else [item]
-            else:
-                derivs_cache["t1w_%s" % k] = item[0] if len(item) == 1 else item
+        derivs_cache["t1w_%s" % k] = item[0] if len(item) == 1 else item
 
     for space in std_spaces:
         for k, q in spec["std_xfms"].items():
             q["subject"] = subject_id
             q["from"] = q["from"] or space
             q["to"] = q["to"] or space
-            item = _check_item(build_path(q, patterns))
+            item = layout.get(return_type='filename', **q)
             if not item:
                 continue
             derivs_cache[k] += item
 
     derivs_cache = dict(derivs_cache)  # Back to a standard dictionary
+
+    transforms = derivs_cache.setdefault('transforms', {})
+    for space in std_spaces:
+        for k, q in spec["transforms"].items():
+            q = q.copy()
+            q["subject"] = subject_id
+            q["from"] = q["from"] or space
+            q["to"] = q["to"] or space
+            item = layout.get(return_type='filename', **q)
+            if not item:
+                continue
+            transforms.setdefault(space, {})[k] = item[0] if len(item) == 1 else item
 
     if freesurfer:
         for k, q in spec["surfaces"].items():
