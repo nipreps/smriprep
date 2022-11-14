@@ -50,7 +50,14 @@ from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
 from .outputs import (
-    init_anat_reports_wf, init_anat_first_derivatives_wf, init_anat_second_derivatives_wf
+    init_anat_reports_wf,
+    init_ds_template_wf,
+    init_ds_mask_wf,
+    init_ds_dseg_wf,
+    init_ds_tpms_wf,
+    init_ds_template_registration_wf,
+    init_ds_fs_registration_wf,
+    init_anat_second_derivatives_wf,
 )
 from .surfaces import init_surface_derivatives_wf, init_surface_recon_wf, init_refinement_wf
 
@@ -108,6 +115,7 @@ def init_anat_preproc_wf(
 
     anat_fit_wf = init_anat_fit_wf(
         bids_root=bids_root,
+        output_dir=output_dir,
         freesurfer=freesurfer,
         hires=hires,
         longitudinal=longitudinal,
@@ -119,13 +127,6 @@ def init_anat_preproc_wf(
         debug=debug,
         omp_nthreads=omp_nthreads,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
-    )
-    anat_first_derivatives_wf = init_anat_first_derivatives_wf(
-        bids_root=bids_root,
-        freesurfer=freesurfer,
-        num_t1w=len(t1w),
-        output_dir=output_dir,
-        spaces=spaces,
     )
     anat_second_derivatives_wf = init_anat_second_derivatives_wf(
         bids_root=bids_root,
@@ -153,18 +154,6 @@ def init_anat_preproc_wf(
             ("outputnode.t1w_tpms", "t1w_tpms"),
             ("outputnode.anat2std_xfm", "anat2std_xfm"),
             ("outputnode.fsnative2t1w_xfm", "fsnative2t1w_xfm"),
-        ]),
-        (anat_fit_wf, anat_first_derivatives_wf, [
-            ("outputnode.t1w_preproc", "inputnode.t1w_preproc"),
-            ("outputnode.t1w_mask", "inputnode.t1w_mask"),
-            ("outputnode.t1w_dseg", "inputnode.t1w_dseg"),
-            ("outputnode.t1w_tpms", "inputnode.t1w_tpms"),
-            ("outputnode.t1w_valid_list", "inputnode.source_files"),
-            ("outputnode.t1w_realign_xfm", "inputnode.t1w_ref_xfms"),
-            ("outputnode.template", "inputnode.template"),
-            ("outputnode.anat2std_xfm", "inputnode.anat2std_xfm"),
-            ("outputnode.std2anat_xfm", "inputnode.std2anat_xfm"),
-            ("outputnode.fsnative2t1w_xfm", "inputnode.fsnative2t1w_xfm"),
         ]),
         (anat_fit_wf, anat_second_derivatives_wf, [
             ('outputnode.template', 'inputnode.template'),
@@ -202,6 +191,7 @@ def init_anat_preproc_wf(
 def init_anat_fit_wf(
     *,
     bids_root,
+    output_dir,
     freesurfer,
     hires,
     longitudinal,
@@ -253,18 +243,27 @@ def init_anat_fit_wf(
         name="outputnode",
     )
 
+    # Stage 1 inputs (filtered)
+    sourcefile_buffer = pe.Node(
+        niu.IdentityInterface(fields=["source_files"]),
+        name="sourcefile_buffer",
+    )
+
     # Stage 2 results
     t1w_buffer = pe.Node(
         niu.IdentityInterface(fields=["t1w_preproc", "t1w_mask", "t1w_brain", "ants_seg"]),
-        name="t1w_buffer"
+        name="t1w_buffer",
     )
     # Refined stage 2 results; may be direct copy if no refinement
     refined_buffer = pe.Node(
         niu.IdentityInterface(fields=["t1w_mask", "t1w_brain"]),
-        name="refined_buffer"
+        name="refined_buffer",
     )
     # Stage 3 results
-    seg_buffer = pe.Node(niu.IdentityInterface(fields=["t1w_dseg", "t1w_tpms"]), name="seg_buffer")
+    seg_buffer = pe.Node(
+        niu.IdentityInterface(fields=["t1w_dseg", "t1w_tpms"]),
+        name="seg_buffer",
+    )
     # Stage 4 results: collated template names, forward and reverse transforms
     template_buffer = pe.Node(niu.Merge(2), name="template_buffer")
     anat2std_buffer = pe.Node(niu.Merge(2), name="anat2std_buffer")
@@ -292,21 +291,32 @@ def init_anat_fit_wf(
         anat_template_wf = init_anat_template_wf(
             longitudinal=longitudinal, omp_nthreads=omp_nthreads, num_t1w=num_t1w
         )
+        ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_t1w=num_t1w)
+
         # fmt:off
         workflow.connect([
             (inputnode, anat_template_wf, [("t1w", "inputnode.t1w")]),
             (anat_template_wf, anat_validate, [("outputnode.t1w_ref", "in_file")]),
-            (anat_template_wf, outputnode, [
-                ("outputnode.t1w_valid_list", "t1w_valid_list"),
-                ("outputnode.t1w_realign_xfm", "t1w_realign_xfm"),
+            (anat_template_wf, sourcefile_buffer, [("outputnode.t1w_valid_list", "source_files")]),
+            (anat_template_wf, ds_template_wf, [
+                ("outputnode.t1w_realign_xfm", "inputnode.t1w_ref_xfms"),
             ]),
+            (sourcefile_buffer, ds_template_wf, [("source_files", "inputnode.source_files")]),
+            (t1w_buffer, ds_template_wf, [("t1w_preproc", "inputnode.t1w_preproc")]),
+            (ds_template_wf, outputnode, [("outputnode.t1w_preproc", "t1w_preproc")]),
         ])
         # fmt:on
     else:
         LOGGER.info("Found preprocessed T1w - skipping Stage 1")
         anat_validate.inputs.in_file = precomputed["t1w_preproc"]
-        outputnode.inputs.t1w_valid_list = [precomputed["t1w_preproc"]]
-        workflow.connect([(anat_validate, t1w_buffer, [("out_file", "t1w_preproc")])])
+        sourcefile_buffer.inputs.source_files = [precomputed["t1w_preproc"]]
+
+        # fmt:off
+        workflow.connect([
+            (anat_validate, t1w_buffer, [("out_file", "t1w_preproc")]),
+            (t1w_buffer, outputnode, [("t1w_preproc", "t1w_preproc")]),
+        ])
+        # fmt:on
 
     # Stage 2: INU correction and masking
     # We always need to generate t1w_brain; how to do that depends on whether we have
@@ -369,6 +379,15 @@ def init_anat_fit_wf(
                 (binarize, t1w_buffer, [("out_file", "t1w_mask")]),
             ])
             # fmt:on
+
+        ds_mask_wf = init_ds_mask_wf(bids_root=bids_root, output_dir=output_dir)
+        # fmt:off
+        workflow.connect([
+            (sourcefile_buffer, ds_mask_wf, [("source_files", "inputnode.source_files")]),
+            (t1w_buffer, ds_mask_wf, [("t1w_mask", "inputnode.t1w_mask")]),
+            (ds_mask_wf, outputnode, [("outputnode.t1w_mask", "t1w_mask")]),
+        ])
+        # fmt:on
     else:
         LOGGER.info("Found brain mask")
         t1w_buffer.inputs.t1w_mask = precomputed["t1w_mask"]
@@ -394,6 +413,7 @@ def init_anat_fit_wf(
         else:
             LOGGER.info("Skipping Stage 2")
             workflow.connect([(apply_mask, t1w_buffer, [("out_file", "t1w_brain")])])
+        workflow.connect([(t1w_buffer, outputnode, [("t1w_mask", "t1w_mask")])])
 
     # Stage 3: Segmentation
     if not (have_dseg and have_tpms):
@@ -414,14 +434,18 @@ def init_anat_fit_wf(
 
         # fmt:off
         if not have_dseg:
+            ds_dseg_wf = init_ds_dseg_wf(output_dir=output_dir)
             workflow.connect([
                 (fast, lut_t1w_dseg, [("partial_volume_map", "in_dseg")]),
-                (lut_t1w_dseg, seg_buffer, [("out", "t1w_dseg")]),
+                (lut_t1w_dseg, ds_dseg_wf, [("out", "inputnode.t1w_dseg")]),
+                (ds_dseg_wf, seg_buffer, [("outputnode.t1w_dseg", "t1w_dseg")]),
             ])
         if not have_tpms:
+            ds_tpms_wf = init_ds_tpms_wf(output_dir=output_dir)
             workflow.connect([
                 (fast, fast2bids, [("partial_volume_files", "inlist")]),
-                (fast2bids, seg_buffer, [("out", "t1w_tpms")]),
+                (fast2bids, ds_tpms_wf, [("out", "inputnode.t1w_tpms")]),
+                (ds_tpms_wf, seg_buffer, [("outputnode.t1w_tpms", "t1w_tpms")]),
             ])
         # fmt:on
     else:
@@ -454,15 +478,21 @@ def init_anat_fit_wf(
             omp_nthreads=omp_nthreads,
             templates=templates,
         )
+        ds_template_registration_wf = init_ds_template_registration_wf(output_dir=output_dir)
 
         # fmt:off
         workflow.connect([
             (inputnode, register_template_wf, [('roi', 'inputnode.lesion_mask')]),
             (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
             (refined_buffer, register_template_wf, [('t1w_mask', 'inputnode.moving_mask')]),
-            (register_template_wf, anat2std_buffer, [('outputnode.anat2std_xfm', 'in2')]),
-            (register_template_wf, std2anat_buffer, [('outputnode.std2anat_xfm', 'in2')]),
+            (register_template_wf, ds_template_registration_wf, [
+                ('outputnode.template', 'inputnode.template'),
+                ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
+                ('outputnode.std2anat_xfm', 'inputnode.std2anat_xfm'),
+            ]),
             (register_template_wf, template_buffer, [('outputnode.template', 'in2')]),
+            (ds_template_registration_wf, std2anat_buffer, [('outputnode.std2anat_xfm', 'in2')]),
+            (ds_template_registration_wf, anat2std_buffer, [('outputnode.anat2std_xfm', 'in2')]),
         ])
         # fmt:on
     if found_xfms:
@@ -493,6 +523,7 @@ def init_anat_fit_wf(
     surface_recon_wf = init_surface_recon_wf(
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
     )
+    ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir)
 
     # fmt:off
     workflow.connect([
@@ -508,9 +539,14 @@ def init_anat_fit_wf(
         (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (t1w_buffer, surface_recon_wf, [('t1w_brain', 'inputnode.skullstripped_t1')]),
+        (surface_recon_wf, ds_fs_registration_wf, [
+            ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
         (surface_recon_wf, outputnode, [
             ('outputnode.subjects_dir', 'subjects_dir'),
             ('outputnode.subject_id', 'subject_id'),
+        ]),
+        (ds_fs_registration_wf, outputnode, [
             ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
         ]),
     ])
