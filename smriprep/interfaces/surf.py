@@ -22,9 +22,11 @@
 #
 """Handling surfaces."""
 import os
+from pathlib import Path
 
 import numpy as np
 import nibabel as nb
+import nitransforms as nt
 
 from nipype.interfaces.base import (
     BaseInterfaceInputSpec,
@@ -102,7 +104,12 @@ def normalize_surfs(in_file, transform_file, newpath=None):
     """
 
     img = nb.load(in_file)
-    transform = load_transform(transform_file)
+    xfm_fmt = {
+        ".txt": "itk",
+        ".mat": "fsl",
+        ".lta": "fs",
+    }[Path(transform_file).suffix]
+    transform = nt.linear.load(transform_file, fmt=xfm_fmt).matrix
     pointset = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")[0]
 
     if not np.allclose(transform, np.eye(4)):
@@ -125,32 +132,3 @@ def normalize_surfs(in_file, transform_file, newpath=None):
     out_file = os.path.join(newpath, fname)
     img.to_filename(out_file)
     return out_file
-
-
-def load_transform(fname):
-    """Load affine transform from file
-
-    Parameters
-    ----------
-    fname : str or None
-        Filename of an LTA or FSL-style MAT transform file.
-        If ``None``, return an identity transform
-
-    Returns
-    -------
-    affine : (4, 4) numpy.ndarray
-    """
-    if fname is None:
-        return np.eye(4)
-
-    if fname.endswith(".mat"):
-        return np.loadtxt(fname)
-    elif fname.endswith(".lta"):
-        with open(fname, "rb") as fobj:
-            for line in fobj:
-                if line.startswith(b"1 4 4"):
-                    break
-            lines = fobj.readlines()[:4]
-        return np.genfromtxt(lines)
-
-    raise ValueError("Unknown transform type; pass FSL (.mat) or LTA (.lta)")

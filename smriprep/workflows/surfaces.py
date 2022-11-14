@@ -46,6 +46,7 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
+from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 
 
 def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
@@ -771,14 +772,15 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     """
     workflow = Workflow(name="%s_%s" % (name, segmentation))
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            ["in_file", "subjects_dir", "subject_id", "fsnative2t1w_xfm"]
-        ),
+        niu.IdentityInterface(["in_file", "subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
         name="inputnode",
     )
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
     # Extract the aseg and aparc+aseg outputs
     fssource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
+
+    lta = pe.Node(ConcatenateXFMs(out_fmt="fs"), name="lta", run_without_submitting=True)
+
     # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
     # and convert to NIfTI while we're at it
     resample = pe.Node(
@@ -809,9 +811,12 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
         (inputnode, fssource, [
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id')]),
-        (inputnode, resample, [('in_file', 'target_file'),
-                               ('fsnative2t1w_xfm', 'lta_file')]),
+        (inputnode, lta, [('in_file', 'reference'),
+                          ('fsnative2t1w_xfm', 'in_xfms')]),
+        (fssource, lta, [('T1', 'moving')]),
+        (inputnode, resample, [('in_file', 'target_file')]),
         (fssource, resample, [(segmentation, 'source_file')]),
+        (lta, resample, [('out_xfm', 'lta_file')]),
         (resample, outputnode, [('transformed_file', 'out_file')]),
     ])
     # fmt:on
