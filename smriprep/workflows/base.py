@@ -23,7 +23,6 @@
 """*sMRIPrep* base processing workflows."""
 import sys
 import os
-from pathlib import Path
 from copy import deepcopy
 
 from nipype import __version__ as nipype_ver
