@@ -344,6 +344,7 @@ to workflows in *sMRIPrep*'s documentation]\
     from ..utils.bids import collect_derivatives
     deriv_cache = {}
     std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
+    std_spaces.append("fsnative")
     for deriv_dir in derivatives:
         deriv_cache.update(collect_derivatives(deriv_dir, subject_id, std_spaces, freesurfer))
 

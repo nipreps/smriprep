@@ -42,14 +42,19 @@ from niworkflows.interfaces.freesurfer import (
     FSDetectInputs,
     FSInjectBrainExtracted,
     MakeMidthickness,
-    PatchedLTAConvert as LTAConvert,
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 
 
-def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
+def init_surface_recon_wf(
+    *,
+    omp_nthreads: int,
+    hires: bool,
+    precomputed: dict,
+    name="surface_recon_wf",
+):
     r"""
     Reconstruct anatomical surfaces using FreeSurfer's ``recon-all``.
 
@@ -204,10 +209,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
 
-    fsnative2t1w_xfm = pe.Node(
-        RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
-    )
-
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
 
     # fmt:off
@@ -235,17 +236,24 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
         (recon_config, autorecon_resume_wf, [('use_t2w', 'inputnode.use_T2'),
                                              ('use_flair', 'inputnode.use_FLAIR')]),
-        # Construct transform from FreeSurfer conformed image to sMRIPrep
-        # reoriented image
-        (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
-        (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
-
         # Output
         (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
                                            ('outputnode.subject_id', 'subject_id')]),
-        (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
     ])
     # fmt:on
+
+    if "fsnative" not in precomputed.get("transforms", {}):
+        fsnative2t1w_xfm = pe.Node(
+            RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
+        )
+
+        # fmt:off
+        workflow.connect([
+            (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
+            (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
+            (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
+        ])
+        # fmt:on
 
     return workflow
 

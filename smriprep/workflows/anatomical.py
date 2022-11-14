@@ -75,9 +75,9 @@ def init_anat_preproc_wf(
     skull_strip_template,
     spaces,
     t1w,
-    precomputed,
-    debug,
-    omp_nthreads,
+    precomputed: dict,
+    debug: bool,
+    omp_nthreads: int,
     name="anat_preproc_wf",
     skull_strip_fixed_seed=False,
 ):
@@ -486,7 +486,9 @@ def init_anat_fit_wf(
             (inputnode, register_template_wf, [('roi', 'inputnode.lesion_mask')]),
             (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
             (refined_buffer, register_template_wf, [('t1w_mask', 'inputnode.moving_mask')]),
-            (sourcefile_buffer, ds_template_registration_wf, [("source_files", "inputnode.source_files")]),
+            (sourcefile_buffer, ds_template_registration_wf, [
+                ("source_files", "inputnode.source_files")
+            ]),
             (register_template_wf, ds_template_registration_wf, [
                 ('outputnode.template', 'inputnode.template'),
                 ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
@@ -523,9 +525,8 @@ def init_anat_fit_wf(
     # Stage 5: Surface reconstruction (--fs-no-reconall not set)
     LOGGER.info("Stage 5: Preparing surface reconstruction workflow")
     surface_recon_wf = init_surface_recon_wf(
-        name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
+        name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires, precomputed=precomputed,
     )
-    ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir)
 
     # fmt:off
     workflow.connect([
@@ -541,19 +542,36 @@ def init_anat_fit_wf(
         (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (t1w_buffer, surface_recon_wf, [('t1w_brain', 'inputnode.skullstripped_t1')]),
-        (sourcefile_buffer, ds_fs_registration_wf, [("source_files", "inputnode.source_files")]),
-        (surface_recon_wf, ds_fs_registration_wf, [
-            ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
-        ]),
         (surface_recon_wf, outputnode, [
             ('outputnode.subjects_dir', 'subjects_dir'),
             ('outputnode.subject_id', 'subject_id'),
         ]),
-        (ds_fs_registration_wf, outputnode, [
-            ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
-        ]),
     ])
     # fmt:on
+
+    fsnative_xfms = precomputed.get("transforms", {}).get("fsnative")
+    if not fsnative_xfms:
+        ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir)
+        # fmt:off
+        workflow.connect([
+            (sourcefile_buffer, ds_fs_registration_wf, [
+                ("source_files", "inputnode.source_files"),
+            ]),
+            (surface_recon_wf, ds_fs_registration_wf, [
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ]),
+            (ds_fs_registration_wf, outputnode, [
+                ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+            ]),
+        ])
+        # fmt:on
+    elif "reverse" in fsnative_xfms:
+        LOGGER.info("Found fsnative-T1w transform - skipping registration")
+        outputnode.inputs.fsnative2t1w_xfm = fsnative_xfms["reverse"]
+    else:
+        raise RuntimeError(
+            "Found a T1w-to-fsnative transform without the reverse. Time to handle this."
+        )
 
     if not have_mask:
         LOGGER.info("Stage 6: Preparing mask refinement workflow")
