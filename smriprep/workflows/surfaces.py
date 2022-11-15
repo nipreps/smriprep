@@ -117,7 +117,7 @@ def init_surface_recon_wf(
             :simple_form: yes
 
             from smriprep.workflows.surfaces import init_surface_recon_wf
-            wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
+            wf = init_surface_recon_wf(omp_nthreads=1, hires=True, precomputed={})
 
     Parameters
     ----------
@@ -147,8 +147,6 @@ def init_surface_recon_wf(
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    t1w2fsnative_xfm
-        LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
     fsnative2t1w_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
 
