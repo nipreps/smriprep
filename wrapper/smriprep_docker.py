@@ -293,6 +293,13 @@ def get_parser():
         " at https://surfer.nmr.mgh.harvard.edu/registration.html",
     )
     g_wrap.add_argument(
+        "--fs-subjects-dir",
+        metavar="PATH",
+        type=os.path.abspath,
+        help="Path to existing FreeSurfer subjects directory to reuse. "
+        "(default: OUTPUT_DIR/freesurfer)",
+    )
+    g_wrap.add_argument(
         "--use-plugin",
         metavar="PATH",
         action="store",
@@ -454,6 +461,10 @@ def main():
     if opts.work_dir:
         command.extend(["-v", ":".join((opts.work_dir, "/scratch"))])
         unknown_args.extend(["-w", "/scratch"])
+
+    if opts.fs_subjects_dir:
+        command.extend(['-v', '{}:/opt/subjects'.format(opts.fs_subjects_dir)])
+        unknown_args.extend(['--fs-subjects-dir', '/opt/subjects'])
 
     if opts.config:
         command.extend(
