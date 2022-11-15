@@ -242,6 +242,8 @@ def init_anat_fit_wf(
         ),
         name="outputnode",
     )
+    # If all derivatives exist, inputnode could go unconnected, so add explicitly
+    workflow.add_nodes([inputnode])
 
     # Stage 1 inputs (filtered)
     sourcefile_buffer = pe.Node(
