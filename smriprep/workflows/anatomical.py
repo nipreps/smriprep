@@ -36,6 +36,7 @@ from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.utils.spaces import SpatialReferences, Reference
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
     PatchedLTAConvert as LTAConvert,
@@ -190,20 +191,20 @@ def init_anat_preproc_wf(
 
 def init_anat_fit_wf(
     *,
-    bids_root,
-    output_dir,
-    freesurfer,
-    hires,
-    longitudinal,
-    skull_strip_mode,
-    skull_strip_template,
-    spaces,
-    t1w,
+    bids_root: str,
+    output_dir: str,
+    freesurfer: bool,
+    hires: bool,
+    longitudinal: bool,
+    skull_strip_mode: str,
+    skull_strip_template: Reference,
+    spaces: SpatialReferences,
+    t1w: list,
     precomputed: dict,
     debug: bool,
     omp_nthreads: int,
     name="fit_wf",
-    skull_strip_fixed_seed=False,
+    skull_strip_fixed_seed: bool=False,
 ):
     workflow = Workflow(name=name)
 
