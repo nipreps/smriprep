@@ -593,8 +593,7 @@ def build_workflow(opts, retval):
         # XXX Makes strong assumption of legacy layout
         smriprep_dir = str(output_dir / "smriprep")
         warnings.warn(
-            f"Received DEPRECATED --fast-track flag. "
-            "Adding {smriprep_dir} to --derivatives list."
+            f"Received DEPRECATED --fast-track flag. Adding {smriprep_dir} to --derivatives list."
         )
         derivatives.append(smriprep_dir)
 
