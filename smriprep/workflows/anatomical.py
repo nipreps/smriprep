@@ -45,7 +45,6 @@ from niworkflows.interfaces.header import ValidateImage
 from niworkflows.interfaces.images import TemplateDimensions, Conform
 from niworkflows.interfaces.nibabel import ApplyMask, Binarize
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
-from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
@@ -80,7 +79,7 @@ def init_anat_preproc_wf(
     debug: bool,
     omp_nthreads: int,
     name="anat_preproc_wf",
-    skull_strip_fixed_seed: bool=False,
+    skull_strip_fixed_seed: bool = False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -197,9 +196,7 @@ def init_anat_preproc_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]
-        ),
+        niu.IdentityInterface(fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]),
         name="inputnode",
     )
     outputnode = pe.Node(
@@ -309,7 +306,7 @@ def init_anat_fit_wf(
     debug: bool,
     omp_nthreads: int,
     name="anat_fit_wf",
-    skull_strip_fixed_seed: bool=False,
+    skull_strip_fixed_seed: bool = False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -462,9 +459,7 @@ BIDS dataset."""
     # All outputnode components should therefore point to files in the input or
     # output directories.
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]
-        ),
+        niu.IdentityInterface(fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]),
         name="inputnode",
     )
     outputnode = pe.Node(
@@ -536,7 +531,8 @@ BIDS dataset."""
     if not have_t1w:
         LOGGER.info("Stage 1: Adding template workflow")
         ants_ver = ANTsInfo.version() or "(version unknown)"
-        desc += f""" {Each if num_t1w > 1 else The} T1w image was corrected for intensity
+        desc += f"""\
+ {"Each" if num_t1w > 1 else "The"} T1w image was corrected for intensity
 non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
 [@ants, RRID:SCR_004757]"""
         desc += ".\n" if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
@@ -809,7 +805,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     # Stage 5: Surface reconstruction (--fs-no-reconall not set)
     LOGGER.info("Stage 5: Preparing surface reconstruction workflow")
     surface_recon_wf = init_surface_recon_wf(
-        name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires, precomputed=precomputed,
+        name="surface_recon_wf",
+        omp_nthreads=omp_nthreads,
+        hires=hires,
+        precomputed=precomputed,
     )
 
     # fmt:off
@@ -886,9 +885,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     return workflow
 
 
-def init_anat_template_wf(
-    *, longitudinal, omp_nthreads, num_t1w, name="anat_template_wf"
-):
+def init_anat_template_wf(*, longitudinal, omp_nthreads, num_t1w, name="anat_template_wf"):
     """
     Generate a canonically-oriented, structural average from all input T1w images.
 
@@ -964,9 +961,7 @@ A T1w-reference map was computed after registration of
 
     if num_t1w == 1:
         get1st = pe.Node(niu.Select(index=[0]), name="get1st")
-        outputnode.inputs.t1w_realign_xfm = [
-            pkgr("smriprep", "data/itkIdentityTransform.txt")
-        ]
+        outputnode.inputs.t1w_realign_xfm = [pkgr("smriprep", "data/itkIdentityTransform.txt")]
 
         # fmt:off
         workflow.connect([
