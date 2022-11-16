@@ -100,7 +100,6 @@ def init_anat_preproc_wf(
                 "t1w_mask",
                 "t1w_dseg",
                 "t1w_tpms",
-                "t1w_realign_xfm",
                 "anat2std_xfm",
                 "fsnative2t1w_xfm",
             ]
@@ -370,7 +369,6 @@ BIDS dataset."""
                 "t1w_mask",
                 "t1w_dseg",
                 "t1w_tpms",
-                "t1w_realign_xfm",
                 "anat2std_xfm",
                 "fsnative2t1w_xfm",
                 # Reverse transform; not computable from forward transform
