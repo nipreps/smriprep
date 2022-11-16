@@ -307,6 +307,9 @@ def init_anat_fit_wf(
         gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
     t1w_tpms
         List of tissue probability maps corresponding to ``t1w_dseg``.
+    t1w_valid_list
+        List of input T1w images accepted for preprocessing. If t1w_preproc is
+        precomputed, this is always a list containing that image.
     template
         List of template names to which the structural image has been registered
     anat2std_xfm
@@ -316,12 +319,13 @@ def init_anat_fit_wf(
         List of nonlinear spatial transforms to resample data from standard
         template spaces into subject anatomical space. Collated with template.
     subjects_dir
-        FreeSurfer SUBJECTS_DIR
+        FreeSurfer SUBJECTS_DIR; use as input to a node to ensure that it is run after
+        FreeSurfer reconstruction is completed.
     subject_id
-        FreeSurfer subject ID
+        FreeSurfer subject ID; use as input to a node to ensure that it is run after
+        FreeSurfer reconstruction is completed.
     fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed
-        subject space to T1w
+        ITK-style affine matrix translating from FreeSurfer-conformed subject space to T1w
 
     See Also
     --------
@@ -342,6 +346,16 @@ BIDS dataset."""
     have_dseg = "t1w_dseg" in precomputed
     have_tpms = "t1w_tpms" in precomputed
 
+    # Organization
+    # ------------
+    # This workflow takes the usual (inputnode -> graph -> outputnode) format
+    # The graph consists of (input -> compute -> datasink -> buffer) units,
+    # and all inputs to outputnode are buffer.
+    # If precomputed inputs are found, then these units are replaced with (buffer)
+    #     At the time of writing, t1w_mask is an exception, which takes the form
+    #     (t1w_buffer -> refined_buffer -> datasink -> outputnode)
+    # All outputnode components should therefore point to files in the input or
+    # output directories.
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]
