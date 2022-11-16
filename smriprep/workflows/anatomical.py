@@ -208,6 +208,11 @@ def init_anat_fit_wf(
     workflow = Workflow(name=name)
 
     num_t1w = len(t1w)
+    desc = f"""
+Anatomical data preprocessing
+
+: A total of {num_t1w} T1-weighted (T1w) images were found within the input
+BIDS dataset."""
 
     have_t1w = "t1w_preproc" in precomputed
     have_mask = "t1w_mask" in precomputed
@@ -289,6 +294,12 @@ def init_anat_fit_wf(
     anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
     if not have_t1w:
         LOGGER.info("Stage 1: Adding template workflow")
+        ants_ver = ANTsInfo.version() or "(version unknown)"
+        desc += f""" {Each if num_t1w > 1 else The} T1w image was corrected for intensity
+non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
+[@ants, RRID:SCR_004757]"""
+        desc += ".\n" if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
+
         anat_template_wf = init_anat_template_wf(
             longitudinal=longitudinal, omp_nthreads=omp_nthreads, num_t1w=num_t1w
         )
@@ -309,6 +320,10 @@ def init_anat_fit_wf(
         # fmt:on
     else:
         LOGGER.info("Found preprocessed T1w - skipping Stage 1")
+        desc += """ A preprocessed T1w image was provided as a precomputed input
+and used as T1w-reference throughout the workflow.
+"""
+
         anat_validate.inputs.in_file = precomputed["t1w_preproc"]
         sourcefile_buffer.inputs.source_files = [precomputed["t1w_preproc"]]
 
@@ -329,6 +344,11 @@ def init_anat_fit_wf(
 
         # Brain extraction
         if skull_strip_mode is False:
+            desc += f"""\
+The T1w-reference was then skull-stripped with a *Nipype* implementation of
+the `antsBrainExtraction.sh` workflow (from ANTs), using {skull_strip_template.fullname}
+as target template.
+"""
             brain_extraction_wf = init_brain_extraction_wf(
                 in_template=skull_strip_template.space,
                 template_spec=skull_strip_template.spec,
@@ -355,6 +375,10 @@ def init_anat_fit_wf(
         # Determine mask from T1w and uniformize
         elif not have_t1w:
             LOGGER.info("Stage 2: Skipping skull-strip, INU-correction only")
+            desc += """\
+The provided T1w image was previously skull-stripped; a brain mask was
+derived from the input image.
+"""
             n4_only_wf = init_n4_only_wf(
                 omp_nthreads=omp_nthreads,
                 atropos_use_random_seed=not skull_strip_fixed_seed,
@@ -372,6 +396,10 @@ def init_anat_fit_wf(
         # Binarize the already uniformized image
         else:
             LOGGER.info("Stage 2: Skipping skull-strip, generating mask from input")
+            desc += """\
+The provided T1w image was previously skull-stripped; a brain mask was
+derived from the input image.
+"""
             binarize = pe.Node(Binarize(thresh_low=2), name="binarize")
             # fmt:off
             workflow.connect([
@@ -391,6 +419,9 @@ def init_anat_fit_wf(
         # fmt:on
     else:
         LOGGER.info("Found brain mask")
+        desc += """\
+A pre-computed brain mask was provided as input and used throughout the workflow.
+"""
         t1w_buffer.inputs.t1w_mask = precomputed["t1w_mask"]
         # If we have a mask, always apply it
         apply_mask = pe.Node(ApplyMask(in_mask=precomputed["t1w_mask"]), name="apply_mask")
@@ -419,6 +450,12 @@ def init_anat_fit_wf(
     # Stage 3: Segmentation
     if not (have_dseg and have_tpms):
         LOGGER.info("Stage 3: Preparing segmentation workflow")
+        fsl_ver = fsl.FAST().version or "(version unknown)"
+        desc += f"""\
+Brain tissue segmentation of cerebrospinal fluid (CSF),
+white-matter (WM) and gray-matter (GM) was performed on
+the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast].
+"""
         fast = pe.Node(
             fsl.FAST(segments=True, no_bias=True, probability_maps=True),
             name="fast",
@@ -455,9 +492,11 @@ def init_anat_fit_wf(
         LOGGER.info("Skipping Stage 3")
     if have_dseg:
         LOGGER.info("Found discrete segmentation")
+        desc += "Precomputed discrete tissue segmentations were provided as inputs.\n"
         seg_buffer.inputs.t1w_dseg = precomputed["t1w_dseg"]
     if have_tpms:
         LOGGER.info("Found tissue probability maps")
+        desc += "Precomputed tissue probabiilty maps were provided as inputs.\n"
         seg_buffer.inputs.t1w_tpms = precomputed["t1w_tpms"]
 
     # Stage 4: Normalization
@@ -514,6 +553,8 @@ def init_anat_fit_wf(
             ]),
         ])
         # fmt:on
+
+    workflow.__desc__ = desc
 
     if not freesurfer:
         LOGGER.info("Skipping Stages 5 and 6")
@@ -649,13 +690,12 @@ def init_anat_template_wf(
     workflow = Workflow(name=name)
 
     if num_t1w > 1:
-        workflow.__desc__ = """\
+        fs_ver = fs.Info().looseversion() or "(version unknown)"
+        workflow.__desc__ = f"""\
 A T1w-reference map was computed after registration of
 {num_t1w} T1w images (after INU-correction) using
 `mri_robust_template` [FreeSurfer {fs_ver}, @fs_template].
-""".format(
-            num_t1w=num_t1w, fs_ver=fs.Info().looseversion() or "<ver>"
-        )
+"""
 
     inputnode = pe.Node(niu.IdentityInterface(fields=["t1w"]), name="inputnode")
     outputnode = pe.Node(
