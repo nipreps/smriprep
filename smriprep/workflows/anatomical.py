@@ -196,18 +196,140 @@ def init_anat_fit_wf(
     freesurfer: bool,
     hires: bool,
     longitudinal: bool,
+    t1w: list,
     skull_strip_mode: str,
     skull_strip_template: Reference,
     spaces: SpatialReferences,
-    t1w: list,
     precomputed: dict,
     debug: bool,
     omp_nthreads: int,
-    name="fit_wf",
+    name="anat_fit_wf",
     skull_strip_fixed_seed: bool=False,
 ):
-    workflow = Workflow(name=name)
+    """
+    Stage the anatomical preprocessing steps of *sMRIPrep*.
 
+    This includes:
+
+      - T1w reference: realigning and then averaging T1w images.
+      - Brain extraction and INU (bias field) correction.
+      - Brain tissue segmentation.
+      - Spatial normalization to standard spaces.
+      - Surface reconstruction with FreeSurfer_.
+
+    .. include:: ../links.rst
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from niworkflows.utils.spaces import SpatialReferences, Reference
+            from smriprep.workflows.anatomical import init_anat_preproc_wf
+            wf = init_anat_fit_wf(
+                bids_root='.',
+                output_dir='.',
+                freesurfer=True,
+                hires=True,
+                longitudinal=False,
+                t1w=['t1w.nii.gz'],
+                skull_strip_mode='force',
+                skull_strip_template=Reference('OASIS30ANTs'),
+                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
+                precomputed={},
+                debug=False,
+                omp_nthreads=1,
+            )
+
+
+    Parameters
+    ----------
+    bids_root : :obj:`str`
+        Path of the input BIDS dataset root
+    output_dir : :obj:`str`
+        Directory in which to save derivatives
+    freesurfer : :obj:`bool`
+        Enable FreeSurfer surface reconstruction (increases runtime by 6h,
+        at the very least)
+    hires : :obj:`bool`
+        Enable sub-millimeter preprocessing in FreeSurfer
+    longitudinal : :obj:`bool`
+        Create unbiased structural template, regardless of number of inputs
+        (may increase runtime)
+    t1w : :obj:`list`
+        List of T1-weighted structural images.
+    skull_strip_mode : :obj:`str`
+        Determiner for T1-weighted skull stripping (`force` ensures skull stripping,
+        `skip` ignores skull stripping, and `auto` automatically ignores skull stripping
+        if pre-stripped brains are detected).
+    skull_strip_template : :py:class:`~niworkflows.utils.spaces.Reference`
+        Spatial reference to use in atlas-based brain extraction.
+    spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
+        Object containing standard and nonstandard space specifications.
+    precomputed : :obj:`dict`
+        Dictionary mapping output specification attribute names and
+        paths to precomputed derivatives.
+    debug : :obj:`bool`
+        Enable debugging outputs
+    omp_nthreads : :obj:`int`
+        Maximum number of threads an individual process may use
+    name : :obj:`str`, optional
+        Workflow name (default: anat_fit_wf)
+    skull_strip_fixed_seed : :obj:`bool`
+        Do not use a random seed for skull-stripping - will ensure
+        run-to-run replicability when used with --omp-nthreads 1
+        (default: ``False``).
+
+    Inputs
+    ------
+    t1w
+        List of T1-weighted structural images
+    t2w
+        List of T2-weighted structural images
+    roi
+        A mask to exclude regions during standardization
+    flair
+        List of FLAIR images
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+
+    Outputs
+    -------
+    t1w_preproc
+        The T1w reference map, which is calculated as the average of bias-corrected
+        and preprocessed T1w images, defining the anatomical space.
+    t1w_mask
+        Brain (binary) mask estimated by brain extraction.
+    t1w_dseg
+        Brain tissue segmentation of the preprocessed structural image, including
+        gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
+    t1w_tpms
+        List of tissue probability maps corresponding to ``t1w_dseg``.
+    template
+        List of template names to which the structural image has been registered
+    anat2std_xfm
+        List of nonlinear spatial transforms to resample data from subject
+        anatomical space into standard template spaces. Collated with template.
+    std2anat_xfm
+        List of nonlinear spatial transforms to resample data from standard
+        template spaces into subject anatomical space. Collated with template.
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed
+        subject space to T1w
+
+    See Also
+    --------
+    * :py:func:`~niworkflows.anat.ants.init_brain_extraction_wf`
+    * :py:func:`~smriprep.workflows.surfaces.init_surface_recon_wf`
+
+    """
+    workflow = Workflow(name=name)
     num_t1w = len(t1w)
     desc = f"""
 Anatomical data preprocessing
