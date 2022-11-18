@@ -525,6 +525,27 @@ BIDS dataset."""
     ])
     # fmt:on
 
+    # Reporting
+    anat_reports_wf = init_anat_reports_wf(
+        spaces=spaces,
+        freesurfer=freesurfer,
+        output_dir=output_dir,
+    )
+    # fmt:off
+    workflow.connect([
+        (outputnode, anat_reports_wf, [
+            ("t1w_valid_list", "inputnode.source_file"),
+            ("t1w_preproc", "inputnode.t1w_preproc"),
+            ("t1w_mask", "inputnode.t1w_mask"),
+            ("t1w_dseg", "inputnode.t1w_dseg"),
+            ("template", "inputnode.template"),
+            ("anat2std_xfm", "inputnode.anat2std_xfm"),
+            ("subjects_dir", "inputnode.subjects_dir"),
+            ("subject_id", "inputnode.subject_id"),
+        ]),
+    ])
+    # fmt:on
+
     # Stage 1: Conform images and validate
     # If desc-preproc_T1w.nii.gz is provided, just validate it
     anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
@@ -547,6 +568,9 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
             (inputnode, anat_template_wf, [("t1w", "inputnode.t1w")]),
             (anat_template_wf, anat_validate, [("outputnode.t1w_ref", "in_file")]),
             (anat_template_wf, sourcefile_buffer, [("outputnode.t1w_valid_list", "source_files")]),
+            (anat_template_wf, anat_reports_wf, [
+                ("outputnode.out_report", "inputnode.t1w_conform_report"),
+            ]),
             (anat_template_wf, ds_template_wf, [
                 ("outputnode.t1w_realign_xfm", "inputnode.t1w_ref_xfms"),
             ]),

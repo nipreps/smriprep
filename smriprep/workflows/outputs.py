@@ -23,15 +23,19 @@
 """Writing outputs."""
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
+from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.nibabel import ApplyMask
+from niworkflows.interfaces.space import SpaceDataSource
+from niworkflows.interfaces.utility import KeySelect
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
 from ..interfaces import DerivativesDataSink
+from ..interfaces.templateflow import TemplateFlowSelect
 
 BIDS_TISSUE_ORDER = ("GM", "WM", "CSF")
 
 
-def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
+def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_wf"):
     """
     Set up a battery of datasinks to store reports in the right location.
 
@@ -73,19 +77,18 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
         SimpleBeforeAfterRPT as SimpleBeforeAfter,
     )
     from niworkflows.interfaces.reportlets.masks import ROIsPlot
-    from ..interfaces.templateflow import TemplateFlowSelect
 
     workflow = Workflow(name=name)
 
     inputfields = [
         "source_file",
-        "t1w_conform_report",
         "t1w_preproc",
-        "t1w_dseg",
         "t1w_mask",
+        "t1w_dseg",
         "template",
-        "std_t1w",
-        "std_mask",
+        "anat2std_xfm",
+        # May be missing
+        "t1w_conform_report",
         "subject_id",
         "subjects_dir",
     ]
@@ -130,10 +133,27 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
     ])
     # fmt:on
 
-    # Generate reportlets showing spatial normalization
-    tf_select = pe.Node(
-        TemplateFlowSelect(resolution=1), name="tf_select", run_without_submitting=True
+    template_iterator_wf = init_template_iterator_wf(spaces=spaces)
+    t1w_std = pe.Node(
+        ApplyTransforms(
+            dimension=3,
+            default_value=0,
+            float=True,
+            interpolation="LanczosWindowedSinc",
+        ),
+        name="t1w_std",
     )
+    mask_std = pe.Node(
+        ApplyTransforms(
+            dimension=3,
+            default_value=0,
+            float=True,
+            interpolation="MultiLabel",
+        ),
+        name="mask_std",
+    )
+
+    # Generate reportlets showing spatial normalization
     norm_msk = pe.Node(
         niu.Function(
             function=_rpt_masks,
@@ -155,18 +175,33 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
 
     # fmt:off
     workflow.connect([
-        (inputnode, tf_select, [(('template', _drop_cohort), 'template'),
-                                (('template', _pick_cohort), 'cohort')]),
-        (inputnode, norm_rpt, [('template', 'before_label')]),
-        (inputnode, norm_msk, [('std_t1w', 'after'),
-                               ('std_mask', 'after_mask')]),
-        (tf_select, norm_msk, [('t1w_file', 'before'),
-                               ('brain_mask', 'mask_file')]),
-        (norm_msk, norm_rpt, [('before', 'before'),
-                              ('after', 'after')]),
-        (inputnode, ds_std_t1w_report, [
-            (('template', _fmt), 'space'),
-            ('source_file', 'source_file')]),
+        (inputnode, template_iterator_wf, [
+            ("template", "inputnode.template"),
+            ("anat2std_xfm", "inputnode.anat2std_xfm"),
+        ]),
+        (inputnode, t1w_std, [("t1w_preproc", "input_image")]),
+        (inputnode, mask_std, [("t1w_mask", "input_image")]),
+        (template_iterator_wf, t1w_std, [
+            ("outputnode.anat2std_xfm", "transforms"),
+            ("outputnode.std_t1w", "reference_image"),
+        ]),
+        (template_iterator_wf, mask_std, [
+            ("outputnode.anat2std_xfm", "transforms"),
+            ("outputnode.std_t1w", "reference_image"),
+        ]),
+        (template_iterator_wf, norm_rpt, [('outputnode.space', 'before_label')]),
+        (t1w_std, norm_msk, [('output_image', 'after')]),
+        (mask_std, norm_msk, [('output_image', 'after_mask')]),
+        (template_iterator_wf, norm_msk, [
+            ('outputnode.std_t1w', 'before'),
+            ('outputnode.std_mask', 'mask_file'),
+        ]),
+        (norm_msk, norm_rpt, [
+            ('before', 'before'),
+            ('after', 'after'),
+        ]),
+        (inputnode, ds_std_t1w_report, [('source_file', 'source_file')]),
+        (template_iterator_wf, ds_std_t1w_report, [('outputnode.space', 'space')]),
         (norm_rpt, ds_std_t1w_report, [('out_report', 'in_file')]),
     ])
     # fmt:on
@@ -681,8 +716,6 @@ def init_anat_second_derivatives_wf(
         FreeSurfer's aparc+aseg segmentation, in native T1w space
 
     """
-    from niworkflows.interfaces.utility import KeySelect
-
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
@@ -709,36 +742,9 @@ def init_anat_second_derivatives_wf(
 
     # Write derivatives in standard spaces specified by --output-spaces
     if getattr(spaces, "_cached") is not None and spaces.cached.references:
-        from niworkflows.interfaces.space import SpaceDataSource
         from niworkflows.interfaces.nibabel import GenerateSamplingReference
-        from niworkflows.interfaces.fixes import (
-            FixHeaderApplyTransforms as ApplyTransforms,
-        )
 
-        from ..interfaces.templateflow import TemplateFlowSelect
-
-        spacesource = pe.Node(
-            SpaceDataSource(), name="spacesource", run_without_submitting=True
-        )
-        spacesource.iterables = (
-            "in_tuple",
-            [(s.fullname, s.spec) for s in spaces.cached.get_standard(dim=(3,))],
-        )
-
-        gen_tplid = pe.Node(
-            niu.Function(function=_fmt_cohort),
-            name="gen_tplid",
-            run_without_submitting=True,
-        )
-
-        select_xfm = pe.Node(
-            KeySelect(fields=["anat2std_xfm"]),
-            name="select_xfm",
-            run_without_submitting=True,
-        )
-        select_tpl = pe.Node(
-            TemplateFlowSelect(), name="select_tpl", run_without_submitting=True
-        )
+        template_iterator_wf = init_template_iterator_wf(spaces=spaces)
 
         gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
 
@@ -812,29 +818,28 @@ def init_anat_second_derivatives_wf(
         ds_std_tpms.inputs.label = tpm_labels
         # fmt:off
         workflow.connect([
-            (inputnode, mask_t1w, [('t1w_preproc', 'in_file'),
-                                   ('t1w_mask', 'in_mask')]),
-            (mask_t1w, anat2std_t1w, [('out_file', 'input_image')]),
-            (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
-            (inputnode, anat2std_dseg, [('t1w_dseg', 'input_image')]),
-            (inputnode, anat2std_tpms, [('t1w_tpms', 'input_image')]),
-            (inputnode, gen_ref, [('t1w_preproc', 'moving_image')]),
-            (inputnode, select_xfm, [
-                ('anat2std_xfm', 'anat2std_xfm'),
-                ('template', 'keys')]),
-            (spacesource, gen_tplid, [('space', 'template'),
-                                      ('cohort', 'cohort')]),
-            (gen_tplid, select_xfm, [('out', 'key')]),
-            (spacesource, select_tpl, [('space', 'template'),
-                                       ('cohort', 'cohort'),
-                                       (('resolution', _no_native), 'resolution')]),
-            (spacesource, gen_ref, [(('resolution', _is_native), 'keep_native')]),
-            (select_tpl, gen_ref, [('t1w_file', 'fixed_image')]),
-            (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
-            (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
-            (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
-            (anat2std_tpms, ds_std_tpms, [('output_image', 'in_file')]),
-            (select_tpl, ds_std_mask, [(('brain_mask', _drop_path), 'RawSources')]),
+            (inputnode, template_iterator_wf, [
+                ("anat2std_xfm", "inputnode.anat2std_xfm"),
+                ("template", "inputnode.template"),
+            ]),
+            (inputnode, mask_t1w, [("t1w_preproc", "in_file"),
+                                   ("t1w_mask", "in_mask")]),
+            (mask_t1w, anat2std_t1w, [("out_file", "input_image")]),
+            (inputnode, anat2std_mask, [("t1w_mask", "input_image")]),
+            (inputnode, anat2std_dseg, [("t1w_dseg", "input_image")]),
+            (inputnode, anat2std_tpms, [("t1w_tpms", "input_image")]),
+            (inputnode, gen_ref, [("t1w_preproc", "moving_image")]),
+            (template_iterator_wf, gen_ref, [
+                ("outputnode.std_t1w", "fixed_image"),
+                (("outputnode.resolution", _is_native), "keep_native"),
+            ]),
+            (anat2std_t1w, ds_std_t1w, [("output_image", "in_file")]),
+            (anat2std_mask, ds_std_mask, [("output_image", "in_file")]),
+            (anat2std_dseg, ds_std_dseg, [("output_image", "in_file")]),
+            (anat2std_tpms, ds_std_tpms, [("output_image", "in_file")]),
+            (template_iterator_wf, ds_std_mask, [
+                (("outputnode.std_mask", _drop_path), "RawSources"),
+            ]),
         ])
 
         workflow.connect(
@@ -844,7 +849,7 @@ def init_anat_second_derivatives_wf(
                 for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
             ]
             + [
-                (select_xfm, n, [('anat2std_xfm', 'transforms')])
+                (template_iterator_wf, n, [('outputnode.anat2std_xfm', 'transforms')])
                 for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
             ]
             # Connect the source_file input of these datasinks
@@ -854,8 +859,10 @@ def init_anat_second_derivatives_wf(
             ]
             # Connect the space input of these datasinks
             + [
-                (spacesource, n, [
-                    ('space', 'space'), ('cohort', 'cohort'), ('resolution', 'resolution')
+                (template_iterator_wf, n, [
+                    ('outputnode.space', 'space'),
+                    ('outputnode.cohort', 'cohort'),
+                    ('outputnode.resolution', 'resolution'),
                 ])
                 for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
             ]
@@ -921,6 +928,93 @@ def init_anat_second_derivatives_wf(
                                     ('source_files', 'source_file')]),
     ])
     # fmt:on
+    return workflow
+
+
+def init_template_iterator_wf(*, spaces, name="template_iterator_wf"):
+    """Prepare the necessary components to resample an image to a template space
+
+    This produces a workflow with an unjoined iterable named "spacesource".
+
+    It takes as input a collated list of template specifiers and transforms to that
+    space.
+
+    The fields in `outputnode` can be used as if they come from a single template.
+    """
+    workflow = pe.Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=["template", "anat2std_xfm"]),
+        name="inputnode",
+    )
+    outputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "space",
+                "resolution",
+                "cohort",
+                "anat2std_xfm",
+                "std_t1w",
+                "std_mask",
+            ],
+        ),
+        name="outputnode",
+    )
+
+    spacesource = pe.Node(
+        SpaceDataSource(), name="spacesource", run_without_submitting=True
+    )
+    spacesource.iterables = (
+        "in_tuple",
+        [(s.fullname, s.spec) for s in spaces.cached.get_standard(dim=(3,))],
+    )
+
+    gen_tplid = pe.Node(
+        niu.Function(function=_fmt_cohort),
+        name="gen_tplid",
+        run_without_submitting=True,
+    )
+
+    select_xfm = pe.Node(
+        KeySelect(fields=["anat2std_xfm"]),
+        name="select_xfm",
+        run_without_submitting=True,
+    )
+    select_tpl = pe.Node(
+        TemplateFlowSelect(resolution=1), name="select_tpl", run_without_submitting=True
+    )
+
+    # fmt:off
+    workflow.connect([
+        (inputnode, select_xfm, [
+            ('anat2std_xfm', 'anat2std_xfm'),
+            ('template', 'keys'),
+        ]),
+        (spacesource, gen_tplid, [
+            ('space', 'template'),
+            ('cohort', 'cohort'),
+        ]),
+        (gen_tplid, select_xfm, [('out', 'key')]),
+        (spacesource, select_tpl, [
+            ('space', 'template'),
+            ('cohort', 'cohort'),
+            (('resolution', _no_native), 'resolution'),
+        ]),
+        (spacesource, outputnode, [
+            ("space", "space"),
+            ("resolution", "resolution"),
+            ("cohort", "cohort"),
+        ]),
+        (select_xfm, outputnode, [
+            ("anat2std_xfm", "anat2std_xfm"),
+        ]),
+        (select_tpl, outputnode, [
+            ("t1w_file", "std_t1w"),
+            ("brain_mask", "std_mask"),
+        ]),
+    ])
+    # fmt:on
+
     return workflow
 
 
