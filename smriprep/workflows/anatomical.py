@@ -94,7 +94,7 @@ def init_anat_preproc_wf(
 
             from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.anatomical import init_anat_preproc_wf
-            wf = init_anat_fit_wf(
+            wf = init_anat_preproc_wf(
                 bids_root='.',
                 output_dir='.',
                 freesurfer=True,
@@ -327,7 +327,7 @@ def init_anat_fit_wf(
             :simple_form: yes
 
             from niworkflows.utils.spaces import SpatialReferences, Reference
-            from smriprep.workflows.anatomical import init_anat_preproc_wf
+            from smriprep.workflows.anatomical import init_anat_fit_wf
             wf = init_anat_fit_wf(
                 bids_root='.',
                 output_dir='.',
