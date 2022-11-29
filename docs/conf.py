@@ -65,7 +65,6 @@ autodoc_mock_imports = [
     "seaborn",
     "skimage",
     "svgutils",
-    "templateflow",
     "transforms3d",
 ]
 
