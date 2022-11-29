@@ -1,3 +1,20 @@
+0.10.0 (November 30, 2022)
+==========================
+New feature release in the 0.10.x series.
+
+This series supports fMRIPrep 22.1.x and Nibabies 22.2.x.
+
+This will be the last series to support Python 3.7.
+
+* FIX: Expand surfaces pattern to allow morphometrics (#312)
+* ENH: Bind FreeSurfer subjects directory (#311)
+* ENH: Output thickness, curvature, and sulcal depth files (#305)
+* WRAPPER: Update patch location, use --patch syntax (#309)
+* CI: Fix expected ds054 outputs (#310)
+* CI: Set max Python version to 3.10 (#308)
+* CI: Simplify actions to build once, test many (#304)
+* CI: Update CircleCI docker orb (#302)
+
 0.9.2 (July 20, 2022)
 =====================
 Bug-fix release in the 0.9.x series.
