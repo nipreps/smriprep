@@ -69,11 +69,11 @@ jobs:
         python-version: [3.7, 3.8, 3.9, "3.10"]
         install: [repo]
         include:
-          - python-version: 3
+          - python-version: "3.10"
             install: sdist
-          - python-version: 3
+          - python-version: "3.10"
             install: wheel
-          - python-version: 3
+          - python-version: "3.10"
             install: editable
 
     env:
