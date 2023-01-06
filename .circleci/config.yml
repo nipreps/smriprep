@@ -191,7 +191,7 @@ jobs:
           command: |
             mkdir -p /tmp/fslicense
             cd /tmp/fslicense
-            echo "cHJpbnRmICJrcnp5c3p0b2YuZ29yZ29sZXdza2lAZ21haWwuY29tXG41MTcyXG4gKkN2dW12RVYzelRmZ1xuRlM1Si8yYzFhZ2c0RVxuIiA+IGxpY2Vuc2UudHh0Cg==" | base64 -d | sh
+            echo "${FS_LICENSE_CONTENT}" | base64 -d | sh
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -860,6 +860,8 @@ workflows:
   build_test_deploy:
     jobs:
       - build:
+          context:
+            - nipreps-common
           filters:
             branches:
               ignore:
@@ -868,6 +870,8 @@ workflows:
               only: /.*/
 
       - get_data:
+          context:
+            - fs-license
           filters:
             branches:
               ignore:
@@ -877,6 +881,8 @@ workflows:
               only: /.*/
 
       - test_deploy_pypi:
+          context:
+            - nipreps-common
           filters:
             branches:
               only:
@@ -886,6 +892,8 @@ workflows:
               only: /.*/
 
       - test_wrapper:
+          context:
+            - nipreps-common
           requires:
             - build
           filters:
@@ -908,6 +916,8 @@ workflows:
               only: /.*/
 
       - ds005:
+          context:
+            - nipreps-common
           requires:
             - get_data
             - build
@@ -921,6 +931,8 @@ workflows:
               only: /.*/
 
       - ds054:
+          context:
+            - nipreps-common
           requires:
             - get_data
             - build
@@ -960,6 +972,8 @@ workflows:
               only: /.*/
 
       - deploy_pypi:
+          context:
+            - nipreps-common
           requires:
             - deploy_docs_tag
           filters:
@@ -969,6 +983,8 @@ workflows:
               only: /.*/
 
       - deploy_docker:
+          context:
+            - nipreps-common
           requires:
             - build
             - ds005
