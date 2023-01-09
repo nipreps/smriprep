@@ -222,22 +222,20 @@ def get_parser():
         dest="hires",
         help="disable sub-millimeter (hires) reconstruction",
     )
-    g_surfs.add_argument(
-        "--fastsurfer",
-        action="store_true",
-        default=False,
-        dest="fastsurfer",
-        help="enable FastSurfer surface preprocessing.",
-    )
-    # g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
-    g_surfs_xor = g_surfs
-
+    g_surfs_xor = g_surfs.add_mutually_exclusive_group()
     g_surfs_xor.add_argument(
         "--fs-no-reconall",
         action="store_false",
         dest="run_reconall",
         help="disable FreeSurfer surface preprocessing.",
+    )
+    g_surfs_xor.add_argument(
+        "--fastsurfer",
+        action="store_true",
+        default=False,
+        dest="fastsurfer",
+        help="enable FastSurfer surface preprocessing.",
     )
 
     g_other = parser.add_argument_group("Other options")
