@@ -25,6 +25,7 @@
 from pathlib import Path
 import time
 
+import nibabel as nb
 from nipype.interfaces.base import (
     TraitedSpec,
     BaseInterfaceInputSpec,
@@ -178,14 +179,13 @@ class FSSurfaceReport(SimpleInterface):
             cuts_from_bbox,
             compose_view,
         )
-        from nibabel import load
 
         rootdir = Path(self.inputs.subjects_dir) / self.inputs.subject_id
         _anat_file = str(rootdir / "mri" / "brain.mgz")
         _contour_file = str(rootdir / "mri" / "ribbon.mgz")
 
-        anat = load(_anat_file)
-        contour_nii = load(_contour_file)
+        anat = _to_nii(_anat_file)
+        contour_nii = _to_nii(_contour_file)
 
         n_cuts = 7
         cuts = cuts_from_bbox(contour_nii, cuts=n_cuts)
@@ -206,3 +206,8 @@ class FSSurfaceReport(SimpleInterface):
             out_file=self._results["out_report"],
         )
         return runtime
+
+
+def _to_nii(imgpath: str) -> nb.Nifti1Image:
+    img = nb.load(imgpath)
+    return nb.Nifti1Image(img.dataobj, img.affine, img.header)
