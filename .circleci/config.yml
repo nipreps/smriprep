@@ -850,8 +850,6 @@ workflows:
               only: /.*/
 
       - get_data:
-          context:
-            - fs-license
           filters:
             branches:
               ignore:
