@@ -630,10 +630,12 @@ and used as T1w-reference throughout the workflow.
     if not have_mask:
         LOGGER.info("Stage 2: Preparing brain extraction workflow")
         if skull_strip_mode == "auto":
-            skull_strip_mode = all(_is_skull_stripped(img) for img in t1w)
+            run_skull_strip = all(_is_skull_stripped(img) for img in t1w)
+        else:
+            run_skull_strip = {"force": True, "skip": False}
 
         # Brain extraction
-        if skull_strip_mode is False:
+        if run_skull_strip:
             desc += f"""\
 The T1w-reference was then skull-stripped with a *Nipype* implementation of
 the `antsBrainExtraction.sh` workflow (from ANTs), using {skull_strip_template.fullname}
