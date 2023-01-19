@@ -222,7 +222,10 @@ def init_anat_preproc_wf(
                 "t1w_dseg",
                 "t1w_tpms",
                 "anat2std_xfm",
+                "std2anat_xfm",
                 "fsnative2t1w_xfm",
+                "t1w_aparc",
+                "t1w_aseg",
             ]
         ),
         name="outputnode",
@@ -269,6 +272,7 @@ def init_anat_preproc_wf(
             ("outputnode.t1w_dseg", "t1w_dseg"),
             ("outputnode.t1w_tpms", "t1w_tpms"),
             ("outputnode.anat2std_xfm", "anat2std_xfm"),
+            ("outputnode.std2anat_xfm", "std2anat_xfm"),
             ("outputnode.fsnative2t1w_xfm", "fsnative2t1w_xfm"),
         ]),
         (anat_fit_wf, anat_second_derivatives_wf, [
@@ -299,6 +303,10 @@ def init_anat_preproc_wf(
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
                 ('outputnode.cifti_morph', 'inputnode.cifti_morph'),
                 ('outputnode.cifti_metadata', 'inputnode.cifti_metadata'),
+            ]),
+            (surface_derivatives_wf, outputnode, [
+                ('outputnode.out_aseg', 't1w_aseg'),
+                ('outputnode.out_aparc', 't1w_aparc'),
             ]),
         ])
         # fmt:on
