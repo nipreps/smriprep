@@ -36,6 +36,7 @@ from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
     PatchedLTAConvert as LTAConvert,
@@ -62,6 +63,7 @@ def init_anat_preproc_wf(
     hires,
     longitudinal,
     t1w,
+    t2w,
     omp_nthreads,
     output_dir,
     skull_strip_mode,
@@ -98,6 +100,7 @@ def init_anat_preproc_wf(
                 hires=True,
                 longitudinal=False,
                 t1w=['t1w.nii.gz'],
+                t2w=[],
                 omp_nthreads=1,
                 output_dir='.',
                 skull_strip_mode='force',
@@ -228,7 +231,7 @@ BIDS dataset.""".format(
 
     outputnode = pe.Node(
         niu.IdentityInterface(
-            fields=["template", "subjects_dir", "subject_id"] + get_outputnode_spec()
+            fields=["template", "subjects_dir", "subject_id", "t2w_preproc"] + get_outputnode_spec()
         ),
         name="outputnode",
     )
@@ -454,6 +457,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         bids_root=bids_root,
         freesurfer=freesurfer,
         num_t1w=num_t1w,
+        t2w=t2w,
         output_dir=output_dir,
         spaces=spaces,
     )
@@ -474,6 +478,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('t1w_mask', 'inputnode.t1w_mask'),
             ('t1w_dseg', 'inputnode.t1w_dseg'),
             ('t1w_tpms', 'inputnode.t1w_tpms'),
+            ('t2w_preproc', 'inputnode.t2w_preproc'),
         ]),
     ])
     # fmt:on
@@ -522,6 +527,55 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
     )
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
+
+    if t2w:
+        t2w_template_wf = init_anat_template_wf(
+            longitudinal=longitudinal,
+            omp_nthreads=omp_nthreads,
+            num_t1w=len(t2w),
+            name="t2w_template_wf",
+        )
+        bbreg = pe.Node(
+            fs.BBRegister(
+                contrast_type="t2",
+                init="coreg",
+                dof=6,
+                out_lta_file=True,
+                args="--gm-proj-abs 2 --wm-proj-abs 1",
+            ),
+            name="bbreg",
+        )
+        coreg_xfms = pe.Node(niu.Merge(2), name="merge_xfms", run_without_submitting=True)
+        t2tot1_xfm = pe.Node(ConcatenateXFMs(), name="t2tot1_xfm", run_without_submitting=True)
+        t2w_resample = pe.Node(
+            ApplyTransforms(
+                dimension=3,
+                default_value=0,
+                float=True,
+                interpolation="LanczosWindowedSinc",
+            ),
+            name="t2w_resample",
+        )
+        # fmt:off
+        workflow.connect([
+            (inputnode, t2w_template_wf, [('t2w', 'inputnode.t1w')]),
+            (t2w_template_wf, bbreg, [('outputnode.t1w_ref', 'source_file')]),
+            (surface_recon_wf, bbreg, [
+                ('outputnode.subject_id', 'subject_id'),
+                ('outputnode.subjects_dir', 'subjects_dir'),
+            ]),
+            (bbreg, coreg_xfms, [('out_lta_file', 'in1')]),
+            (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
+            (coreg_xfms, t2tot1_xfm, [('out', 'in_xfms')]),
+            (t2w_template_wf, t2w_resample, [('outputnode.t1w_ref', 'input_image')]),
+            (brain_extraction_wf, t2w_resample, [
+                (('outputnode.bias_corrected', _pop), 'reference_image'),
+            ]),
+            (t2tot1_xfm, t2w_resample, [('out_xfm', 'transforms')]),
+            (t2w_resample, outputnode, [('output_image', 't2w_preproc')]),
+        ])
+        # fmt:on
+
     # fmt:off
     workflow.connect([
         (inputnode, fs_isrunning, [
