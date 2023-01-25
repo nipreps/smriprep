@@ -231,7 +231,8 @@ BIDS dataset.""".format(
 
     outputnode = pe.Node(
         niu.IdentityInterface(
-            fields=["template", "subjects_dir", "subject_id", "t2w_preproc"] + get_outputnode_spec()
+            fields=["template", "subjects_dir", "subject_id", "t2w_preproc"]
+            + get_outputnode_spec()
         ),
         name="outputnode",
     )
@@ -514,6 +515,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 (('outputnode.out_file', _pop), 't1w_brain'),
                 ('outputnode.out_mask', 't1w_mask')]),
         ])
+        # fmt:on
         return workflow
 
     # check for older IsRunning files and remove accordingly
