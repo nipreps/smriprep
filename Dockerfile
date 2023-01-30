@@ -310,7 +310,7 @@ COPY . /src/smriprep
 ARG VERSION
 # Force static versioning within container
 RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
-    echo "include smriprep/${VERSION}" >> /src/smriprep/MANIFEST.in && \
+    echo "include smriprep/VERSION" >> /src/smriprep/MANIFEST.in && \
     /opt/conda/bin/python -m pip install --no-cache-dir "/src/smriprep[all]"
 
 RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml 
