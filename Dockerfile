@@ -294,8 +294,7 @@ ENV HOME="/home/smriprep" \
     LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
 
 RUN echo ". /opt/conda/etc/profile.d/conda.sh" >> $HOME/.bashrc && \
-    echo "conda activate base" >> $HOME/.bashrc && \
-    echo "$FREESURFER_HOME/SetUpFreeSurfer.sh" >> $HOME/.bashrc
+    echo "conda activate base" >> $HOME/.bashrc
 
 # Precaching atlases
 COPY scripts/fetch_templates.py fetch_templates.py
