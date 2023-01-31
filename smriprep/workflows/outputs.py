@@ -204,6 +204,7 @@ def init_anat_derivatives_wf(
     freesurfer,
     fastsurfer,
     num_t1w,
+    t2w,
     output_dir,
     spaces,
     name="anat_derivatives_wf",
@@ -246,6 +247,8 @@ def init_anat_derivatives_wf(
         Segmentation in T1w space
     t1w_tpms
         Tissue probability maps in T1w space
+    t2w_preproc
+        The preprocessed T2w image, bias-corrected and resampled into anatomical space.
     anat2std_xfm
         Nonlinear spatial transform to resample imaging data given in anatomical space
         into standard space.
@@ -289,6 +292,7 @@ def init_anat_derivatives_wf(
                 "t1w_mask",
                 "t1w_dseg",
                 "t1w_tpms",
+                "t2w_preproc",
                 "anat2std_xfm",
                 "std2anat_xfm",
                 "t1w2fsnative_xfm",
@@ -562,6 +566,27 @@ def init_anat_derivatives_wf(
 
     if (not freesurfer) and (not fastsurfer):
         return workflow
+
+    # T2w coregistration requires FreeSurfer surfaces, so only try to save if freesurfer
+    if t2w:
+        ds_t2w_preproc = pe.Node(
+            DerivativesDataSink(
+                base_directory=output_dir,
+                desc="preproc",
+                suffix="T2w",
+                compress=True,
+            ),
+            name="ds_t2w_preproc",
+            run_without_submitting=True,
+        )
+        ds_t2w_preproc.inputs.SkullStripped = False
+        ds_t2w_preproc.inputs.source_file = t2w
+
+        # fmt:off
+        workflow.connect([
+            (inputnode, ds_t2w_preproc, [('t2w_preproc', 'in_file')]),
+        ])
+        # fmt:on
 
     from niworkflows.interfaces.nitransforms import ConcatenateXFMs
     from niworkflows.interfaces.surf import Path2BIDS
