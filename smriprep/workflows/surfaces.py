@@ -27,25 +27,23 @@ Surface preprocessing workflows.
 structural images.
 
 """
-from nipype.pipeline import engine as pe
+from nipype.interfaces import freesurfer as fs
+from nipype.interfaces import fsl
+from nipype.interfaces import io as nio
+from nipype.interfaces import utility as niu
 from nipype.interfaces.base import Undefined
-from nipype.interfaces import (
-    io as nio,
-    utility as niu,
-    freesurfer as fs,
-)
+from nipype.pipeline import engine as pe
+from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.interfaces.freesurfer import (FSDetectInputs,
+                                               FSInjectBrainExtracted,
+                                               MakeMidthickness)
+from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
+from niworkflows.interfaces.freesurfer import \
+    PatchedRobustRegister as RobustRegister
+from niworkflows.interfaces.freesurfer import RefineBrainMask
 
 from ..interfaces.freesurfer import ReconAll
-
-from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.freesurfer import (
-    FSDetectInputs,
-    FSInjectBrainExtracted,
-    MakeMidthickness,
-    PatchedLTAConvert as LTAConvert,
-    PatchedRobustRegister as RobustRegister,
-    RefineBrainMask,
-)
+from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
 def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
@@ -229,9 +227,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     fsnative2t1w_xfm = pe.Node(
         RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
     )
-    t1w2fsnative_xfm = pe.Node(
-        LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm"
-    )
+    t1w2fsnative_xfm = pe.Node(LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
     gifti_surface_wf = init_gifti_surface_wf()
@@ -367,9 +363,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=["subjects_dir", "subject_id", "use_T2", "use_FLAIR"]
-        ),
+        niu.IdentityInterface(fields=["subjects_dir", "subject_id", "use_T2", "use_FLAIR"]),
         name="inputnode",
     )
 
@@ -420,9 +414,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     # -parcstats* can be run per-hemisphere
     # -hyporelabel is volumetric, even though it's part of -autorecon-hemi
     parcstats = pe.MapNode(
-        ReconAll(
-            directive="autorecon-hemi", flags=["-nohyporelabel"], openmp=omp_nthreads
-        ),
+        ReconAll(directive="autorecon-hemi", flags=["-nohyporelabel"], openmp=omp_nthreads),
         iterfield="hemi",
         n_procs=omp_nthreads,
         mem_gb=5,
@@ -444,9 +436,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     def _dedup(in_list):
         vals = set(in_list)
         if len(vals) > 1:
-            raise ValueError(
-                "Non-identical values can't be deduplicated:\n{!r}".format(in_list)
-            )
+            raise ValueError("Non-identical values can't be deduplicated:\n{!r}".format(in_list))
         return vals.pop()
 
     # fmt:off
@@ -528,9 +518,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="midthickness",
     )
 
-    save_midthickness = pe.Node(
-        nio.DataSink(parameterization=False), name="save_midthickness"
-    )
+    save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
 
     surface_list = pe.Node(
         niu.Merge(4, ravel_inputs=True),
@@ -538,7 +526,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         run_without_submitting=True,
     )
     fs2gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii", to_scanner=True), iterfield="in_file", name="fs2gii",
+        fs.MRIsConvert(out_datatype="gii", to_scanner=True),
+        iterfield="in_file",
+        name="fs2gii",
     )
     fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
     surfmorph_list = pe.Node(
@@ -548,7 +538,8 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     )
     morphs2gii = pe.MapNode(
         MRIsConvertData(out_datatype="gii"),
-        iterfield="scalarcurv_file", name="morphs2gii",
+        iterfield="scalarcurv_file",
+        name="morphs2gii",
     )
 
     # fmt:off
@@ -616,9 +607,7 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     """
     workflow = Workflow(name="%s_%s" % (name, segmentation))
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            ["in_file", "subjects_dir", "subject_id", "fsnative2t1w_xfm"]
-        ),
+        niu.IdentityInterface(["in_file", "subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
         name="inputnode",
     )
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
@@ -663,6 +652,164 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     return workflow
 
 
+def init_anat_ribbon_wf(name="anat_ribbon_wf"):
+    DEFAULT_MEMORY_MIN_GB = 0.01
+    workflow = pe.Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "surfaces",
+                "t1w_mask",
+            ]
+        ),
+        name="inputnode",
+    )
+    outputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "anat_ribbon",
+            ]
+        ),
+        name="outputnode",
+    )
+
+    # 0, 1 = wm; 2, 3 = pial; 6, 7 = mid
+    # note that order of lh / rh within each surf type is not guaranteed due to use
+    # of unsorted glob by FreeSurferSource prior, but we can do a sort
+    # to ensure consistent ordering
+    select_wm = pe.Node(
+        niu.Select(index=[0, 1]),
+        name="select_wm",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+        run_without_submitting=True,
+    )
+
+    select_pial = pe.Node(
+        niu.Select(index=[2, 3]),
+        name="select_pial",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+        run_without_submitting=True,
+    )
+
+    select_midthick = pe.Node(
+        niu.Select(index=[6, 7]),
+        name="select_midthick",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+        run_without_submitting=True,
+    )
+
+    create_wm_distvol = pe.MapNode(
+        CreateSignedDistanceVolume(),
+        iterfield=["surf_file"],
+        name="create_wm_distvol",
+    )
+
+    create_pial_distvol = pe.MapNode(
+        CreateSignedDistanceVolume(),
+        iterfield=["surf_file"],
+        name="create_pial_distvol",
+    )
+
+    thresh_wm_distvol = pe.MapNode(
+        fsl.maths.MathsCommand(args="-thr 0 -bin -mul 255"),
+        iterfield=["in_file"],
+        name="thresh_wm_distvol",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    uthresh_pial_distvol = pe.MapNode(
+        fsl.maths.MathsCommand(args="-uthr 0 -abs -bin -mul 255"),
+        iterfield=["in_file"],
+        name="uthresh_pial_distvol",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    bin_wm_distvol = pe.MapNode(
+        fsl.maths.UnaryMaths(operation="bin"),
+        iterfield=["in_file"],
+        name="bin_wm_distvol",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    bin_pial_distvol = pe.MapNode(
+        fsl.maths.UnaryMaths(operation="bin"),
+        iterfield=["in_file"],
+        name="bin_pial_distvol",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    split_wm_distvol = pe.Node(
+        niu.Split(splits=[1, 1]),
+        name="split_wm_distvol",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+        run_without_submitting=True,
+    )
+
+    merge_wm_distvol_no_flatten = pe.Node(
+        niu.Merge(2),
+        no_flatten=True,
+        name="merge_wm_distvol_no_flatten",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+        run_without_submitting=True,
+    )
+
+    make_ribbon_vol = pe.MapNode(
+        fsl.maths.MultiImageMaths(op_string="-mas %s -mul 255"),
+        iterfield=["in_file", "operand_files"],
+        name="make_ribbon_vol",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    bin_ribbon_vol = pe.MapNode(
+        fsl.maths.UnaryMaths(operation="bin"),
+        iterfield=["in_file"],
+        name="bin_ribbon_vol",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    split_squeeze_ribbon_vol = pe.Node(
+        niu.Split(splits=[1, 1], squeeze=True),
+        name="split_squeeze_ribbon",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+        run_without_submitting=True,
+    )
+
+    combine_ribbon_vol_hemis = pe.Node(
+        fsl.maths.BinaryMaths(operation="add"),
+        name="combine_ribbon_vol_hemis",
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    # make HCP-style ribbon volume in T1w space
+    workflow.connect(
+        [
+            (inputnode, select_wm, [("surfaces", "inlist")]),
+            (inputnode, select_pial, [("surfaces", "inlist")]),
+            (inputnode, select_midthick, [("surfaces", "inlist")]),
+            (select_wm, create_wm_distvol, [(("out", _sorted_by_basename), "surf_file")]),
+            (inputnode, create_wm_distvol, [("t1w_mask", "ref_file")]),
+            (select_pial, create_pial_distvol, [(("out", _sorted_by_basename), "surf_file")]),
+            (inputnode, create_pial_distvol, [("t1w_mask", "ref_file")]),
+            (create_wm_distvol, thresh_wm_distvol, [("out_file", "in_file")]),
+            (create_pial_distvol, uthresh_pial_distvol, [("out_file", "in_file")]),
+            (thresh_wm_distvol, bin_wm_distvol, [("out_file", "in_file")]),
+            (uthresh_pial_distvol, bin_pial_distvol, [("out_file", "in_file")]),
+            (bin_wm_distvol, split_wm_distvol, [("out_file", "inlist")]),
+            (split_wm_distvol, merge_wm_distvol_no_flatten, [("out1", "in1")]),
+            (split_wm_distvol, merge_wm_distvol_no_flatten, [("out2", "in2")]),
+            (bin_pial_distvol, make_ribbon_vol, [("out_file", "in_file")]),
+            (merge_wm_distvol_no_flatten, make_ribbon_vol, [("out", "operand_files")]),
+            (make_ribbon_vol, bin_ribbon_vol, [("out_file", "in_file")]),
+            (bin_ribbon_vol, split_squeeze_ribbon_vol, [("out_file", "inlist")]),
+            (split_squeeze_ribbon_vol, combine_ribbon_vol_hemis, [("out1", "in_file")]),
+            (split_squeeze_ribbon_vol, combine_ribbon_vol_hemis, [("out2", "operand_file")]),
+            (combine_ribbon_vol_hemis, outputnode, [("out_file", "anat_ribbon")]),
+        ]
+    )
+    return workflow
+
+
 def _check_cw256(in_files, default_flags):
     import numpy as np
     from nibabel.funcs import concat_images
@@ -675,3 +822,9 @@ def _check_cw256(in_files, default_flags):
     if np.any(fov > 256):
         flags.append("-cw256")
     return flags
+
+
+def _sorted_by_basename(inlist):
+    from os.path import basename
+
+    return sorted(inlist, key=lambda x: str(basename(x)))

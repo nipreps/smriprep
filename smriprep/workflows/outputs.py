@@ -21,10 +21,10 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Writing outputs."""
-from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
-from niworkflows.interfaces.nibabel import ApplyMask
+from nipype.pipeline import engine as pe
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.interfaces.nibabel import ApplyMask
 
 from ..interfaces import DerivativesDataSink
 
@@ -69,10 +69,10 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
         Template space and specifications
 
     """
-    from niworkflows.interfaces.reportlets.registration import (
-        SimpleBeforeAfterRPT as SimpleBeforeAfter,
-    )
     from niworkflows.interfaces.reportlets.masks import ROIsPlot
+    from niworkflows.interfaces.reportlets.registration import \
+        SimpleBeforeAfterRPT as SimpleBeforeAfter
+
     from ..interfaces.templateflow import TemplateFlowSelect
 
     workflow = Workflow(name=name)
@@ -91,9 +91,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
     ]
     inputnode = pe.Node(niu.IdentityInterface(fields=inputfields), name="inputnode")
 
-    seg_rpt = pe.Node(
-        ROIsPlot(colors=["b", "magenta"], levels=[1.5, 2.5]), name="seg_rpt"
-    )
+    seg_rpt = pe.Node(ROIsPlot(colors=["b", "magenta"], levels=[1.5, 2.5]), name="seg_rpt")
 
     t1w_conform_check = pe.Node(
         niu.Function(function=_empty_report),
@@ -102,17 +100,13 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
     )
 
     ds_t1w_conform_report = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, desc="conform", datatype="figures"
-        ),
+        DerivativesDataSink(base_directory=output_dir, desc="conform", datatype="figures"),
         name="ds_t1w_conform_report",
         run_without_submitting=True,
     )
 
     ds_t1w_dseg_mask_report = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, suffix="dseg", datatype="figures"
-        ),
+        DerivativesDataSink(base_directory=output_dir, suffix="dseg", datatype="figures"),
         name="ds_t1w_dseg_mask_report",
         run_without_submitting=True,
     )
@@ -146,9 +140,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
     norm_rpt.inputs.after_label = "Participant"  # after
 
     ds_std_t1w_report = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, suffix="T1w", datatype="figures"
-        ),
+        DerivativesDataSink(base_directory=output_dir, suffix="T1w", datatype="figures"),
         name="ds_std_t1w_report",
         run_without_submitting=True,
     )
@@ -178,9 +170,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
         recon_report.interface._always_run = True
 
         ds_recon_report = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, desc="reconall", datatype="figures"
-            ),
+            DerivativesDataSink(base_directory=output_dir, desc="reconall", datatype="figures"),
             name="ds_recon_report",
             run_without_submitting=True,
         )
@@ -267,6 +257,8 @@ def init_anat_derivatives_wf(
         GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
     morphometrics
         GIFTIs of cortical thickness, curvature, and sulcal depth
+    anat_ribbon
+        Cortical ribbon volume in T1w space
     t1w_fs_aseg
         FreeSurfer's aseg segmentation, in native T1w space
     t1w_fs_aparc
@@ -294,6 +286,7 @@ def init_anat_derivatives_wf(
                 "fsnative2t1w_xfm",
                 "surfaces",
                 "morphometrics",
+                "anat_ribbon",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
             ]
@@ -312,9 +305,7 @@ def init_anat_derivatives_wf(
     ds_t1w_preproc.inputs.SkullStripped = False
 
     ds_t1w_mask = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, desc="brain", suffix="mask", compress=True
-        ),
+        DerivativesDataSink(base_directory=output_dir, desc="brain", suffix="mask", compress=True),
         name="ds_t1w_mask",
         run_without_submitting=True,
     )
@@ -351,9 +342,7 @@ def init_anat_derivatives_wf(
     # Transforms
     if spaces.get_spaces(nonstandard=False, dim=(3,)):
         ds_std2t1w_xfm = pe.MapNode(
-            DerivativesDataSink(
-                base_directory=output_dir, to="T1w", mode="image", suffix="xfm"
-            ),
+            DerivativesDataSink(base_directory=output_dir, to="T1w", mode="image", suffix="xfm"),
             iterfield=("in_file", "from"),
             name="ds_std2t1w_xfm",
             run_without_submitting=True,
@@ -406,17 +395,14 @@ def init_anat_derivatives_wf(
 
     # Write derivatives in standard spaces specified by --output-spaces
     if getattr(spaces, "_cached") is not None and spaces.cached.references:
-        from niworkflows.interfaces.space import SpaceDataSource
+        from niworkflows.interfaces.fixes import \
+            FixHeaderApplyTransforms as ApplyTransforms
         from niworkflows.interfaces.nibabel import GenerateSamplingReference
-        from niworkflows.interfaces.fixes import (
-            FixHeaderApplyTransforms as ApplyTransforms,
-        )
+        from niworkflows.interfaces.space import SpaceDataSource
 
         from ..interfaces.templateflow import TemplateFlowSelect
 
-        spacesource = pe.Node(
-            SpaceDataSource(), name="spacesource", run_without_submitting=True
-        )
+        spacesource = pe.Node(SpaceDataSource(), name="spacesource", run_without_submitting=True)
         spacesource.iterables = (
             "in_tuple",
             [(s.fullname, s.spec) for s in spaces.cached.get_standard(dim=(3,))],
@@ -433,9 +419,7 @@ def init_anat_derivatives_wf(
             name="select_xfm",
             run_without_submitting=True,
         )
-        select_tpl = pe.Node(
-            TemplateFlowSelect(), name="select_tpl", run_without_submitting=True
-        )
+        select_tpl = pe.Node(TemplateFlowSelect(), name="select_tpl", run_without_submitting=True)
 
         gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
 
@@ -453,16 +437,10 @@ def init_anat_derivatives_wf(
             name="anat2std_t1w",
         )
 
-        anat2std_mask = pe.Node(
-            ApplyTransforms(interpolation="MultiLabel"), name="anat2std_mask"
-        )
-        anat2std_dseg = pe.Node(
-            ApplyTransforms(interpolation="MultiLabel"), name="anat2std_dseg"
-        )
+        anat2std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_mask")
+        anat2std_dseg = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_dseg")
         anat2std_tpms = pe.MapNode(
-            ApplyTransforms(
-                dimension=3, default_value=0, float=True, interpolation="Gaussian"
-            ),
+            ApplyTransforms(dimension=3, default_value=0, float=True, interpolation="Gaussian"),
             iterfield=["input_image"],
             name="anat2std_tpms",
         )
@@ -488,17 +466,13 @@ def init_anat_derivatives_wf(
         ds_std_mask.inputs.Type = "Brain"
 
         ds_std_dseg = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, suffix="dseg", compress=True
-            ),
+            DerivativesDataSink(base_directory=output_dir, suffix="dseg", compress=True),
             name="ds_std_dseg",
             run_without_submitting=True,
         )
 
         ds_std_tpms = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, suffix="probseg", compress=True
-            ),
+            DerivativesDataSink(base_directory=output_dir, suffix="probseg", compress=True),
             name="ds_std_tpms",
             run_without_submitting=True,
         )
@@ -587,12 +561,8 @@ def init_anat_derivatives_wf(
     from niworkflows.interfaces.surf import Path2BIDS
 
     # FS native space transforms
-    lta2itk_fwd = pe.Node(
-        ConcatenateXFMs(), name="lta2itk_fwd", run_without_submitting=True
-    )
-    lta2itk_inv = pe.Node(
-        ConcatenateXFMs(), name="lta2itk_inv", run_without_submitting=True
-    )
+    lta2itk_fwd = pe.Node(ConcatenateXFMs(), name="lta2itk_fwd", run_without_submitting=True)
+    lta2itk_inv = pe.Node(ConcatenateXFMs(), name="lta2itk_inv", run_without_submitting=True)
     ds_t1w_fsnative = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
@@ -629,7 +599,10 @@ def init_anat_derivatives_wf(
     )
     # Morphometrics
     name_morphs = pe.MapNode(
-        Path2BIDS(), iterfield="in_file", name="name_morphs", run_without_submitting=True,
+        Path2BIDS(),
+        iterfield="in_file",
+        name="name_morphs",
+        run_without_submitting=True,
     )
     ds_morphs = pe.MapNode(
         DerivativesDataSink(base_directory=output_dir, extension=".shape.gii"),
@@ -637,11 +610,21 @@ def init_anat_derivatives_wf(
         name="ds_morphs",
         run_without_submitting=True,
     )
+    # Ribbon volume
+    ds_anat_ribbon = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc="ribbon",
+            suffix="mask",
+            extension=".nii.gz",
+            compress=True,
+        ),
+        name="ds_anat_ribbon",
+        run_without_submitting=True,
+    )
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, desc="aseg", suffix="dseg", compress=True
-        ),
+        DerivativesDataSink(base_directory=output_dir, desc="aseg", suffix="dseg", compress=True),
         name="ds_t1w_fsaseg",
         run_without_submitting=True,
     )
@@ -675,6 +658,9 @@ def init_anat_derivatives_wf(
                                     ('source_files', 'source_file')]),
         (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),
                                     ('source_files', 'source_file')]),
+        (inputnode, ds_anat_ribbon, [('anat_ribbon', 'in_file'),
+                                    ('source_files', 'source_file')]),
+
     ])
     # fmt:on
     return workflow
@@ -691,20 +677,17 @@ def _bids_relative(in_files, bids_root):
 
 def _rpt_masks(mask_file, before, after, after_mask=None):
     from os.path import abspath
+
     import nibabel as nb
 
     msk = nb.load(mask_file).get_fdata() > 0
     bnii = nb.load(before)
-    nb.Nifti1Image(bnii.get_fdata() * msk, bnii.affine, bnii.header).to_filename(
-        "before.nii.gz"
-    )
+    nb.Nifti1Image(bnii.get_fdata() * msk, bnii.affine, bnii.header).to_filename("before.nii.gz")
     if after_mask is not None:
         msk = nb.load(after_mask).get_fdata() > 0
 
     anii = nb.load(after)
-    nb.Nifti1Image(anii.get_fdata() * msk, anii.affine, anii.header).to_filename(
-        "after.nii.gz"
-    )
+    nb.Nifti1Image(anii.get_fdata() * msk, anii.affine, anii.header).to_filename("after.nii.gz")
     return abspath("before.nii.gz"), abspath("after.nii.gz")
 
 
@@ -730,6 +713,7 @@ def _fmt(in_template):
 
 def _empty_report(in_file=None):
     from pathlib import Path
+
     from nipype.interfaces.base import isdefined
 
     if in_file is not None and isdefined(in_file):
@@ -757,6 +741,7 @@ def _no_native(value):
 
 def _drop_path(in_path):
     from pathlib import Path
+
     from templateflow.conf import TF_HOME
 
     return str(Path(in_path).relative_to(TF_HOME))
