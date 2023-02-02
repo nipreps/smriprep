@@ -21,36 +21,30 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Anatomical reference preprocessing workflows."""
-from pkg_resources import resource_filename as pkgr
-
 from nipype import logging
-from nipype.pipeline import engine as pe
-from nipype.interfaces import (
-    utility as niu,
-    freesurfer as fs,
-    fsl,
-    image,
-)
-
-from nipype.interfaces.ants.base import Info as ANTsInfo
+from nipype.interfaces import freesurfer as fs
+from nipype.interfaces import fsl, image
+from nipype.interfaces import utility as niu
 from nipype.interfaces.ants import N4BiasFieldCorrection
-
+from nipype.interfaces.ants.base import Info as ANTsInfo
+from nipype.pipeline import engine as pe
+from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.freesurfer import (
-    StructuralReference,
-    PatchedLTAConvert as LTAConvert,
-)
+from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
+from niworkflows.interfaces.freesurfer import StructuralReference
 from niworkflows.interfaces.header import ValidateImage
-from niworkflows.interfaces.images import TemplateDimensions, Conform
+from niworkflows.interfaces.images import Conform, TemplateDimensions
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.interfaces.utility import KeySelect
-from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
-from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
+from niworkflows.utils.misc import add_suffix, fix_multi_T1w_source_name
+from pkg_resources import resource_filename as pkgr
+
 from ..utils.bids import get_outputnode_spec
-from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
+from ..utils.misc import apply_lut as _apply_bids_lut
+from ..utils.misc import fs_isRunning as _fs_isRunning
 from .norm import init_anat_norm_wf
-from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
-from .surfaces import init_surface_recon_wf
+from .outputs import init_anat_derivatives_wf, init_anat_reports_wf
+from .surfaces import init_anat_ribbon_wf, init_surface_recon_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
 
@@ -347,8 +341,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # 2. Brain-extraction and INU (bias field) correction.
     if skull_strip_mode == "auto":
-        import numpy as np
         import nibabel as nb
+        import numpy as np
 
         def _is_skull_stripped(imgs):
             """Check if T1w images are skull-stripped."""
@@ -509,6 +503,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 (('outputnode.out_file', _pop), 't1w_brain'),
                 ('outputnode.out_mask', 't1w_mask')]),
         ])
+        # fmt:on
         return workflow
 
     # check for older IsRunning files and remove accordingly
@@ -522,6 +517,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
     )
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
+    # Anatomical ribbon file using HCP signed-distance volume method
+    anat_ribbon_wf = init_anat_ribbon_wf()
     # fmt:off
     workflow.connect([
         (inputnode, fs_isrunning, [
@@ -550,6 +547,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.morphometrics', 'morphometrics'),
             ('outputnode.out_aseg', 't1w_aseg'),
             ('outputnode.out_aparc', 't1w_aparc')]),
+        (surface_recon_wf, anat_ribbon_wf, [
+            ('outputnode.surfaces', 'inputnode.surfaces'),
+            ('outputnode.out_brainmask', 'inputnode.t1w_mask')]),
+        (anat_ribbon_wf, outputnode, [
+            ("outputnode.anat_ribbon", "anat_ribbon")]),
         (applyrefined, buffernode, [('out_file', 't1w_brain')]),
         (surface_recon_wf, buffernode, [
             ('outputnode.out_brainmask', 't1w_mask')]),
@@ -566,9 +568,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('surfaces', 'inputnode.surfaces'),
             ('morphometrics', 'inputnode.morphometrics'),
         ]),
+        (anat_ribbon_wf, anat_derivatives_wf, [
+            ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),
+        ]),
     ])
     # fmt:on
-
     return workflow
 
 
@@ -789,8 +793,9 @@ def _aseg_to_three():
 
 def _split_segments(in_file):
     from pathlib import Path
-    import numpy as np
+
     import nibabel as nb
+    import numpy as np
 
     segimg = nb.load(in_file)
     data = np.int16(segimg.dataobj)

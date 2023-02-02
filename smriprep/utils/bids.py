@@ -22,10 +22,11 @@
 #
 """Utilities to handle BIDS inputs."""
 from collections import defaultdict
-from pathlib import Path
 from json import loads
-from pkg_resources import resource_filename as pkgrf
+from pathlib import Path
+
 from bids.layout.writing import build_path
+from pkg_resources import resource_filename as pkgrf
 
 
 def get_outputnode_spec():
@@ -40,7 +41,7 @@ def get_outputnode_spec():
     'anat2std_xfm', 'std2anat_xfm',
     't1w_aseg', 't1w_aparc',
     't1w2fsnative_xfm', 'fsnative2t1w_xfm',
-    'surfaces', 'morphometrics']
+    'surfaces', 'morphometrics', 'anat_ribbon']
 
     """
     spec = loads(Path(pkgrf("smriprep", "data/io_spec.json")).read_text())["queries"]
@@ -101,9 +102,7 @@ def predict_derivatives(subject_id, output_spaces, freesurfer):
             query["to"] = output_spaces
         return query
 
-    queries = [
-        _normalize_q(q, space=None) for q in spec["queries"]["baseline"].values()
-    ]
+    queries = [_normalize_q(q, space=None) for q in spec["queries"]["baseline"].values()]
 
     queries += [
         _normalize_q(q, space=s)
@@ -238,10 +237,11 @@ def write_derivative_description(bids_dir, deriv_dir):
 
 
     """
+    import json
     import os
     from pathlib import Path
-    import json
-    from ..__about__ import __version__, DOWNLOAD_URL
+
+    from ..__about__ import DOWNLOAD_URL, __version__
 
     bids_dir = Path(bids_dir)
     deriv_dir = Path(deriv_dir)
