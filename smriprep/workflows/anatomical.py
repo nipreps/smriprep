@@ -25,7 +25,13 @@ from nipype import logging
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces import fsl, image
 from nipype.interfaces import utility as niu
+from nipype.interfaces import freesurfer as fs
+from nipype.interfaces import fsl, image
+from nipype.interfaces import utility as niu
 from nipype.interfaces.ants import N4BiasFieldCorrection
+from nipype.interfaces.ants.base import Info as ANTsInfo
+from nipype.pipeline import engine as pe
+from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.pipeline import engine as pe
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
@@ -37,15 +43,23 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.header import ValidateImage
 from niworkflows.interfaces.images import Conform, TemplateDimensions
+from niworkflows.interfaces.images import Conform, TemplateDimensions
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.interfaces.utility import KeySelect
+from niworkflows.utils.misc import add_suffix, fix_multi_T1w_source_name
+from pkg_resources import resource_filename as pkgr
+
 from niworkflows.utils.misc import add_suffix, fix_multi_T1w_source_name
 from pkg_resources import resource_filename as pkgr
 
 from ..utils.bids import get_outputnode_spec
 from ..utils.misc import apply_lut as _apply_bids_lut
 from ..utils.misc import fs_isRunning as _fs_isRunning
+from ..utils.misc import apply_lut as _apply_bids_lut
+from ..utils.misc import fs_isRunning as _fs_isRunning
 from .norm import init_anat_norm_wf
+from .outputs import init_anat_derivatives_wf, init_anat_reports_wf
+from .surfaces import init_anat_ribbon_wf, init_surface_recon_wf
 from .outputs import init_anat_derivatives_wf, init_anat_reports_wf
 from .surfaces import init_anat_ribbon_wf, init_surface_recon_wf
 
@@ -220,6 +234,7 @@ BIDS dataset.""".format(
 
     inputnode = pe.Node(
         niu.IdentityInterface(fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]),
+        niu.IdentityInterface(fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]),
         name="inputnode",
     )
 
@@ -249,6 +264,7 @@ BIDS dataset.""".format(
         LOGGER.log(
             25,
             "Anatomical workflow will reuse prior derivatives found in the " "output folder (%s).",
+            "Anatomical workflow will reuse prior derivatives found in the " "output folder (%s).",
             output_dir,
         )
         desc += """
@@ -257,12 +273,14 @@ Anatomical preprocessing was reused from previously existing derivative objects.
 
         templates = existing_derivatives.pop("template")
         templatesource = pe.Node(niu.IdentityInterface(fields=["template"]), name="templatesource")
+        templatesource = pe.Node(niu.IdentityInterface(fields=["template"]), name="templatesource")
         templatesource.iterables = [("template", templates)]
         outputnode.inputs.template = templates
 
         for field, value in existing_derivatives.items():
             setattr(outputnode.inputs, field, value)
 
+        anat_reports_wf.inputs.inputnode.source_file = [existing_derivatives["t1w_preproc"]]
         anat_reports_wf.inputs.inputnode.source_file = [existing_derivatives["t1w_preproc"]]
 
         stdselect = pe.Node(
@@ -303,6 +321,7 @@ The T1-weighted (T1w) image was corrected for intensity non-uniformity (INU)
 with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
 [@ants, RRID:SCR_004757]"""
     desc += ".\n" if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
+    desc += ".\n" if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
 
     desc += """\
 The T1w-reference was then skull-stripped with a *Nipype* implementation of
@@ -334,10 +353,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     )
 
     anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
+    anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
 
     # 2. Brain-extraction and INU (bias field) correction.
     if skull_strip_mode == "auto":
         import nibabel as nb
+        import numpy as np
         import numpy as np
 
         def _is_skull_stripped(imgs):
@@ -502,6 +523,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
                 ('outputnode.out_mask', 't1w_mask')]),
         ])
         # fmt:on
+        # fmt:on
         return workflow
 
     # check for older IsRunning files and remove accordingly
@@ -600,6 +622,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('outputnode.out_brainmask', 'inputnode.t1w_mask')]),
         (anat_ribbon_wf, outputnode, [
             ("outputnode.anat_ribbon", "anat_ribbon")]),
+        (surface_recon_wf, anat_ribbon_wf, [
+            ('outputnode.surfaces', 'inputnode.surfaces'),
+            ('outputnode.out_brainmask', 'inputnode.t1w_mask')]),
+        (anat_ribbon_wf, outputnode, [
+            ("outputnode.anat_ribbon", "anat_ribbon")]),
         (applyrefined, buffernode, [('out_file', 't1w_brain')]),
         (surface_recon_wf, buffernode, [
             ('outputnode.out_brainmask', 't1w_mask')]),
@@ -615,6 +642,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
             ('surfaces', 'inputnode.surfaces'),
             ('morphometrics', 'inputnode.morphometrics'),
+        ]),
+        (anat_ribbon_wf, anat_derivatives_wf, [
+            ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),
         ]),
         (anat_ribbon_wf, anat_derivatives_wf, [
             ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),
@@ -850,6 +880,7 @@ def _split_segments(in_file):
     from pathlib import Path
 
     import nibabel as nb
+    import numpy as np
     import numpy as np
 
     segimg = nb.load(in_file)
