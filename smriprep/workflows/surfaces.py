@@ -34,12 +34,13 @@ from nipype.interfaces import utility as niu
 from nipype.interfaces.base import Undefined
 from nipype.pipeline import engine as pe
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.freesurfer import (FSDetectInputs,
-                                               FSInjectBrainExtracted,
-                                               MakeMidthickness)
+from niworkflows.interfaces.freesurfer import (
+    FSDetectInputs,
+    FSInjectBrainExtracted,
+    MakeMidthickness,
+)
 from niworkflows.interfaces.freesurfer import PatchedLTAConvert as LTAConvert
-from niworkflows.interfaces.freesurfer import \
-    PatchedRobustRegister as RobustRegister
+from niworkflows.interfaces.freesurfer import PatchedRobustRegister as RobustRegister
 from niworkflows.interfaces.freesurfer import RefineBrainMask
 
 from ..interfaces.freesurfer import ReconAll

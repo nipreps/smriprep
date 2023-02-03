@@ -214,9 +214,7 @@ BIDS dataset.""".format(
     )
 
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]
-        ),
+        niu.IdentityInterface(fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]),
         name="inputnode",
     )
 
@@ -244,8 +242,7 @@ BIDS dataset.""".format(
     if existing_derivatives is not None:
         LOGGER.log(
             25,
-            "Anatomical workflow will reuse prior derivatives found in the "
-            "output folder (%s).",
+            "Anatomical workflow will reuse prior derivatives found in the " "output folder (%s).",
             output_dir,
         )
         desc += """
@@ -253,18 +250,14 @@ Anatomical preprocessing was reused from previously existing derivative objects.
         workflow.__desc__ = desc
 
         templates = existing_derivatives.pop("template")
-        templatesource = pe.Node(
-            niu.IdentityInterface(fields=["template"]), name="templatesource"
-        )
+        templatesource = pe.Node(niu.IdentityInterface(fields=["template"]), name="templatesource")
         templatesource.iterables = [("template", templates)]
         outputnode.inputs.template = templates
 
         for field, value in existing_derivatives.items():
             setattr(outputnode.inputs, field, value)
 
-        anat_reports_wf.inputs.inputnode.source_file = [
-            existing_derivatives["t1w_preproc"]
-        ]
+        anat_reports_wf.inputs.inputnode.source_file = [existing_derivatives["t1w_preproc"]]
 
         stdselect = pe.Node(
             KeySelect(fields=["std_preproc", "std_mask"], keys=templates),
@@ -303,11 +296,7 @@ The T1-weighted (T1w) image was corrected for intensity non-uniformity (INU)
     desc += """\
 with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver} \
 [@ants, RRID:SCR_004757]"""
-    desc += (
-        ".\n"
-        if num_t1w > 1
-        else ", and used as T1w-reference throughout the workflow.\n"
-    )
+    desc += ".\n" if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
 
     desc += """\
 The T1w-reference was then skull-stripped with a *Nipype* implementation of
@@ -335,9 +324,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         longitudinal=longitudinal, omp_nthreads=omp_nthreads, num_t1w=num_t1w
     )
 
-    anat_validate = pe.Node(
-        ValidateImage(), name="anat_validate", run_without_submitting=True
-    )
+    anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
 
     # 2. Brain-extraction and INU (bias field) correction.
     if skull_strip_mode == "auto":
@@ -576,9 +563,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     return workflow
 
 
-def init_anat_template_wf(
-    *, longitudinal, omp_nthreads, num_t1w, name="anat_template_wf"
-):
+def init_anat_template_wf(*, longitudinal, omp_nthreads, num_t1w, name="anat_template_wf"):
     """
     Generate a canonically-oriented, structural average from all input T1w images.
 
@@ -655,9 +640,7 @@ A T1w-reference map was computed after registration of
 
     if num_t1w == 1:
         get1st = pe.Node(niu.Select(index=[0]), name="get1st")
-        outputnode.inputs.t1w_realign_xfm = [
-            pkgr("smriprep", "data/itkIdentityTransform.txt")
-        ]
+        outputnode.inputs.t1w_realign_xfm = [pkgr("smriprep", "data/itkIdentityTransform.txt")]
 
         # fmt:off
         workflow.connect([
