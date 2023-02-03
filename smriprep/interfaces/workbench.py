@@ -1,7 +1,6 @@
 import os
 
-from nipype.interfaces.base import (CommandLineInputSpec, File, Str,
-                                    TraitedSpec, traits)
+from nipype.interfaces.base import CommandLineInputSpec, File, Str, TraitedSpec, traits
 from nipype.interfaces.workbench.base import WBCommand
 
 

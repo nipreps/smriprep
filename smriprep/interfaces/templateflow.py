@@ -36,12 +36,8 @@ from nipype.interfaces.base import (
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
     template = traits.Str("MNI152NLin2009cAsym", mandatory=True, desc="Template ID")
     atlas = InputMultiObject(traits.Str, desc="Specify an atlas")
-    cohort = InputMultiObject(
-        traits.Either(traits.Str, traits.Int), desc="Specify a cohort"
-    )
-    resolution = InputMultiObject(
-        traits.Int, desc="Specify a template resolution index"
-    )
+    cohort = InputMultiObject(traits.Either(traits.Str, traits.Int), desc="Specify a cohort")
+    resolution = InputMultiObject(traits.Int, desc="Specify a template resolution index")
     template_spec = traits.DictStrAny(
         {"atlas": None, "cohort": None}, usedefault=True, desc="Template specifications"
     )
@@ -117,10 +113,9 @@ class TemplateFlowSelect(SimpleInterface):
 
         self._results["t1w_file"] = tf.get(name[0], desc=None, suffix="T1w", **specs)
 
-        self._results["brain_mask"] = (
-            tf.get(name[0], desc="brain", suffix="mask", **specs)
-            or tf.get(name[0], label="brain", suffix="mask", **specs)
-        )
+        self._results["brain_mask"] = tf.get(
+            name[0], desc="brain", suffix="mask", **specs
+        ) or tf.get(name[0], label="brain", suffix="mask", **specs)
         return runtime
 
 
