@@ -74,52 +74,69 @@ class CreateSignedDistanceVolumeOutputSpec(TraitedSpec):
 
 
 class CreateSignedDistanceVolume(WBCommand):
-    """CREATE SIGNED DISTANCE VOLUME FROM SURFACE
-    wb_command -create-signed-distance-volume
-       <surface> - the input surface
-       <refspace> - a volume in the desired output space (dims, spacing, origin)
-       <outvol> - output - the output volume
+    """Create signed distance volume from surface
 
-       [-roi-out] - output an roi volume of where the output has a computed
-          value
-          <roi-vol> - output - the output roi volume
+    Computes the signed distance function of the surface.  Exact distance is
+    calculated by finding the closest point on any surface triangle to the
+    center of the voxel.  Approximate distance is calculated starting with
+    these distances, using dijkstra's method with a neighborhood of voxels.
+    Specifying too small of an exact distance may produce unexpected results.
 
-       [-fill-value] - specify a value to put in all voxels that don't get
-          assigned a distance
-          <value> - value to fill with (default 0)
+    The NORMALS winding method uses the normals of triangles and edges, or the
+    closest triangle hit by a ray from the point.  This method may be
+    slightly faster, but is only reliable for a closed surface that does not
+    cross through itself.  All other methods count entry (positive) and exit
+    (negative) crossings of a vertical ray from the point, then counts as
+    inside if the total is odd, negative, or nonzero, respectively.
 
-       [-exact-limit] - specify distance for exact output
-          <dist> - distance in mm (default 5)
+    Command help string::
 
-       [-approx-limit] - specify distance for approximate output
-          <dist> - distance in mm (default 20)
+        CREATE SIGNED DISTANCE VOLUME FROM SURFACE
 
-       [-approx-neighborhood] - voxel neighborhood for approximate calculation
-          <num> - size of neighborhood cube measured from center to face, in
-             voxels (default 2 = 5x5x5)
+        wb_command -create-signed-distance-volume
+           <surface> - the input surface
+           <refspace> - a volume in the desired output space (dims, spacing, origin)
+           <outvol> - output - the output volume
 
-       [-winding] - winding method for point inside surface test
-          <method> - name of the method (default EVEN_ODD)
+           [-roi-out] - output an roi volume of where the output has a computed
+              value
+              <roi-vol> - output - the output roi volume
 
-       Computes the signed distance function of the surface.  Exact distance is
-       calculated by finding the closest point on any surface triangle to the
-       center of the voxel.  Approximate distance is calculated starting with
-       these distances, using dijkstra's method with a neighborhood of voxels.
-       Specifying too small of an exact distance may produce unexpected results.
-       Valid specifiers for winding methods are as follows:
+           [-fill-value] - specify a value to put in all voxels that don't get
+              assigned a distance
+              <value> - value to fill with (default 0)
 
-       EVEN_ODD (default)
-       NEGATIVE
-       NONZERO
-       NORMALS
+           [-exact-limit] - specify distance for exact output
+              <dist> - distance in mm (default 5)
 
-       The NORMALS method uses the normals of triangles and edges, or the
-       closest triangle hit by a ray from the point.  This method may be
-       slightly faster, but is only reliable for a closed surface that does not
-       cross through itself.  All other methods count entry (positive) and exit
-       (negative) crossings of a vertical ray from the point, then counts as
-       inside if the total is odd, negative, or nonzero, respectively.
+           [-approx-limit] - specify distance for approximate output
+              <dist> - distance in mm (default 20)
 
+           [-approx-neighborhood] - voxel neighborhood for approximate calculation
+              <num> - size of neighborhood cube measured from center to face, in
+                 voxels (default 2 = 5x5x5)
+
+           [-winding] - winding method for point inside surface test
+              <method> - name of the method (default EVEN_ODD)
+
+           Computes the signed distance function of the surface.  Exact distance is
+           calculated by finding the closest point on any surface triangle to the
+           center of the voxel.  Approximate distance is calculated starting with
+           these distances, using dijkstra's method with a neighborhood of voxels.
+           Specifying too small of an exact distance may produce unexpected results.
+           Valid specifiers for winding methods are as follows:
+
+           EVEN_ODD (default)
+           NEGATIVE
+           NONZERO
+           NORMALS
+
+           The NORMALS method uses the normals of triangles and edges, or the
+           closest triangle hit by a ray from the point.  This method may be
+           slightly faster, but is only reliable for a closed surface that does not
+           cross through itself.  All other methods count entry (positive) and exit
+           (negative) crossings of a vertical ray from the point, then counts as
+           inside if the total is odd, negative, or nonzero, respectively.
     """
 
     input_spec = CreateSignedDistanceVolumeInputSpec
