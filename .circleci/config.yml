@@ -1,3 +1,14 @@
+# reusable anchors
+_machine_defaults: &machine_defaults
+  environment:
+    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+    SCRATCH: "/scratch"
+  machine:
+    image: ubuntu-2204:current
+    docker_layer_caching: true
+  working_directory: /tmp/src/fmriprep
+  resource_class: large
+
 docs_deploy: &docs
   docker:
     - image: node:8.10.0
@@ -38,12 +49,7 @@ orbs:
 
 jobs:
   build:
-    machine:
-      image: ubuntu-2004:202107-02
-    working_directory: /tmp/src/smriprep
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      SCRATCH: "/scratch"
+    <<: *machine_defaults
     steps:
       - restore_cache:
           keys:
@@ -239,8 +245,7 @@ jobs:
             - /home/circleci/.local
 
   test_wrapper:
-    machine:
-      image: ubuntu-2004:202107-02
+    <<: *machine_defaults
     steps:
       - attach_workspace:
           at: /tmp
@@ -389,8 +394,7 @@ jobs:
           path: /tmp/src/smriprep/wrapper/dist
 
   ds005:
-    machine:
-      image: ubuntu-2004:202107-02
+    <<: *machine_defaults
     working_directory: /tmp/ds005
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
@@ -558,9 +562,7 @@ jobs:
           path: /tmp/ds005/derivatives
           destination: fasttrack
   ds054:
-    machine:
-      image: ubuntu-2004:202107-02
-    working_directory: /tmp/ds054
+    <<: *machine_defaults
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
     steps:
@@ -813,9 +815,7 @@ jobs:
             twine upload dist/smriprep* wrapper/dist/smriprep*
 
   deploy_docker:
-    machine:
-      image: ubuntu-2004:202107-02
-    working_directory: /tmp/src/smriprep
+    <<: *machine_defaults
     steps:
       - restore_cache:
           keys:
