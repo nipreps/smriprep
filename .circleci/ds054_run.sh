@@ -4,10 +4,11 @@ docker run --rm -it -e FMRIPREP_DEV=1 -u $(id -u) \
     -v /tmp/fslicense:/tmp/fslicense:ro \
     -v /tmp/ds054:/tmp/ds054 \
     -v /tmp/templateflow:/home/smriprep/.cache/templateflow \
+    -v /tmp/src/smriprep/docker/multiproc.coveragerc:/tmp/multiproc.coveragerc:ro \
     -v /tmp/src/smriprep/.circleci/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
     -e FMRIPREP_DEV=1 -u $(id -u) \
     -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
-    -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
+    -e COVERAGE_RCFILE=/tmp/multiproc.coveragerc \
     --entrypoint=coverage \
     nipreps/smriprep:latest \
     run -m smriprep \
