@@ -141,8 +141,7 @@ jobs:
           name: Build Docker image
           no_output_timeout: 60m
           command: |
-            export PY3=$(pyenv versions | grep '3\.' |
-                         sed -e 's/.* 3\./3./' -e 's/ .*//')
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
             pyenv local $PY3
             # Get version, update files.
             THISVERSION=$( python3 get_version.py )
@@ -165,8 +164,7 @@ jobs:
       - run:
           name: Check Docker image
           command: |
-            export PY3=$(pyenv versions | grep '3\.' |
-                         sed -e 's/.* 3\./3./' -e 's/ .*//')
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
             pyenv local $PY3
             # Get version, update files.
             THISVERSION=$( python3 get_version.py )
@@ -313,8 +311,7 @@ jobs:
       - run:
           name: Test smriprep-wrapper (Python 2)
           command: |
-            export PY2=$(pyenv versions | grep '2\.' |
-                         sed -e 's/.* 2\./2./' -e 's/ .*//')
+            export PY2=$( pyenv versions | awk '/^\* 2/ { print $2 }' )
             pyenv local $PY2
             echo -n "Python version: "
             python --version
@@ -327,8 +324,7 @@ jobs:
       - run:
           name: Test smriprep-wrapper (Python 3)
           command: |
-            export PY3=$(pyenv versions | grep '3\.' |
-                         sed -e 's/.* 3\./3./' -e 's/ .*//')
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
             pyenv local $PY3
             echo -n "Python version: "
             python --version
@@ -449,12 +445,11 @@ jobs:
       - run:
           name: Install codecov
           command: |
-              pyenv install 3.8.5
-              pyenv global 3.8.5
-              python --version
-              python -m pip install -U pip
-              python -m pip install -U codecov
-              pyenv rehash
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            pip install --upgrade pip
+            pip install --upgrade codecov
+            pyenv rehash
       - docker/install-docker-credential-helper
       - run: *docker_auth
       - run: *setup_docker_registry
@@ -510,10 +505,11 @@ jobs:
           name: Combine coverage and submit
           working_directory: /tmp/src/smriprep
           command: |
-              pyenv local 3.8.5
-              which python
-              python --version
-              codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            which python
+            python --version
+            codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
       - run:
           name: Clean-up temporary directory of reportlets and fsdir_run_XXX nodes
           when: always
@@ -594,12 +590,11 @@ jobs:
       - run:
           name: Install codecov
           command: |
-              pyenv install 3.8.5
-              pyenv global 3.8.5
-              python --version
-              python -m pip install -U pip
-              python -m pip install -U codecov
-              pyenv rehash
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            pip install --upgrade pip
+            pip install --upgrade codecov
+            pyenv rehash
       - docker/install-docker-credential-helper
       - run: *docker_auth
       - run: *setup_docker_registry
@@ -657,10 +652,11 @@ jobs:
           name: Submit coverage
           working_directory: /tmp/src/smriprep
           command: |
-              pyenv local 3.8.5
-              which python
-              python --version
-              codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            which python
+            python --version
+            codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
       - run:
           name: Clean-up temporary directory of reportlets
           when: always
