@@ -267,6 +267,8 @@ def init_anat_derivatives_wf(
         GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
     morphometrics
         GIFTIs of cortical thickness, curvature, and sulcal depth
+    anat_ribbon
+        Cortical ribbon volume in T1w space
     t1w_fs_aseg
         FreeSurfer's aseg segmentation, in native T1w space
     t1w_fs_aparc
@@ -294,6 +296,7 @@ def init_anat_derivatives_wf(
                 "fsnative2t1w_xfm",
                 "surfaces",
                 "morphometrics",
+                "anat_ribbon",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
             ]
@@ -637,6 +640,19 @@ def init_anat_derivatives_wf(
         name="ds_morphs",
         run_without_submitting=True,
     )
+    # Ribbon volume
+    ds_anat_ribbon = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc="ribbon",
+            suffix="mask",
+            extension=".nii.gz",
+            compress=True,
+        ),
+        name="ds_anat_ribbon",
+        run_without_submitting=True,
+    )
+
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(
@@ -675,6 +691,9 @@ def init_anat_derivatives_wf(
                                     ('source_files', 'source_file')]),
         (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),
                                     ('source_files', 'source_file')]),
+        (inputnode, ds_anat_ribbon, [('anat_ribbon', 'in_file'),
+                                     ('source_files', 'source_file')]),
+
     ])
     # fmt:on
     return workflow
