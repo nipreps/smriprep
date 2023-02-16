@@ -584,8 +584,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # Identical connections
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
-<<<<<<< pcamach2-fastsurfer-patch
-=======
 
     if t2w:
         t2w_template_wf = init_anat_template_wf(
@@ -637,7 +635,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         # fmt:on
 
     # fmt:off
->>>>>>> master
+
     workflow.connect([
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (brain_extraction_wf, surface_recon_wf, [
