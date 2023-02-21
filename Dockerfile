@@ -321,11 +321,12 @@ RUN /opt/conda/bin/python fetch_templates.py && \
     find $HOME/.cache/templateflow -type d -exec chmod go=u {} + && \
     find $HOME/.cache/templateflow -type f -exec chmod go=u {} +
 
+# Installing FastSurfer gpu dependencies
+RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml 
+
 # Installing sMRIPREP
 COPY --from=src /src/fmriprep/dist/*.whl .
 RUN /opt/conda/bin/python -m pip install --no-cache-dir $( ls *.whl )[all]
-
-RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml 
 
 # Installing nibabel version 4.0.2
 RUN /opt/conda/bin/python -m pip install --no-cache-dir nibabel==4.0.2
