@@ -57,7 +57,6 @@ from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
 from .surfaces import init_surface_recon_wf, init_fastsurf_recon_wf, init_anat_ribbon_wf
 
-
 LOGGER = logging.getLogger("nipype.workflow")
 
 

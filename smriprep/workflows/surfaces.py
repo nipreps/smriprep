@@ -50,6 +50,7 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
+
 from nipype import logging
 # import os
 
@@ -336,6 +337,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     # fmt:on
 
     return workflow
+
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 

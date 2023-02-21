@@ -148,6 +148,8 @@ freesurfer/bin/dcmdjpeg.fs
 freesurfer/bin/dcmdrle.fs
 freesurfer/bin/dcmsplit
 freesurfer/bin/dcmunpack
+freesurfer/bin/deface_subject
+freesurfer/bin/defect-seg
 freesurfer/bin/dicom-rename
 freesurfer/bin/diffusionUtils
 freesurfer/bin/dmri_ac.sh
@@ -299,6 +301,10 @@ freesurfer/bin/make-segvol-table
 freesurfer/bin/make_symmetric
 freesurfer/bin/make_upright
 freesurfer/bin/makevol
+freesurfer/bin/map_all_labels
+freesurfer/bin/map_all_labels-lh
+freesurfer/bin/map_central_sulcus
+freesurfer/bin/map_to_base
 freesurfer/bin/meanval
 freesurfer/bin/mergeseg
 freesurfer/bin/merge_stats_tables
@@ -309,6 +315,7 @@ freesurfer/bin/mkmnc_index.tcl
 freesurfer/bin/mksubjdirs
 freesurfer/bin/mksurfatlas
 freesurfer/bin/mkxsubjreg
+freesurfer/bin/mni152reg
 freesurfer/bin/morph_only_subject
 freesurfer/bin/morph_only_subject-lh
 freesurfer/bin/morph_only_subject-rh
@@ -690,6 +697,9 @@ freesurfer/bin/stattablediff
 freesurfer/bin/stem2fname
 freesurfer/bin/stim_polar
 freesurfer/bin/streamlineFilter
+freesurfer/bin/surf2vol
+freesurfer/bin/surfreg
+freesurfer/bin/swi_preprocess
 freesurfer/bin/swi_process
 freesurfer/bin/t4img_4dfp
 freesurfer/bin/t4imgs_4dfp
@@ -730,6 +740,8 @@ freesurfer/bin/vol2symsurf
 freesurfer/bin/vsm-smooth
 freesurfer/bin/wfilemask
 freesurfer/bin/wm-anat-snr
+freesurfer/bin/wmedits2surf
+freesurfer/bin/wmsaseg
 freesurfer/bin/xcerebralseg
 freesurfer/bin/xcorr
 freesurfer/bin/xfmrot
