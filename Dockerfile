@@ -342,6 +342,10 @@ ENV IS_DOCKER_8395080871=1
 ENV FASTSURFER_HOME=/fastsurfer
 ENV PATH="$PATH:/fastsurfer"
 
+# Download all remote network checkpoints already
+ENV PYTHONPATH=/fastsurfer:$PYTHONPATH
+RUN cd /fastsurfer ; python3 FastSurferCNN/download_checkpoints.py --all
+
 RUN ldconfig
 WORKDIR /tmp
 ENTRYPOINT ["/opt/conda/bin/smriprep"]
