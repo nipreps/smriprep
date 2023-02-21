@@ -1,3 +1,16 @@
+0.11.0 (To be determined)
+=========================
+New feature release in the 0.11.x series.
+
+This series supports fMRIPrep 23.0.x.
+
+This release drops support for Python 3.7.
+
+* ENH: Add cortical ribbon workflow (#322)
+* ENH: Merge T2w images and coregister to T1w template (#319)
+* MAINT: Rotate CircleCI secrets and setup up org-level context (#315)
+* CI: Update build to match fMRIPrep (#323)
+
 0.10.0 (November 30, 2022)
 ==========================
 New feature release in the 0.10.x series.

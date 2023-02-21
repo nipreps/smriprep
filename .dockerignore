@@ -15,30 +15,12 @@ smriprep.egg-info
 pip-wheel-metadata/**/*
 pip-wheel-metadata
 
-# housekeeping tools
-get_version.py
-update_changes.sh
-tox.ini
-
 # pip installs
 src/**/*
 src/
-
-# git
-.gitignore
-.git/**/*
-.git
 
 # other
 work/**/*
 work
 out/**/*
 out/
-
-# CI, etc.
-.circleci
-.circleci/**/*
-.zenodo.json
-.travis.yml
-.readthedocs.yml
-CONTRIBUTING.md

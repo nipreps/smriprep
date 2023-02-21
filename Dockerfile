@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2022 The NiPreps Developers
+# Copyright (c) 2023 The NiPreps Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-## Start with ubuntu base as in FastSurfer Docker image
-## https://github.com/Deep-MI/FastSurfer/blob/0749f38e656ed0da977c408b4383db88e1a8b563/Docker/Dockerfile
+FROM python:slim AS src
+RUN pip install build
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git
+COPY . /src/fmriprep
+RUN python -m build /src/fmriprep
 
-FROM ubuntu:focal-20210416
+# Use Ubuntu 22.04 LTS
+FROM ubuntu:jammy-20221130
+
 # Prepare environment
 ENV DEBIAN_FRONTEND="noninteractive"
 ENV LANG=C.UTF-8
@@ -45,6 +51,7 @@ RUN apt-get update && \
                     upx \
                     file \
                     git \
+                    gnupg \
                     libtool \
                     lsb-release \
                     netbase \
@@ -65,9 +72,9 @@ RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/min
      rm ~/miniconda.sh 
 
 # Installing freesurfer
-COPY docker/files/freesurfer7.2-exclude.txt /usr/local/etc/freesurfer7.2-exclude.txt
-RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.2.0/freesurfer-linux-ubuntu18_amd64-7.2.0.tar.gz \
-     | tar zxv --no-same-owner -C /opt --exclude-from=/usr/local/etc/freesurfer7.2-exclude.txt
+COPY docker/files/freesurfer7.3.2-exclude.txt /usr/local/etc/freesurfer7.3.2-exclude.txt
+RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.3.2/freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz \
+     | tar zxv --no-same-owner -C /opt --exclude-from=/usr/local/etc/freesurfer7.3.2-exclude.txt
 
 # Install required packages for freesurfer to run
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -192,17 +199,9 @@ ENV FSLDIR="/opt/fsl-6.0.5.1" \
     FSLGECUDAQ="cuda.q" \
     LD_LIBRARY_PATH="/opt/fsl-6.0.5.1/lib:$LD_LIBRARY_PATH"
 
-# Convert3D (neurodocker build)
-RUN echo "Downloading Convert3D ..." \
-    && mkdir -p /opt/convert3d-1.0.0 \
-    && curl -fsSL --retry 5 https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz/download \
-    | tar -xz -C /opt/convert3d-1.0.0 --strip-components 1 \
-    --exclude "c3d-1.0.0-Linux-x86_64/lib" \
-    --exclude "c3d-1.0.0-Linux-x86_64/share" \
-    --exclude "c3d-1.0.0-Linux-x86_64/bin/c3d_gui"
-ENV C3DPATH="/opt/convert3d-1.0.0" \
-    PATH="/opt/convert3d-1.0.0/bin:$PATH"
-
+# Configure PPA for libpng12
+RUN GNUPGHOME=/tmp gpg --keyserver hkps://keyserver.ubuntu.com --no-default-keyring --keyring /usr/share/keyrings/linuxuprising.gpg --recv 0xEA8CACC073C3DB2A \
+    && echo "deb [signed-by=/usr/share/keyrings/linuxuprising.gpg] https://ppa.launchpadcontent.net/linuxuprising/libpng12/ubuntu jammy main" > /etc/apt/sources.list.d/linuxuprising.list
 # AFNI latest (neurodocker build)
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
@@ -214,6 +213,7 @@ RUN apt-get update -qq \
            libglw1-mesa \
            libgomp1 \
            libjpeg62 \
+           libpng12-0 \
            libxm4 \
            netpbm \
            tcsh \
@@ -227,9 +227,6 @@ RUN apt-get update -qq \
     && curl -sSL --retry 5 -o /tmp/libxp6.deb http://mirrors.kernel.org/debian/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb \
     && dpkg -i /tmp/libxp6.deb \
     && rm /tmp/libxp6.deb \
-    && curl -sSL --retry 5 -o /tmp/libpng.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%2Bdeb7u2_amd64.deb \
-    && dpkg -i /tmp/libpng.deb \
-    && rm /tmp/libpng.deb \
     && apt-get install -f \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
@@ -267,8 +264,19 @@ WORKDIR $ANTSPATH
 RUN curl -sSL "https://dl.dropbox.com/s/gwf51ykkk5bifyj/ants-Linux-centos6_x86_64-v2.3.4.tar.gz" \
     | tar -xzC $ANTSPATH --strip-components 1
 
-# nipreps/miniconda:py38_1.4.1
-COPY --from=nipreps/miniconda@sha256:ebbff214e6c9dc50ccc6fdbe679df1ffcbceaa45b47a75d6e34e8a064ef178da /opt/conda /opt/conda
+WORKDIR /opt
+RUN curl -sSLO https://www.humanconnectome.org/storage/app/media/workbench/workbench-linux64-v1.5.0.zip && \
+    unzip workbench-linux64-v1.5.0.zip && \
+    rm workbench-linux64-v1.5.0.zip && \
+    rm -rf /opt/workbench/libs_linux64_software_opengl /opt/workbench/plugins_linux64 && \
+    strip --remove-section=.note.ABI-tag /opt/workbench/libs_linux64/libQt5Core.so.5
+    # ABI tags can interfere when running on Singularity
+
+ENV PATH="/opt/workbench/bin_linux64:$PATH" \
+    LD_LIBRARY_PATH="/opt/workbench/lib_linux64:$LD_LIBRARY_PATH"
+
+# nipreps/miniconda:py39_4.12.0rc0
+COPY --from=nipreps/miniconda@sha256:5aa4d2bb46e7e56fccf6e93ab3ff765add74e79f96ffa00449504b4869790cb9 /opt/conda /opt/conda
 
 RUN ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
@@ -281,6 +289,15 @@ ENV PATH="/opt/conda/bin:$PATH" \
     LANG="C.UTF-8" \
     LC_ALL="C.UTF-8" \
     PYTHONNOUSERSITE=1
+
+RUN conda install -y -n base \
+    -c anaconda \
+    -c conda-forge \
+    convert3d=1.3.0 \
+    && sync \
+    && conda clean -afy; sync \
+    && rm -rf ~/.conda ~/.cache/pip/*; sync \
+    && ldconfig
 
 # Unless otherwise specified each process should only use one thread - nipype
 # will handle parallelization
@@ -305,12 +322,8 @@ RUN /opt/conda/bin/python fetch_templates.py && \
     find $HOME/.cache/templateflow -type f -exec chmod go=u {} +
 
 # Installing sMRIPREP
-COPY . /src/smriprep
-ARG VERSION
-# Force static versioning within container
-RUN echo "${VERSION}" > /src/smriprep/smriprep/VERSION && \
-    echo "include smriprep/VERSION" >> /src/smriprep/MANIFEST.in && \
-    /opt/conda/bin/python -m pip install --no-cache-dir "/src/smriprep[all]"
+COPY --from=src /src/fmriprep/dist/*.whl .
+RUN /opt/conda/bin/python -m pip install --no-cache-dir $( ls *.whl )[all]
 
 RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml 
 
