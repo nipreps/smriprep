@@ -64,7 +64,10 @@ RUN apt-get update && \
 RUN cd /opt && mkdir /fastsurfer \
     && git clone -b v2.0.4 https://github.com/Deep-MI/FastSurfer.git \
     && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml 
-    
+
+# Copy fastsurfer from git folder
+RUN cp -R /opt/FastSurfer/* /fastsurfer/ && rm -rf /opt/FastSurfer
+ 
 # Install conda
 RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/miniconda/$CONDA_FILE  && \
      chmod +x ~/miniconda.sh && \
@@ -95,9 +98,6 @@ ENV OS=Linux \
     FREESURFER_HOME=/opt/freesurfer \
     PYTHONUNBUFFERED=0 \
     PATH=/opt/freesurfer/bin:$PATH
-
-# Copy fastsurfer from git folder
-RUN cp -R /opt/FastSurfer/* /fastsurfer/
 
 # Simulate SetUpFreeSurfer.sh
 ENV FSL_DIR="/opt/fsl-6.0.5.1" \
