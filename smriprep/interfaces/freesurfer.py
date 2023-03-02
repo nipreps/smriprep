@@ -22,6 +22,7 @@
 #
 """Nipype's recon-all replacement."""
 import os
+from looseversion import LooseVersion
 from nipype import logging
 from nipype.utils.filemanip import check_depends
 from nipype.interfaces.base import traits, InputMultiObject, isdefined, File
@@ -173,6 +174,11 @@ class ReconAll(fs.ReconAll):
             elif flag in cmd:
                 no_run = False
                 continue
+
+            # FreeSurfer changed the meaning and order of -apas2aseg without
+            # updating the recon table on the wiki. Hack it until fixed in nipype.
+            if step == 'apas2aseg' and fs.Info.looseversion() >= LooseVersion("7.3.0"):
+                infiles = []
 
             subj_dir = os.path.join(subjects_dir, self.inputs.subject_id)
             if check_depends(

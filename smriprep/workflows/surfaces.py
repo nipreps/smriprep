@@ -381,6 +381,16 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
         niu.IdentityInterface(fields=["subjects_dir", "subject_id"]), name="outputnode"
     )
 
+    # FreeSurfer 7.3 removed gcareg from autorecon2-volonly
+    # Adding it directly in would force it to run every time
+    gcareg = pe.Node(
+        ReconAll(directive=Undefined, steps=["gcareg"], openmp=omp_nthreads),
+        n_procs=omp_nthreads,
+        mem_gb=5,
+        name="gcareg",
+    )
+    gcareg.interface._always_run = True
+
     autorecon2_vol = pe.Node(
         ReconAll(directive="autorecon2-volonly", openmp=omp_nthreads),
         n_procs=omp_nthreads,
@@ -457,8 +467,10 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     workflow.connect([
         (inputnode, cortribbon, [('use_T2', 'use_T2'),
                                  ('use_FLAIR', 'use_FLAIR')]),
-        (inputnode, autorecon2_vol, [('subjects_dir', 'subjects_dir'),
-                                     ('subject_id', 'subject_id')]),
+        (inputnode, gcareg, [('subjects_dir', 'subjects_dir'),
+                             ('subject_id', 'subject_id')]),
+        (gcareg, autorecon2_vol, [('subjects_dir', 'subjects_dir'),
+                                  ('subject_id', 'subject_id')]),
         (autorecon2_vol, autorecon_surfs, [('subjects_dir', 'subjects_dir'),
                                            ('subject_id', 'subject_id')]),
         (autorecon_surfs, cortribbon, [(('subjects_dir', _dedup), 'subjects_dir'),
