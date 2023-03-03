@@ -38,13 +38,12 @@ from nipype.interfaces import (
     workbench as wb,
 )
 
-from ..interfaces.freesurfer import ReconAll
+from ..interfaces.freesurfer import ReconAll, MakeMidthickness
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
     FSDetectInputs,
     FSInjectBrainExtracted,
-    MakeMidthickness,
     PatchedLTAConvert as LTAConvert,
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,

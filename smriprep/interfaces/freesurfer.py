@@ -27,6 +27,7 @@ from nipype import logging
 from nipype.utils.filemanip import check_depends
 from nipype.interfaces.base import traits, InputMultiObject, isdefined, File
 from nipype.interfaces import freesurfer as fs
+from niworkflows.interfaces import freesurfer as nwfs
 
 iflogger = logging.getLogger("nipype.interface")
 
@@ -289,3 +290,34 @@ class MRIsConvertData(fs.utils.MRIsConvert):
             return self.inputs.in_file
 
         return super()._gen_filename(name)
+
+
+class MakeMidthickness(nwfs.MakeMidthickness):
+    """Patched MakeMidthickness interface
+
+    Ensures output filenames are specified with hemisphere labels, when appropriate.
+    This may not cover all use-cases in MRIsExpand, but we're just making midthickness
+    files.
+
+    >>> from smriprep.interfaces.freesurfer import MakeMidthickness
+    >>> mris_expand = MakeMidthickness(thickness=True, distance=0.5)
+    >>> mris_expand.inputs.in_file = 'lh.white'
+    >>> mris_expand.cmdline
+    'mris_expand -thickness lh.white 0.5 lh.expanded'
+    >>> mris_expand.inputs.out_name = 'graymid'
+    >>> mris_expand.cmdline
+    'mris_expand -thickness lh.white 0.5 lh.graymid'
+
+        Explicit hemisphere labels should still be respected:
+
+    >>> mris_expand.inputs.out_name = 'rh.graymid'
+    >>> mris_expand.cmdline
+    'mris_expand -thickness lh.white 0.5 rh.graymid'
+    """
+
+    def _format_arg(self, name, trait_spec, value):
+        # FreeSurfer at some point changed whether it would add the hemi label onto the
+        # surface. Therefore we'll do it ourselves.
+        if name == "out_name":
+            value = self._associated_file(self.inputs.in_file, value)
+        return super()._format_arg(name, trait_spec, value)
