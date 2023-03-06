@@ -6,6 +6,7 @@ This series supports fMRIPrep 23.0.x.
 
 This release drops support for Python 3.7.
 
+* ENH: Enable resampling morphometrics to fsLR CIFTI-2 files (#325)
 * ENH: Add cortical ribbon workflow (#322)
 * ENH: Merge T2w images and coregister to T1w template (#319)
 * MAINT: Rotate CircleCI secrets and setup up org-level context (#315)
