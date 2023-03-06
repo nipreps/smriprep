@@ -414,6 +414,7 @@ to workflows in *sMRIPrep*'s documentation]\
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
         spaces=spaces,
+        cifti_output=False,  # Enabling this needs a CLI flag
     )
 
     # fmt:off
