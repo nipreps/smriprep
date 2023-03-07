@@ -207,6 +207,7 @@ def init_anat_derivatives_wf(
     t2w,
     output_dir,
     spaces,
+    cifti_output,
     name="anat_derivatives_wf",
     tpm_labels=BIDS_TISSUE_ORDER,
 ):
@@ -229,6 +230,8 @@ def init_anat_derivatives_wf(
         Workflow name (default: anat_derivatives_wf)
     tpm_labels : :obj:`tuple`
         Tissue probability maps in order
+    cifti_output : :obj:`bool`
+        Whether the ``--cifti-output`` flag was set.
 
     Inputs
     ------
@@ -278,6 +281,12 @@ def init_anat_derivatives_wf(
         FreeSurfer's aseg segmentation, in native T1w space
     t1w_fs_aparc
         FreeSurfer's aparc+aseg segmentation, in native T1w space
+    cifti_morph
+        Morphometric CIFTI-2 dscalar files
+    cifti_density
+        Grayordinate density
+    cifti_metadata
+        JSON files containing metadata dictionaries
 
     """
     from niworkflows.interfaces.utility import KeySelect
@@ -304,6 +313,9 @@ def init_anat_derivatives_wf(
                 "anat_ribbon",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
+                'cifti_metadata',
+                'cifti_density',
+                'cifti_morph',
             ]
         ),
         name="inputnode",
@@ -701,6 +713,27 @@ def init_anat_derivatives_wf(
 
     ])
     # fmt:on
+
+    if cifti_output:
+        ds_cifti_morph = pe.MapNode(
+            DerivativesDataSink(
+                base_directory=output_dir,
+                suffix=['curv', 'sulc', 'thickness'],
+                compress=False,
+                space='fsLR',
+            ),
+            name='ds_cifti_morph',
+            run_without_submitting=True,
+            iterfield=["in_file", "meta_dict", "suffix"],
+        )
+        # fmt:off
+        workflow.connect([
+            (inputnode, ds_cifti_morph, [('cifti_morph', 'in_file'),
+                                         ('source_files', 'source_file'),
+                                         ('cifti_density', 'density'),
+                                         (('cifti_metadata', _read_jsons), 'meta_dict')])
+        ])
+        # fmt:on
     return workflow
 
 
@@ -801,3 +834,10 @@ def _combine_cohort(in_template):
             return template
         return f"{template}+{in_template.split('cohort-')[-1].split(':')[0]}"
     return [_combine_cohort(v) for v in in_template]
+
+
+def _read_jsons(in_file):
+    from json import loads
+    from pathlib import Path
+
+    return [loads(Path(f).read_text()) for f in in_file]

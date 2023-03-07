@@ -55,7 +55,8 @@ from ..utils.misc import (
 )
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
-from .surfaces import init_surface_recon_wf, init_fastsurf_recon_wf, init_anat_ribbon_wf
+from .surfaces import init_surface_recon_wf, init_fastsurf_recon_wf, init_anat_ribbon_wf, init_morph_grayords_wf
+from .surfaces import init_anat_ribbon_wf, init_surface_recon_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
 
@@ -74,6 +75,7 @@ def init_anat_preproc_wf(
     skull_strip_mode,
     skull_strip_template,
     spaces,
+    cifti_output=False,
     debug=False,
     existing_derivatives=None,
     name="anat_preproc_wf",
@@ -476,6 +478,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         t2w=t2w,
         output_dir=output_dir,
         spaces=spaces,
+        cifti_output=cifti_output,
     )
 
     # fmt:off
@@ -678,6 +681,22 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),
         ]),
     ])
+
+    if cifti_output:
+        morph_grayords_wf = init_morph_grayords_wf(grayord_density=cifti_output)
+        anat_derivatives_wf.get_node('inputnode').inputs.cifti_density = cifti_output
+        # fmt:off
+        workflow.connect([
+            (surface_recon_wf, morph_grayords_wf, [
+                ('outputnode.subject_id', 'inputnode.subject_id'),
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+            ]),
+            (morph_grayords_wf, anat_derivatives_wf, [
+                ("outputnode.cifti_morph", "inputnode.cifti_morph"),
+                ("outputnode.cifti_metadata", "inputnode.cifti_metadata"),
+            ]),
+        ])
+        # fmt:on
 
     return workflow
 

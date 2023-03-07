@@ -28,6 +28,7 @@ structural images or FastSurfer for a machine learning-accelerated
 alternative using only T1w structural images.
 
 """
+import typing as ty
 from nipype.pipeline import engine as pe
 from nipype.interfaces.base import Undefined
 from nipype.interfaces import (
@@ -35,17 +36,16 @@ from nipype.interfaces import (
     io as nio,
     utility as niu,
     freesurfer as fs,
+    workbench as wb,
 )
 
-from ..interfaces.freesurfer import ReconAll
+from ..interfaces.freesurfer import ReconAll, MakeMidthickness
 from ..interfaces import fastsurfer as fastsurf
-
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
     FSDetectInputs,
     FSInjectBrainExtracted,
-    MakeMidthickness,
     PatchedLTAConvert as LTAConvert,
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
@@ -669,6 +669,16 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
         niu.IdentityInterface(fields=["subjects_dir", "subject_id"]), name="outputnode"
     )
 
+    # FreeSurfer 7.3 removed gcareg from autorecon2-volonly
+    # Adding it directly in would force it to run every time
+    gcareg = pe.Node(
+        ReconAll(directive=Undefined, steps=["gcareg"], openmp=omp_nthreads),
+        n_procs=omp_nthreads,
+        mem_gb=5,
+        name="gcareg",
+    )
+    gcareg.interface._always_run = True
+
     autorecon2_vol = pe.Node(
         ReconAll(directive="autorecon2-volonly", openmp=omp_nthreads),
         n_procs=omp_nthreads,
@@ -745,8 +755,10 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     workflow.connect([
         (inputnode, cortribbon, [('use_T2', 'use_T2'),
                                  ('use_FLAIR', 'use_FLAIR')]),
-        (inputnode, autorecon2_vol, [('subjects_dir', 'subjects_dir'),
-                                     ('subject_id', 'subject_id')]),
+        (inputnode, gcareg, [('subjects_dir', 'subjects_dir'),
+                             ('subject_id', 'subject_id')]),
+        (gcareg, autorecon2_vol, [('subjects_dir', 'subjects_dir'),
+                                  ('subject_id', 'subject_id')]),
         (autorecon2_vol, autorecon_surfs, [('subjects_dir', 'subjects_dir'),
                                            ('subject_id', 'subject_id')]),
         (autorecon_surfs, cortribbon, [(('subjects_dir', _dedup), 'subjects_dir'),
@@ -1118,6 +1130,193 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
     return workflow
 
 
+def init_morph_grayords_wf(
+    grayord_density: ty.Literal['91k', '170k'],
+    name: str = "bold_grayords_wf",
+):
+    """
+    Sample Grayordinates files onto the fsLR atlas.
+
+    Outputs are in CIFTI2 format.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: colored
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_morph_grayords_wf
+            wf = init_morph_grayords_wf(grayord_density="91k")
+
+    Parameters
+    ----------
+    grayord_density : :obj:`str`
+        Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
+    name : :obj:`str`
+        Unique name for the subworkflow (default: ``"bold_grayords_wf"``)
+
+    Inputs
+    ------
+    subject_id : :obj:`str`
+        FreeSurfer subject ID
+    subjects_dir : :obj:`str`
+        FreeSurfer SUBJECTS_DIR
+
+    Outputs
+    -------
+    cifti_morph : :obj:`list` of :obj:`str`
+        Paths of CIFTI dscalar files
+    cifti_metadata : :obj:`list` of :obj:`str`
+        Paths to JSON files containing metadata corresponding to ``cifti_morph``
+
+    """
+    import templateflow.api as tf
+    from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+    from smriprep.interfaces.cifti import GenerateDScalar
+
+    workflow = Workflow(name=name)
+    workflow.__desc__ = f"""\
+*Grayordinate* "dscalar" files [@hcppipelines] containing {grayord_density} samples were
+also generated using the highest-resolution ``fsaverage`` as an intermediate standardized
+surface space.
+"""
+
+    fslr_density = "32k" if grayord_density == "91k" else "59k"
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=["subject_id", "subjects_dir"]),
+        name="inputnode",
+    )
+
+    outputnode = pe.Node(
+        niu.IdentityInterface(fields=["cifti_morph", "cifti_metadata"]),
+        name="outputnode",
+    )
+
+    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+
+    surfmorph_list = pe.Node(
+        niu.Merge(3, ravel_inputs=True),
+        name="surfmorph_list",
+        run_without_submitting=True,
+    )
+
+    surf2surf = pe.MapNode(
+        fs.SurfaceTransform(target_subject="fsaverage", target_type="gii"),
+        iterfield=["source_file", "hemi"],
+        name="surf2surf",
+        mem_gb=0.01,
+    )
+    surf2surf.inputs.hemi = ["lh", "rh"] * 3
+
+    # Setup Workbench command. LR ordering for hemi can be assumed, as it is imposed
+    # by the iterfield of the MapNode in the surface sampling workflow above.
+    resample = pe.MapNode(
+        wb.MetricResample(method="ADAP_BARY_AREA", area_metrics=True),
+        name="resample",
+        iterfield=[
+            "in_file",
+            "out_file",
+            "new_sphere",
+            "new_area",
+            "current_sphere",
+            "current_area",
+        ],
+    )
+    resample.inputs.current_sphere = [
+        str(
+            tf.get(
+                "fsaverage",
+                hemi=hemi,
+                density="164k",
+                desc="std",
+                suffix="sphere",
+                extension=".surf.gii",
+            )
+        )
+        for hemi in "LR"
+    ] * 3
+    resample.inputs.current_area = [
+        str(
+            tf.get(
+                "fsaverage",
+                hemi=hemi,
+                density="164k",
+                desc="vaavg",
+                suffix="midthickness",
+                extension=".shape.gii",
+            )
+        )
+        for hemi in "LR"
+    ] * 3
+    resample.inputs.new_sphere = [
+        str(
+            tf.get(
+                "fsLR",
+                space="fsaverage",
+                hemi=hemi,
+                density=fslr_density,
+                suffix="sphere",
+                extension=".surf.gii",
+            )
+        )
+        for hemi in "LR"
+    ] * 3
+    resample.inputs.new_area = [
+        str(
+            tf.get(
+                "fsLR",
+                hemi=hemi,
+                density=fslr_density,
+                desc="vaavg",
+                suffix="midthickness",
+                extension=".shape.gii",
+            )
+        )
+        for hemi in "LR"
+    ] * 3
+    resample.inputs.out_file = [
+        f"space-fsLR_hemi-{h}_den-{grayord_density}_{morph}.shape.gii"
+        # Order: curv-L, curv-R, sulc-L, sulc-R, thickness-L, thickness-R
+        for morph in ('curv', 'sulc', 'thickness')
+        for h in "LR"
+    ]
+
+    gen_cifti = pe.MapNode(
+        GenerateDScalar(
+            grayordinates=grayord_density,
+        ),
+        iterfield=['scalar_name', 'scalar_surfs'],
+        name="gen_cifti",
+    )
+    gen_cifti.inputs.scalar_name = ['curv', 'sulc', 'thickness']
+
+    # fmt: off
+    workflow.connect([
+        (inputnode, get_surfaces, [
+            ('subject_id', 'subject_id'),
+            ('subjects_dir', 'subjects_dir'),
+        ]),
+        (inputnode, surf2surf, [
+            ('subject_id', 'source_subject'),
+            ('subjects_dir', 'subjects_dir'),
+        ]),
+        (get_surfaces, surfmorph_list, [
+            (('curv', _sorted_by_basename), 'in1'),
+            (('sulc', _sorted_by_basename), 'in2'),
+            (('thickness', _sorted_by_basename), 'in3'),
+        ]),
+        (surfmorph_list, surf2surf, [('out', 'source_file')]),
+        (surf2surf, resample, [('out_file', 'in_file')]),
+        (resample, gen_cifti, [
+            (("out_file", _collate), "scalar_surfs")]),
+        (gen_cifti, outputnode, [("out_file", "cifti_morph"),
+                                 ("out_metadata", "cifti_metadata")]),
+    ])
+    # fmt: on
+
+    return workflow
+
+
 def _check_cw256(in_files, default_flags):
     import numpy as np
     from nibabel.funcs import concat_images
@@ -1136,3 +1335,7 @@ def _sorted_by_basename(inlist):
     from os.path import basename
 
     return sorted(inlist, key=lambda x: str(basename(x)))
+
+
+def _collate(files):
+    return [files[i:i + 2] for i in range(0, len(files), 2)]
