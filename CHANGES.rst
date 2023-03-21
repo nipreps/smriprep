@@ -1,5 +1,5 @@
-0.11.0 (To be determined)
-=========================
+0.11.0 (March 10, 2023)
+=======================
 New feature release in the 0.11.x series.
 
 This series supports fMRIPrep 23.0.x.

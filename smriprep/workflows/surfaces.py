@@ -1136,7 +1136,7 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
 
 def init_morph_grayords_wf(
     grayord_density: ty.Literal['91k', '170k'],
-    name: str = "bold_grayords_wf",
+    name: str = "morph_grayords_wf",
 ):
     """
     Sample Grayordinates files onto the fsLR atlas.
@@ -1156,7 +1156,7 @@ def init_morph_grayords_wf(
     grayord_density : :obj:`str`
         Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
     name : :obj:`str`
-        Unique name for the subworkflow (default: ``"bold_grayords_wf"``)
+        Unique name for the subworkflow (default: ``"morph_grayords_wf"``)
 
     Inputs
     ------
