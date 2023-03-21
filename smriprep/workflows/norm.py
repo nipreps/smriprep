@@ -143,6 +143,7 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
                 "s" * (ntpls != 1),
             ),
             targets_id=", ".join(templates),
+            tf_ver=tf_ver,
             tpls=(" was", "s were")[ntpls != 1],
         )
 
