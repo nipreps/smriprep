@@ -3,7 +3,7 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 """
 The FastSufer module provides basic functions
-for running FastSurfer CNN and surface processing.
+for running FastSurfer VINN and surface processing.
 
 """
 from nipype.interfaces.base import (
