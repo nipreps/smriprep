@@ -621,9 +621,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         workflow.connect([
             (inputnode, t2w_template_wf, [('t2w', 'inputnode.anat_files')]),
             (t2w_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
-            (surface_recon_wf, bbreg, [
-                ('outputnode.subject_id', 'subject_id'),
-                ('outputnode.subjects_dir', 'subjects_dir'),
+            (inputnode, bbreg, [
+                ('inputnode.subject_id', 'subject_id'),
+                ('inputnode.subjects_dir', 'subjects_dir'),
             ]),
             (bbreg, coreg_xfms, [('out_lta_file', 'in1')]),
             (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),

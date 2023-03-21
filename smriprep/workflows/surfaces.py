@@ -59,10 +59,10 @@ LOGGER = logging.getLogger("nipype.workflow")
 
 def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     r"""
-    Reconstruct anatomical surfaces using FastSurfer CNN and ``recon_surf``,
+    Reconstruct anatomical surfaces using FastSurfer VINN and ``recon_surf``,
     an alternative to FreeSurfer's ``recon-all``.
 
-    First, FastSurfer CNN creates a segmentation using the T1w structural image.
+    First, FastSurfer VINN creates a segmentation using the T1w structural image.
     This is followed by FastSurfer ``recon_surf`` processing of the surface,
     along with surface registration to support cross-subject comparison
     using the ``--surfeg`` argument to FastSurfer.
@@ -144,20 +144,20 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     weights_sag
         Pretrained weights of sagittal network.
         Default
-            ``../checkpoints/Sagittal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
+            ``../checkpoints/Sagittal_Weights_FastSurferVINN/ckpts/Epoch_30_training_state.pkl``
     weights_ax
         Pretrained weights of axial network.
         Default
-            ``../checkpoints/Axial_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
+            ``../checkpoints/Axial_Weights_FastSurferVINN/ckpts/Epoch_30_training_state.pkl``
     weights_cor
         Pretrained weights of coronal network.
         Default
-            ``../checkpoints/Coronal_Weights_FastSurferCNN/ckpts/Epoch_30_training_state.pkl``
+            ``../checkpoints/Coronal_Weights_FastSurferVINN/ckpts/Epoch_30_training_state.pkl``
     seg_log
-        Name and location for the log-file for the segmentation (FastSurferCNN).
+        Name and location for the log-file for the segmentation (FastSurferVINN).
         Default '$SUBJECTS_DIR/$sid/scripts/deep-seg.log'
     clean_seg
-        Flag to clean up FastSurferCNN segmentation
+        Flag to clean up FastSurferVINN segmentation
     run_viewagg_on
         Define where the view aggregation should be run on.
         By default, the program checks if you have enough memory to run
@@ -167,7 +167,7 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
         Equivalently, if you define ``--run_viewagg_on gpu``, view agg will be run on the gpu
         (no memory check will be done).
     no_cuda
-        Flag to disable CUDA usage in FastSurferCNN (no GPU usage, inference on CPU)
+        Flag to disable CUDA usage in FastSurferVINN (no GPU usage, inference on CPU)
     batch
         Batch size for inference. Default 16. Lower this to reduce memory requirement
     order
@@ -198,11 +198,11 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
         which python version to use.
         Default ``python3.6``
     seg_only
-        only run FastSurferCNN
+        only run FastSurferVINN
         (generate segmentation, do not run the surface pipeline)
     surf_only
         only run the surface pipeline ``recon_surf``.
-        The segmentation created by FastSurferCNN must already exist in this case.
+        The segmentation created by FastSurferVINN must already exist in this case.
 
 
     """
@@ -214,7 +214,7 @@ previously was refined with a custom variation of the method to reconcile
 ANTs-derived and FastSurfer-derived segmentations of the cortical
 gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 """.format(
-        fastsurfer_version="1.1.0"
+        fastsurfer_version="2.0.4"
     )
 
     inputnode = pe.Node(
@@ -233,18 +233,21 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     outputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "sd",
-                "sid",
+                "subjects_dir",
+                "subject_id",
                 "t1w2fsnative_xfm",
                 "fsnative2t1w_xfm",
                 "surfaces",
                 "out_brainmask",
                 "out_aseg",
                 "out_aparc",
+                "morphometrics",
             ]
         ),
         name="outputnode",
     )
+
+    # outputnode = pe.Node(niu.IdentityInterface(["surfaces", "morphometrics"]), name="outputnode")
 
     # null for now, placeholder for FastSurfer VINN hires support
     if hires:
@@ -272,7 +275,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     #     fastsurf.FastSurferSource(), name="recon_conf")
 
     fastsurf_recon = pe.Node(
-        fastsurf.FastSCommand(),
+        fastsurf.FastSurfer(),
         name="fastsurf_recon",
         n_procs=omp_nthreads,
         mem_gb=12,
@@ -297,9 +300,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         # (inputnode, recon_conf, [('t1w', 't1'),
         #                          ('sd', 'sd'),
         #                          ('sid', 'sid')]),
-        (inputnode, fastsurf_recon, [('sd', 'sd'),
-                                     ('sid', 'sid'),
-                                     ('t1w', 't1')]),
+        (inputnode, fastsurf_recon, [('sd', 'subjects_dir'),
+                                     ('sid', 'subject_id'),
+                                     ('t1w', 'T1_files')]),
         (inputnode, skull_strip_extern, [('sd', 'subjects_dir'),
                                          ('sid', 'subject_id')]),
         (inputnode, gifti_surface_wf, [
@@ -325,9 +328,10 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
 
         # Output
-        (inputnode, outputnode, [('sd', 'sd'),
-                                 ('sid', 'sid')]),
-        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
+        (inputnode, outputnode, [('sd', 'subjects_dir'),
+                                 ('sid', 'subject_id')]),
+        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
+                                        ('outputnode.morphometrics', 'morphometrics')]),
         (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
         (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
         (refine, outputnode, [('out_file', 'out_brainmask')]),
