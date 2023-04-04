@@ -818,8 +818,16 @@ jobs:
           name: Deploy to Docker Hub
           no_output_timeout: 40m
           command: |
-            docker tag nipreps/smriprep nipreps/smriprep:${CIRCLE_BRANCH#docker/}
-            docker push nipreps/smriprep:${CIRCLE_BRANCH#docker/}
+            if [ -n $CIRCLE_TAG ]; then
+              DOCKER_TAG=$CIRCLE_TAG
+            elif [[ $CIRCLE_BRANCH == "docker/*" ]]; then
+              DOCKER_TAG=${CIRCLE_BRANCH#docker/}
+            fi
+
+            if [ -n $DOCKER_TAG ]; then
+              docker tag nipreps/smriprep nipreps/smriprep:${DOCKER_TAG}
+              docker push nipreps/smriprep:${DOCKER_TAG}
+            fi
 
   deploy_docs_tag:
     <<: *docs
