@@ -10246,7 +10246,10 @@ if ( !noGlobal ) {
 	window.jQuery = window.$ = jQuery;
 }
 
-
+// Workaround for XSS vulnerability (fixed in jQuery 3.5.0)
+jQuery.htmlPrefilter = function( html ) {
+	return html;
+};
 
 
 return jQuery;
