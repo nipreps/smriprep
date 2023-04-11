@@ -307,6 +307,7 @@ def init_single_subject_wf(
         # for documentation purposes
         subject_data = {
             "t1w": ["/completely/made/up/path/sub-01_T1w.nii.gz"],
+            "t2w": [],
         }
     else:
         subject_data = collect_data(layout, subject_id, bids_filters=bids_filters)[0]
@@ -403,12 +404,14 @@ to workflows in *sMRIPrep*'s documentation]\
         longitudinal=longitudinal,
         name="anat_preproc_wf",
         t1w=subject_data["t1w"],
+        t2w=subject_data["t2w"],
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
         spaces=spaces,
+        cifti_output=False,  # Enabling this needs a CLI flag
     )
 
     # fmt:off

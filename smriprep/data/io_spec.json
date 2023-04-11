@@ -126,6 +126,12 @@
         "hemi": ["L", "R"],
         "extension": "shape.gii",
         "suffix": ["thickness", "sulc", "curv"]
+      },
+      "anat_ribbon": {
+        "datatype": "anat",
+        "desc": "ribbon",
+        "suffix": "mask",
+        "extension": "nii.gz"
       }
     }
   },

@@ -1,3 +1,45 @@
+# reusable anchors
+_machine_defaults: &machine_defaults
+  environment:
+    TZ: "/usr/share/zoneinfo/America/Los_Angeles"
+    SCRATCH: "/scratch"
+  machine:
+    image: ubuntu-2204:current
+    docker_layer_caching: true
+  working_directory: /tmp/src/smriprep
+  resource_class: large
+
+_python_defaults: &python_defaults
+  docker:
+    - image: cimg/python:3.10.9
+  working_directory: /tmp/src/smriprep
+
+_docker_auth: &docker_auth
+  name: Docker authentication
+  command: |
+    if [[ -n $DOCKER_PAT ]]; then
+      echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
+    fi
+
+_setup_docker_registry: &setup_docker_registry
+  name: Set up Docker registry
+  command: |
+    if [[ -f /tmp/images/registry.tar.gz ]]; then
+      echo "Loading saved registry image"
+      docker load < /tmp/images/registry.tar.gz
+    else
+      echo "Pulling registry image from DockerHub"
+      docker pull registry:2
+    fi
+    docker run -d -p 5000:5000 --restart=always --name=registry \
+        -v /tmp/docker:/var/lib/registry registry:2
+
+_pull_from_registry: &pull_from_registry
+  name: Pull and tag image from local registry
+  command: |
+    docker pull localhost:5000/smriprep
+    docker tag localhost:5000/smriprep nipreps/smriprep:latest
+
 docs_deploy: &docs
   docker:
     - image: node:8.10.0
@@ -33,49 +75,39 @@ docs_deploy: &docs
         command: gh-pages --dotfiles --message "doc(update) [skip ci]" --dist docs/_build/html
 
 version: 2.1
+aliases:
+  - &src "/tmp/src/smriprep"
 orbs:
   docker: circleci/docker@2.1.4
 
 jobs:
   build:
-    machine:
-      image: ubuntu-2004:202107-02
-    working_directory: /tmp/src/smriprep
-    environment:
-      TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      SCRATCH: "/scratch"
+    <<: *machine_defaults
     steps:
+      - checkout:
+          path: *src
       - restore_cache:
           keys:
-            - build-v3-{{ .Branch }}-{{ epoch }}
-            - build-v3-{{ .Branch }}-
-            - build-v3-master-
+            - build-v0-{{ .Branch }}-{{ .Revision }}
+            - build-v0--{{ .Revision }}
+            - build-v0-{{ .Branch }}-
+            - build-v0-master-
+            - build-v0-
           paths:
             - /tmp/docker
             - /tmp/images
       - docker/install-docker-credential-helper
+      - run: *docker_auth
+      - run: *setup_docker_registry
       - run:
-          name: Docker authentication
+          name: Save docker registry
           command: |
-            if [[ -n $DOCKER_PAT ]]; then
-              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
-            fi
-      - run:
-          name: Set up Docker registry
-          command: |
-            if [[ -f /tmp/images/registry.tar.gz ]]; then
-              echo "Loading saved registry image"
-              docker load < /tmp/images/registry.tar.gz
-            else
-              echo "Pulling registry image from DockerHub"
-              docker pull registry:2
+            if [[ ! -f /tmp/images/registry.tar.gz ]]; then
               mkdir -p /tmp/images
               docker save registry:2 | gzip > /tmp/images/registry.tar.gz
             fi
-            docker run -d -p 5000:5000 --restart=always --name=registry \
-                -v /tmp/docker:/var/lib/registry registry:2
       - run:
-          name: Pull images
+          name: Pull Ubuntu/jammy image
           command: |
             set +e
             docker pull localhost:5000/ubuntu
@@ -83,24 +115,33 @@ jobs:
             set -e
             if [[ "$success" = "0" ]]; then
                 echo "Pulling from local registry"
-                docker tag localhost:5000/ubuntu ubuntu:xenial-20201030
-                docker pull localhost:5000/smriprep
+                docker tag localhost:5000/ubuntu ubuntu:jammy-20221130
+            else
+                echo "Pulling from Docker Hub"
+                docker pull ubuntu:jammy-20221130
+                docker tag ubuntu:jammy-20221130 localhost:5000/ubuntu
+                docker push localhost:5000/ubuntu
+            fi
+      - run:
+          name: Pull sMRIPrep Docker image
+          command: |
+            set +e
+            docker pull localhost:5000/smriprep
+            success=$?
+            set -e
+            if [[ "$success" = "0" ]]; then
+                echo "Pulled from local registry"
                 docker tag localhost:5000/smriprep nipreps/smriprep:latest
                 docker tag localhost:5000/smriprep nipreps/smriprep
             else
                 echo "Pulling from Docker Hub"
-                docker pull ubuntu:xenial-20201030
-                docker tag ubuntu:xenial-20201030 localhost:5000/ubuntu
-                docker push localhost:5000/ubuntu
                 docker pull nipreps/smriprep:latest
             fi
-      - checkout
       - run:
           name: Build Docker image
           no_output_timeout: 60m
           command: |
-            export PY3=$(pyenv versions | grep '3\.' |
-                         sed -e 's/.* 3\./3./' -e 's/ .*//')
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
             pyenv local $PY3
             # Get version, update files.
             THISVERSION=$( python3 get_version.py )
@@ -120,6 +161,20 @@ jobs:
                 --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" . \
               && e=0 && break || sleep 15
             done && [ "$e" -eq "0" ]
+      - run:
+          name: Check Docker image
+          command: |
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            # Get version, update files.
+            THISVERSION=$( python3 get_version.py )
+            BUILT_VERSION=$( docker run --rm nipreps/smriprep:latest --version )
+            BUILT_VERSION=${BUILT_VERSION%$'\r'}
+            BUILT_VERSION=${BUILT_VERSION#*"smriprep v"}
+            echo "VERSION: \"$THISVERSION\""
+            echo "BUILT: \"$BUILT_VERSION\""
+            set -e
+            test "$BUILT_VERSION" = "$THISVERSION"
 
       - run:
           name: Docker push to local registry
@@ -133,7 +188,7 @@ jobs:
             docker exec -it registry /bin/registry garbage-collect --delete-untagged \
                 /etc/docker/registry/config.yml
       - save_cache:
-         key: build-v3-{{ .Branch }}-{{ epoch }}
+         key: build-v0-{{ .Branch }}-{{ .Revision }}
          paths:
             - /tmp/docker
             - /tmp/images
@@ -145,8 +200,7 @@ jobs:
             - .force
 
   get_data:
-    docker:
-      - image: circleci/python:3.8.5
+    <<: *python_defaults
     working_directory: /home/circleci/data
     steps:
       - restore_cache:
@@ -239,49 +293,25 @@ jobs:
             - /home/circleci/.local
 
   test_wrapper:
-    machine:
-      image: ubuntu-2004:202107-02
+    <<: *machine_defaults
     steps:
       - attach_workspace:
           at: /tmp
       - restore_cache:
           keys:
-            - build-v3-{{ .Branch }}-{{ epoch }}
-            - build-v3-{{ .Branch }}-
-            - build-v3-master-
+            - build-v0-{{ .Branch }}-{{ .Revision }}
           paths:
             - /tmp/docker
             - /tmp/images
       - docker/install-docker-credential-helper
-      - run:
-          name: Docker authentication
-          command: |
-            if [[ -n $DOCKER_PAT ]]; then
-              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
-            fi
-      - run:
-          name: Set up Docker registry
-          command: |
-            if [[ -f /tmp/images/registry.tar.gz ]]; then
-              echo "Loading saved registry image"
-              docker load < /tmp/images/registry.tar.gz
-            else
-              echo "Pulling registry image from DockerHub"
-              docker pull registry:2
-            fi
-            docker run -d -p 5000:5000 --restart=always --name=registry \
-                -v /tmp/docker:/var/lib/registry registry:2
-      - run:
-          name: Pull images from local registry
-          command: |
-            docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep nipreps/smriprep:latest
+      - run: *docker_auth
+      - run: *setup_docker_registry
+      - run: *pull_from_registry
       - checkout
       - run:
           name: Test smriprep-wrapper (Python 2)
           command: |
-            export PY2=$(pyenv versions | grep '2\.' |
-                         sed -e 's/.* 2\./2./' -e 's/ .*//')
+            export PY2=$( pyenv versions | awk '/^\* 2/ { print $2 }' )
             pyenv local $PY2
             echo -n "Python version: "
             python --version
@@ -294,8 +324,7 @@ jobs:
       - run:
           name: Test smriprep-wrapper (Python 3)
           command: |
-            export PY3=$(pyenv versions | grep '3\.' |
-                         sed -e 's/.* 3\./3./' -e 's/ .*//')
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
             pyenv local $PY3
             echo -n "Python version: "
             python --version
@@ -306,8 +335,7 @@ jobs:
             smriprep-docker -i nipreps/smriprep:latest --version
 
   test_deploy_pypi:
-    docker:
-      - image: circleci/python:3.8.5
+    <<: *python_defaults
     working_directory: /tmp/src/smriprep
     steps:
       - checkout
@@ -389,8 +417,7 @@ jobs:
           path: /tmp/src/smriprep/wrapper/dist
 
   ds005:
-    machine:
-      image: ubuntu-2004:202107-02
+    <<: *machine_defaults
     working_directory: /tmp/ds005
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
@@ -407,9 +434,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - build-v3-{{ .Branch }}-{{ epoch }}
-            - build-v3-{{ .Branch }}-
-            - build-v3-master-
+            - build-v0-{{ .Branch }}-{{ .Revision }}
           paths:
             - /tmp/docker
             - /tmp/images
@@ -420,36 +445,15 @@ jobs:
       - run:
           name: Install codecov
           command: |
-              pyenv install 3.8.5
-              pyenv global 3.8.5
-              python --version
-              python -m pip install -U pip
-              python -m pip install -U codecov
-              pyenv rehash
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            pip install --upgrade pip
+            pip install --upgrade codecov
+            pyenv rehash
       - docker/install-docker-credential-helper
-      - run:
-          name: Docker authentication
-          command: |
-            if [[ -n $DOCKER_PAT ]]; then
-              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
-            fi
-      - run:
-          name: Set up Docker registry
-          command: |
-            if [[ -f /tmp/images/registry.tar.gz ]]; then
-              echo "Loading saved registry image"
-              docker load < /tmp/images/registry.tar.gz
-            else
-              echo "Pulling registry image from DockerHub"
-              docker pull registry:2
-            fi
-            docker run -d -p 5000:5000 --restart=always --name=registry \
-                -v /tmp/docker:/var/lib/registry registry:2
-      - run:
-          name: Pull images from local registry
-          command: |
-            docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep nipreps/smriprep:latest
+      - run: *docker_auth
+      - run: *setup_docker_registry
+      - run: *pull_from_registry
       - restore_cache:
           keys:
             - ds005-anat-v9-{{ .Branch }}-{{ epoch }}
@@ -501,10 +505,11 @@ jobs:
           name: Combine coverage and submit
           working_directory: /tmp/src/smriprep
           command: |
-              pyenv local 3.8.5
-              which python
-              python --version
-              codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            which python
+            python --version
+            codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
       - run:
           name: Clean-up temporary directory of reportlets and fsdir_run_XXX nodes
           when: always
@@ -558,9 +563,7 @@ jobs:
           path: /tmp/ds005/derivatives
           destination: fasttrack
   ds054:
-    machine:
-      image: ubuntu-2004:202107-02
-    working_directory: /tmp/ds054
+    <<: *machine_defaults
     environment:
       - FS_LICENSE: /tmp/fslicense/license.txt
     steps:
@@ -576,9 +579,7 @@ jobs:
             fi
       - restore_cache:
           keys:
-            - build-v3-{{ .Branch }}-{{ epoch }}
-            - build-v3-{{ .Branch }}-
-            - build-v3-master-
+            - build-v0-{{ .Branch }}-{{ .Revision }}
           paths:
             - /tmp/docker
             - /tmp/images
@@ -589,36 +590,15 @@ jobs:
       - run:
           name: Install codecov
           command: |
-              pyenv install 3.8.5
-              pyenv global 3.8.5
-              python --version
-              python -m pip install -U pip
-              python -m pip install -U codecov
-              pyenv rehash
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            pip install --upgrade pip
+            pip install --upgrade codecov
+            pyenv rehash
       - docker/install-docker-credential-helper
-      - run:
-          name: Docker authentication
-          command: |
-            if [[ -n $DOCKER_PAT ]]; then
-              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
-            fi
-      - run:
-          name: Set up Docker registry
-          command: |
-            if [[ -f /tmp/images/registry.tar.gz ]]; then
-              echo "Loading saved registry image"
-              docker load < /tmp/images/registry.tar.gz
-            else
-              echo "Pulling registry image from DockerHub"
-              docker pull registry:2
-            fi
-            docker run -d -p 5000:5000 --restart=always --name=registry \
-                -v /tmp/docker:/var/lib/registry registry:2
-      - run:
-          name: Pull images from local registry
-          command: |
-            docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep nipreps/smriprep:latest
+      - run: *docker_auth
+      - run: *setup_docker_registry
+      - run: *pull_from_registry
       - restore_cache:
           keys:
             - ds054-anat-v9-{{ .Branch }}-{{ epoch }}
@@ -672,10 +652,11 @@ jobs:
           name: Submit coverage
           working_directory: /tmp/src/smriprep
           command: |
-              pyenv local 3.8.5
-              which python
-              python --version
-              codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
+            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
+            pyenv local $PY3
+            which python
+            python --version
+            codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
       - run:
           name: Clean-up temporary directory of reportlets
           when: always
@@ -720,8 +701,7 @@ jobs:
           destination: fasttrack-derivatives
 
   build_docs:
-    docker:
-      - image: circleci/python:3.8.5
+    <<: *python_defaults
     working_directory: /tmp/gh-pages
     environment:
       - FSLOUTPUTTYPE: NIFTI
@@ -780,8 +760,7 @@ jobs:
           destination: versioned
 
   deploy_pypi:
-    docker:
-      - image: circleci/python:3.8.5
+    <<: *python_defaults
     working_directory: /tmp/src/smriprep
     steps:
       - checkout
@@ -813,40 +792,41 @@ jobs:
             twine upload dist/smriprep* wrapper/dist/smriprep*
 
   deploy_docker:
-    machine:
-      image: ubuntu-2004:202107-02
-    working_directory: /tmp/src/smriprep
+    <<: *machine_defaults
+    working_directory: *src
     steps:
+      - run:
+          name: Check whether image should be deployed to Docker Hub
+          command: |
+            if [[ "$CIRCLE_PROJECT_USERNAME" != "nipreps" ]]; then
+              echo "Nothing to deploy for $CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME."
+              circleci step halt
+            fi
       - restore_cache:
           keys:
-            - build-v3-{{ .Branch }}-{{ epoch }}
-            - build-v3-{{ .Branch }}-
-            - build-v3-master-
+            - build-v0-{{ .Branch }}-{{ epoch }}
+            - build-v0-{{ .Branch }}-
+            - build-v0-master-
           paths:
             - /tmp/docker
-      - run:
-          name: Set-up a Docker registry
-          command: |
-            docker run -d -p 5000:5000 --restart=always --name=registry \
-                -v /tmp/docker:/var/lib/registry registry:2
-      - run:
-          name: Pull images from local registry
-          command: |
-            docker pull localhost:5000/smriprep
-            docker tag localhost:5000/smriprep nipreps/smriprep:latest
+            - /tmp/images
+      - docker/install-docker-credential-helper
+      - run: *docker_auth
+      - run: *setup_docker_registry
+      - run: *pull_from_registry
       - run:
           name: Deploy to Docker Hub
           no_output_timeout: 40m
           command: |
-            if [[ -n "$DOCKER_PAT" ]]; then
-              echo "$DOCKER_PAT" | docker login -u $DOCKER_USER --password-stdin
-              docker tag nipreps/smriprep nipreps/smriprep:unstable
-              docker push nipreps/smriprep:unstable
-              if [[ -n "$CIRCLE_TAG" ]]; then
-                docker push nipreps/smriprep:latest
-                docker tag nipreps/smriprep nipreps/smriprep:$CIRCLE_TAG
-                docker push nipreps/smriprep:$CIRCLE_TAG
-              fi
+            if [ -n $CIRCLE_TAG ]; then
+              DOCKER_TAG=$CIRCLE_TAG
+            elif [[ $CIRCLE_BRANCH == "docker/*" ]]; then
+              DOCKER_TAG=${CIRCLE_BRANCH#docker/}
+            fi
+
+            if [ -n $DOCKER_TAG ]; then
+              docker tag nipreps/smriprep nipreps/smriprep:${DOCKER_TAG}
+              docker push nipreps/smriprep:${DOCKER_TAG}
             fi
 
   deploy_docs_tag:
@@ -860,6 +840,8 @@ workflows:
   build_test_deploy:
     jobs:
       - build:
+          context:
+            - nipreps-common
           filters:
             branches:
               ignore:
@@ -868,6 +850,8 @@ workflows:
               only: /.*/
 
       - get_data:
+          context:
+            - fs-license
           filters:
             branches:
               ignore:
@@ -877,6 +861,8 @@ workflows:
               only: /.*/
 
       - test_deploy_pypi:
+          context:
+            - nipreps-common
           filters:
             branches:
               only:
@@ -886,6 +872,8 @@ workflows:
               only: /.*/
 
       - test_wrapper:
+          context:
+            - nipreps-common
           requires:
             - build
           filters:
@@ -908,6 +896,8 @@ workflows:
               only: /.*/
 
       - ds005:
+          context:
+            - nipreps-common
           requires:
             - get_data
             - build
@@ -921,6 +911,8 @@ workflows:
               only: /.*/
 
       - ds054:
+          context:
+            - nipreps-common
           requires:
             - get_data
             - build
@@ -960,6 +952,8 @@ workflows:
               only: /.*/
 
       - deploy_pypi:
+          context:
+            - nipreps-common
           requires:
             - deploy_docs_tag
           filters:
@@ -969,6 +963,8 @@ workflows:
               only: /.*/
 
       - deploy_docker:
+          context:
+            - nipreps-common
           requires:
             - build
             - ds005

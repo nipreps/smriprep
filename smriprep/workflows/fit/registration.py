@@ -28,6 +28,7 @@ from nipype.interfaces import utility as niu
 from nipype.interfaces import ants
 from nipype.interfaces.ants.base import Info as ANTsInfo
 
+from templateflow import __version__ as tf_ver
 from templateflow.api import get_metadata
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.norm import SpatialNormalization
@@ -110,7 +111,8 @@ def init_register_template_wf(
 Volume-based spatial normalization to {targets} ({targets_id}) was performed through
 nonlinear registration with `antsRegistration` (ANTs {ants_ver}),
 using brain-extracted versions of both T1w reference and the T1w template.
-The following template{tpls} selected for spatial normalization:
+The following template{tpls} were selected for spatial normalization
+and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
 """.format(
             ants_ver=ANTsInfo.version() or "(version unknown)",
             targets="%s standard space%s"
@@ -121,6 +123,7 @@ The following template{tpls} selected for spatial normalization:
                 "s" * (ntpls != 1),
             ),
             targets_id=", ".join(templates),
+            tf_ver=tf_ver,
             tpls=(" was", "s were")[ntpls != 1],
         )
 

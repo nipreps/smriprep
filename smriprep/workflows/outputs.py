@@ -235,6 +235,7 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
 def init_ds_template_wf(
     *,
     num_t1w,
+    t2w,
     output_dir,
     name="ds_template_wf",
 ):
@@ -264,6 +265,8 @@ def init_ds_template_wf(
     -------
     t1w_preproc
         The location in the output directory of the preprocessed T1w image
+    t2w_preproc
+        The preprocessed T2w image, bias-corrected and resampled into anatomical space.
 
     """
     workflow = Workflow(name=name)
@@ -666,10 +669,11 @@ def init_ds_fs_registration_wf(
 
 def init_anat_second_derivatives_wf(
     *,
-    bids_root,
-    freesurfer,
-    output_dir,
-    spaces,
+    bids_root: str,
+    output_dir: str,
+    freesurfer: bool,
+    spaces: SpatialReferences,
+    cifti_output: ty.Literal["91k", "170k", False],
     name="anat_second_derivatives_wf",
     tpm_labels=BIDS_TISSUE_ORDER,
 ):
@@ -715,6 +719,12 @@ def init_anat_second_derivatives_wf(
         FreeSurfer's aseg segmentation, in native T1w space
     t1w_fs_aparc
         FreeSurfer's aparc+aseg segmentation, in native T1w space
+    cifti_morph
+        Morphometric CIFTI-2 dscalar files
+    cifti_density
+        Grayordinate density
+    cifti_metadata
+        JSON files containing metadata dictionaries
 
     """
     workflow = Workflow(name=name)
@@ -873,6 +883,27 @@ def init_anat_second_derivatives_wf(
     if not freesurfer:
         return workflow
 
+    # T2w coregistration requires FreeSurfer surfaces, so only try to save if freesurfer
+    if t2w:
+        ds_t2w_preproc = pe.Node(
+            DerivativesDataSink(
+                base_directory=output_dir,
+                desc="preproc",
+                suffix="T2w",
+                compress=True,
+            ),
+            name="ds_t2w_preproc",
+            run_without_submitting=True,
+        )
+        ds_t2w_preproc.inputs.SkullStripped = False
+        ds_t2w_preproc.inputs.source_file = t2w
+
+        # fmt:off
+        workflow.connect([
+            (inputnode, ds_t2w_preproc, [('t2w_preproc', 'in_file')]),
+        ])
+        # fmt:on
+
     from niworkflows.interfaces.surf import Path2BIDS
 
     # Surfaces
@@ -895,6 +926,19 @@ def init_anat_second_derivatives_wf(
         name="ds_morphs",
         run_without_submitting=True,
     )
+    # Ribbon volume
+    ds_anat_ribbon = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc="ribbon",
+            suffix="mask",
+            extension=".nii.gz",
+            compress=True,
+        ),
+        name="ds_anat_ribbon",
+        run_without_submitting=True,
+    )
+
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(
@@ -927,8 +971,32 @@ def init_anat_second_derivatives_wf(
                                     ('source_files', 'source_file')]),
         (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),
                                     ('source_files', 'source_file')]),
+        (inputnode, ds_anat_ribbon, [('anat_ribbon', 'in_file'),
+                                     ('source_files', 'source_file')]),
+
     ])
     # fmt:on
+
+    if cifti_output:
+        ds_cifti_morph = pe.MapNode(
+            DerivativesDataSink(
+                base_directory=output_dir,
+                suffix=['curv', 'sulc', 'thickness'],
+                compress=False,
+                space='fsLR',
+            ),
+            name='ds_cifti_morph',
+            run_without_submitting=True,
+            iterfield=["in_file", "meta_dict", "suffix"],
+        )
+        # fmt:off
+        workflow.connect([
+            (inputnode, ds_cifti_morph, [('cifti_morph', 'in_file'),
+                                         ('source_files', 'source_file'),
+                                         ('cifti_density', 'density'),
+                                         (('cifti_metadata', _read_jsons), 'meta_dict')])
+        ])
+        # fmt:on
     return workflow
 
 
@@ -1121,3 +1189,10 @@ def _combine_cohort(in_template):
             return template
         return f"{template}+{in_template.split('cohort-')[-1].split(':')[0]}"
     return [_combine_cohort(v) for v in in_template]
+
+
+def _read_jsons(in_file):
+    from json import loads
+    from pathlib import Path
+
+    return [loads(Path(f).read_text()) for f in in_file]

@@ -36,7 +36,7 @@ from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.interfaces.ants import N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.utils.spaces import SpatialReferences, Reference
+from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
     PatchedLTAConvert as LTAConvert,
@@ -45,6 +45,7 @@ from niworkflows.interfaces.header import ValidateImage
 from niworkflows.interfaces.images import TemplateDimensions, Conform
 from niworkflows.interfaces.nibabel import ApplyMask, Binarize
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
+from niworkflows.utils.spaces import SpatialReferences, Reference
 from niworkflows.utils.misc import add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
@@ -59,7 +60,7 @@ from .outputs import (
     init_ds_fs_registration_wf,
     init_anat_second_derivatives_wf,
 )
-from .surfaces import init_surface_derivatives_wf, init_surface_recon_wf, init_refinement_wf
+from .surfaces import init_anat_ribbon_wf, init_surface_derivatives_wf, init_surface_recon_wf, init_refinement_wf, init_morph_grayords_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
 
@@ -72,13 +73,15 @@ def init_anat_preproc_wf(
     hires: bool,
     longitudinal: bool,
     t1w: list,
+    t2w: list,
     skull_strip_mode: str,
     skull_strip_template: Reference,
     spaces: SpatialReferences,
     precomputed: dict,
     debug: bool,
     omp_nthreads: int,
-    name="anat_preproc_wf",
+    cifti_output: ty.Literal["91k", "170k", False] = False,
+    name: str = "anat_preproc_wf",
     skull_strip_fixed_seed: bool = False,
 ):
     """
@@ -101,6 +104,7 @@ def init_anat_preproc_wf(
                 hires=True,
                 longitudinal=False,
                 t1w=['t1w.nii.gz'],
+                t2w=[],
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
@@ -270,7 +274,7 @@ def init_anat_preproc_wf(
     ])
     # fmt:on
     if freesurfer:
-        surface_derivatives_wf = init_surface_derivatives_wf()
+        surface_derivatives_wf = init_surface_derivatives_wf(cifti_output=cifti_output)
         # fmt:off
         workflow.connect([
             (anat_fit_wf, surface_derivatives_wf, [
@@ -284,6 +288,8 @@ def init_anat_preproc_wf(
                 ('outputnode.morphometrics', 'inputnode.morphometrics'),
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
+                ('outputnode.cifti_morph', 'inputnode.cifti_morph'),
+                ('outputnode.cifti_metadata', 'inputnode.cifti_metadata'),
             ]),
         ])
         # fmt:on
@@ -444,9 +450,11 @@ Anatomical data preprocessing
 BIDS dataset."""
 
     have_t1w = "t1w_preproc" in precomputed
+    have_t2w = "t2w_preproc" in precomputed
     have_mask = "t1w_mask" in precomputed
     have_dseg = "t1w_dseg" in precomputed
     have_tpms = "t1w_tpms" in precomputed
+    have_ribbon = "ribbon_mask" in precomputed
 
     # Organization
     # ------------
@@ -467,6 +475,7 @@ BIDS dataset."""
             fields=[
                 # Primary derivatives
                 "t1w_preproc",
+                "t2w_preproc",
                 "t1w_mask",
                 "t1w_dseg",
                 "t1w_tpms",
@@ -565,14 +574,14 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
 
         # fmt:off
         workflow.connect([
-            (inputnode, anat_template_wf, [("t1w", "inputnode.t1w")]),
-            (anat_template_wf, anat_validate, [("outputnode.t1w_ref", "in_file")]),
-            (anat_template_wf, sourcefile_buffer, [("outputnode.t1w_valid_list", "source_files")]),
+            (inputnode, anat_template_wf, [("t1w", "inputnode.anat_files")]),
+            (anat_template_wf, anat_validate, [("outputnode.anat_ref", "in_file")]),
+            (anat_template_wf, sourcefile_buffer, [("outputnode.anat_valid_list", "source_files")]),
             (anat_template_wf, anat_reports_wf, [
                 ("outputnode.out_report", "inputnode.t1w_conform_report"),
             ]),
             (anat_template_wf, ds_template_wf, [
-                ("outputnode.t1w_realign_xfm", "inputnode.t1w_ref_xfms"),
+                ("outputnode.anat_realign_xfm", "inputnode.t1w_ref_xfms"),
             ]),
             (sourcefile_buffer, ds_template_wf, [("source_files", "inputnode.source_files")]),
             (t1w_buffer, ds_template_wf, [("t1w_preproc", "inputnode.t1w_preproc")]),
@@ -835,6 +844,76 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         precomputed=precomputed,
     )
 
+    if t2w and not have_t2w:
+        t2w_template_wf = init_anat_template_wf(
+            longitudinal=longitudinal,
+            omp_nthreads=omp_nthreads,
+            num_files=len(t2w),
+            contrast="T2w",
+            name="t2w_template_wf",
+        )
+        bbreg = pe.Node(
+            fs.BBRegister(
+                contrast_type="t2",
+                init="coreg",
+                dof=6,
+                out_lta_file=True,
+                args="--gm-proj-abs 2 --wm-proj-abs 1",
+            ),
+            name="bbreg",
+        )
+        coreg_xfms = pe.Node(niu.Merge(2), name="merge_xfms", run_without_submitting=True)
+        t2wtot1w_xfm = pe.Node(ConcatenateXFMs(), name="t2wtot1w_xfm", run_without_submitting=True)
+        t2w_resample = pe.Node(
+            ApplyTransforms(
+                dimension=3,
+                default_value=0,
+                float=True,
+                interpolation="LanczosWindowedSinc",
+            ),
+            name="t2w_resample",
+        )
+        ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_t1w=num_t1w)
+        # fmt:off
+        workflow.connect([
+            (inputnode, t2w_template_wf, [('t2w', 'inputnode.anat_files')]),
+            (t2w_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
+            (surface_recon_wf, bbreg, [
+                ('outputnode.subject_id', 'subject_id'),
+                ('outputnode.subjects_dir', 'subjects_dir'),
+            ]),
+            (bbreg, coreg_xfms, [('out_lta_file', 'in1')]),
+            (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
+            (coreg_xfms, t2wtot1w_xfm, [('out', 'in_xfms')]),
+            (t2w_template_wf, t2w_resample, [('outputnode.anat_ref', 'input_image')]),
+            (brain_extraction_wf, t2w_resample, [
+                (('outputnode.bias_corrected', _pop), 'reference_image'),
+            ]),
+            (t2wtot1w_xfm, t2w_resample, [('out_xfm', 'transforms')]),
+            (t2w_resample, outputnode, [('output_image', 't2w_preproc')]),
+        ])
+        # fmt:on
+
+    # Anatomical ribbon file using HCP signed-distance volume method
+    if not have_ribbon:
+        anat_ribbon_wf = init_anat_ribbon_wf()
+        # fmt:off
+        workflow.connect([
+            (surface_recon_wf, anat_ribbon_wf, [
+                ('outputnode.surfaces', 'inputnode.surfaces'),
+                ('outputnode.out_brainmask', 'inputnode.t1w_mask')]),
+            (anat_ribbon_wf, outputnode, [
+                ("outputnode.anat_ribbon", "anat_ribbon")]),
+            ]),
+            (anat_ribbon_wf, anat_derivatives_wf, [
+                ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),
+            ]),
+        ])
+        # fmt:on
+    else:
+        # Something like that
+        anat_derivatives_wf.get_node('inputnode').inputs.anat_ribbon = precomputed['ribbon_mask']
+
     # fmt:off
     workflow.connect([
         (inputnode, fs_isrunning, [
@@ -906,12 +985,35 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     else:
         LOGGER.info("Found brain mask - skipping Stage 6")
 
+    if cifti_output:
+        morph_grayords_wf = init_morph_grayords_wf(grayord_density=cifti_output)
+        anat_derivatives_wf.get_node('inputnode').inputs.cifti_density = cifti_output
+        # fmt:off
+        workflow.connect([
+            (surface_recon_wf, morph_grayords_wf, [
+                ('outputnode.subject_id', 'inputnode.subject_id'),
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+            ]),
+            (morph_grayords_wf, anat_derivatives_wf, [
+                ("outputnode.cifti_morph", "inputnode.cifti_morph"),
+                ("outputnode.cifti_metadata", "inputnode.cifti_metadata"),
+            ]),
+        ])
+        # fmt:on
+
     return workflow
 
 
-def init_anat_template_wf(*, longitudinal, omp_nthreads, num_t1w, name="anat_template_wf"):
+def init_anat_template_wf(
+    *,
+    longitudinal: bool,
+    omp_nthreads: int,
+    num_files: int,
+    contrast: str,
+    name: str = "anat_template_wf",
+):
     """
-    Generate a canonically-oriented, structural average from all input T1w images.
+    Generate a canonically-oriented, structural average from all input images.
 
     Workflow Graph
         .. workflow::
@@ -920,7 +1022,8 @@ def init_anat_template_wf(*, longitudinal, omp_nthreads, num_t1w, name="anat_tem
 
             from smriprep.workflows.anatomical import init_anat_template_wf
             wf = init_anat_template_wf(
-                longitudinal=False, omp_nthreads=1, num_t1w=1)
+                longitudinal=False, omp_nthreads=1, num_files=1, contrast="T1w"
+            )
 
     Parameters
     ----------
@@ -929,76 +1032,80 @@ def init_anat_template_wf(*, longitudinal, omp_nthreads, num_t1w, name="anat_tem
         (may increase runtime)
     omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
-    num_t1w : :obj:`int`
-        Number of T1w images
+    num_files : :obj:`int`
+        Number of images
+    contrast : :obj:`str`
+        Name of contrast, for reporting purposes, e.g., T1w, T2w, PDw
     name : :obj:`str`, optional
         Workflow name (default: anat_template_wf)
 
     Inputs
     ------
-    t1w
-        List of T1-weighted structural images
+    anat_files
+        List of structural images
 
     Outputs
     -------
-    t1w_ref
-        Structural reference averaging input T1w images, defining the T1w space.
-    t1w_realign_xfm
-        List of affine transforms to realign input T1w images
+    anat_ref
+        Structural reference averaging input images
+    anat_valid_list
+        List of structural images accepted for combination
+    anat_realign_xfm
+        List of affine transforms to realign input images to final reference
     out_report
         Conformation report
 
     """
     workflow = Workflow(name=name)
 
-    if num_t1w > 1:
+    if num_files > 1:
         fs_ver = fs.Info().looseversion() or "(version unknown)"
         workflow.__desc__ = f"""\
-A T1w-reference map was computed after registration of
-{num_t1w} T1w images (after INU-correction) using
+An anatomical {contrast}-reference map was computed after registration of
+{num_files} {contrast} images (after INU-correction) using
 `mri_robust_template` [FreeSurfer {fs_ver}, @fs_template].
 """
 
-    inputnode = pe.Node(niu.IdentityInterface(fields=["t1w"]), name="inputnode")
+    inputnode = pe.Node(niu.IdentityInterface(fields=["anat_files"]), name="inputnode")
     outputnode = pe.Node(
         niu.IdentityInterface(
-            fields=["t1w_ref", "t1w_valid_list", "t1w_realign_xfm", "out_report"]
+            fields=["anat_ref", "anat_valid_list", "anat_realign_xfm", "out_report"]
         ),
         name="outputnode",
     )
 
     # 0. Reorient T1w image(s) to RAS and resample to common voxel space
-    t1w_ref_dimensions = pe.Node(TemplateDimensions(), name="t1w_ref_dimensions")
-    t1w_conform = pe.MapNode(Conform(), iterfield="in_file", name="t1w_conform")
+    anat_ref_dimensions = pe.Node(TemplateDimensions(), name="anat_ref_dimensions")
+    anat_conform = pe.MapNode(Conform(), iterfield="in_file", name="anat_conform")
 
     # fmt:off
     workflow.connect([
-        (inputnode, t1w_ref_dimensions, [('t1w', 't1w_list')]),
-        (t1w_ref_dimensions, t1w_conform, [
+        (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
+        (anat_ref_dimensions, anat_conform, [
             ('t1w_valid_list', 'in_file'),
             ('target_zooms', 'target_zooms'),
             ('target_shape', 'target_shape')]),
-        (t1w_ref_dimensions, outputnode, [('out_report', 'out_report'),
-                                          ('t1w_valid_list', 't1w_valid_list')]),
+        (anat_ref_dimensions, outputnode, [('out_report', 'out_report'),
+                                           ('t1w_valid_list', 'anat_valid_list')]),
     ])
     # fmt:on
 
-    if num_t1w == 1:
+    if num_files == 1:
         get1st = pe.Node(niu.Select(index=[0]), name="get1st")
-        outputnode.inputs.t1w_realign_xfm = [pkgr("smriprep", "data/itkIdentityTransform.txt")]
+        outputnode.inputs.anat_realign_xfm = [pkgr("smriprep", "data/itkIdentityTransform.txt")]
 
         # fmt:off
         workflow.connect([
-            (t1w_conform, get1st, [('out_file', 'inlist')]),
-            (get1st, outputnode, [('out', 't1w_ref')]),
+            (anat_conform, get1st, [('out_file', 'inlist')]),
+            (get1st, outputnode, [('out', 'anat_ref')]),
         ])
         # fmt:on
         return workflow
 
-    t1w_conform_xfm = pe.MapNode(
+    anat_conform_xfm = pe.MapNode(
         LTAConvert(in_lta="identity.nofile", out_lta=True),
         iterfield=["source_file", "target_file"],
-        name="t1w_conform_xfm",
+        name="anat_conform_xfm",
     )
 
     # 1. Template (only if several T1w images)
@@ -1013,7 +1120,7 @@ A T1w-reference map was computed after registration of
         n_procs=1,
     )  # n_procs=1 for reproducibility
     # StructuralReference is fs.RobustTemplate if > 1 volume, copying otherwise
-    t1w_merge = pe.Node(
+    anat_merge = pe.Node(
         StructuralReference(
             auto_detect_sensitivity=True,
             initial_timepoint=1,  # For deterministic behavior
@@ -1023,12 +1130,12 @@ A T1w-reference map was computed after registration of
             no_iteration=not longitudinal,
             transform_outputs=True,
         ),
-        mem_gb=2 * num_t1w - 1,
-        name="t1w_merge",
+        mem_gb=2 * num_files - 1,
+        name="anat_merge",
     )
 
     # 2. Reorient template to RAS, if needed (mri_robust_template may set to LIA)
-    t1w_reorient = pe.Node(image.Reorient(), name="t1w_reorient")
+    anat_reorient = pe.Node(image.Reorient(), name="anat_reorient")
 
     merge_xfm = pe.MapNode(
         niu.Merge(2),
@@ -1048,21 +1155,21 @@ A T1w-reference map was computed after registration of
 
     # fmt:off
     workflow.connect([
-        (t1w_ref_dimensions, t1w_conform_xfm, [('t1w_valid_list', 'source_file')]),
-        (t1w_conform, t1w_conform_xfm, [('out_file', 'target_file')]),
-        (t1w_conform, n4_correct, [('out_file', 'input_image')]),
-        (t1w_conform, t1w_merge, [
+        (anat_ref_dimensions, anat_conform_xfm, [('t1w_valid_list', 'source_file')]),
+        (anat_conform, anat_conform_xfm, [('out_file', 'target_file')]),
+        (anat_conform, n4_correct, [('out_file', 'input_image')]),
+        (anat_conform, anat_merge, [
             (('out_file', _set_threads, omp_nthreads), 'num_threads'),
             (('out_file', add_suffix, '_template'), 'out_file')]),
-        (n4_correct, t1w_merge, [('output_image', 'in_files')]),
-        (t1w_merge, t1w_reorient, [('out_file', 'in_file')]),
+        (n4_correct, anat_merge, [('output_image', 'in_files')]),
+        (anat_merge, anat_reorient, [('out_file', 'in_file')]),
         # Combine orientation and template transforms
-        (t1w_conform_xfm, merge_xfm, [('out_lta', 'in1')]),
-        (t1w_merge, merge_xfm, [('transform_outputs', 'in2')]),
+        (anat_conform_xfm, merge_xfm, [('out_lta', 'in1')]),
+        (anat_merge, merge_xfm, [('transform_outputs', 'in2')]),
         (merge_xfm, concat_xfms, [('out', 'in_xfms')]),
         # Output
-        (t1w_reorient, outputnode, [('out_file', 't1w_ref')]),
-        (concat_xfms, outputnode, [('out_xfm', 't1w_realign_xfm')]),
+        (anat_reorient, outputnode, [('out_file', 'anat_ref')]),
+        (concat_xfms, outputnode, [('out_xfm', 'anat_realign_xfm')]),
     ])
     # fmt:on
     return workflow
