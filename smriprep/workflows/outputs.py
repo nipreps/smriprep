@@ -21,6 +21,8 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Writing outputs."""
+import typing as ty
+
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
@@ -28,6 +30,7 @@ from niworkflows.interfaces.nibabel import ApplyMask
 from niworkflows.interfaces.space import SpaceDataSource
 from niworkflows.interfaces.utility import KeySelect
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.utils.spaces import SpatialReferences
 
 from ..interfaces import DerivativesDataSink
 from ..interfaces.templateflow import TemplateFlowSelect
@@ -235,7 +238,6 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
 def init_ds_template_wf(
     *,
     num_t1w,
-    t2w,
     output_dir,
     name="ds_template_wf",
 ):
@@ -265,8 +267,6 @@ def init_ds_template_wf(
     -------
     t1w_preproc
         The location in the output directory of the preprocessed T1w image
-    t2w_preproc
-        The preprocessed T2w image, bias-corrected and resampled into anatomical space.
 
     """
     workflow = Workflow(name=name)
@@ -882,27 +882,6 @@ def init_anat_second_derivatives_wf(
 
     if not freesurfer:
         return workflow
-
-    # T2w coregistration requires FreeSurfer surfaces, so only try to save if freesurfer
-    if t2w:
-        ds_t2w_preproc = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir,
-                desc="preproc",
-                suffix="T2w",
-                compress=True,
-            ),
-            name="ds_t2w_preproc",
-            run_without_submitting=True,
-        )
-        ds_t2w_preproc.inputs.SkullStripped = False
-        ds_t2w_preproc.inputs.source_file = t2w
-
-        # fmt:off
-        workflow.connect([
-            (inputnode, ds_t2w_preproc, [('t2w_preproc', 'in_file')]),
-        ])
-        # fmt:on
 
     from niworkflows.interfaces.surf import Path2BIDS
 

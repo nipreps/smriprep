@@ -44,7 +44,6 @@ from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
     FSDetectInputs,
     FSInjectBrainExtracted,
-    MakeMidthickness,
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
