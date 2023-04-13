@@ -32,7 +32,11 @@ docs_deploy: &docs
         name: Deploy docs to gh-pages branch
         command: gh-pages --dotfiles --message "doc(update) [skip ci]" --dist docs/_build/html
 
-version: 2
+version: 2.1
+orbs:
+  docker: circleci/docker@1.6.0
+  codecov: codecov/codecov@3.2.4
+
 jobs:
   build:
     machine:
@@ -413,15 +417,6 @@ jobs:
             sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds005/work && \
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds005/work
       - run:
-          name: Install codecov
-          command: |
-              pyenv install 3.6.3
-              pyenv global 3.6.3
-              python --version
-              python -m pip install -U pip
-              python -m pip install -U codecov
-              pyenv rehash
-      - run:
           name: Docker authentication
           command: |
             if [[ -n $DOCKER_PASS ]]; then
@@ -489,14 +484,9 @@ jobs:
                 --entrypoint=coverage \
                 nipreps/smriprep:latest \
                 xml
-      - run:
-          name: Combine coverage and submit
-          working_directory: /tmp/src/smriprep
-          command: |
-              pyenv local 3.6.3
-              which python
-              python --version
-              codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
+      - codecov/upload:
+          file: /tmp/src/smriprep/coverage.xml
+          flags: ds005
       - run:
           name: Clean-up temporary directory of reportlets and fsdir_run_XXX nodes
           when: always
@@ -583,15 +573,6 @@ jobs:
             sudo setfacl -d -m group:$(id -gn):rwx /tmp/ds054/work && \
                 sudo setfacl -m group:$(id -gn):rwx /tmp/ds054/work
       - run:
-          name: Install codecov
-          command: |
-              pyenv install 3.6.3
-              pyenv global 3.6.3
-              python --version
-              python -m pip install -U pip
-              python -m pip install -U codecov
-              pyenv rehash
-      - run:
           name: Docker authentication
           command: |
             if [[ -n $DOCKER_PASS ]]; then
@@ -661,14 +642,9 @@ jobs:
                 --entrypoint=coverage \
                 nipreps/smriprep:latest \
                 xml
-      - run:
-          name: Submit coverage
-          working_directory: /tmp/src/smriprep
-          command: |
-              pyenv local 3.6.3
-              which python
-              python --version
-              codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
+      - codecov/upload:
+          file: /tmp/src/smriprep/coverage.xml
+          flags: ds054
       - run:
           name: Clean-up temporary directory of reportlets
           when: always
