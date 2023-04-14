@@ -1,5 +1,5 @@
 # Use Ubuntu 16.04 LTS
-FROM ubuntu:xenial-20161213
+FROM ubuntu:xenial-20200114
 
 # Pre-cache neurodebian key
 COPY docker/files/neurodebian.gpg /usr/local/etc/neurodebian.gpg
@@ -11,11 +11,11 @@ RUN apt-get update && \
                     bzip2 \
                     ca-certificates \
                     xvfb \
-                    cython3 \
                     build-essential \
                     autoconf \
                     libtool \
                     pkg-config \
+                    netbase \
                     git && \
     curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
     apt-get install -y --no-install-recommends \
@@ -113,29 +113,14 @@ ENV PATH="/usr/local/miniconda/bin:$PATH" \
     LC_ALL="C.UTF-8" \
     PYTHONNOUSERSITE=1
 
+COPY docker/files/environment.yml /usr/local/etc/environment.yml
+
 # Installing precomputed python packages
-RUN conda install -y python=3.7.1 \
-                     mkl=2018.0.3 \
-                     mkl-service \
-                     numpy=1.15.4 \
-                     scipy=1.1.0 \
-                     scikit-learn=0.19.1 \
-                     matplotlib=2.2.2 \
-                     pandas=0.23.4 \
-                     libxml2=2.9.8 \
-                     libxslt=1.1.32 \
-                     graphviz=2.40.1 \
-                     traits=4.6.0 \
-                     pip=19.1 \
-                     zlib; sync && \
+RUN conda env update -n base -f /usr/local/etc/environment.yml; sync && \
     chmod -R a+rX /usr/local/miniconda; sync && \
     chmod +x /usr/local/miniconda/bin/*; sync && \
-    conda clean --all -y; sync && \
+    conda build purge-all; sync && \
     conda clean -tipsy && sync
-
-# Precaching fonts, set 'Agg' as default backend for matplotlib
-RUN python -c "from matplotlib import font_manager" && \
-    sed -i 's/\(backend *: \).*$/\1Agg/g' $( python -c "import matplotlib; print(matplotlib.matplotlib_fname())" )
 
 # Unless otherwise specified each process should only use one thread - nipype
 # will handle parallelization
@@ -147,8 +132,20 @@ RUN useradd -m -s /bin/bash -G users smriprep
 WORKDIR /home/smriprep
 ENV HOME="/home/smriprep"
 
-# Installing dev requirements (packages that are not in pypi)
-WORKDIR /src/
+# Precaching fonts, set 'Agg' as default backend for matplotlib
+RUN python -c "from matplotlib import font_manager" && \
+    sed -i 's/\(backend *: \).*$/\1Agg/g' $( python -c "import matplotlib; print(matplotlib.matplotlib_fname())" )
+
+# Precaching atlases
+RUN python -c "from templateflow import api as tfapi; \
+               tfapi.get('MNI152NLin6Asym', resolution=(1, 2), suffix='T1w', desc=None); \
+               tfapi.get('MNI152NLin6Asym', resolution=(1, 2), desc='brain', suffix='mask'); \
+               tfapi.get('MNI152NLin2009cAsym', resolution=(1, 2), suffix='T1w', desc=None); \
+               tfapi.get('MNI152NLin2009cAsym', resolution=(1, 2), desc='brain', suffix='mask'); \
+               tfapi.get('MNI152NLin2009cAsym', resolution=1, label='brain', suffix='probseg'); \
+               tfapi.get('OASIS30ANTs'); " && \
+    find $HOME/.cache/templateflow -type d -exec chmod go=u {} + && \
+    find $HOME/.cache/templateflow -type f -exec chmod go=u {} +
 
 # Installing sMRIPREP
 COPY . /src/smriprep
