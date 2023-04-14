@@ -18,7 +18,6 @@ import sys
 import os
 import re
 import subprocess
-from warnings import warn
 
 __version__ = "99.99.99"
 __copyright__ = (
@@ -28,6 +27,7 @@ __credits__ = [
     "Oscar Esteban",
     "Chris Gorgolewski",
     "Christopher J. Markiewicz",
+    "Mathias Goncalves",
     "Russell A. Poldrack",
 ]
 __bugreports__ = "https://github.com/nipreps/smriprep/issues"
@@ -125,6 +125,23 @@ def check_memory(image):
 
 
 def merge_help(wrapper_help, target_help):
+    def _get_posargs(usage):
+        """
+        Extract positional arguments from usage string.
+        This function can be used by both native smriprep (`smriprep -h`)
+        and the docker wrapper (`smriprep-docker -h`).
+        """
+        posargs = []
+        for targ in usage.split('\n')[-3:]:
+            line = targ.lstrip()
+            if line.startswith('usage'):
+                continue
+            if line[0].isalnum() or line[0] == "{":
+                posargs.append(line)
+            elif line[0] == '[' and (line[1].isalnum() or line[1] == "{"):
+                posargs.append(line)
+        return " ".join(posargs)
+
     # Matches all flags with up to one nested square bracket
     opt_re = re.compile(r"(\[--?[\w-]+(?:[^\[\]]+(?:\[[^\[\]]+\])?)?\])")
     # Matches flag name only
@@ -139,8 +156,8 @@ def merge_help(wrapper_help, target_help):
     t_usage, t_details = t_help.split("\n\n", 1)
     t_groups = t_details.split("\n\n")
 
-    w_posargs = w_usage.split("\n")[-1].lstrip()
-    t_posargs = t_usage.split("\n")[-1].lstrip()
+    w_posargs = _get_posargs(w_usage)
+    t_posargs = _get_posargs(t_usage)
 
     w_options = opt_re.findall(w_usage)
     w_flags = sum(map(flag_re.findall, w_options), [])
@@ -153,7 +170,7 @@ def merge_help(wrapper_help, target_help):
 
     # Make sure we're not clobbering options we don't mean to
     overlap = set(w_flags).intersection(t_flags)
-    expected_overlap = set(["h", "version", "w", "fs-license-file", "use-plugin"])
+    expected_overlap = set(["h", "version", "w", "fs-license-file", "use-plugin", "fs-subjects-dir"])
 
     assert overlap == expected_overlap, "Clobbering options: {}".format(
         ", ".join(overlap - expected_overlap)
@@ -205,12 +222,30 @@ def merge_help(wrapper_help, target_help):
 def get_parser():
     """Defines the command line interface of the wrapper"""
     import argparse
+    from functools import partial
+
+    class ToDict(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            d = {}
+            for kv in values:
+                k, v = kv.split("=")
+                d[k] = os.path.abspath(v)
+            setattr(namespace, self.dest, d)
+
+    def _is_file(path, parser):
+        """Ensure a given path exists and it is a file."""
+        path = os.path.abspath(path)
+        if not os.path.isfile(path):
+            raise parser.error("Path should point to a file (or symlink of file): <%s>." % path)
+        return path
 
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         add_help=False,
     )
+
+    IsFile = partial(_is_file, parser=parser)
 
     # Standard sMRIPrep arguments
     parser.add_argument("bids_dir", nargs="?", type=os.path.abspath, default="")
@@ -252,10 +287,17 @@ def get_parser():
     g_wrap.add_argument(
         "--fs-license-file",
         metavar="PATH",
-        type=os.path.abspath,
+        type=IsFile,
         default=os.getenv("FS_LICENSE", None),
         help="Path to FreeSurfer license key file. Get it (for free) by registering"
         " at https://surfer.nmr.mgh.harvard.edu/registration.html",
+    )
+    g_wrap.add_argument(
+        "--fs-subjects-dir",
+        metavar="PATH",
+        type=os.path.abspath,
+        help="Path to existing FreeSurfer subjects directory to reuse. "
+        "(default: OUTPUT_DIR/freesurfer)",
     )
     g_wrap.add_argument(
         "--use-plugin",
@@ -271,25 +313,11 @@ def get_parser():
         "Developer options", "Tools for testing and debugging sMRIPrep"
     )
     g_dev.add_argument(
-        "-f",
-        "--patch-smriprep",
-        metavar="PATH",
-        type=os.path.abspath,
-        help="working smriprep repository",
-    )
-    g_dev.add_argument(
-        "-n",
-        "--patch-niworkflows",
-        metavar="PATH",
-        type=os.path.abspath,
-        help="working niworkflows repository",
-    )
-    g_dev.add_argument(
-        "-p",
-        "--patch-nipype",
-        metavar="PATH",
-        type=os.path.abspath,
-        help="working nipype repository",
+        '--patch',
+        nargs="+",
+        metavar="PACKAGE=PATH",
+        action=ToDict,
+        help='local repository to use within container',
     )
     g_dev.add_argument(
         "--shell",
@@ -405,10 +433,9 @@ def main():
         command.append("-it")
 
     # Patch working repositories into installed package directories
-    for pkg in ("smriprep", "niworkflows", "nipype"):
-        repo_path = getattr(opts, "patch_" + pkg)
-        if repo_path is not None:
-            command.extend(["-v", "{}:{}/{}:ro".format(repo_path, PKG_PATH, pkg)])
+    if opts.patch:
+        for pkg, repo_path in opts.patch.items():
+            command.extend(['-v', '{}:{}/{}:ro'.format(repo_path, PKG_PATH, pkg)])
 
     if opts.env:
         for envvar in opts.env:
@@ -434,6 +461,10 @@ def main():
     if opts.work_dir:
         command.extend(["-v", ":".join((opts.work_dir, "/scratch"))])
         unknown_args.extend(["-w", "/scratch"])
+
+    if opts.fs_subjects_dir:
+        command.extend(['-v', '{}:/opt/subjects'.format(opts.fs_subjects_dir)])
+        unknown_args.extend(['--fs-subjects-dir', '/opt/subjects'])
 
     if opts.config:
         command.extend(
