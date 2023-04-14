@@ -741,8 +741,11 @@ def init_anat_second_derivatives_wf(
                 "anat2std_xfm",
                 "surfaces",
                 "morphometrics",
+                "anat_ribbon",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
+                "cifti_morph",
+                "cifti_metadata",
             ]
         ),
         name="inputnode",

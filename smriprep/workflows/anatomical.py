@@ -252,6 +252,7 @@ def init_anat_preproc_wf(
         freesurfer=freesurfer,
         output_dir=output_dir,
         spaces=spaces,
+        cifti_output=cifti_output,
     )
     # fmt:off
     workflow.connect([
@@ -288,6 +289,8 @@ def init_anat_preproc_wf(
     # fmt:on
     if freesurfer:
         surface_derivatives_wf = init_surface_derivatives_wf(cifti_output=cifti_output)
+        anat_ribbon_wf = init_anat_ribbon_wf()
+
         # fmt:off
         workflow.connect([
             (anat_fit_wf, surface_derivatives_wf, [
@@ -295,6 +298,12 @@ def init_anat_preproc_wf(
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ]),
+            (anat_fit_wf, anat_ribbon_wf, [
+                ('outputnode.t1w_mask', 'inputnode.t1w_mask'),
+            ]),
+            (surface_derivatives_wf, anat_ribbon_wf, [
+                ('outputnode.surfaces', 'inputnode.surfaces'),
             ]),
             (surface_derivatives_wf, anat_second_derivatives_wf, [
                 ('outputnode.surfaces', 'inputnode.surfaces'),
@@ -307,6 +316,12 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, outputnode, [
                 ('outputnode.out_aseg', 't1w_aseg'),
                 ('outputnode.out_aparc', 't1w_aparc'),
+            ]),
+            (anat_ribbon_wf, outputnode, [
+                ("outputnode.anat_ribbon", "anat_ribbon"),
+            ]),
+            (anat_ribbon_wf, anat_second_derivatives_wf, [
+                ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),
             ]),
         ])
         # fmt:on
@@ -472,7 +487,6 @@ BIDS dataset."""
     have_mask = "t1w_mask" in precomputed
     have_dseg = "t1w_dseg" in precomputed
     have_tpms = "t1w_tpms" in precomputed
-    have_ribbon = "ribbon_mask" in precomputed
 
     # Organization
     # ------------
@@ -586,7 +600,11 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
         desc += ".\n" if num_t1w > 1 else ", and used as T1w-reference throughout the workflow.\n"
 
         anat_template_wf = init_anat_template_wf(
-            longitudinal=longitudinal, omp_nthreads=omp_nthreads, num_t1w=num_t1w
+            longitudinal=longitudinal,
+            omp_nthreads=omp_nthreads,
+            num_files=num_t1w,
+            contrast="T1w",
+            name="anat_template_wf",
         )
         ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_t1w=num_t1w)
 
@@ -1000,24 +1018,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         LOGGER.info("No T2w images provided - skipping Stage 7")
     else:
         LOGGER.info("Found preprocessed T2w - skipping Stage 7")
-
-    # Anatomical ribbon file using HCP signed-distance volume method
-    if not have_ribbon:
-        LOGGER.info("Stage 8: Creating ribbon mask")
-        anat_ribbon_wf = init_anat_ribbon_wf()
-        # fmt:off
-        workflow.connect([
-            (surface_recon_wf, anat_ribbon_wf, [
-                ('outputnode.surfaces', 'inputnode.surfaces'),
-                ('outputnode.out_brainmask', 'inputnode.t1w_mask'),
-            ]),
-            (anat_ribbon_wf, outputnode, [
-                ("outputnode.anat_ribbon", "anat_ribbon"),
-            ]),
-        ])
-        # fmt:on
-    else:
-        LOGGER.info("Found ribbon mask - skipping Stage 8")
 
     return workflow
 
