@@ -80,8 +80,6 @@ orbs:
   codecov: codecov/codecov@3.2.4
 aliases:
   - &src "/tmp/src/smriprep"
-orbs:
-  docker: circleci/docker@2.1.4
 
 jobs:
   build:
