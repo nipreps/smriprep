@@ -66,7 +66,7 @@ def collect_derivatives(
             patterns = _patterns
 
     derivs_cache = defaultdict(list, {})
-    layout = BIDSLayout(derivatives_dir, config=["bids", "derivatives"])
+    layout = BIDSLayout(derivatives_dir, config=["bids", "derivatives"], validate=False)
     derivatives_dir = Path(derivatives_dir)
 
     def _check_item(item):
