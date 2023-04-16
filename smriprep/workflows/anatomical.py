@@ -700,6 +700,7 @@ derived from the input image.
                     (("outputnode.bias_corrected", _pop), "t1w_preproc"),
                     ("outputnode.out_mask", "t1w_mask"),
                     (("outputnode.out_file", _pop), "t1w_brain"),
+                    ("outputnode.out_segm", "ants_seg"),
                 ]),
             ])
             # fmt:on
