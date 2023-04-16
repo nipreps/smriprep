@@ -374,6 +374,7 @@ def init_anat_fit_wf(
                 hires=True,
                 longitudinal=False,
                 t1w=['t1w.nii.gz'],
+                t2w=['t2w.nii.gz'],
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
