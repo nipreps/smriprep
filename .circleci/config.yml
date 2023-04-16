@@ -75,10 +75,11 @@ docs_deploy: &docs
         command: gh-pages --dotfiles --message "doc(update) [skip ci]" --dist docs/_build/html
 
 version: 2.1
+orbs:
+  docker: circleci/docker@2.2.0
+  codecov: codecov/codecov@3.2.4
 aliases:
   - &src "/tmp/src/smriprep"
-orbs:
-  docker: circleci/docker@2.1.4
 
 jobs:
   build:
@@ -442,14 +443,6 @@ jobs:
           name: Setting up test
           command: |
             mkdir -p /tmp/ds005/derivatives /tmp/ds005/work
-      - run:
-          name: Install codecov
-          command: |
-            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
-            pyenv local $PY3
-            pip install --upgrade pip
-            pip install --upgrade codecov
-            pyenv rehash
       - docker/install-docker-credential-helper
       - run: *docker_auth
       - run: *setup_docker_registry
@@ -501,15 +494,9 @@ jobs:
                 --entrypoint=coverage \
                 nipreps/smriprep:latest \
                 xml
-      - run:
-          name: Combine coverage and submit
-          working_directory: /tmp/src/smriprep
-          command: |
-            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
-            pyenv local $PY3
-            which python
-            python --version
-            codecov --file coverage.xml --flags ds005 -e CIRCLE_JOB
+      - codecov/upload:
+          file: /tmp/src/smriprep/coverage.xml
+          flags: ds005
       - run:
           name: Clean-up temporary directory of reportlets and fsdir_run_XXX nodes
           when: always
@@ -587,14 +574,6 @@ jobs:
           name: Setting up test
           command: |
             mkdir -p /tmp/ds054/derivatives /tmp/ds054/work
-      - run:
-          name: Install codecov
-          command: |
-            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
-            pyenv local $PY3
-            pip install --upgrade pip
-            pip install --upgrade codecov
-            pyenv rehash
       - docker/install-docker-credential-helper
       - run: *docker_auth
       - run: *setup_docker_registry
@@ -648,15 +627,9 @@ jobs:
                 --entrypoint=coverage \
                 nipreps/smriprep:latest \
                 xml
-      - run:
-          name: Submit coverage
-          working_directory: /tmp/src/smriprep
-          command: |
-            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
-            pyenv local $PY3
-            which python
-            python --version
-            codecov --file coverage.xml --flags ds054 -e CIRCLE_JOB
+      - codecov/upload:
+          file: /tmp/src/smriprep/coverage.xml
+          flags: ds054
       - run:
           name: Clean-up temporary directory of reportlets
           when: always
@@ -818,15 +791,14 @@ jobs:
           name: Deploy to Docker Hub
           no_output_timeout: 40m
           command: |
-            if [ -n $CIRCLE_TAG ]; then
-              DOCKER_TAG=$CIRCLE_TAG
-            elif [[ $CIRCLE_BRANCH == "docker/*" ]]; then
-              DOCKER_TAG=${CIRCLE_BRANCH#docker/}
-            fi
-
-            if [ -n $DOCKER_TAG ]; then
-              docker tag nipreps/smriprep nipreps/smriprep:${DOCKER_TAG}
-              docker push nipreps/smriprep:${DOCKER_TAG}
+            if [[ -n "$DOCKER_PAT" ]]; then
+              docker tag nipreps/smriprep nipreps/smriprep:unstable
+              docker push nipreps/smriprep:unstable
+              if [[ -n "$CIRCLE_TAG" ]]; then
+                docker push nipreps/smriprep:latest
+                docker tag nipreps/smriprep nipreps/smriprep:$CIRCLE_TAG
+                docker push nipreps/smriprep:$CIRCLE_TAG
+              fi
             fi
 
   deploy_docs_tag:
