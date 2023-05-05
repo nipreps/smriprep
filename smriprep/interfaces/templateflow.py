@@ -35,6 +35,7 @@ from nipype.interfaces.base import (
 
 LOGGER = logging.getLogger("nipype.interface")
 
+
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
     template = traits.Str("MNI152NLin2009cAsym", mandatory=True, desc="Template ID")
     atlas = InputMultiObject(traits.Str, desc="Specify an atlas")
