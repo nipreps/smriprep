@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Interfaces to get templates from TemplateFlow."""
+import logging
 from templateflow import api as tf
 from nipype.interfaces.base import (
     SimpleInterface,
@@ -32,6 +33,7 @@ from nipype.interfaces.base import (
     InputMultiObject,
 )
 
+LOGGER = logging.getLogger("nipype.interface")
 
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
     template = traits.Str("MNI152NLin2009cAsym", mandatory=True, desc="Template ID")
@@ -87,8 +89,11 @@ class TemplateFlowSelect(SimpleInterface):
     '.../tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz'
 
     >>> select = TemplateFlowSelect()
-    >>> select.inputs.template = 'UNCInfant:cohort-1'
-    >>> result = select.run()  # doctest: +SKIP
+    >>> select.inputs.template = 'MNI305'
+    >>> select.inputs.template_spec = {'resolution': 1}
+    >>> result = select.run()
+    >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
+    '.../tpl-MNI305_T1w.nii.gz'
 
     """
 
@@ -114,6 +119,12 @@ class TemplateFlowSelect(SimpleInterface):
                     if k not in specs
                 }
             )
+
+        metadata = tf.get_metadata(name[0])
+        if "res" not in metadata and "resolution" not in metadata:
+            # template does not have any resolution fields
+            LOGGER.warning(f"Template {name[0]} does not include any resolution information.")
+            specs["resolution"] = None
 
         self._results["t1w_file"] = tf.get(name[0], desc=None, suffix="T1w", **specs)
 
