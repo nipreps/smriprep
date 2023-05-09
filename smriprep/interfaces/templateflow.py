@@ -121,11 +121,17 @@ class TemplateFlowSelect(SimpleInterface):
                 }
             )
 
-        metadata = tf.get_metadata(name[0])
-        if "res" not in metadata and "resolution" not in metadata:
-            # template does not have any resolution fields
-            LOGGER.warning(f"Template {name[0]} does not include any resolution information.")
-            specs["resolution"] = None
+        if specs['resolution'] and not isinstance(specs['resolution'], list):
+            specs['resolution'] = [specs['resolution']]
+
+        available_resolutions = tf.TF_LAYOUT.get_resolutions(template=name[0])
+        if specs['resolution'] and not set(specs["resolution"]) & set(available_resolutions):
+            fallback_res = available_resolutions[0] if available_resolutions else None
+            LOGGER.warning(
+                f"Template {name[0]} does not have resolution(s): {specs['resolution']}."
+                f"Falling back to resolution: {fallback_res}."
+            )
+            specs["resolution"] = fallback_res
 
         self._results["t1w_file"] = tf.get(name[0], desc=None, suffix="T1w", **specs)
 
