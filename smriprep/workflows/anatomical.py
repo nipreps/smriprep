@@ -33,7 +33,7 @@ from nipype.interfaces import (
 )
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
-from nipype.interfaces.ants import N4BiasFieldCorrection
+from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
@@ -730,19 +730,28 @@ An anatomical {contrast}-reference map was computed after registration of
         name="outputnode",
     )
 
-    # 0. Reorient T1w image(s) to RAS and resample to common voxel space
+    # 0. Denoise and reorient T1w image(s) to RAS and resample to common voxel space
     anat_ref_dimensions = pe.Node(TemplateDimensions(), name="anat_ref_dimensions")
+    denoise = pe.MapNode(
+        DenoiseImage(noise_model="Rician", num_threads=omp_nthreads),
+        iterfield="input_image",
+        name="denoise",
+    )
     anat_conform = pe.MapNode(Conform(), iterfield="in_file", name="anat_conform")
 
     # fmt:off
     workflow.connect([
         (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
+        (anat_ref_dimensions, denoise, [('t1w_valid_list', 'input_image')]),
         (anat_ref_dimensions, anat_conform, [
-            ('t1w_valid_list', 'in_file'),
             ('target_zooms', 'target_zooms'),
-            ('target_shape', 'target_shape')]),
-        (anat_ref_dimensions, outputnode, [('out_report', 'out_report'),
-                                           ('t1w_valid_list', 'anat_valid_list')]),
+            ('target_shape', 'target_shape'),
+        ]),
+        (denoise, anat_conform, [('output_image', 'in_file')]),
+        (anat_ref_dimensions, outputnode, [
+            ('out_report', 'out_report'),
+            ('t1w_valid_list', 'anat_valid_list'),
+        ]),
     ])
     # fmt:on
 
