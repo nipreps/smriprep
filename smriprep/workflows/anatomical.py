@@ -51,7 +51,7 @@ from ..utils.bids import get_outputnode_spec
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
-from .surfaces import init_anat_ribbon_wf, init_surface_recon_wf, init_morph_grayords_wf
+from .surfaces import init_anat_ribbon_wf, init_sphere_reg_wf, init_surface_recon_wf, init_morph_grayords_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
 
@@ -534,6 +534,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
     )
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
+    sphere_reg_wf = init_sphere_reg_wf(name="sphere_reg_wf")
 
     if t2w:
         t2w_template_wf = init_anat_template_wf(
@@ -620,6 +621,14 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (anat_ribbon_wf, outputnode, [
             ("outputnode.anat_ribbon", "anat_ribbon")]),
         (applyrefined, buffernode, [('out_file', 't1w_brain')]),
+        (surface_recon_wf, sphere_reg_wf, [
+            ('outputnode.subject_id', 'inputnode.subject_id'),
+            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+        ]),
+        (sphere_reg_wf, outputnode, [
+            ('outputnode.sphere_reg', 'sphere_reg'),
+            ('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR'),
+        ]),
         (surface_recon_wf, buffernode, [
             ('outputnode.out_brainmask', 't1w_mask')]),
         (surface_recon_wf, anat_reports_wf, [
@@ -634,6 +643,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
             ('surfaces', 'inputnode.surfaces'),
             ('morphometrics', 'inputnode.morphometrics'),
+            ('sphere_reg', 'inputnode.sphere_reg'),
+            ('sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
         ]),
         (anat_ribbon_wf, anat_derivatives_wf, [
             ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),

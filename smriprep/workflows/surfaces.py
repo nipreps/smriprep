@@ -38,6 +38,7 @@ from nipype.interfaces import (
     workbench as wb,
 )
 
+from ..data import load_resource
 from ..interfaces.freesurfer import ReconAll, MakeMidthickness
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
@@ -484,6 +485,65 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     # fmt:on
 
     return workflow
+
+
+def init_sphere_reg_wf(*, name="sphere_reg_wf"):
+    """Generate GIFTI registration files to fsLR space"""
+    from ..interfaces.surf import FixGiftiMetadata
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(["subjects_dir", "subject_id"]),
+        name="inputnode",
+    )
+    outputnode = pe.Node(
+        niu.IdentityInterface(["sphere_reg", "sphere_reg_fsLR"]), name="outputnode"
+    )
+
+    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+
+    # Via https://github.com/DCAN-Labs/DCAN-HCP/blob/9291324/PostFreeSurfer/scripts/FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
+    sphere_gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_gii"
+    )
+
+    fix_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_meta")
+
+    # Via
+    # ${CARET7DIR}/wb_command -surface-sphere-project-unproject
+    #   "$AtlasSpaceFolder"/"$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.native.surf.gii
+    #   "$AtlasSpaceFolder"/fsaverage/"$Subject"."$Hemisphere".sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
+    #   "$AtlasSpaceFolder"/fsaverage/"$Subject"."$Hemisphere".def_sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
+    #   "$AtlasSpaceFolder"/"$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.reg_LR.native.surf.gii
+    project_unproject = pe.MapNode(
+        wb.SurfaceSphereProjectUnproject(),
+        iterfield=["sphere_in", "sphere_project_to", "sphere_unproject_from"],
+        name="project_unproject",
+    )
+    atlases = load_resource('atlases')
+    project_unproject.inputs.sphere_project_to = [
+        atlases / 'fs_L' / 'fsaverage.L.sphere.164k_fs_L.surf.gii',
+        atlases / 'fs_R' / 'fsaverage.R.sphere.164k_fs_R.surf.gii',
+    ]
+    project_unproject.inputs.sphere_unproject_from = [
+        atlases / 'fs_L' / 'fs_L-to-fs_LR_fsaverage.L_LR.spherical_std.164k_fs_L.surf.gii',
+        atlases / 'fs_R' / 'fs_R-to-fs_LR_fsaverage.R_LR.spherical_std.164k_fs_R.surf.gii',
+    ]
+
+    # fmt:off
+    workflow.connect([
+        (inputnode, get_surfaces, [
+            ('subjects_dir', 'subjects_dir'),
+            ('subject_id', 'subject_id'),
+        ]),
+        (get_surfaces, sphere_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
+        (sphere_gii, fix_meta, [('converted', 'in_file')]),
+        (fix_meta, project_unproject, [('out_file', 'sphere_in')]),
+        (sphere_gii, outputnode, [('converted', 'sphere_reg')]),
+        (project_unproject, outputnode, [('sphere_out', 'sphere_reg_fsLR')]),
+    ])
+    # fmt:on
 
 
 def init_gifti_surface_wf(*, name="gifti_surface_wf"):
