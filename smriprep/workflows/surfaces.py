@@ -490,6 +490,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
 def init_sphere_reg_wf(*, name="sphere_reg_wf"):
     """Generate GIFTI registration files to fsLR space"""
     from ..interfaces.surf import FixGiftiMetadata
+    from ..interfaces.workbench import SurfaceSphereProjectUnproject
 
     workflow = Workflow(name=name)
 
@@ -517,7 +518,7 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
     #   "$AtlasSpaceFolder"/fsaverage/"$Subject"."$Hemisphere".def_sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
     #   "$AtlasSpaceFolder"/"$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.reg_LR.native.surf.gii
     project_unproject = pe.MapNode(
-        wb.SurfaceSphereProjectUnproject(),
+        SurfaceSphereProjectUnproject(),
         iterfield=["sphere_in", "sphere_project_to", "sphere_unproject_from"],
         name="project_unproject",
     )
@@ -544,6 +545,8 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
         (project_unproject, outputnode, [('sphere_out', 'sphere_reg_fsLR')]),
     ])
     # fmt:on
+
+    return workflow
 
 
 def init_gifti_surface_wf(*, name="gifti_surface_wf"):
