@@ -1,3 +1,14 @@
+0.11.1 (March 23, 2023)
+=======================
+Bug-fix release in the 0.11.1 series.
+
+This release changes the default name of a workflow. This change modifies
+the workflow structure superficially, but in such a way that reusing a working
+directory should present no possibility of error.
+
+* RF: Reflect function name on nipype workflow (#328)
+* DOC: Update boilerplate generation with *TemplateFlow* reference (#329)
+
 0.11.0 (March 10, 2023)
 =======================
 New feature release in the 0.11.x series.
