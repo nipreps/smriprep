@@ -651,10 +651,8 @@ def init_anat_derivatives_wf(
     ds_regs = pe.MapNode(
         DerivativesDataSink(
             base_directory=output_dir,
-            to="fsaverage",
             suffix="sphere",
             extension=".surf.gii",
-            **{"from": "fsnative"},
         ),
         iterfield=["in_file", "hemi"],
         name="ds_regs",
@@ -666,10 +664,9 @@ def init_anat_derivatives_wf(
     ds_reg_fsLR = pe.MapNode(
         DerivativesDataSink(
             base_directory=output_dir,
-            to="fsLR",
+            space="fsLR",
             suffix="sphere",
             extension=".surf.gii",
-            **{"from": "fsnative"},
         ),
         iterfield=["in_file", "hemi"],
         name="ds_reg_fsLR",
