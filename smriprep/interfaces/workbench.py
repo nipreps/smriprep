@@ -214,22 +214,26 @@ class SurfaceSphereProjectUnprojectInputSpec(TraitedSpec):
         desc="a sphere with the desired output mesh",
         exists=True,
         argstr="%s",
+        position=0,
     )
     sphere_project_to = File(
         desc="a sphere that aligns with sphere-in",
         exists=True,
         argstr="%s",
+        position=1,
     )
     sphere_unproject_from = File(
         desc="<sphere-project-to> deformed to the desired output space",
         exists=True,
         argstr="%s",
+        position=2,
     )
     sphere_out = traits.File(
-        name_template="%s_sphere_out.surf.gii",
+        name_template="%s_sphere.surf.gii",
         name_source=["sphere_in"],
         desc="the output sphere",
         argstr="%s",
+        position=3,
     )
 
 class SurfaceSphereProjectUnprojectOutputSpec(TraitedSpec):
