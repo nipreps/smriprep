@@ -420,7 +420,6 @@ freesurfer/bin/mri_make_template
 freesurfer/bin/mri_map_cpdat
 freesurfer/bin/mri_maps2csd
 freesurfer/bin/mri_mark_temporal_lobe
-freesurfer/bin/mri_mc
 freesurfer/bin/mri_mcsim
 freesurfer/bin/mri_mergelabels
 freesurfer/bin/mri_mi
