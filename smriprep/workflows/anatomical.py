@@ -232,7 +232,7 @@ BIDS dataset.""".format(
 
     outputnode = pe.Node(
         niu.IdentityInterface(
-            fields=["template", "subjects_dir", "subject_id", "t2w_preproc"]
+            fields=["template", "subjects_dir", "subject_id", "t2w_preproc", "sphere_reg_fsLR"]
             + get_outputnode_spec()
         ),
         name="outputnode",
