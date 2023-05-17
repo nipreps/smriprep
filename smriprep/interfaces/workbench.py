@@ -254,3 +254,128 @@ class SurfaceSphereProjectUnproject(WBCommand):
     input_spec = SurfaceSphereProjectUnprojectInputSpec
     output_spec = SurfaceSphereProjectUnprojectOutputSpec
     _cmd = "wb_command -surface-sphere-project-unproject"
+
+
+class SurfaceResampleInputSpec(TraitedSpec):
+    """RESAMPLE A SURFACE TO A DIFFERENT MESH
+
+    wb_command -surface-resample
+      <surface-in> - the surface file to resample
+      <current-sphere> - a sphere surface with the mesh that the input surface
+         is currently on
+      <new-sphere> - a sphere surface that is in register with <current-sphere>
+         and has the desired output mesh
+      <method> - the method name
+      <surface-out> - output - the output surface file
+
+      [-area-surfs] - specify surfaces to do vertex area correction based on
+         <current-area> - a relevant surface with <current-sphere> mesh
+         <new-area> - a relevant surface with <new-sphere> mesh
+
+      [-area-metrics] - specify vertex area metrics to do area correction based
+         on
+         <current-area> - a metric file with vertex areas for <current-sphere>
+            mesh
+         <new-area> - a metric file with vertex areas for <new-sphere> mesh
+
+      Resamples a surface file, given two spherical surfaces that are in
+      register.  If ADAP_BARY_AREA is used, exactly one of -area-surfs or
+      -area-metrics must be specified.  This method is not generally
+      recommended for surface resampling, but is provided for completeness.
+
+      The BARYCENTRIC method is generally recommended for anatomical surfaces,
+      in order to minimize smoothing.
+
+      For cut surfaces (including flatmaps), use -surface-cut-resample.
+
+      Instead of resampling a spherical surface, the
+      -surface-sphere-project-unproject command is recommended.
+
+      The <method> argument must be one of the following:
+
+      ADAP_BARY_AREA
+      BARYCENTRIC
+    """
+
+    surface_in = File(
+        desc="the surface file to resample",
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=0,
+    )
+    current_sphere = File(
+        desc="a sphere surface with the mesh that the input surface is currently on",
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=1,
+    )
+    new_sphere = File(
+        desc="a sphere surface that is in register with <current-sphere> and has the desired output mesh",
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=2,
+    )
+    method = traits.Enum(
+        "ADAP_BARY_AREA",
+        "BARYCENTRIC",
+        desc="the method name",
+        mandatory=True,
+        argstr="%s",
+        position=3,
+    )
+    surface_out = traits.File(
+        name_template="%s_resampled.surf.gii",
+        name_source=["surface_in"],
+        keep_extension=False,
+        desc="the output surface file",
+        argstr="%s",
+        position=4,
+    )
+    correction_source = traits.Enum(
+        "area_surfs",
+        "area_metrics",
+        desc="specify surfaces or vertex area metrics to do vertex area correction based on",
+        argstr="-%s",
+        position=5,
+    )
+    current_area = File(
+        desc="a relevant surface with <current-sphere> mesh",
+        exists=True,
+        argstr="%s",
+        position=6,
+        requires=['correction_source'],
+    )
+    new_area = File(
+        desc="a relevant surface with <new-sphere> mesh",
+        exists=True,
+        argstr="%s",
+        position=7,
+        requires=['correction_source'],
+    )
+
+
+class SurfaceResampleOutputSpec(TraitedSpec):
+    surface_out = File(desc="the output surface file", exists=True)
+
+
+class SurfaceResample(WBCommand):
+    """RESAMPLE A SURFACE TO A DIFFERENT MESH.
+
+    Example
+    -------
+    >>> from smriprep.interfaces.workbench import SurfaceResample
+    >>> surface_resample = SurfaceResample()
+    >>> surface_resample.inputs.surface_in = 'sub-01_hemi-L_midthickness.surf.gii'
+    >>> surface_resample.inputs.current_sphere = 'sub-01_hemi-L_sphere.surf.gii'
+    >>> surface_resample.inputs.new_sphere = 'tpl-fsLR_hemi-L_den-32k_sphere.surf.gii'
+    >>> surface_resample.inputs.method = 'BARYCENTRIC'
+    >>> surface_resample.cmdline
+    'wb_command -surface-resample sub-01_hemi-L_midthickness.surf.gii sub-01_hemi-L_sphere.surf.gii tpl-fsLR_hemi-L_den-32k_sphere.surf.gii BARYCENTRIC sub-01_hemi-L_midthickness_resampled.surf.gii'
+    """
+
+    input_spec = SurfaceResampleInputSpec
+    output_spec = SurfaceResampleOutputSpec
+    _cmd = "wb_command -surface-resample"
