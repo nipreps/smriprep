@@ -128,7 +128,6 @@ RUN apt-get update -qq \
            libgl1-mesa-dev \
            libgl1-mesa-dri \
            libglu1-mesa-dev \
-           libgomp1 \
            libice6 \
            libxcursor1 \
            libxft2 \
@@ -207,21 +206,16 @@ RUN GNUPGHOME=/tmp gpg --keyserver hkps://keyserver.ubuntu.com --no-default-keyr
 # AFNI latest (neurodocker build)
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
-           apt-utils \
            ed \
            gsl-bin \
            libglib2.0-0 \
-           libglu1-mesa-dev \
            libglw1-mesa \
-           libgomp1 \
            libjpeg62 \
            libpng12-0 \
            libxm4 \
            libxp6 \
            netpbm \
-           tcsh \
            xfonts-base \
-           xvfb \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && curl -sSL --retry 5 -o /tmp/multiarch.deb http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.5_amd64.deb \
