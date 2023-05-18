@@ -50,6 +50,7 @@ def init_smriprep_wf(
     hires,
     layout,
     longitudinal,
+    fastsurfer,
     low_mem,
     omp_nthreads,
     output_dir,
@@ -87,6 +88,7 @@ def init_smriprep_wf(
                 hires=True,
                 layout=BIDSLayout('.'),
                 longitudinal=False,
+                fastsurfer=False,
                 low_mem=False,
                 omp_nthreads=1,
                 output_dir='.',
@@ -117,6 +119,8 @@ def init_smriprep_wf(
     longitudinal : :obj:`bool`
         Treat multiple sessions as longitudinal (may increase runtime)
         See sub-workflows for specific differences
+    fastsurfer : :obj:`bool`
+        Enable FastSurfer segmentation and surface reconstruction
     low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
     omp_nthreads : :obj:`int`
@@ -162,6 +166,20 @@ def init_smriprep_wf(
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
+    if fastsurfer:
+        freesurfer = False
+        fastsurfdir = pe.Node(
+            BIDSFreeSurferDir(
+                derivatives=output_dir,
+                freesurfer_home=os.getenv("FREESURFER_HOME"),
+                spaces=spaces.get_fs_spaces(),
+            ),
+            name="fastsurfdir_run_%s" % run_uuid.replace("-", "_"),
+            run_without_submitting=True
+        )
+        if fs_subjects_dir is not None:
+            fastsurfdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
+
     for subject_id in subject_list:
         single_subject_wf = init_single_subject_wf(
             debug=debug,
@@ -170,6 +188,7 @@ def init_smriprep_wf(
             hires=hires,
             layout=layout,
             longitudinal=longitudinal,
+            fastsurfer=fastsurfer,
             low_mem=low_mem,
             name="single_subject_%s_wf" % subject_id,
             omp_nthreads=omp_nthreads,
@@ -181,7 +200,7 @@ def init_smriprep_wf(
             subject_id=subject_id,
             bids_filters=bids_filters,
         )
-
+        
         single_subject_wf.config["execution"]["crashdump_dir"] = os.path.join(
             output_dir, "smriprep", "sub-" + subject_id, "log", run_uuid
         )
@@ -190,6 +209,10 @@ def init_smriprep_wf(
         if freesurfer:
             smriprep_wf.connect(
                 fsdir, "subjects_dir", single_subject_wf, "inputnode.subjects_dir"
+            )
+        elif fastsurfer:
+            smriprep_wf.connect(
+                fastsurfdir, "subjects_dir", single_subject_wf, "inputnode.subjects_dir"
             )
         else:
             smriprep_wf.add_nodes([single_subject_wf])
@@ -205,6 +228,7 @@ def init_single_subject_wf(
     hires,
     layout,
     longitudinal,
+    fastsurfer,
     low_mem,
     name,
     omp_nthreads,
@@ -244,6 +268,7 @@ def init_single_subject_wf(
                 hires=True,
                 layout=BIDSLayout('.'),
                 longitudinal=False,
+                fastsurfer=False,
                 low_mem=False,
                 name='single_subject_wf',
                 omp_nthreads=1,
@@ -271,6 +296,8 @@ def init_single_subject_wf(
     longitudinal : :obj:`bool`
         Treat multiple sessions as longitudinal (may increase runtime)
         See sub-workflows for specific differences
+    fastsurfer : :obj:`bool`
+        Enable FastSurfer segmentation and surface reconstruction
     low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
     name : :obj:`str`
@@ -351,6 +378,9 @@ to workflows in *sMRIPrep*'s documentation]\
             Path(output_dir) / "smriprep", subject_id, std_spaces, freesurfer
         )
 
+    if fastsurfer:
+        freesurfer = False
+
     inputnode = pe.Node(
         niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode"
     )
@@ -405,6 +435,7 @@ to workflows in *sMRIPrep*'s documentation]\
         freesurfer=freesurfer,
         hires=hires,
         longitudinal=longitudinal,
+        fastsurfer=fastsurfer,
         name="anat_preproc_wf",
         t1w=subject_data["t1w"],
         t2w=subject_data["t2w"],

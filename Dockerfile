@@ -33,6 +33,12 @@ RUN python -m build /src/fmriprep
 FROM ubuntu:jammy-20221130
 
 # Prepare environment
+ENV DEBIAN_FRONTEND="noninteractive"
+ENV LANG=C.UTF-8
+ARG PYTHON_VERSION=3.8
+ARG CONDA_FILE=Miniconda3-py38_4.11.0-Linux-x86_64.sh
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
                     apt-utils \
@@ -41,6 +47,9 @@ RUN apt-get update && \
                     bzip2 \
                     ca-certificates \
                     curl \
+                    wget \
+                    upx \
+                    file \
                     git \
                     gnupg \
                     libtool \
@@ -51,14 +60,44 @@ RUN apt-get update && \
                     xvfb && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ENV DEBIAN_FRONTEND="noninteractive" \
-    LANG="en_US.UTF-8" \
-    LC_ALL="en_US.UTF-8"
+# git clone stable branch of FastSurfer
+RUN cd /opt && mkdir /fastsurfer \
+    && git clone -b v2.0.4 https://github.com/Deep-MI/FastSurfer.git \
+    && cp /opt/FastSurfer/fastsurfer_env_gpu.yml /fastsurfer/fastsurfer_env_gpu.yml 
+
+# Copy fastsurfer from git folder
+RUN cp -R /opt/FastSurfer/* /fastsurfer/ && rm -rf /opt/FastSurfer
+ 
+# Install conda
+RUN wget --no-check-certificate -qO ~/miniconda.sh https://repo.continuum.io/miniconda/$CONDA_FILE  && \
+     chmod +x ~/miniconda.sh && \
+     ~/miniconda.sh -b -p /opt/conda && \
+     rm ~/miniconda.sh 
 
 # Installing freesurfer
 COPY docker/files/freesurfer7.3.2-exclude.txt /usr/local/etc/freesurfer7.3.2-exclude.txt
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.3.2/freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz \
      | tar zxv --no-same-owner -C /opt --exclude-from=/usr/local/etc/freesurfer7.3.2-exclude.txt
+
+# Install required packages for freesurfer to run
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      tcsh \
+      time \
+      bc \
+      gawk \
+      libgomp1 && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+
+# Add FreeSurfer Environment variables
+ENV OS=Linux \
+    FS_OVERRIDE=0 \
+    FIX_VERTEX_AREA= \
+    SUBJECTS_DIR=/opt/freesurfer/subjects \
+    FSF_OUTPUT_FORMAT=nii.gz \
+    FREESURFER_HOME=/opt/freesurfer \
+    PYTHONUNBUFFERED=0 \
+    PATH=/opt/freesurfer/bin:$PATH
 
 # Simulate SetUpFreeSurfer.sh
 ENV FSL_DIR="/opt/fsl-6.0.5.1" \
@@ -89,7 +128,6 @@ RUN apt-get update -qq \
            libgl1-mesa-dev \
            libgl1-mesa-dri \
            libglu1-mesa-dev \
-           libgomp1 \
            libice6 \
            libxcursor1 \
            libxft2 \
@@ -98,6 +136,7 @@ RUN apt-get update -qq \
            libxrender1 \
            libxt6 \
            sudo \
+           curl \
            wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
@@ -167,21 +206,16 @@ RUN GNUPGHOME=/tmp gpg --keyserver hkps://keyserver.ubuntu.com --no-default-keyr
 # AFNI latest (neurodocker build)
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
-           apt-utils \
            ed \
            gsl-bin \
            libglib2.0-0 \
-           libglu1-mesa-dev \
            libglw1-mesa \
-           libgomp1 \
            libjpeg62 \
            libpng12-0 \
            libxm4 \
            libxp6 \
            netpbm \
-           tcsh \
            xfonts-base \
-           xvfb \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && curl -sSL --retry 5 -o /tmp/multiarch.deb http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.5_amd64.deb \
@@ -281,9 +315,15 @@ RUN /opt/conda/bin/python fetch_templates.py && \
     find $HOME/.cache/templateflow -type d -exec chmod go=u {} + && \
     find $HOME/.cache/templateflow -type f -exec chmod go=u {} +
 
+# Installing FastSurfer gpu dependencies
+RUN conda env update -n base --file /fastsurfer/fastsurfer_env_gpu.yml 
+
 # Installing sMRIPREP
 COPY --from=src /src/fmriprep/dist/*.whl .
 RUN /opt/conda/bin/python -m pip install --no-cache-dir $( ls *.whl )[all]
+
+# Installing nibabel version 4.0.2
+RUN /opt/conda/bin/python -m pip install --no-cache-dir nibabel==4.0.2
 
 RUN find $HOME -type d -exec chmod go=u {} + && \
     find $HOME -type f -exec chmod go=u {} + && \
@@ -294,6 +334,12 @@ RUN find $HOME -type d -exec chmod go=u {} + && \
 ENV FREESURFER="/opt/freesurfer"
 
 ENV IS_DOCKER_8395080871=1
+ENV FASTSURFER_HOME=/fastsurfer
+ENV PATH="$PATH:/fastsurfer"
+
+# Download all remote network checkpoints already
+ENV PYTHONPATH=/fastsurfer:$PYTHONPATH
+RUN cd /fastsurfer ; python3 FastSurferCNN/download_checkpoints.py --all
 
 RUN ldconfig
 WORKDIR /tmp

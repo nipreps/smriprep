@@ -37,6 +37,8 @@ from nipype.interfaces.base import (
 )
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
+from smriprep.interfaces import fastsurfer as fastsurf
+from smriprep.utils.misc import check_fastsurfer
 from nipype.interfaces.mixins import reporting
 
 from niworkflows.interfaces.reportlets.base import _SVGReportCapableInputSpec
@@ -48,6 +50,7 @@ SUBJECT_TEMPLATE = """\
 \t\t<li>Structural images: {n_t1s:d} T1-weighted {t2w}</li>
 \t\t<li>Standard spaces: {output_spaces}</li>
 \t\t<li>FreeSurfer reconstruction: {freesurfer_status}</li>
+\t\t<li>FreeSurfer reconstruction: {fastsurfer_status}</li>
 \t</ul>
 """
 
@@ -99,6 +102,7 @@ class SubjectSummary(SummaryInterface):
 
     input_spec = _SubjectSummaryInputSpec
     output_spec = _SubjectSummaryOutputSpec
+    fastsurfer_bool = False
 
     def _run_interface(self, runtime):
         if isdefined(self.inputs.subject_id):
@@ -106,15 +110,28 @@ class SubjectSummary(SummaryInterface):
         return super(SubjectSummary, self)._run_interface(runtime)
 
     def _generate_segment(self):
+        fastsurfer_status = "Not run"
         if not isdefined(self.inputs.subjects_dir):
             freesurfer_status = "Not run"
+            fastsurfer_status = "Not run"
         else:
-            recon = fs.ReconAll(
+            fastsurfer_bool = check_fastsurfer(
                 subjects_dir=self.inputs.subjects_dir,
-                subject_id=self.inputs.subject_id,
-                T1_files=self.inputs.t1w,
-                flags="-noskullstrip",
-            )
+                subject_id=self.inputs.subject_id)
+            if fastsurfer_bool is True:
+                recon = fastsurf.FastSCommand(
+                    sd=self.inputs.subjects_dir,
+                    sid=self.inputs.subject_id,
+                    t1=self.inputs.t1w,
+                )
+                fastsurfer_status = "Run by sMRIPrep"
+            else:
+                recon = fs.ReconAll(
+                    subjects_dir=self.inputs.subjects_dir,
+                    subject_id=self.inputs.subject_id,
+                    T1_files=self.inputs.t1w,
+                    flags="-noskullstrip",
+                )
             if recon.cmdline.startswith("echo"):
                 freesurfer_status = "Pre-existing directory"
             else:
@@ -136,6 +153,7 @@ class SubjectSummary(SummaryInterface):
             t2w=t2w_seg,
             output_spaces=output_spaces,
             freesurfer_status=freesurfer_status,
+            fastsurfer_status=fastsurfer_status,
         )
 
 

@@ -95,3 +95,40 @@ and proceed to delete the files listed above."""
     if logger:
         logger.warn(f'Removed "IsRunning*" files found under {subj_dir}')
     return subjects_dir
+
+
+def check_fastsurfer(subjects_dir, subject_id, logger=None):
+    """
+    Checks FreeSurfer subjects dir for presence of files in mri/ with names \
+    indicating processing with FastSurfer.
+
+    Parameters
+    ----------
+    subjects_dir : os.PathLike or None
+        Existing FreeSurfer subjects directory
+    subject_id : str
+        Subject label
+
+    Returns
+    -------
+    fastsurfer_bool : Boolean
+
+    """
+    from pathlib import Path
+
+    fastsurfer_bool = False
+
+    if subjects_dir is None:
+        return fastsurfer_bool
+    subj_dir = Path(subjects_dir) / subject_id
+    if not subj_dir.exists():
+        return fastsurfer_bool
+
+    fastsurferfiles = tuple(subj_dir.glob("mri/*deep*mgz"))
+    if not fastsurferfiles:
+        return fastsurfer_bool
+    else:
+        if logger:
+            logger.warn(f'Evidence of FastSurfer processing found in {subj_dir}')
+        fastsurfer_bool = True
+        return fastsurfer_bool

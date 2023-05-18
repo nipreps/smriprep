@@ -31,7 +31,7 @@ from ..interfaces import DerivativesDataSink
 BIDS_TISSUE_ORDER = ("GM", "WM", "CSF")
 
 
-def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
+def init_anat_reports_wf(*, freesurfer, fastsurfer, output_dir, name="anat_reports_wf"):
     """
     Set up a battery of datasinks to store reports in the right location.
 
@@ -39,6 +39,8 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
     ----------
     freesurfer : :obj:`bool`
         FreeSurfer was enabled
+    fastsurfer : :obj:`bool`
+        FastSurfer was enabled
     output_dir : :obj:`str`
         Directory in which to save derivatives
     name : :obj:`str`
@@ -171,7 +173,7 @@ def init_anat_reports_wf(*, freesurfer, output_dir, name="anat_reports_wf"):
     ])
     # fmt:on
 
-    if freesurfer:
+    if freesurfer or fastsurfer:
         from ..interfaces.reports import FSSurfaceReport
 
         recon_report = pe.Node(FSSurfaceReport(), name="recon_report")
@@ -200,6 +202,7 @@ def init_anat_derivatives_wf(
     *,
     bids_root,
     freesurfer,
+    fastsurfer,
     num_t1w,
     t2w,
     output_dir,
@@ -217,6 +220,8 @@ def init_anat_derivatives_wf(
         Root path of BIDS dataset
     freesurfer : :obj:`bool`
         FreeSurfer was enabled
+    fastsurfer : :obj:`bool`
+        FastSurfer was enabled
     num_t1w : :obj:`int`
         Number of T1w images
     output_dir : :obj:`str`
@@ -574,7 +579,7 @@ def init_anat_derivatives_wf(
         )
         # fmt:on
 
-    if not freesurfer:
+    if (not freesurfer) and (not fastsurfer):
         return workflow
 
     # T2w coregistration requires FreeSurfer surfaces, so only try to save if freesurfer

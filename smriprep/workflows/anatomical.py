@@ -33,7 +33,7 @@ from nipype.interfaces import (
 )
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
-from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
+from nipype.interfaces.ants import N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
@@ -48,10 +48,15 @@ from niworkflows.interfaces.utility import KeySelect
 from niworkflows.utils.misc import fix_multi_T1w_source_name, add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from ..utils.bids import get_outputnode_spec
-from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
+from ..utils.misc import (
+    apply_lut as _apply_bids_lut,
+    fs_isRunning as _fs_isRunning,
+    check_fastsurfer as _check_fastsurfer
+)
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
-from .surfaces import init_anat_ribbon_wf, init_surface_recon_wf, init_morph_grayords_wf
+from .surfaces import init_surface_recon_wf, init_fastsurf_recon_wf, init_anat_ribbon_wf, init_morph_grayords_wf
+from .surfaces import init_anat_ribbon_wf, init_surface_recon_wf
 
 LOGGER = logging.getLogger("nipype.workflow")
 
@@ -62,6 +67,7 @@ def init_anat_preproc_wf(
     freesurfer,
     hires,
     longitudinal,
+    fastsurfer,
     t1w,
     t2w,
     omp_nthreads,
@@ -100,6 +106,7 @@ def init_anat_preproc_wf(
                 freesurfer=True,
                 hires=True,
                 longitudinal=False,
+                fastsurfer=False,
                 t1w=['t1w.nii.gz'],
                 t2w=[],
                 omp_nthreads=1,
@@ -125,6 +132,10 @@ def init_anat_preproc_wf(
     longitudinal : :obj:`bool`
         Create unbiased structural template, regardless of number of inputs
         (may increase runtime)
+    fastsurfer : :obj:`bool`
+        Enable FastSurfer surface reconstruction (shorter runtime than
+        the FreeSurfer workflow). Uses similar input variables and output
+        file structure as FreeSurfer.
     t1w : :obj:`list`
         List of T1-weighted structural images.
     omp_nthreads : :obj:`int`
@@ -241,6 +252,7 @@ BIDS dataset.""".format(
     # Connect reportlets workflows
     anat_reports_wf = init_anat_reports_wf(
         freesurfer=freesurfer,
+        fastsurfer=fastsurfer,
         output_dir=output_dir,
     )
     # fmt:off
@@ -457,10 +469,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     ])
     # fmt:on
 
-    # Write outputs ############################################3
+    # Write outputs #
     anat_derivatives_wf = init_anat_derivatives_wf(
         bids_root=bids_root,
         freesurfer=freesurfer,
+        fastsurfer=fastsurfer,
         num_t1w=num_t1w,
         t2w=t2w,
         output_dir=output_dir,
@@ -513,7 +526,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (fast2bids, outputnode, [('out', 't1w_tpms')]),
     ])
     # fmt:on
-    if not freesurfer:  # Flag --fs-no-reconall is set - return
+    if not freesurfer and not fastsurfer:  # Flag --fs-no-reconall is set - return
         # fmt:off
         workflow.connect([
             (brain_extraction_wf, buffernode, [
@@ -529,10 +542,50 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     )
     fs_isrunning.inputs.logger = LOGGER
 
-    # 5. Surface reconstruction (--fs-no-reconall not set)
-    surface_recon_wf = init_surface_recon_wf(
-        name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
+    # check for FastSurfer .mgz files and
+    #   touch mri/aseg.auto_noCCseg.label_intensities.txt
+    #   to prevent failure in surfaces.py (temporary fix - DEPRECATED)
+    check_fastsurfer = pe.Node(
+        niu.Function(function=_check_fastsurfer), overwrite=True, name="check_fastsurfer"
     )
+    check_fastsurfer.inputs.logger = LOGGER
+
+    # Select which surface reconstruction workflow based on CLI arguments
+    if freesurfer and (not fastsurfer):
+        surface_recon_wf = init_surface_recon_wf(
+            name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
+        # fmt:off
+        workflow.connect([
+            (inputnode, fs_isrunning, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id')]),
+            (inputnode, surface_recon_wf, [
+                ('t2w', 'inputnode.t2w'),
+                ('flair', 'inputnode.flair'),
+                ('subject_id', 'inputnode.subject_id')]),
+            (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
+            (surface_recon_wf, anat_reports_wf, [
+                ('outputnode.subject_id', 'inputnode.subject_id'),
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+            ]),
+        ])
+        # fmt:on
+    elif fastsurfer:
+        surface_recon_wf = init_fastsurf_recon_wf(
+            name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires)
+        # fmt:off
+        workflow.connect([
+            (inputnode, surface_recon_wf, [
+                ('subject_id', 'inputnode.subject_id'),
+                ('subjects_dir', 'inputnode.subjects_dir')]),
+            (surface_recon_wf, anat_reports_wf, [
+                ('outputnode.subject_id', 'inputnode.subject_id'),
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+            ]),
+        ])
+        # fmt:on
+
+    # Identical connections
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
 
     if t2w:
@@ -568,9 +621,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         workflow.connect([
             (inputnode, t2w_template_wf, [('t2w', 'inputnode.anat_files')]),
             (t2w_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
-            (surface_recon_wf, bbreg, [
-                ('outputnode.subject_id', 'subject_id'),
-                ('outputnode.subjects_dir', 'subjects_dir'),
+            (inputnode, bbreg, [
+                ('subject_id', 'subject_id'),
+                ('subjects_dir', 'subjects_dir'),
             ]),
             (bbreg, coreg_xfms, [('out_lta_file', 'in1')]),
             (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
@@ -587,15 +640,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # Anatomical ribbon file using HCP signed-distance volume method
     anat_ribbon_wf = init_anat_ribbon_wf()
     # fmt:off
+
     workflow.connect([
-        (inputnode, fs_isrunning, [
-            ('subjects_dir', 'subjects_dir'),
-            ('subject_id', 'subject_id')]),
-        (inputnode, surface_recon_wf, [
-            ('t2w', 'inputnode.t2w'),
-            ('flair', 'inputnode.flair'),
-            ('subject_id', 'inputnode.subject_id')]),
-        (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (brain_extraction_wf, surface_recon_wf, [
             (('outputnode.out_file', _pop), 'inputnode.skullstripped_t1'),
@@ -622,13 +668,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (applyrefined, buffernode, [('out_file', 't1w_brain')]),
         (surface_recon_wf, buffernode, [
             ('outputnode.out_brainmask', 't1w_mask')]),
-        (surface_recon_wf, anat_reports_wf, [
-            ('outputnode.subject_id', 'inputnode.subject_id'),
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir')]),
         (surface_recon_wf, anat_derivatives_wf, [
             ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-            ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-        ]),
+            ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc')]),
         (outputnode, anat_derivatives_wf, [
             ('t1w2fsnative_xfm', 'inputnode.t1w2fsnative_xfm'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
@@ -639,7 +681,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),
         ]),
     ])
-    # fmt:on
 
     if cifti_output:
         morph_grayords_wf = init_morph_grayords_wf(grayord_density=cifti_output)
@@ -730,28 +771,19 @@ An anatomical {contrast}-reference map was computed after registration of
         name="outputnode",
     )
 
-    # 0. Denoise and reorient T1w image(s) to RAS and resample to common voxel space
+    # 0. Reorient T1w image(s) to RAS and resample to common voxel space
     anat_ref_dimensions = pe.Node(TemplateDimensions(), name="anat_ref_dimensions")
-    denoise = pe.MapNode(
-        DenoiseImage(noise_model="Rician", num_threads=omp_nthreads),
-        iterfield="input_image",
-        name="denoise",
-    )
     anat_conform = pe.MapNode(Conform(), iterfield="in_file", name="anat_conform")
 
     # fmt:off
     workflow.connect([
         (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
-        (anat_ref_dimensions, denoise, [('t1w_valid_list', 'input_image')]),
         (anat_ref_dimensions, anat_conform, [
+            ('t1w_valid_list', 'in_file'),
             ('target_zooms', 'target_zooms'),
-            ('target_shape', 'target_shape'),
-        ]),
-        (denoise, anat_conform, [('output_image', 'in_file')]),
-        (anat_ref_dimensions, outputnode, [
-            ('out_report', 'out_report'),
-            ('t1w_valid_list', 'anat_valid_list'),
-        ]),
+            ('target_shape', 'target_shape')]),
+        (anat_ref_dimensions, outputnode, [('out_report', 'out_report'),
+                                           ('t1w_valid_list', 'anat_valid_list')]),
     ])
     # fmt:on
 

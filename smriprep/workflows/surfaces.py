@@ -24,7 +24,8 @@
 Surface preprocessing workflows.
 
 **sMRIPrep** uses FreeSurfer to reconstruct surfaces from T1w/T2w
-structural images.
+structural images or FastSurfer for a machine learning-accelerated
+alternative using only T1w structural images.
 
 """
 import typing as ty
@@ -39,6 +40,7 @@ from nipype.interfaces import (
 )
 
 from ..interfaces.freesurfer import ReconAll, MakeMidthickness
+from ..interfaces import fastsurfer as fastsurf
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
@@ -48,6 +50,283 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
+
+from nipype import logging
+# import os
+
+LOGGER = logging.getLogger("nipype.workflow")
+
+
+def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
+    r"""
+    Reconstruct anatomical surfaces using FastSurfer VINN and ``recon_surf``,
+    an alternative to FreeSurfer's ``recon-all``.
+
+    First, FastSurfer VINN creates a segmentation using the T1w structural image.
+    This is followed by FastSurfer ``recon_surf`` processing of the surface.
+
+    For example, a subject with only one session with a T1w image
+    would be processed by the following command::
+
+        $ /opt/FastSurfer/run_fastsurfer.sh \
+        --t1 <bids-root>/sub-<subject_label>/anat/sub-<subject_label>_T1w.nii.gz \
+        --sid sub-<subject_label> --sd <output dir>/fastsurfer
+
+    Similar to the Freesurfer workflow second phase, we then
+    import an externally computed skull-stripping mask.
+    This workflow refines the external brainmask using the internal mask
+    implicit the FastSurfer's ``aseg.mgz`` segmentation,
+    to reconcile ANTs' and FreeSurfer's brain masks.
+
+    First, the ``aseg.mgz`` mask from FastSurfer is refined in two
+    steps, using binary morphological operations:
+
+      1. With a binary closing operation the sulci are included
+         into the mask. This results in a smoother brain mask
+         that does not exclude deep, wide sulci.
+
+      2. Fill any holes (typically, there could be a hole next to
+         the pineal gland and the corpora quadrigemina if the great
+         cerebral brain is segmented out).
+
+    Second, the brain mask is grown, including pixels that have a high likelihood
+    to the GM tissue distribution:
+
+      3. Dilate and substract the brain mask, defining the region to search for candidate
+         pixels that likely belong to cortical GM.
+
+      4. Pixels found in the search region that are labeled as GM by ANTs
+         (during ``antsBrainExtraction.sh``) are directly added to the new mask.
+
+      5. Otherwise, estimate GM tissue parameters locally in  patches of ``ww`` size,
+         and test the likelihood of the pixel to belong in the GM distribution.
+
+    This procedure is inspired on mindboggle's solution to the problem:
+    https://github.com/nipy/mindboggle/blob/7f91faaa7664d820fe12ccc52ebaf21d679795e2/mindboggle/guts/segment.py#L1660
+
+    Memory annotations for FastSurfer are based off `their documentation
+    <https://github.com/Deep-MI/FastSurfer/tree/9a424a83d2a24d36fe4519c2105c608df71bb2a0#system-requirements>`_.
+    They recommend 8GB CPU RAM and 8GB NVIDIA GPU RAM to run a single batch.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_fastsurf_recon_wf
+            wf = init_fastsurf_recon_wf(omp_nthreads=1)
+
+    Required arguments
+    ==================
+    sd
+        Output directory
+    sid
+        Subject ID for directory inside ``sd`` to be created
+    t1
+        T1 full head input (not bias corrected, global path).
+        The 'network was trained with conformed images
+        (UCHAR, 256x256x256, 1 mm voxels and standard slice orientation).
+        These specifications are checked in the ``eval.py`` script and the image
+        is automatically conformed if it does not comply.
+
+    Optional arguments
+    ==================
+
+    Network specific arguments
+    --------------------------
+    seg
+        Global path with filename of segmentation
+        (where and under which name to store it).
+        Default location
+            ``$SUBJECTS_DIR/$sid/mri/aparc.DKTatlas+aseg.deep.mgz``
+    weights_sag
+        Pretrained weights of sagittal network.
+        Default
+            ``../checkpoints/Sagittal_Weights_FastSurferVINN/ckpts/Epoch_30_training_state.pkl``
+    weights_ax
+        Pretrained weights of axial network.
+        Default
+            ``../checkpoints/Axial_Weights_FastSurferVINN/ckpts/Epoch_30_training_state.pkl``
+    weights_cor
+        Pretrained weights of coronal network.
+        Default
+            ``../checkpoints/Coronal_Weights_FastSurferVINN/ckpts/Epoch_30_training_state.pkl``
+    seg_log
+        Name and location for the log-file for the segmentation (FastSurferVINN).
+        Default '$SUBJECTS_DIR/$sid/scripts/deep-seg.log'
+    clean_seg
+        Flag to clean up FastSurferVINN segmentation
+    run_viewagg_on
+        Define where the view aggregation should be run on.
+        By default, the program checks if you have enough memory to run
+        the view aggregation on the gpu. The total memory is considered for this decision.
+        If this fails, or you actively overwrote the check with setting
+        ``run_viewagg_on cpu``, view agg is run on the cpu.
+        Equivalently, if you define ``--run_viewagg_on gpu``, view agg will be run on the gpu
+        (no memory check will be done).
+    no_cuda
+        Flag to disable CUDA usage in FastSurferVINN (no GPU usage, inference on CPU)
+    batch
+        Batch size for inference. Default 16. Lower this to reduce memory requirement
+    order
+        Order of interpolation for mri_convert T1 before segmentation
+        ``(0=nearest, 1=linear(default), 2=quadratic, 3=cubic)``
+
+    Surface pipeline arguments
+    --------------------------
+    fstess
+        Use ``mri_tesselate`` instead of marching cube (default) for surface creation
+    fsqsphere
+        Use FreeSurfer default instead of
+        novel spectral spherical projection for qsphere
+    fsaparc
+        Use FS aparc segmentations in addition to DL prediction
+        (slower in this case and usually the mapped ones from the DL prediction are fine)
+    no_surfreg
+        Skip creating Surface-Atlas ``sphere.reg`` registration with FreeSurfer
+        (for cross-subject correspondence or other mappings)
+    parallel
+        Run both hemispheres in parallel
+    threads
+        Set openMP and ITK threads
+
+    Other
+    ----
+    py
+        which python version to use.
+        Default ``python3.6``
+    seg_only
+        only run FastSurferVINN
+        (generate segmentation, do not run the surface pipeline)
+    surf_only
+        only run the surface pipeline ``recon_surf``.
+        The segmentation created by FastSurferVINN must already exist in this case.
+
+
+    """
+    workflow = Workflow(name=name)
+    workflow.__desc__ = """\
+Brain surfaces were reconstructed using `recon-surf` [FastSurfer {fastsurfer_version},
+@fastsurfer], and the brain mask estimated
+previously was refined with a custom variation of the method to reconcile
+ANTs-derived and FastSurfer-derived segmentations of the cortical
+gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
+""".format(
+        fastsurfer_version="2.0.4"
+    )
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "subjects_dir",
+                "subject_id",
+                "t1w",
+                "skullstripped_t1",
+                "corrected_t1",
+                "ants_segs",
+            ]
+        ),
+        name="inputnode",
+    )
+    outputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "subjects_dir",
+                "subject_id",
+                "t1w2fsnative_xfm",
+                "fsnative2t1w_xfm",
+                "surfaces",
+                "out_brainmask",
+                "out_aseg",
+                "out_aparc",
+                "morphometrics",
+            ]
+        ),
+        name="outputnode",
+    )
+
+    # outputnode = pe.Node(niu.IdentityInterface(["surfaces", "morphometrics"]), name="outputnode")
+
+    fsnative2t1w_xfm = pe.Node(
+        RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm")
+    t1w2fsnative_xfm = pe.Node(
+        LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
+
+    # inputnode.in_file = inputnode.t1w
+    gifti_surface_wf = init_gifti_surface_wf(fastsurfer=True)
+    aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=True)
+    aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=True, segmentation="aparc_aseg")
+    refine = pe.Node(RefineBrainMask(), name="refine")
+
+    recon_conf = pe.Node(
+        fastsurf.FastSurferSource(), name="recon_conf")
+
+    fastsurf_recon = pe.Node(
+        fastsurf.FastSurfer(),
+        name="fastsurf_recon",
+        n_procs=omp_nthreads,
+        mem_gb=12,
+    )
+    fastsurf_recon.interface._can_resume = False
+    fastsurf_recon.interface._always_run = True
+
+    skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
+
+    fsnative2t1w_xfm = pe.Node(
+        RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
+    )
+    t1w2fsnative_xfm = pe.Node(
+        LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm"
+    )
+
+    # fmt:off
+    workflow.connect([
+        (inputnode, fastsurf_recon, [('subjects_dir', 'subjects_dir'),
+                                     ('subject_id', 'subject_id'), # ]),
+                                     ('t1w', 'T1_files')]),
+        # (inputnode, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
+        #                                  ('subject_id', 'subject_id')]),
+        # (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
+        (fastsurf_recon, gifti_surface_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id')]),
+        # (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
+        # Construct transform from FreeSurfer conformed image to sMRIPrep
+        # reoriented image
+        (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
+        (fastsurf_recon, fsnative2t1w_xfm, [('T1', 'source_file')]),
+        (fsnative2t1w_xfm, gifti_surface_wf, [
+            ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
+        (fsnative2t1w_xfm, t1w2fsnative_xfm, [('out_reg_file', 'in_lta')]),
+        # Refine ANTs mask, deriving new mask from FS' aseg
+        (inputnode, refine, [('corrected_t1', 'in_anat'),
+                             ('ants_segs', 'in_ants')]),
+        (inputnode, aseg_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
+        (fastsurf_recon, aseg_to_native_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id')]),
+        (fsnative2t1w_xfm, aseg_to_native_wf, [
+            ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
+        (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
+        (fsnative2t1w_xfm, aparc_to_native_wf, [
+            ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
+        (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
+
+        # Output
+        (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
+                                 ('subject_id', 'subject_id')]),
+        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
+                                        ('outputnode.morphometrics', 'morphometrics')]),
+        (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
+        (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
+        (refine, outputnode, [('out_file', 'out_brainmask')]),
+        (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
+        (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
+    ])
+    # fmt:on
+
+    return workflow
+
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
@@ -237,10 +516,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     )
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
-    gifti_surface_wf = init_gifti_surface_wf()
-
-    aseg_to_native_wf = init_segs_to_native_wf()
-    aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
+    gifti_surface_wf = init_gifti_surface_wf(fastsurfer=False)
+    aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=False)
+    aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=False, segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
 
     # fmt:off
@@ -486,7 +764,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     return workflow
 
 
-def init_gifti_surface_wf(*, name="gifti_surface_wf"):
+def init_gifti_surface_wf(*, fastsurfer, name="gifti_surface_wf"):
     r"""
     Prepare GIFTI surfaces from a FreeSurfer subjects directory.
 
@@ -514,6 +792,8 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         FreeSurfer subject ID
     fsnative2t1w_xfm
         LTA formatted affine transform file (inverse)
+    fastsurfer
+        Boolean to indicate FastSurfer surface processing
 
     Outputs
     -------
@@ -595,7 +875,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     return workflow
 
 
-def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
+def init_segs_to_native_wf(*, fastsurfer, name="segs_to_native", segmentation="aseg"):
     """
     Get a segmentation from FreeSurfer conformed space into native T1w space.
 
@@ -622,6 +902,8 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
         FreeSurfer subject ID
     fsnative2t1w_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    fastsurfer
+        Boolean to indicate FastSurfer processing
 
     Outputs
     -------
@@ -639,6 +921,7 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
     # Extract the aseg and aparc+aseg outputs
     fssource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
+
     # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
     # and convert to NIfTI while we're at it
     resample = pe.Node(
@@ -838,7 +1121,7 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
 
 def init_morph_grayords_wf(
     grayord_density: ty.Literal['91k', '170k'],
-    name: str = "morph_grayords_wf",
+    name: str = "bold_grayords_wf",
 ):
     """
     Sample Grayordinates files onto the fsLR atlas.
@@ -858,7 +1141,7 @@ def init_morph_grayords_wf(
     grayord_density : :obj:`str`
         Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
     name : :obj:`str`
-        Unique name for the subworkflow (default: ``"morph_grayords_wf"``)
+        Unique name for the subworkflow (default: ``"bold_grayords_wf"``)
 
     Inputs
     ------
