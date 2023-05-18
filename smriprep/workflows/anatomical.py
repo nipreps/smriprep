@@ -33,7 +33,7 @@ from nipype.interfaces import (
 )
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
-from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
+from nipype.interfaces.ants import N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
@@ -576,11 +576,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         # fmt:off
         workflow.connect([
             (inputnode, surface_recon_wf, [
-                ('subject_id', 'inputnode.sid'),
-                ('subjects_dir', 'inputnode.sd')]),
+                ('subject_id', 'inputnode.subject_id'),
+                ('subjects_dir', 'inputnode.subjects_dir')]),
             (surface_recon_wf, anat_reports_wf, [
-                ('inputnode.sid', 'inputnode.subject_id'),
-                ('inputnode.sd', 'inputnode.subjects_dir'),
+                ('outputnode.subject_id', 'inputnode.subject_id'),
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ]),
         ])
         # fmt:on
@@ -622,8 +622,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             (inputnode, t2w_template_wf, [('t2w', 'inputnode.anat_files')]),
             (t2w_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
             (inputnode, bbreg, [
-                ('inputnode.subject_id', 'subject_id'),
-                ('inputnode.subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+                ('subjects_dir', 'subjects_dir'),
             ]),
             (bbreg, coreg_xfms, [('out_lta_file', 'in1')]),
             (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
@@ -771,28 +771,19 @@ An anatomical {contrast}-reference map was computed after registration of
         name="outputnode",
     )
 
-    # 0. Denoise and reorient T1w image(s) to RAS and resample to common voxel space
+    # 0. Reorient T1w image(s) to RAS and resample to common voxel space
     anat_ref_dimensions = pe.Node(TemplateDimensions(), name="anat_ref_dimensions")
-    denoise = pe.MapNode(
-        DenoiseImage(noise_model="Rician", num_threads=omp_nthreads),
-        iterfield="input_image",
-        name="denoise",
-    )
     anat_conform = pe.MapNode(Conform(), iterfield="in_file", name="anat_conform")
 
     # fmt:off
     workflow.connect([
         (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
-        (anat_ref_dimensions, denoise, [('t1w_valid_list', 'input_image')]),
         (anat_ref_dimensions, anat_conform, [
+            ('t1w_valid_list', 'in_file'),
             ('target_zooms', 'target_zooms'),
-            ('target_shape', 'target_shape'),
-        ]),
-        (denoise, anat_conform, [('output_image', 'in_file')]),
-        (anat_ref_dimensions, outputnode, [
-            ('out_report', 'out_report'),
-            ('t1w_valid_list', 'anat_valid_list'),
-        ]),
+            ('target_shape', 'target_shape')]),
+        (anat_ref_dimensions, outputnode, [('out_report', 'out_report'),
+                                           ('t1w_valid_list', 'anat_valid_list')]),
     ])
     # fmt:on
 

@@ -200,7 +200,7 @@ def init_smriprep_wf(
             subject_id=subject_id,
             bids_filters=bids_filters,
         )
-
+        
         single_subject_wf.config["execution"]["crashdump_dir"] = os.path.join(
             output_dir, "smriprep", "sub-" + subject_id, "log", run_uuid
         )

@@ -63,16 +63,14 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     an alternative to FreeSurfer's ``recon-all``.
 
     First, FastSurfer VINN creates a segmentation using the T1w structural image.
-    This is followed by FastSurfer ``recon_surf`` processing of the surface,
-    along with surface registration to support cross-subject comparison
-    using the ``--surfeg`` argument to FastSurfer.
+    This is followed by FastSurfer ``recon_surf`` processing of the surface.
 
     For example, a subject with only one session with a T1w image
     would be processed by the following command::
 
         $ /opt/FastSurfer/run_fastsurfer.sh \
         --t1 <bids-root>/sub-<subject_label>/anat/sub-<subject_label>_T1w.nii.gz \
-        --sid sub-<subject_label> --sd <output dir>/fastsurfer --surfreg
+        --sid sub-<subject_label> --sd <output dir>/fastsurfer
 
     Similar to the Freesurfer workflow second phase, we then
     import an externally computed skull-stripping mask.
@@ -184,8 +182,8 @@ def init_fastsurf_recon_wf(*, omp_nthreads, hires, name="fastsurf_recon_wf"):
     fsaparc
         Use FS aparc segmentations in addition to DL prediction
         (slower in this case and usually the mapped ones from the DL prediction are fine)
-    surfreg
-        Create Surface-Atlas ``sphere.reg`` registration with FreeSurfer
+    no_surfreg
+        Skip creating Surface-Atlas ``sphere.reg`` registration with FreeSurfer
         (for cross-subject correspondence or other mappings)
     parallel
         Run both hemispheres in parallel
@@ -220,8 +218,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "sd",
-                "sid",
+                "subjects_dir",
+                "subject_id",
                 "t1w",
                 "skullstripped_t1",
                 "corrected_t1",
@@ -249,11 +247,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     # outputnode = pe.Node(niu.IdentityInterface(["surfaces", "morphometrics"]), name="outputnode")
 
-    # null for now, placeholder for FastSurfer VINN hires support
-    if hires:
-        if LOGGER:
-            LOGGER.warn(f'High-resolution {hires} specified, not currently supported, ignoring.')
-
     fsnative2t1w_xfm = pe.Node(
         RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm")
     t1w2fsnative_xfm = pe.Node(
@@ -264,15 +257,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     aseg_to_native_wf = init_segs_to_native_wf(fastsurfer=True)
     aparc_to_native_wf = init_segs_to_native_wf(fastsurfer=True, segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
-    # fs_license_file variable not used, uncomment if this changes!
-    # fs_license_file = "/opt/freesurfer/license.txt"
-    # if os.path.exists("/tmp/freesurfer/license.txt"):
-    #     fs_license_file = "/tmp/freesurfer/license.txt"
-    # elif os.environ['FS_LICENSE']:
-    #     fs_license_file = os.environ['FS_LICENSE']
 
-    # recon_conf = pe.Node(
-    #     fastsurf.FastSurferSource(), name="recon_conf")
+    recon_conf = pe.Node(
+        fastsurf.FastSurferSource(), name="recon_conf")
 
     fastsurf_recon = pe.Node(
         fastsurf.FastSurfer(),
@@ -282,8 +269,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     )
     fastsurf_recon.interface._can_resume = False
     fastsurf_recon.interface._always_run = True
-
-    # fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
 
     skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
 
@@ -296,19 +281,16 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     # fmt:off
     workflow.connect([
-        # Configuration
-        # (inputnode, recon_conf, [('t1w', 't1'),
-        #                          ('sd', 'sd'),
-        #                          ('sid', 'sid')]),
-        (inputnode, fastsurf_recon, [('sd', 'subjects_dir'),
-                                     ('sid', 'subject_id'),
+        (inputnode, fastsurf_recon, [('subjects_dir', 'subjects_dir'),
+                                     ('subject_id', 'subject_id'), # ]),
                                      ('t1w', 'T1_files')]),
-        (inputnode, skull_strip_extern, [('sd', 'subjects_dir'),
-                                         ('sid', 'subject_id')]),
-        (inputnode, gifti_surface_wf, [
-            ('sd', 'inputnode.subjects_dir'),
-            ('sid', 'inputnode.subject_id')]),
-        (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
+        # (inputnode, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
+        #                                  ('subject_id', 'subject_id')]),
+        # (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
+        (fastsurf_recon, gifti_surface_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id')]),
+        # (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
         # Construct transform from FreeSurfer conformed image to sMRIPrep
         # reoriented image
         (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
@@ -320,6 +302,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (inputnode, refine, [('corrected_t1', 'in_anat'),
                              ('ants_segs', 'in_ants')]),
         (inputnode, aseg_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
+        (fastsurf_recon, aseg_to_native_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id')]),
         (fsnative2t1w_xfm, aseg_to_native_wf, [
             ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
@@ -328,8 +313,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
 
         # Output
-        (inputnode, outputnode, [('sd', 'subjects_dir'),
-                                 ('sid', 'subject_id')]),
+        (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
+                                 ('subject_id', 'subject_id')]),
         (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
                                         ('outputnode.morphometrics', 'morphometrics')]),
         (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
@@ -1136,7 +1121,7 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
 
 def init_morph_grayords_wf(
     grayord_density: ty.Literal['91k', '170k'],
-    name: str = "morph_grayords_wf",
+    name: str = "bold_grayords_wf",
 ):
     """
     Sample Grayordinates files onto the fsLR atlas.
@@ -1156,7 +1141,7 @@ def init_morph_grayords_wf(
     grayord_density : :obj:`str`
         Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
     name : :obj:`str`
-        Unique name for the subworkflow (default: ``"morph_grayords_wf"``)
+        Unique name for the subworkflow (default: ``"bold_grayords_wf"``)
 
     Inputs
     ------
