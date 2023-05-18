@@ -229,7 +229,7 @@ class SurfaceSphereProjectUnprojectInputSpec(TraitedSpec):
         position=2,
     )
     sphere_out = traits.File(
-        name_template="%s_sphere.surf.gii",
+        name_template="%s_unprojected.surf.gii",
         name_source=["sphere_in"],
         desc="the output sphere",
         argstr="%s",
@@ -248,8 +248,12 @@ class SurfaceSphereProjectUnproject(WBCommand):
     >>> from smriprep.interfaces.workbench import SurfaceSphereProjectUnproject
     >>> sphere_project = SurfaceSphereProjectUnproject()
     >>> sphere_project.inputs.sphere_in = 'sub-01_hemi-L_sphere.surf.gii'
-    >>> sphere_project.inputs.sphere_project_to = 'tpl-fsLR_hemi-L_sphere.surf.gii'
+    >>> sphere_project.inputs.sphere_project_to = 'tpl-fsLR_hemi-L_den-32k_sphere.surf.gii'
     >>> sphere_project.inputs.sphere_unproject_from = 'lh.sphere.reg.surf.gii'
+    >>> sphere_project.cmdline
+    'wb_command -surface-sphere-project-unproject sub-01_hemi-L_sphere.surf.gii \
+    tpl-fsLR_hemi-L_den-32k_sphere.surf.gii lh.sphere.reg.surf.gii \
+    sub-01_hemi-L_sphere.surf_unprojected.surf.gii'
     """
     input_spec = SurfaceSphereProjectUnprojectInputSpec
     output_spec = SurfaceSphereProjectUnprojectOutputSpec
@@ -373,7 +377,9 @@ class SurfaceResample(WBCommand):
     >>> surface_resample.inputs.new_sphere = 'tpl-fsLR_hemi-L_den-32k_sphere.surf.gii'
     >>> surface_resample.inputs.method = 'BARYCENTRIC'
     >>> surface_resample.cmdline
-    'wb_command -surface-resample sub-01_hemi-L_midthickness.surf.gii sub-01_hemi-L_sphere.surf.gii tpl-fsLR_hemi-L_den-32k_sphere.surf.gii BARYCENTRIC sub-01_hemi-L_midthickness_resampled.surf.gii'
+    'wb_command -surface-resample sub-01_hemi-L_midthickness.surf.gii \
+    sub-01_hemi-L_sphere.surf.gii tpl-fsLR_hemi-L_den-32k_sphere.surf.gii \
+    BARYCENTRIC sub-01_hemi-L_midthickness.surf_resampled.surf.gii'
     """
 
     input_spec = SurfaceResampleInputSpec
