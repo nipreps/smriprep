@@ -23,9 +23,9 @@ class FastSInputSpec(CommandLineInputSpec):
     Required arguments
     ==================
 
-    sd
+    subjects_dir
         Output directory
-    sid
+    subject_id
         Subject ID for directory inside ``sd`` to be created
     t1
         T1 full head input, not bias corrected, global path.
@@ -73,12 +73,9 @@ class FastSInputSpec(CommandLineInputSpec):
         Equivalently, if you define ``--run_viewagg_on gpu``, view agg will be run on the gpu
         (no memory check will be done).
     no_cuda
-        Flag to disable CUDA usage in FastSurferCNN (no GPU usage, inference on CPU)
+        Flag to disable CUDA usage in FastSurferCNN (no GPU usage, inference on CPU).
     batch
-        Batch size for inference. Default 16. Lower this to reduce memory requirement
-    order
-        Order of interpolation for mri_convert T1 before segmentation
-        ``(0=nearest, 1=linear(default), 2=quadratic, 3=cubic)``
+        Batch size for inference. Default 16. Lower this to reduce memory requirement.
 
 
     Surface pipeline arguments
@@ -87,12 +84,12 @@ class FastSInputSpec(CommandLineInputSpec):
         Use ``mri_tesselate`` instead of marching cube (default) for surface creation
     fsqsphere
         Use FreeSurfer default instead of
-        novel spectral spherical projection for qsphere
+        ndovel spectral spherical projection for qsphere
     fsaparc
         Use FS aparc segmentations in addition to DL prediction
         (slower in this case and usually the mapped ones from the DL prediction are fine)
-    surfreg
-        Create Surface-Atlas ``sphere.reg`` registration with FreeSurfer
+    no_surfreg
+        Skip creating Surface-Atlas ``sphere.reg`` registration with FreeSurfer
         (for cross-subject correspondence or other mappings)
     parallel
         Run both hemispheres in parallel
@@ -191,14 +188,6 @@ class FastSInputSpec(CommandLineInputSpec):
         argstr="--batch %d",
         desc="Batch size for inference. default=16. Lower this to reduce memory requirement"
     )
-    order = traits.Int(
-        1,
-        mandatory=False,
-        argstr="--order %d",
-        usedefault=True,
-        desc="""Order of interpolation for mri_convert T1 before segmentation
-        (0=nearest, 1=linear(default), 2=quadratic, 3=cubic)"""
-    )
     fstess = traits.Bool(
         False,
         mandatory=False,
@@ -217,12 +206,11 @@ class FastSInputSpec(CommandLineInputSpec):
         argstr="--fsaparc",
         desc="Use FS aparc segmentations in addition to DL prediction"
     )
-    surfreg = traits.Bool(
-        True,
-        usedefault=True,
+    no_surfreg = traits.Bool(
+        False,
         mandatory=False,
-        argstr="--surfreg",
-        desc="""Create Surface-Atlas (sphere.reg) registration with FreeSurfer
+        argstr="--no_surfreg",
+        desc="""Skip creating Surface-Atlas (sphere.reg) registration with FreeSurfer
         (for cross-subject correspondence or other mappings)"""
     )
     parallel = traits.Bool(
@@ -377,12 +365,12 @@ class FastSurferSourceOutputSpec(FSSourceOutputSpec):
         altkey="aseg.presurf.hypos",
         desc="Automated segmentation pre-surface recon statistics files"
     )
-    sd = Directory(
+    subjects_dir = Directory(
         exists=True,
         argstr="--sd %s",
         desc="Subjects directory"
     )
-    sid = traits.String(
+    subject_id = traits.String(
         exists=True,
         argstr="--sid %s",
         desc="Subject ID"
@@ -404,7 +392,7 @@ class FastSurfer(CommandLine):
 
     input_spec = FastSInputSpec
     output_spec = FastSurferSourceOutputSpec
-    _cmd = 'run_fastsurfer.sh --surfreg'
+    _cmd = 'run_fastsurfer.sh'
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
