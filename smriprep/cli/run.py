@@ -230,7 +230,6 @@ def get_parser():
         dest="run_reconall",
         help="disable FreeSurfer surface preprocessing.",
     )
-    # Dev note: we might need to make this not xor?
     g_surfs_xor.add_argument(
         "--fastsurfer",
         action="store_true",
