@@ -250,7 +250,7 @@ class SurfaceSphereProjectUnproject(WBCommand):
     >>> sphere_project.inputs.sphere_in = 'sub-01_hemi-L_sphere.surf.gii'
     >>> sphere_project.inputs.sphere_project_to = 'tpl-fsLR_hemi-L_den-32k_sphere.surf.gii'
     >>> sphere_project.inputs.sphere_unproject_from = 'lh.sphere.reg.surf.gii'
-    >>> sphere_project.cmdline
+    >>> sphere_project.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     'wb_command -surface-sphere-project-unproject sub-01_hemi-L_sphere.surf.gii \
     tpl-fsLR_hemi-L_den-32k_sphere.surf.gii lh.sphere.reg.surf.gii \
     sub-01_hemi-L_sphere.surf_unprojected.surf.gii'
@@ -376,7 +376,7 @@ class SurfaceResample(WBCommand):
     >>> surface_resample.inputs.current_sphere = 'sub-01_hemi-L_sphere.surf.gii'
     >>> surface_resample.inputs.new_sphere = 'tpl-fsLR_hemi-L_den-32k_sphere.surf.gii'
     >>> surface_resample.inputs.method = 'BARYCENTRIC'
-    >>> surface_resample.cmdline
+    >>> surface_resample.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     'wb_command -surface-resample sub-01_hemi-L_midthickness.surf.gii \
     sub-01_hemi-L_sphere.surf.gii tpl-fsLR_hemi-L_den-32k_sphere.surf.gii \
     BARYCENTRIC sub-01_hemi-L_midthickness.surf_resampled.surf.gii'
