@@ -51,7 +51,12 @@ from ..utils.bids import get_outputnode_spec
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .norm import init_anat_norm_wf
 from .outputs import init_anat_reports_wf, init_anat_derivatives_wf
-from .surfaces import init_anat_ribbon_wf, init_sphere_reg_wf, init_surface_recon_wf, init_morph_grayords_wf
+from .surfaces import (
+    init_anat_ribbon_wf,
+    init_sphere_reg_wf,
+    init_surface_recon_wf,
+    init_morph_grayords_wf,
+)
 
 LOGGER = logging.getLogger("nipype.workflow")
 

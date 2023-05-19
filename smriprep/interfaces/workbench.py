@@ -236,6 +236,7 @@ class SurfaceSphereProjectUnprojectInputSpec(TraitedSpec):
         position=3,
     )
 
+
 class SurfaceSphereProjectUnprojectOutputSpec(TraitedSpec):
     sphere_out = File(desc="the output sphere", exists=True)
 
@@ -255,6 +256,7 @@ class SurfaceSphereProjectUnproject(WBCommand):
     tpl-fsLR_hemi-L_den-32k_sphere.surf.gii lh.sphere.reg.surf.gii \
     sub-01_hemi-L_sphere.surf_unprojected.surf.gii'
     """
+
     input_spec = SurfaceSphereProjectUnprojectInputSpec
     output_spec = SurfaceSphereProjectUnprojectOutputSpec
     _cmd = "wb_command -surface-sphere-project-unproject"
@@ -316,7 +318,8 @@ class SurfaceResampleInputSpec(TraitedSpec):
         position=1,
     )
     new_sphere = File(
-        desc="a sphere surface that is in register with <current-sphere> and has the desired output mesh",
+        desc="a sphere surface that is in register with <current-sphere> and has the "
+        "desired output mesh",
         exists=True,
         mandatory=True,
         argstr="%s",

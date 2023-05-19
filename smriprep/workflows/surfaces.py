@@ -504,7 +504,9 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
 
     get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 
-    # Via https://github.com/DCAN-Labs/DCAN-HCP/blob/9291324/PostFreeSurfer/scripts/FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
+    # Via FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
+    #
+    # See https://github.com/DCAN-Labs/DCAN-HCP/tree/9291324
     sphere_gii = pe.MapNode(
         fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_gii"
     )
