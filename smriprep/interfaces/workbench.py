@@ -238,7 +238,7 @@ class SurfaceSphereProjectUnprojectInputSpec(TraitedSpec):
 
 
 class SurfaceSphereProjectUnprojectOutputSpec(TraitedSpec):
-    sphere_out = File(desc="the output sphere", exists=True)
+    sphere_out = File(desc="the output sphere")
 
 
 class SurfaceSphereProjectUnproject(WBCommand):
@@ -365,7 +365,7 @@ class SurfaceResampleInputSpec(TraitedSpec):
 
 
 class SurfaceResampleOutputSpec(TraitedSpec):
-    surface_out = File(desc="the output surface file", exists=True)
+    surface_out = File(desc="the output surface file")
 
 
 class SurfaceResample(WBCommand):
