@@ -213,18 +213,21 @@ class SurfaceSphereProjectUnprojectInputSpec(TraitedSpec):
     sphere_in = File(
         desc="a sphere with the desired output mesh",
         exists=True,
+        mandatory=True,
         argstr="%s",
         position=0,
     )
     sphere_project_to = File(
         desc="a sphere that aligns with sphere-in",
         exists=True,
+        mandatory=True,
         argstr="%s",
         position=1,
     )
     sphere_unproject_from = File(
         desc="<sphere-project-to> deformed to the desired output space",
         exists=True,
+        mandatory=True,
         argstr="%s",
         position=2,
     )
