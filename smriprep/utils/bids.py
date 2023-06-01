@@ -71,7 +71,7 @@ def predict_derivatives(subject_id, output_spaces, freesurfer):
 
     Examples
     --------
-    >>> predict_derivatives('01', ['MNI152NLin2009cAsym'], False)
+    >>> predict_derivatives('01', ['MNI152NLin2009cAsym'], False)  # doctest: +NORMALIZE_WHITESPACE
     ['sub-01/anat/sub-01_desc-brain_mask.nii.gz',
      'sub-01/anat/sub-01_desc-preproc_T1w.nii.gz',
      'sub-01/anat/sub-01_dseg.nii.gz',

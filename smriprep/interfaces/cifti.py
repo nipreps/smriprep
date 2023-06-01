@@ -73,8 +73,8 @@ def _prepare_cifti(grayordinates: str) -> ty.Tuple[list, dict]:
     Examples
     --------
     >>> surface_labels, metadata = _prepare_cifti('91k')
-    >>> surface_labels  # doctest: +ELLIPSIS
-    ['.../tpl-fsLR_hemi-L_den-32k_desc-nomedialwall_dparc.label.gii', \
+    >>> surface_labels  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    ['.../tpl-fsLR_hemi-L_den-32k_desc-nomedialwall_dparc.label.gii',
      '.../tpl-fsLR_hemi-R_den-32k_desc-nomedialwall_dparc.label.gii']
     >>> metadata # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     {'Density': '91,282 grayordinates corresponding to all of the grey matter sampled at a \
