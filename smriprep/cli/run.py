@@ -579,7 +579,8 @@ def build_workflow(opts, retval):
 
     # Build main workflow
     retval["workflow"] = init_smriprep_wf(
-        debug=opts.sloppy,
+        sloppy=opts.sloppy,
+        debug=False,
         fast_track=opts.fast_track,
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,

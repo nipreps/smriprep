@@ -43,6 +43,7 @@ from .anatomical import init_anat_preproc_wf
 
 def init_smriprep_wf(
     *,
+    sloppy,
     debug,
     fast_track,
     freesurfer,
@@ -80,6 +81,7 @@ def init_smriprep_wf(
             from smriprep.workflows.base import init_smriprep_wf
             from niworkflows.utils.spaces import SpatialReferences, Reference
             wf = init_smriprep_wf(
+                sloppy=False,
                 debug=False,
                 fast_track=False,
                 freesurfer=True,
@@ -102,6 +104,8 @@ def init_smriprep_wf(
 
     Parameters
     ----------
+    sloppy: :obj:`bool`
+        Quick, impercise operations. Used to decrease workflow duration.
     debug : :obj:`bool`
         Enable debugging outputs
     fast_track : :obj:`bool`
@@ -164,6 +168,7 @@ def init_smriprep_wf(
 
     for subject_id in subject_list:
         single_subject_wf = init_single_subject_wf(
+            sloppy=sloppy,
             debug=debug,
             freesurfer=freesurfer,
             fast_track=fast_track,
@@ -199,6 +204,7 @@ def init_smriprep_wf(
 
 def init_single_subject_wf(
     *,
+    sloppy,
     debug,
     fast_track,
     freesurfer,
@@ -238,6 +244,7 @@ def init_single_subject_wf(
             from smriprep.workflows.base import init_single_subject_wf
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
             wf = init_single_subject_wf(
+                sloppy=False,
                 debug=False,
                 freesurfer=True,
                 fast_track=False,
@@ -258,6 +265,8 @@ def init_single_subject_wf(
 
     Parameters
     ----------
+    sloppy: :obj:`bool`
+        Quick, impercise operations. Used to decrease workflow duration.
     debug : :obj:`bool`
         Enable debugging outputs
     fast_track : :obj:`bool`
@@ -400,6 +409,7 @@ to workflows in *sMRIPrep*'s documentation]\
     # Preprocessing of T1w (includes registration to MNI)
     anat_preproc_wf = init_anat_preproc_wf(
         bids_root=layout.root,
+        sloppy=sloppy,
         debug=debug,
         existing_derivatives=deriv_cache,
         freesurfer=freesurfer,

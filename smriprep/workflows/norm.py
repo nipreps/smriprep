@@ -38,7 +38,7 @@ from ..interfaces.templateflow import TemplateFlowSelect, TemplateDesc
 
 def init_anat_norm_wf(
     *,
-    debug,
+    sloppy,
     omp_nthreads,
     templates,
     name="anat_norm_wf",
@@ -53,7 +53,7 @@ def init_anat_norm_wf(
 
             from smriprep.workflows.norm import init_anat_norm_wf
             wf = init_anat_norm_wf(
-                debug=False,
+                sloppy=False,
                 omp_nthreads=1,
                 templates=['MNI152NLin2009cAsym', 'MNI152NLin6Asym'],
             )
@@ -70,7 +70,7 @@ def init_anat_norm_wf(
 
     Parameters
     ----------
-    debug : :obj:`bool`
+    sloppy : :obj:`bool`
         Apply sloppy arguments to speed up processing. Use with caution,
         registration processes will be very inaccurate.
     omp_nthreads : :obj:`int`
@@ -194,7 +194,7 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
     split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name="split_desc")
 
     tf_select = pe.Node(
-        TemplateFlowSelect(resolution=1 + debug),
+        TemplateFlowSelect(resolution=1 + sloppy),
         name="tf_select",
         run_without_submitting=True,
     )
@@ -208,7 +208,7 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
     registration = pe.Node(
         SpatialNormalization(
             float=True,
-            flavor=["precise", "testing"][debug],
+            flavor=["precise", "testing"][sloppy],
         ),
         name="registration",
         n_procs=omp_nthreads,

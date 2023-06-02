@@ -76,6 +76,7 @@ def init_anat_preproc_wf(
     spaces,
     cifti_output=False,
     debug=False,
+    sloppy=False,
     existing_derivatives=None,
     name="anat_preproc_wf",
     skull_strip_fixed_seed=False,
@@ -142,6 +143,8 @@ def init_anat_preproc_wf(
         Object containing standard and nonstandard space specifications.
     debug : :obj:`bool`
         Enable debugging outputs
+    sloppy: :obj:`bool`
+        Quick, impercise operations. Used to decrease workflow duration.
     name : :obj:`str`, optional
         Workflow name (default: anat_preproc_wf)
     skull_strip_mode : :obj:`str`
@@ -393,12 +396,12 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             template_spec=skull_strip_template.spec,
             atropos_use_random_seed=not skull_strip_fixed_seed,
             omp_nthreads=omp_nthreads,
-            normalization_quality="precise" if not debug else "testing",
+            normalization_quality="precise" if not sloppy else "testing",
         )
 
     # 4. Spatial normalization
     anat_norm_wf = init_anat_norm_wf(
-        debug=debug,
+        sloppy=sloppy,
         omp_nthreads=omp_nthreads,
         templates=spaces.get_spaces(nonstandard=False, dim=(3,)),
     )
