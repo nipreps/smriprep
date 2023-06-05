@@ -1,4 +1,4 @@
-0.12.0 (June 02, 2023)
+0.12.0 (June 05, 2023)
 ======================
 New feature release in the 0.12.x series.
 
