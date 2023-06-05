@@ -1,6 +1,25 @@
+0.12.0 (June 02, 2023)
+======================
+New feature release in the 0.12.x series.
+
+This release adds ANTs DenoiseImage to T1w and T2w preprocessing,
+improving signal-to-noise ratio.
+Surface processing now produces a registration sphere to permit
+directly resampling data from T1w space to fsLR.
+
+* FIX: Query templateflow files to see if resolution is available (#336)
+* ENH: Project fsLR mesh onto native sphere to enable single-shot resampling into fsLR (#339)
+* ENH: Use ANTs DenoiseImage before conforming anatomical images (#337)
+* MNT: Add ``sloppy`` argument to workflows, distinguish from ``debug`` (#344)
+* MNT: Loosen niworkflow restriction (#335)
+* DOC: Add security fix to vendored jquery (#332)
+* CI: Fix codecov in CircleCI, remove Travis config (#333)
+* CI: Prioritize tags on release (#331)
+
+
 0.11.1 (March 23, 2023)
 =======================
-Bug-fix release in the 0.11.1 series.
+Bug-fix release in the 0.11.x series.
 
 This release changes the default name of a workflow. This change modifies
 the workflow structure superficially, but in such a way that reusing a working
