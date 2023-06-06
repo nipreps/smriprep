@@ -23,6 +23,7 @@
 """Handling surfaces."""
 import os
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import nibabel as nb
@@ -91,7 +92,31 @@ class NormalizeSurf(SimpleInterface):
         return runtime
 
 
-def normalize_surfs(in_file, transform_file, newpath=None):
+class FixGiftiMetadataInputSpec(TraitedSpec):
+    in_file = File(mandatory=True, exists=True, desc="Freesurfer-generated GIFTI file")
+
+
+class FixGiftiMetadataOutputSpec(TraitedSpec):
+    out_file = File(desc="output file with fixed metadata")
+
+
+class FixGiftiMetadata(SimpleInterface):
+    """Fix known incompatible metadata in GIFTI files.
+
+    Currently resolves:
+
+    * FreeSurfer setting GeometryType to Sphere instead of Spherical
+    """
+
+    input_spec = FixGiftiMetadataInputSpec
+    output_spec = FixGiftiMetadataOutputSpec
+
+    def _run_interface(self, runtime):
+        self._results["out_file"] = fix_gifti_metadata(self.inputs.in_file, newpath=runtime.cwd)
+        return runtime
+
+
+def normalize_surfs(in_file: str, transform_file: str, newpath: Optional[str] = None) -> str:
     """
     Update GIFTI metadata and apply rigid coordinate correction.
 
@@ -127,8 +152,36 @@ def normalize_surfs(in_file, transform_file, newpath=None):
         pointset.meta.setdefault("AnatomicalStructureSecondary", "MidThickness")
         pointset.meta.setdefault("GeometricType", "Anatomical")
 
+    # FreeSurfer incorrectly uses "Sphere" for spherical surfaces
+    if pointset.meta.get("GeometricType") == "Sphere":
+        pointset.meta["GeometricType"] = "Spherical"
+
     if newpath is not None:
         newpath = os.getcwd()
     out_file = os.path.join(newpath, fname)
+    img.to_filename(out_file)
+    return out_file
+
+
+def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
+    """Fix known incompatible metadata in GIFTI files.
+
+    Currently resolves:
+
+    * FreeSurfer setting GeometryType to Sphere instead of Spherical
+    """
+
+    img = nb.GiftiImage.from_filename(in_file)
+    pointset = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")[0]
+
+    # FreeSurfer incorrectly uses "Sphere" for spherical surfaces
+    # This is not fixed as of FreeSurfer 7.4.0
+    # https://github.com/freesurfer/freesurfer/pull/1112
+    if pointset.meta.get("GeometricType") == "Sphere":
+        pointset.meta["GeometricType"] = "Spherical"
+
+    if newpath is not None:
+        newpath = os.getcwd()
+    out_file = os.path.join(newpath, os.path.basename(in_file))
     img.to_filename(out_file)
     return out_file

@@ -35,7 +35,7 @@ from nipype.interfaces import (
 )
 
 from nipype.interfaces.ants.base import Info as ANTsInfo
-from nipype.interfaces.ants import N4BiasFieldCorrection
+from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
@@ -65,6 +65,7 @@ from .outputs import (
 )
 from .surfaces import (
     init_anat_ribbon_wf,
+    init_sphere_reg_wf,
     init_surface_derivatives_wf,
     init_surface_recon_wf,
     init_refinement_wf,
@@ -86,8 +87,9 @@ def init_anat_preproc_wf(
     skull_strip_template: Reference,
     spaces: SpatialReferences,
     precomputed: dict,
-    debug: bool,
     omp_nthreads: int,
+    debug: bool = False,
+    sloppy: bool = False,
     cifti_output: ty.Literal["91k", "170k", False] = False,
     name: str = "anat_preproc_wf",
     skull_strip_fixed_seed: bool = False,
@@ -117,7 +119,6 @@ def init_anat_preproc_wf(
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 precomputed={},
-                debug=False,
                 omp_nthreads=1,
             )
 
@@ -149,10 +150,12 @@ def init_anat_preproc_wf(
     precomputed : :obj:`dict`
         Dictionary mapping output specification attribute names and
         paths to precomputed derivatives.
-    debug : :obj:`bool`
-        Enable debugging outputs
     omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
+    debug : :obj:`bool`
+        Enable debugging outputs
+    sloppy: :obj:`bool`
+        Quick, impercise operations. Used to decrease workflow duration.
     name : :obj:`str`, optional
         Workflow name (default: anat_fit_wf)
     skull_strip_fixed_seed : :obj:`bool`
@@ -244,6 +247,7 @@ def init_anat_preproc_wf(
         t2w=t2w,
         precomputed=precomputed,
         debug=debug,
+        sloppy=sloppy,
         omp_nthreads=omp_nthreads,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
     )
@@ -342,8 +346,9 @@ def init_anat_fit_wf(
     skull_strip_template: Reference,
     spaces: SpatialReferences,
     precomputed: dict,
-    debug: bool,
     omp_nthreads: int,
+    debug: bool = False,
+    sloppy: bool = False,
     name="anat_fit_wf",
     skull_strip_fixed_seed: bool = False,
 ):
@@ -380,6 +385,7 @@ def init_anat_fit_wf(
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 precomputed={},
                 debug=False,
+                sloppy=False,
                 omp_nthreads=1,
             )
 
@@ -411,10 +417,12 @@ def init_anat_fit_wf(
     precomputed : :obj:`dict`
         Dictionary mapping output specification attribute names and
         paths to precomputed derivatives.
-    debug : :obj:`bool`
-        Enable debugging outputs
     omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
+    debug : :obj:`bool`
+        Enable debugging outputs
+    sloppy: :obj:`bool`
+        Quick, impercise operations. Used to decrease workflow duration.
     name : :obj:`str`, optional
         Workflow name (default: anat_fit_wf)
     skull_strip_fixed_seed : :obj:`bool`
@@ -521,6 +529,8 @@ BIDS dataset."""
                 "subjects_dir",
                 "subject_id",
                 "t1w_valid_list",
+                # Temporary until moved into apply workflow
+                "sphere_reg_fsLR",
             ]
         ),
         name="outputnode",
@@ -665,7 +675,7 @@ as target template.
                 template_spec=skull_strip_template.spec,
                 atropos_use_random_seed=not skull_strip_fixed_seed,
                 omp_nthreads=omp_nthreads,
-                normalization_quality="precise" if not debug else "testing",
+                normalization_quality="precise" if not sloppy else "testing",
             )
             # fmt:off
             workflow.connect([
@@ -828,7 +838,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     if templates:
         LOGGER.info(f"Stage 4: Preparing normalization workflow for {templates}")
         register_template_wf = init_register_template_wf(
-            debug=debug,
+            sloppy=sloppy,
             omp_nthreads=omp_nthreads,
             templates=templates,
         )
@@ -886,6 +896,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         precomputed=precomputed,
     )
 
+    sphere_reg_wf = init_sphere_reg_wf(name="sphere_reg_wf")
+
     # fmt:off
     workflow.connect([
         (inputnode, fs_isrunning, [
@@ -900,9 +912,17 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (t1w_buffer, surface_recon_wf, [('t1w_brain', 'inputnode.skullstripped_t1')]),
+        (surface_recon_wf, sphere_reg_wf, [
+            ('outputnode.subject_id', 'inputnode.subject_id'),
+            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+        ]),
         (surface_recon_wf, outputnode, [
             ('outputnode.subjects_dir', 'subjects_dir'),
             ('outputnode.subject_id', 'subject_id'),
+        ]),
+        (sphere_reg_wf, outputnode, [
+            ('outputnode.sphere_reg', 'sphere_reg'),
+            ('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR'),
         ]),
     ])
     # fmt:on
@@ -1094,19 +1114,28 @@ An anatomical {contrast}-reference map was computed after registration of
         name="outputnode",
     )
 
-    # 0. Reorient T1w image(s) to RAS and resample to common voxel space
+    # 0. Denoise and reorient T1w image(s) to RAS and resample to common voxel space
     anat_ref_dimensions = pe.Node(TemplateDimensions(), name="anat_ref_dimensions")
+    denoise = pe.MapNode(
+        DenoiseImage(noise_model="Rician", num_threads=omp_nthreads),
+        iterfield="input_image",
+        name="denoise",
+    )
     anat_conform = pe.MapNode(Conform(), iterfield="in_file", name="anat_conform")
 
     # fmt:off
     workflow.connect([
         (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
+        (anat_ref_dimensions, denoise, [('t1w_valid_list', 'input_image')]),
         (anat_ref_dimensions, anat_conform, [
-            ('t1w_valid_list', 'in_file'),
             ('target_zooms', 'target_zooms'),
-            ('target_shape', 'target_shape')]),
-        (anat_ref_dimensions, outputnode, [('out_report', 'out_report'),
-                                           ('t1w_valid_list', 'anat_valid_list')]),
+            ('target_shape', 'target_shape'),
+        ]),
+        (denoise, anat_conform, [('output_image', 'in_file')]),
+        (anat_ref_dimensions, outputnode, [
+            ('out_report', 'out_report'),
+            ('t1w_valid_list', 'anat_valid_list'),
+        ]),
     ])
     # fmt:on
 

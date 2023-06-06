@@ -38,6 +38,7 @@ from nipype.interfaces import (
     workbench as wb,
 )
 
+from ..data import load_resource
 from ..interfaces.freesurfer import ReconAll, MakeMidthickness
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
@@ -669,13 +670,77 @@ def init_surface_derivatives_wf(
     return workflow
 
 
+def init_sphere_reg_wf(*, name="sphere_reg_wf"):
+    """Generate GIFTI registration files to fsLR space"""
+    from ..interfaces.surf import FixGiftiMetadata
+    from ..interfaces.workbench import SurfaceSphereProjectUnproject
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(["subjects_dir", "subject_id"]),
+        name="inputnode",
+    )
+    outputnode = pe.Node(
+        niu.IdentityInterface(["sphere_reg", "sphere_reg_fsLR"]), name="outputnode"
+    )
+
+    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+
+    # Via FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
+    #
+    # See https://github.com/DCAN-Labs/DCAN-HCP/tree/9291324
+    sphere_gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_gii"
+    )
+
+    fix_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_meta")
+
+    # Via
+    # ${CARET7DIR}/wb_command -surface-sphere-project-unproject
+    #   "$AtlasSpaceFolder"/"$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.native.surf.gii
+    #   "$AtlasSpaceFolder"/fsaverage/"$Subject"."$Hemisphere".sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
+    #   "$AtlasSpaceFolder"/fsaverage/"$Subject"."$Hemisphere".def_sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
+    #   "$AtlasSpaceFolder"/"$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.reg_LR.native.surf.gii
+    project_unproject = pe.MapNode(
+        SurfaceSphereProjectUnproject(),
+        iterfield=["sphere_in", "sphere_project_to", "sphere_unproject_from"],
+        name="project_unproject",
+    )
+    atlases = load_resource('atlases')
+    project_unproject.inputs.sphere_project_to = [
+        atlases / 'fs_L' / 'fsaverage.L.sphere.164k_fs_L.surf.gii',
+        atlases / 'fs_R' / 'fsaverage.R.sphere.164k_fs_R.surf.gii',
+    ]
+    project_unproject.inputs.sphere_unproject_from = [
+        atlases / 'fs_L' / 'fs_L-to-fs_LR_fsaverage.L_LR.spherical_std.164k_fs_L.surf.gii',
+        atlases / 'fs_R' / 'fs_R-to-fs_LR_fsaverage.R_LR.spherical_std.164k_fs_R.surf.gii',
+    ]
+
+    # fmt:off
+    workflow.connect([
+        (inputnode, get_surfaces, [
+            ('subjects_dir', 'subjects_dir'),
+            ('subject_id', 'subject_id'),
+        ]),
+        (get_surfaces, sphere_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
+        (sphere_gii, fix_meta, [('converted', 'in_file')]),
+        (fix_meta, project_unproject, [('out_file', 'sphere_in')]),
+        (sphere_gii, outputnode, [('converted', 'sphere_reg')]),
+        (project_unproject, outputnode, [('sphere_out', 'sphere_reg_fsLR')]),
+    ])
+    # fmt:on
+
+    return workflow
+
+
 def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     r"""
     Prepare GIFTI surfaces from a FreeSurfer subjects directory.
 
     If midthickness (or graymid) surfaces do not exist, they are generated and
     saved to the subject directory as ``lh/rh.midthickness``.
-    These, along with the gray/white matter boundary (``lh/rh.smoothwm``), pial
+    These, along with the gray/white matter boundary (``lh/rh.white``), pial
     sufaces (``lh/rh.pial``) and inflated surfaces (``lh/rh.inflated``) are
     converted to GIFTI files.
     Additionally, the vertex coordinates are :py:class:`recentered
@@ -756,11 +821,11 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         (inputnode, save_midthickness, [('subjects_dir', 'base_directory'),
                                         ('subject_id', 'container')]),
         # Generate midthickness surfaces and save to FreeSurfer derivatives
-        (get_surfaces, midthickness, [('smoothwm', 'in_file'),
+        (get_surfaces, midthickness, [('white', 'in_file'),
                                       ('graymid', 'graymid')]),
         (midthickness, save_midthickness, [('out_file', 'surf.@graymid')]),
         # Produce valid GIFTI surface files (dense mesh)
-        (get_surfaces, surface_list, [('smoothwm', 'in1'),
+        (get_surfaces, surface_list, [('white', 'in1'),
                                       ('pial', 'in2'),
                                       ('inflated', 'in3')]),
         (save_midthickness, surface_list, [('out_file', 'in4')]),

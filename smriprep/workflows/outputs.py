@@ -740,6 +740,8 @@ def init_anat_second_derivatives_wf(
                 "t1w_tpms",
                 "anat2std_xfm",
                 "surfaces",
+                "sphere_reg",
+                "sphere_reg_fsLR",
                 "morphometrics",
                 "anat_ribbon",
                 "t1w_fs_aseg",
@@ -898,6 +900,36 @@ def init_anat_second_derivatives_wf(
         name="ds_surfs",
         run_without_submitting=True,
     )
+    # Sphere registrations
+    name_regs = pe.MapNode(
+        Path2BIDS(), iterfield="in_file", name="name_regs", run_without_submitting=True
+    )
+    ds_regs = pe.MapNode(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc="reg",
+            suffix="sphere",
+            extension=".surf.gii",
+        ),
+        iterfield=["in_file", "hemi"],
+        name="ds_regs",
+        run_without_submitting=True,
+    )
+    name_reg_fsLR = pe.MapNode(
+        Path2BIDS(), iterfield="in_file", name="name_reg_fsLR", run_without_submitting=True
+    )
+    ds_reg_fsLR = pe.MapNode(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            space="fsLR",
+            desc="reg",
+            suffix="sphere",
+            extension=".surf.gii",
+        ),
+        iterfield=["in_file", "hemi"],
+        name="ds_reg_fsLR",
+        run_without_submitting=True,
+    )
     # Morphometrics
     name_morphs = pe.MapNode(
         Path2BIDS(), iterfield="in_file", name="name_morphs", run_without_submitting=True,
@@ -944,6 +976,14 @@ def init_anat_second_derivatives_wf(
                                ('source_files', 'source_file')]),
         (name_surfs, ds_surfs, [('hemi', 'hemi'),
                                 ('suffix', 'suffix')]),
+        (inputnode, name_regs, [('sphere_reg', 'in_file')]),
+        (inputnode, ds_regs, [('sphere_reg', 'in_file'),
+                              ('source_files', 'source_file')]),
+        (name_regs, ds_regs, [('hemi', 'hemi')]),
+        (inputnode, name_reg_fsLR, [('sphere_reg', 'in_file')]),
+        (inputnode, ds_reg_fsLR, [('sphere_reg', 'in_file'),
+                                  ('source_files', 'source_file')]),
+        (name_reg_fsLR, ds_reg_fsLR, [('hemi', 'hemi')]),
         (inputnode, name_morphs, [('morphometrics', 'in_file')]),
         (inputnode, ds_morphs, [('morphometrics', 'in_file'),
                                 ('source_files', 'source_file')]),

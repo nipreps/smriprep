@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Interfaces to get templates from TemplateFlow."""
+import logging
 from templateflow import api as tf
 from nipype.interfaces.base import (
     SimpleInterface,
@@ -31,6 +32,8 @@ from nipype.interfaces.base import (
     File,
     InputMultiObject,
 )
+
+LOGGER = logging.getLogger("nipype.interface")
 
 
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
@@ -87,8 +90,11 @@ class TemplateFlowSelect(SimpleInterface):
     '.../tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz'
 
     >>> select = TemplateFlowSelect()
-    >>> select.inputs.template = 'UNCInfant:cohort-1'
-    >>> result = select.run()  # doctest: +SKIP
+    >>> select.inputs.template = 'MNI305'
+    >>> select.inputs.template_spec = {'resolution': 1}
+    >>> result = select.run()
+    >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
+    '.../tpl-MNI305_T1w.nii.gz'
 
     """
 
@@ -114,6 +120,18 @@ class TemplateFlowSelect(SimpleInterface):
                     if k not in specs
                 }
             )
+
+        if specs['resolution'] and not isinstance(specs['resolution'], list):
+            specs['resolution'] = [specs['resolution']]
+
+        available_resolutions = tf.TF_LAYOUT.get_resolutions(template=name[0])
+        if specs['resolution'] and not set(specs["resolution"]) & set(available_resolutions):
+            fallback_res = available_resolutions[0] if available_resolutions else None
+            LOGGER.warning(
+                f"Template {name[0]} does not have resolution(s): {specs['resolution']}."
+                f"Falling back to resolution: {fallback_res}."
+            )
+            specs["resolution"] = fallback_res
 
         self._results["t1w_file"] = tf.get(name[0], desc=None, suffix="T1w", **specs)
 

@@ -228,7 +228,7 @@ epub_exclude_files = ["search.html"]
 
 apidoc_module_dir = "../smriprep"
 apidoc_output_dir = "api"
-apidoc_excluded_paths = ["conftest.py", "*/tests/*", "tests/*", "data/*", "conf/*"]
+apidoc_excluded_paths = ["conftest.py", "*/conftest.py", "*/tests/*", "tests/*", "data/*", "conf/*"]
 apidoc_separate_modules = True
 apidoc_extra_args = ["--module-first", "-d 1", "-T"]
 
