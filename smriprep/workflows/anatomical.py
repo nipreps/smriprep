@@ -65,7 +65,6 @@ from .outputs import (
 )
 from .surfaces import (
     init_anat_ribbon_wf,
-    init_sphere_reg_wf,
     init_surface_derivatives_wf,
     init_surface_recon_wf,
     init_refinement_wf,
@@ -229,6 +228,8 @@ def init_anat_preproc_wf(
                 "fsnative2t1w_xfm",
                 "t1w_aparc",
                 "t1w_aseg",
+                "sphere_reg",
+                "sphere_reg_fsLR",
             ]
         ),
         name="outputnode",
@@ -312,6 +313,8 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, anat_second_derivatives_wf, [
                 ('outputnode.surfaces', 'inputnode.surfaces'),
                 ('outputnode.morphometrics', 'inputnode.morphometrics'),
+                ('outputnode.sphere_reg', 'inputnode.sphere_reg'),
+                ('outputnode.sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
                 ('outputnode.cifti_morph', 'inputnode.cifti_morph'),
@@ -320,6 +323,8 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, outputnode, [
                 ('outputnode.out_aseg', 't1w_aseg'),
                 ('outputnode.out_aparc', 't1w_aparc'),
+                ('outputnode.sphere_reg', 'sphere_reg'),
+                ('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR'),
             ]),
             (anat_ribbon_wf, outputnode, [
                 ("outputnode.anat_ribbon", "anat_ribbon"),
@@ -529,8 +534,6 @@ BIDS dataset."""
                 "subjects_dir",
                 "subject_id",
                 "t1w_valid_list",
-                # Temporary until moved into apply workflow
-                "sphere_reg_fsLR",
             ]
         ),
         name="outputnode",
@@ -896,8 +899,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         precomputed=precomputed,
     )
 
-    sphere_reg_wf = init_sphere_reg_wf(name="sphere_reg_wf")
-
     # fmt:off
     workflow.connect([
         (inputnode, fs_isrunning, [
@@ -912,17 +913,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (t1w_buffer, surface_recon_wf, [('t1w_brain', 'inputnode.skullstripped_t1')]),
-        (surface_recon_wf, sphere_reg_wf, [
-            ('outputnode.subject_id', 'inputnode.subject_id'),
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-        ]),
         (surface_recon_wf, outputnode, [
             ('outputnode.subjects_dir', 'subjects_dir'),
             ('outputnode.subject_id', 'subject_id'),
-        ]),
-        (sphere_reg_wf, outputnode, [
-            ('outputnode.sphere_reg', 'sphere_reg'),
-            ('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR'),
         ]),
     ])
     # fmt:on

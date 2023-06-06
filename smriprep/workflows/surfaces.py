@@ -610,6 +610,8 @@ def init_surface_derivatives_wf(
             fields=[
                 "surfaces",
                 "morphometrics",
+                "sphere_reg",
+                "sphere_reg_fsLR",
                 "out_aseg",
                 "out_aparc",
                 "cifti_morph",
@@ -620,6 +622,7 @@ def init_surface_derivatives_wf(
     )
 
     gifti_surface_wf = init_gifti_surface_wf()
+    sphere_reg_wf = init_sphere_reg_wf()
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
 
@@ -630,6 +633,10 @@ def init_surface_derivatives_wf(
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+        (inputnode, sphere_reg_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
         ]),
         (inputnode, aseg_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
@@ -647,6 +654,8 @@ def init_surface_derivatives_wf(
         # Output
         (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
                                         ('outputnode.morphometrics', 'morphometrics')]),
+        (sphere_reg_wf, outputnode, [('outputnode.sphere_reg', 'sphere_reg'),
+                                     ('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
         (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
         (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
     ])
