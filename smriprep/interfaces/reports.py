@@ -122,7 +122,7 @@ class SubjectSummary(SummaryInterface):
 
         t2w_seg = ""
         if self.inputs.t2w:
-            t2w_seg = "(+ {:d} T2-weighted)".format(len(self.inputs.t2w))
+            t2w_seg = f"(+ {len(self.inputs.t2w):d} T2-weighted)"
 
         output_spaces = self.inputs.output_spaces
         if not isdefined(output_spaces):
