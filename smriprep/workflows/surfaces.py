@@ -459,7 +459,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
         vals = set(in_list)
         if len(vals) > 1:
             raise ValueError(
-                "Non-identical values can't be deduplicated:\n{!r}".format(in_list)
+                f"Non-identical values can't be deduplicated:\n{in_list!r}"
             )
         return vals.pop()
 
@@ -694,7 +694,7 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
         The selected segmentation, after resampling in native space
 
     """
-    workflow = Workflow(name="%s_%s" % (name, segmentation))
+    workflow = Workflow(name=f"{name}_{segmentation}")
     inputnode = pe.Node(
         niu.IdentityInterface(
             ["in_file", "subjects_dir", "subject_id", "fsnative2t1w_xfm"]
