@@ -103,7 +103,7 @@ class SubjectSummary(SummaryInterface):
     def _run_interface(self, runtime):
         if isdefined(self.inputs.subject_id):
             self._results["subject_id"] = self.inputs.subject_id
-        return super(SubjectSummary, self)._run_interface(runtime)
+        return super()._run_interface(runtime)
 
     def _generate_segment(self):
         if not isdefined(self.inputs.subjects_dir):
