@@ -88,7 +88,7 @@ def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
     Second, the brain mask is grown, including pixels that have a high likelihood
     to the GM tissue distribution:
 
-      3. Dilate and substract the brain mask, defining the region to search for candidate
+      3. Dilate and subtract the brain mask, defining the region to search for candidate
          pixels that likely belong to cortical GM.
 
       4. Pixels found in the search region that are labeled as GM by ANTs
@@ -558,7 +558,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     If midthickness (or graymid) surfaces do not exist, they are generated and
     saved to the subject directory as ``lh/rh.midthickness``.
     These, along with the gray/white matter boundary (``lh/rh.white``), pial
-    sufaces (``lh/rh.pial``) and inflated surfaces (``lh/rh.inflated``) are
+    surfaces (``lh/rh.pial``) and inflated surfaces (``lh/rh.inflated``) are
     converted to GIFTI files.
     Additionally, the vertex coordinates are :py:class:`recentered
     <smriprep.interfaces.NormalizeSurf>` to align with native T1w space.

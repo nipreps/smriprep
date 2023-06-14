@@ -34,7 +34,7 @@ outputs that can be easily connected to subsequent tools such as
 
 .. image:: https://github.com/oesteban/smriprep/raw/033a6b4a54ecbd9051c45df979619cda69847cd1/docs/_resources/workflow.png
 
-The workflow is based on `Nipype <https://nipype.readthedocs.io>`__ and encompases
+The workflow is based on `Nipype <https://nipype.readthedocs.io>`__ and encompasses
 a combination of tools from well-known software packages, including
 `FSL <https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/>`__,
 `ANTs <https://stnava.github.io/ANTs/>`__,
