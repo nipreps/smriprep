@@ -155,7 +155,7 @@ def get_parser():
         dest="verbose_count",
         action="count",
         default=0,
-        help="increases log verbosity for each occurence, debug level is -vvv",
+        help="increases log verbosity for each occurrence, debug level is -vvv",
     )
 
     g_conf = parser.add_argument_group("Workflow configuration")
