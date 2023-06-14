@@ -66,14 +66,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9, "3.10"]
+        python-version: [3.8, 3.9, "3.10", "3.11"]
         install: [repo]
         include:
-          - python-version: "3.10"
+          - python-version: "3.11"
             install: sdist
-          - python-version: "3.10"
+          - python-version: "3.11"
             install: wheel
-          - python-version: "3.10"
+          - python-version: "3.11"
             install: editable
 
     env:
