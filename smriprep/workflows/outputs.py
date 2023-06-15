@@ -731,7 +731,7 @@ def init_anat_derivatives_wf(
                               ('source_files', 'source_file')]),
         (name_regs, ds_regs, [('hemi', 'hemi')]),
         (inputnode, name_reg_fsLR, [('sphere_reg', 'in_file')]),
-        (inputnode, ds_reg_fsLR, [('sphere_reg', 'in_file'),
+        (inputnode, ds_reg_fsLR, [('sphere_reg_fsLR', 'in_file'),
                                   ('source_files', 'source_file')]),
         (name_reg_fsLR, ds_reg_fsLR, [('hemi', 'hemi')]),
         (inputnode, name_morphs, [('morphometrics', 'in_file')]),
