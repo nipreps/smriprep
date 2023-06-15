@@ -1,3 +1,13 @@
+0.12.1 (June 15, 2023)
+======================
+Bug-fix release in the 0.12.x series.
+
+This release correctly generates ``*_space-fsLR_desc-reg_sphere.surf.gii``,
+which was previously a copy of the standard ``*_desc-reg_sphere.surf.gii``.
+
+* FIX: Pass sphere_reg_fsLR to ds_reg_fsLR (#350)
+
+
 0.12.0 (June 05, 2023)
 ======================
 New feature release in the 0.12.x series.
