@@ -181,7 +181,7 @@ requests==2.31.0
     #   etelemetry
     #   nilearn
     #   templateflow
-scikit-image==0.21.0
+scikit-image==0.20.0
     # via niworkflows
 scikit-learn==1.2.2
     # via nilearn
