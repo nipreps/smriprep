@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Configuration file for the Sphinx documentation builder.
 #
 # This file does only contain a selection of the most common options. For a
@@ -23,7 +21,8 @@ from smriprep import (
 )
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "sphinxext")))
-from github_link import make_linkcode_resolve
+
+from github_link import make_linkcode_resolve  # noqa: E402
 
 os.environ['NO_ET'] = '1'
 
@@ -228,7 +227,14 @@ epub_exclude_files = ["search.html"]
 
 apidoc_module_dir = "../smriprep"
 apidoc_output_dir = "api"
-apidoc_excluded_paths = ["conftest.py", "*/conftest.py", "*/tests/*", "tests/*", "data/*", "conf/*"]
+apidoc_excluded_paths = [
+    "conftest.py",
+    "*/conftest.py",
+    "*/tests/*",
+    "tests/*",
+    "data/*",
+    "conf/*",
+]
 apidoc_separate_modules = True
 apidoc_extra_args = ["--module-first", "-d 1", "-T"]
 
@@ -236,9 +242,7 @@ apidoc_extra_args = ["--module-first", "-d 1", "-T"]
 # The following is used by sphinx.ext.linkcode to provide links to github
 linkcode_resolve = make_linkcode_resolve(
     "smriprep",
-    "https://github.com/nipreps/"
-    "smriprep/blob/{revision}/"
-    "{package}/{path}#L{lineno}",
+    "https://github.com/nipreps/smriprep/blob/{revision}/{package}/{path}#L{lineno}",
 )
 
 # -- Options for intersphinx extension ---------------------------------------

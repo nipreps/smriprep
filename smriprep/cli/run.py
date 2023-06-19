@@ -86,7 +86,7 @@ def get_parser():
 
     # optional arguments
     parser.add_argument(
-        "--version", action="version", version="smriprep v{}".format(__version__)
+        "--version", action="version", version=f"smriprep v{__version__}"
     )
 
     g_bids = parser.add_argument_group("Options for filtering BIDS queries")
@@ -164,7 +164,7 @@ def get_parser():
         dest="verbose_count",
         action="count",
         default=0,
-        help="increases log verbosity for each occurence, debug level is -vvv",
+        help="increases log verbosity for each occurrence, debug level is -vvv",
     )
 
     g_conf = parser.add_argument_group("Workflow configuration")
@@ -390,7 +390,7 @@ def build_opts(opts):
     if missing:
         print("Cannot run sMRIPrep. Missing dependencies:")
         for iface, cmd in missing:
-            print("\t{} (Interface: {})".format(cmd, iface))
+            print(f"\t{cmd} (Interface: {iface})")
         sys.exit(2)
 
     # Clean up master process before running workflow, which may create forks
@@ -464,7 +464,7 @@ def build_workflow(opts, retval):
     """.format
 
     # Set up some instrumental utilities
-    run_uuid = "%s_%s" % (strftime("%Y%m%d-%H%M%S"), uuid.uuid4())
+    run_uuid = "{}_{}".format(strftime("%Y%m%d-%H%M%S"), uuid.uuid4())
 
     # First check that bids_dir looks like a BIDS folder
     bids_dir = opts.bids_dir.resolve()

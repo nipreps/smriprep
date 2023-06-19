@@ -168,8 +168,8 @@ class ReconAll(fs.ReconAll):
         no_run = True
         flags = []
         for step, outfiles, infiles in steps:
-            flag = "-{}".format(step)
-            noflag = "-no{}".format(step)
+            flag = f"-{step}"
+            noflag = f"-no{step}"
             if noflag in cmd:
                 continue
             elif flag in cmd:

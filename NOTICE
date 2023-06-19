@@ -11,7 +11,7 @@ This software redistributes the versioneer Python package, which is
 Public domain source code.
 
 This software is also distributed as a Docker container image.
-The bootstraping file for the image ("Dockerfile") is licensed
+The bootstrapping file for the image ("Dockerfile") is licensed
 under the MIT License.
 
 This software may be distributed through an add-on package called
