@@ -21,7 +21,8 @@ from smriprep import (
 )
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "sphinxext")))
-from github_link import make_linkcode_resolve
+
+from github_link import make_linkcode_resolve  # noqa: E402
 
 os.environ['NO_ET'] = '1'
 
