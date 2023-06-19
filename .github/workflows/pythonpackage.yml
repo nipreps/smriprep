@@ -80,13 +80,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      if: matrix.install == "repo" || matrix.install == "editable"
+      if: matrix.install == 'repo' || matrix.install == 'editable'
     - name: Fetch packages
       uses: actions/download-artifact@v3
       with:
         name: dist
         path: dist/
-      if: matrix.install == "sdist" || matrix.install == "wheel"
+      if: matrix.install == 'sdist' || matrix.install == 'wheel'
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
