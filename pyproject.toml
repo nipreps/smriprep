@@ -1,9 +1,139 @@
 [build-system]
-# Keep synchronized with the minimum version to install in setup.py
-requires = ["setuptools >= 30.3.0", "wheel"]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "smriprep"
+description = "Structural MRI Preprocessing Pipelines"
+readme = "README.rst"
+authors = [{name = "The NiPreps Developers", email = "nipreps@gmail.com"}]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+dependencies = [
+    "importlib_resources >= 1.3; python_version < '3.9'",
+    "indexed_gzip >= 0.8.8",
+    "lockfile",
+    "looseversion",
+    "matplotlib >= 2.2.0",
+    "nibabel >= 4.0.1",
+    "nipype >= 1.7.0",
+    "niworkflows >= 1.8.0",
+    "numpy",
+    "packaging",
+    "pybids >= 0.11.1",
+    "pyyaml",
+    "templateflow >= 0.6",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/nipreps/smriprep"
+Documentation = "https://nipreps.org/smriprep"
+"Docker Images" = "https://hub.docker.com/r/nipreps/smriprep/tags/"
+NiPreps = "https://www.nipreps.org/"
+
+[project.optional-dependencies]
+datalad = ["datalad"]
+doc = [
+    "nbsphinx",
+    "packaging",
+    "pydot",
+    "sphinx",
+    "sphinx-argparse",
+    "sphinx_rtd_theme",
+    "sphinxcontrib-apidoc ~= 0.3.0",
+    "sphinxcontrib-napoleon",
+    "sphinxcontrib-versioning",
+]
+duecredit = ["duecredit"]
+test = [
+    "coverage",
+    "pytest",
+    "pytest-cov",
+    "pytest-env",
+]
+style = ["flake8"]
+# Aliases
+docs = ["smriprep[doc]"]
+tests = ["smriprep[test]"]
+all = ["smriprep[datalad,doc,duecredit,test]"]
+
+[project.scripts]
+smriprep = "smriprep.cli.run:main"
+
+#
+# Hatch configurations
+#
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.sdist]
+exclude = [".git_archival.txt"]  # No longer needed in sdist
+
+[tool.hatch.build.targets.wheel]
+packages = ["smriprep"]
+exclude = [
+    "smriprep/data/tests/work",  # Large test data directory
+]
+
+##  The following two sections configure setuptools_scm in the hatch way
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "smriprep/_version.py"
+
+#
+# Developer tool configurations
+#
 
 [tool.black]
 line-length = 99
-target-version = ['py37']
+target-version = ['py39']
 skip-string-normalization = true
-extend-exclude = '_version.py|versioneer.py'
+
+[tool.isort]
+profile = 'black'
+
+[tool.flake8]
+max-line-length = "99"
+doctests = "False"
+exclude = "*build/"
+ignore = ["W503", "E203"]
+per-file-ignores = [
+    "**/__init__.py : F401",
+    "docs/conf.py : E265",
+]
+
+[tool.pytest.ini_options]
+norecursedirs = [".git"]
+addopts = "-svx --doctest-modules"
+doctest_optionflags = "ALLOW_UNICODE NORMALIZE_WHITESPACE ELLIPSIS"
+env = "PYTHONHASHSEED=0"
+filterwarnings = ["ignore::DeprecationWarning"]
+junit_family = "xunit2"
+
+[tool.coverage.run]
+branch = true
+source = ["smriprep"]
+omit = [
+    "*/tests/*",
+]
+relative_files = true
+
+[tool.coverage.paths]
+source = [
+    "smriprep/",
+    "*/site-packages/smriprep",
+]
