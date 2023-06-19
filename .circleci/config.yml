@@ -651,8 +651,8 @@ jobs:
           name: Update pip
           command: pip install --upgrade pip
       - run:
-          name: Install deps
-          command: pip install -r docs/requirements.txt
+          name: Install deps and package
+          command: pip install -r docs/requirements.txt .
       - run:
           name: Build only this commit
           no_output_timeout: 30m
