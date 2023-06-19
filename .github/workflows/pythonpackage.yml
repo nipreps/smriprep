@@ -110,7 +110,7 @@ jobs:
         if [[ "$GITHUB_REF" == refs/tags/* ]]; then
           TAG=${GITHUB_REF##*/}
         fi
-        THISVERSION=$( python get_version.py )
+        THISVERSION=$( pipx run hatch version )
         THISVERSION=${TAG:-$THISVERSION}
         INSTALLED_VERSION=$(python -c 'import smriprep; print(smriprep.__version__, end="")')
         echo "VERSION: \"${THISVERSION}\""

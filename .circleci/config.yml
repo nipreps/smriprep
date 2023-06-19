@@ -84,16 +84,18 @@ aliases:
 jobs:
   build:
     <<: *machine_defaults
+    environment:
+      DOCKER_BUILDKIT: 1
     steps:
       - checkout:
           path: *src
       - restore_cache:
           keys:
-            - build-v0-{{ .Branch }}-{{ .Revision }}
-            - build-v0--{{ .Revision }}
-            - build-v0-{{ .Branch }}-
-            - build-v0-master-
-            - build-v0-
+            - build-v1-{{ .Branch }}-{{ .Revision }}
+            - build-v1--{{ .Revision }}
+            - build-v1-{{ .Branch }}-
+            - build-v1-master-
+            - build-v1-
           paths:
             - /tmp/docker
             - /tmp/images
@@ -101,51 +103,17 @@ jobs:
       - run: *docker_auth
       - run: *setup_docker_registry
       - run:
-          name: Save docker registry
-          command: |
-            if [[ ! -f /tmp/images/registry.tar.gz ]]; then
-              mkdir -p /tmp/images
-              docker save registry:2 | gzip > /tmp/images/registry.tar.gz
-            fi
-      - run:
-          name: Pull Ubuntu/jammy image
-          command: |
-            set +e
-            docker pull localhost:5000/ubuntu
-            success=$?
-            set -e
-            if [[ "$success" = "0" ]]; then
-                echo "Pulling from local registry"
-                docker tag localhost:5000/ubuntu ubuntu:jammy-20221130
-            else
-                echo "Pulling from Docker Hub"
-                docker pull ubuntu:jammy-20221130
-                docker tag ubuntu:jammy-20221130 localhost:5000/ubuntu
-                docker push localhost:5000/ubuntu
-            fi
-      - run:
-          name: Pull sMRIPrep Docker image
-          command: |
-            set +e
-            docker pull localhost:5000/smriprep
-            success=$?
-            set -e
-            if [[ "$success" = "0" ]]; then
-                echo "Pulled from local registry"
-                docker tag localhost:5000/smriprep nipreps/smriprep:latest
-                docker tag localhost:5000/smriprep nipreps/smriprep
-            else
-                echo "Pulling from Docker Hub"
-                docker pull nipreps/smriprep:latest
-            fi
+          name: Create named builder
+          command: docker buildx create --use --name=builder --driver=docker-container
       - run:
           name: Build Docker image
           no_output_timeout: 60m
           command: |
             export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
             pyenv local $PY3
+            pip install hatch
             # Get version, update files.
-            THISVERSION=$( python3 get_version.py )
+            THISVERSION=$( hatch version )
             if [[ ${THISVERSION:0:1} == "0" ]] ; then
               echo "WARNING: latest git tag could not be found"
               echo "Please, make sure you fetch all tags from upstream with"
@@ -153,22 +121,20 @@ jobs:
               echo "them to your fork with ``git push origin --tags``"
             fi
             # Build docker image
-            e=1 && for i in {1..5}; do
-              docker build --rm \
-                --cache-from=nipreps/smriprep \
+            docker buildx build --load --builder builder \
+                --cache-from localhost:5000/smriprep \
+                --cache-from nipreps/smriprep:latest \
                 -t nipreps/smriprep:latest \
                 --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
                 --build-arg VCS_REF=`git rev-parse --short HEAD` \
-                --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" . \
-              && e=0 && break || sleep 15
-            done && [ "$e" -eq "0" ]
+                --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" .
       - run:
           name: Check Docker image
           command: |
             export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
             pyenv local $PY3
             # Get version, update files.
-            THISVERSION=$( python3 get_version.py )
+            THISVERSION=$( hatch version )
             BUILT_VERSION=$( docker run --rm nipreps/smriprep:latest --version )
             BUILT_VERSION=${BUILT_VERSION%$'\r'}
             BUILT_VERSION=${BUILT_VERSION#*"smriprep v"}
@@ -176,6 +142,27 @@ jobs:
             echo "BUILT: \"$BUILT_VERSION\""
             set -e
             test "$BUILT_VERSION" = "$THISVERSION"
+      - run:
+          name: Docker push to local registry
+          no_output_timeout: 40m
+          command: |
+            docker tag nipreps/smriprep:latest localhost:5000/smriprep
+            docker push localhost:5000/smriprep
+      - run:
+          name: Docker registry garbage collection
+          command: |
+            docker exec -it registry /bin/registry garbage-collect --delete-untagged \
+              /etc/docker/registry/config.yml
+
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - src/smriprep
+      - save_cache:
+         key: build-v1-{{ .Branch }}-{{ .Revision }}
+         paths:
+            - /tmp/docker
+            - /tmp/images
 
       - run:
           name: Docker push to local registry
@@ -337,35 +324,31 @@ jobs:
 
   test_deploy_pypi:
     <<: *python_defaults
-    working_directory: /tmp/src/smriprep
     steps:
       - checkout
       - run:
+          name: Update build tools
+          command: pip install --upgrade build twine hatch
+      - run:
           name: Build sMRIPrep
-          command: |
-            pip install --user twine  # For use in checking distributions
-            THISVERSION=$( python get_version.py )
-            THISVERSION=${THISVERSION%.dirty*}
-            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
-            virtualenv --python=python build
-            source build/bin/activate
-            pip install --upgrade "pip>=19.1" numpy
-            echo "${CIRCLE_TAG:-$THISVERSION}" > smriprep/VERSION
-            python setup.py sdist
-            pip wheel --no-deps -w dist/ .
+          command: python -m build
+      - run:
+          name: Twine check smriprep
+          command: twine check dist/*
+      - run:
+          name: Pre-run hatch version
+          command: hatch version
       - store_artifacts:
           path: /tmp/src/smriprep/dist
       - run:
           name: Check sdist distribution
           command: |
-            THISVERSION=$( python get_version.py )
-            THISVERSION=${THISVERSION%.dirty*}
+            THISVERSION=$( hatch version )
             THISVERSION=${CIRCLE_TAG:-$THISVERSION}
-            twine check dist/smriprep*.tar.gz
             virtualenv --python=python sdist
             source sdist/bin/activate
-            pip install --upgrade "pip>=19.1" numpy
-            pip install dist/smriprep*.tar.gz
+            python -m pip install --upgrade pip
+            python -m pip install dist/smriprep*.tar.gz
             which smriprep | grep sdist\\/bin
             INSTALLED_VERSION=$(smriprep --version)
             INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
@@ -376,13 +359,11 @@ jobs:
       - run:
           name: Check wheel distribution
           command: |
-            THISVERSION=$( python get_version.py )
-            THISVERSION=${THISVERSION%.dirty*}
+            THISVERSION=$( hatch version )
             THISVERSION=${CIRCLE_TAG:-$THISVERSION}
-            twine check dist/smriprep*.whl
             virtualenv --python=python wheel
             source wheel/bin/activate
-            pip install dist/smriprep*.whl
+            python -m pip install dist/smriprep*.whl
             which smriprep | grep wheel\\/bin
             INSTALLED_VERSION=$(smriprep --version)
             INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
@@ -392,28 +373,10 @@ jobs:
             test "$INSTALLED_VERSION" = "$THISVERSION"
       - run:
           name: Build smriprep-docker
-          command: |
-            THISVERSION=$( python get_version.py )
-            THISVERSION=${THISVERSION%.dirty*}
-            cd wrapper
-            virtualenv --python=python build
-            source build/bin/activate
-            pip install --upgrade "pip>=19.1"
-            sed -i -E "s/(__version__ = )\"[A-Za-z0-9.-]+\"/\1\"${CIRCLE_TAG:-$THISVERSION}\"/" smriprep_docker.py
-            python setup.py sdist
-            twine check dist/smriprep*.tar.gz
-            pip wheel --no-deps -w dist/ .
-            twine check dist/smriprep*.whl
-            pip install dist/smriprep*.whl
-            set +e
-            INSTALLED_VERSION=$(yes n | smriprep-docker --version)
-            set -e
-            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
-            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep wrapper "}
-            INSTALLED_VERSION=$( echo ${INSTALLED_VERSION} | cut -f1 -d" ")
-            echo "VERSION: \"$THISVERSION\""
-            echo "INSTALLED: \"$INSTALLED_VERSION\""
-            test "$INSTALLED_VERSION" = "$THISVERSION"
+          command: python -m build wrapper
+      - run:
+          name: Twine check wrapper
+          command: twine check wrapper/dist/*
       - store_artifacts:
           path: /tmp/src/smriprep/wrapper/dist
 
@@ -734,35 +697,20 @@ jobs:
 
   deploy_pypi:
     <<: *python_defaults
-    working_directory: /tmp/src/smriprep
     steps:
       - checkout
       - run:
+          name: Update build tools
+          command: pip install --upgrade build twine
+      - run:
           name: Build sMRIPrep
-          command: |
-            THISVERSION=$( python get_version.py )
-            virtualenv --python=python build
-            source build/bin/activate
-            pip install --upgrade "pip>=19.1"
-            echo "${CIRCLE_TAG:-$THISVERSION}" > smriprep/VERSION
-            python setup.py sdist
-            pip wheel --no-deps -w dist/ .
+          command: python -m build
       - run:
           name: Build smriprep-docker
-          command: |
-            THISVERSION=$( python get_version.py )
-            cd wrapper
-            virtualenv --python=python build
-            source build/bin/activate
-            pip install --upgrade "pip>=19.1"
-            sed -i -E "s/(__version__ = )\"[A-Za-z0-9.-]+\"/\1\"${CIRCLE_TAG:-$THISVERSION}\"/" smriprep_docker.py
-            python setup.py sdist
-            pip wheel --no-deps -w dist/ .
+          command: python -m build wrapper/
       - run:
           name: Upload packages to PyPI
-          command: |
-            pip install --user twine
-            twine upload dist/smriprep* wrapper/dist/smriprep*
+          command: python -m twine upload dist/smriprep* wrapper/dist/smriprep*
 
   deploy_docker:
     <<: *machine_defaults
