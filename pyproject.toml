@@ -126,7 +126,7 @@ junit_family = "xunit2"
 
 [tool.coverage.run]
 branch = true
-source = "smriprep"
+source = ["smriprep"]
 omit = [
     "*/tests/*",
 ]
