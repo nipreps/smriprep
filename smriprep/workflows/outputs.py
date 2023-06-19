@@ -97,9 +97,7 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
     ]
     inputnode = pe.Node(niu.IdentityInterface(fields=inputfields), name="inputnode")
 
-    seg_rpt = pe.Node(
-        ROIsPlot(colors=["b", "magenta"], levels=[1.5, 2.5]), name="seg_rpt"
-    )
+    seg_rpt = pe.Node(ROIsPlot(colors=["b", "magenta"], levels=[1.5, 2.5]), name="seg_rpt")
 
     t1w_conform_check = pe.Node(
         niu.Function(function=_empty_report),
@@ -108,17 +106,13 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
     )
 
     ds_t1w_conform_report = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, desc="conform", datatype="figures"
-        ),
+        DerivativesDataSink(base_directory=output_dir, desc="conform", datatype="figures"),
         name="ds_t1w_conform_report",
         run_without_submitting=True,
     )
 
     ds_t1w_dseg_mask_report = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, suffix="dseg", datatype="figures"
-        ),
+        DerivativesDataSink(base_directory=output_dir, suffix="dseg", datatype="figures"),
         name="ds_t1w_dseg_mask_report",
         run_without_submitting=True,
     )
@@ -170,9 +164,7 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
         norm_rpt.inputs.after_label = "Participant"  # after
 
         ds_std_t1w_report = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, suffix="T1w", datatype="figures"
-            ),
+            DerivativesDataSink(base_directory=output_dir, suffix="T1w", datatype="figures"),
             name="ds_std_t1w_report",
             run_without_submitting=True,
         )
@@ -217,9 +209,7 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
         recon_report.interface._always_run = True
 
         ds_recon_report = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, desc="reconall", datatype="figures"
-            ),
+            DerivativesDataSink(base_directory=output_dir, desc="reconall", datatype="figures"),
             name="ds_recon_report",
             run_without_submitting=True,
         )
@@ -778,16 +768,10 @@ def init_anat_second_derivatives_wf(
             name="anat2std_t1w",
         )
 
-        anat2std_mask = pe.Node(
-            ApplyTransforms(interpolation="MultiLabel"), name="anat2std_mask"
-        )
-        anat2std_dseg = pe.Node(
-            ApplyTransforms(interpolation="MultiLabel"), name="anat2std_dseg"
-        )
+        anat2std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_mask")
+        anat2std_dseg = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_dseg")
         anat2std_tpms = pe.MapNode(
-            ApplyTransforms(
-                dimension=3, default_value=0, float=True, interpolation="Gaussian"
-            ),
+            ApplyTransforms(dimension=3, default_value=0, float=True, interpolation="Gaussian"),
             iterfield=["input_image"],
             name="anat2std_tpms",
         )
@@ -813,17 +797,13 @@ def init_anat_second_derivatives_wf(
         ds_std_mask.inputs.Type = "Brain"
 
         ds_std_dseg = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, suffix="dseg", compress=True
-            ),
+            DerivativesDataSink(base_directory=output_dir, suffix="dseg", compress=True),
             name="ds_std_dseg",
             run_without_submitting=True,
         )
 
         ds_std_tpms = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, suffix="probseg", compress=True
-            ),
+            DerivativesDataSink(base_directory=output_dir, suffix="probseg", compress=True),
             name="ds_std_tpms",
             run_without_submitting=True,
         )
@@ -932,7 +912,10 @@ def init_anat_second_derivatives_wf(
     )
     # Morphometrics
     name_morphs = pe.MapNode(
-        Path2BIDS(), iterfield="in_file", name="name_morphs", run_without_submitting=True,
+        Path2BIDS(),
+        iterfield="in_file",
+        name="name_morphs",
+        run_without_submitting=True,
     )
     ds_morphs = pe.MapNode(
         DerivativesDataSink(base_directory=output_dir, extension=".shape.gii"),
@@ -955,9 +938,7 @@ def init_anat_second_derivatives_wf(
 
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, desc="aseg", suffix="dseg", compress=True
-        ),
+        DerivativesDataSink(base_directory=output_dir, desc="aseg", suffix="dseg", compress=True),
         name="ds_t1w_fsaseg",
         run_without_submitting=True,
     )
@@ -1052,9 +1033,7 @@ def init_template_iterator_wf(*, spaces, name="template_iterator_wf"):
         name="outputnode",
     )
 
-    spacesource = pe.Node(
-        SpaceDataSource(), name="spacesource", run_without_submitting=True
-    )
+    spacesource = pe.Node(SpaceDataSource(), name="spacesource", run_without_submitting=True)
     spacesource.iterables = (
         "in_tuple",
         [(s.fullname, s.spec) for s in spaces.cached.get_standard(dim=(3,))],
@@ -1129,16 +1108,12 @@ def _rpt_masks(mask_file, before, after, after_mask=None):
 
     msk = nb.load(mask_file).get_fdata() > 0
     bnii = nb.load(before)
-    nb.Nifti1Image(bnii.get_fdata() * msk, bnii.affine, bnii.header).to_filename(
-        "before.nii.gz"
-    )
+    nb.Nifti1Image(bnii.get_fdata() * msk, bnii.affine, bnii.header).to_filename("before.nii.gz")
     if after_mask is not None:
         msk = nb.load(after_mask).get_fdata() > 0
 
     anii = nb.load(after)
-    nb.Nifti1Image(anii.get_fdata() * msk, anii.affine, anii.header).to_filename(
-        "after.nii.gz"
-    )
+    nb.Nifti1Image(anii.get_fdata() * msk, anii.affine, anii.header).to_filename("after.nii.gz")
     return abspath("before.nii.gz"), abspath("after.nii.gz")
 
 

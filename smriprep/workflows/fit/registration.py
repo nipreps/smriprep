@@ -117,9 +117,7 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
             ants_ver=ANTsInfo.version() or "(version unknown)",
             targets="%s standard space%s"
             % (
-                defaultdict(
-                    "several".format, {1: "one", 2: "two", 3: "three", 4: "four"}
-                )[ntpls],
+                defaultdict("several".format, {1: "one", 2: "two", 3: "three", 4: "four"})[ntpls],
                 "s" * (ntpls != 1),
             ),
             targets_id=", ".join(templates),
@@ -223,9 +221,7 @@ def _make_outputnode(workflow, out_fields, joinsource):
     if joinsource:
         pout = pe.Node(niu.IdentityInterface(fields=out_fields), name="poutputnode")
         out = pe.JoinNode(
-            niu.IdentityInterface(fields=out_fields),
-            name="outputnode",
-            joinsource=joinsource
+            niu.IdentityInterface(fields=out_fields), name="outputnode", joinsource=joinsource
         )
         workflow.connect([(pout, out, [(f, f) for f in out_fields])])
         return pout

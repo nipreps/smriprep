@@ -16,9 +16,7 @@ class _GenerateDScalarInputSpec(TraitedSpec):
         usedefault=True,
         desc="CIFTI surface target space",
     )
-    grayordinates = traits.Enum(
-        "91k", "170k", usedefault=True, desc="Final CIFTI grayordinates"
-    )
+    grayordinates = traits.Enum("91k", "170k", usedefault=True, desc="Final CIFTI grayordinates")
     scalar_surfs = traits.List(
         File(exists=True),
         mandatory=True,
@@ -36,11 +34,11 @@ class GenerateDScalar(SimpleInterface):
     """
     Generate a HCP-style CIFTI-2 image from scalar surface files.
     """
+
     input_spec = _GenerateDScalarInputSpec
     output_spec = _GenerateDScalarOutputSpec
 
     def _run_interface(self, runtime):
-
         surface_labels, metadata = _prepare_cifti(self.inputs.grayordinates)
         self._results["out_file"] = _create_cifti_image(
             self.inputs.scalar_surfs,
@@ -87,14 +85,14 @@ def _prepare_cifti(grayordinates: str) -> ty.Tuple[list, dict]:
             "surface-den": "32k",
             "tf-res": "02",
             "grayords": "91,282",
-            "res-mm": "2mm"
+            "res-mm": "2mm",
         },
         "170k": {
             "surface-den": "59k",
             "tf-res": "06",
             "grayords": "170,494",
-            "res-mm": "1.6mm"
-        }
+            "res-mm": "1.6mm",
+        },
     }
     if grayordinates not in grayord_key:
         raise NotImplementedError(f"Grayordinates {grayordinates} is not supported.")
@@ -129,7 +127,7 @@ def _prepare_cifti(grayordinates: str) -> ty.Tuple[list, dict]:
         "SpatialReference": {
             "CIFTI_STRUCTURE_CORTEX_LEFT": surfaces_url % "L",
             "CIFTI_STRUCTURE_CORTEX_RIGHT": surfaces_url % "R",
-        }
+        },
     }
     return surface_labels, metadata
 

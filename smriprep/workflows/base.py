@@ -192,9 +192,7 @@ def init_smriprep_wf(
         for node in single_subject_wf._get_all_nodes():
             node.config = deepcopy(single_subject_wf.config)
         if freesurfer:
-            smriprep_wf.connect(
-                fsdir, "subjects_dir", single_subject_wf, "inputnode.subjects_dir"
-            )
+            smriprep_wf.connect(fsdir, "subjects_dir", single_subject_wf, "inputnode.subjects_dir")
         else:
             smriprep_wf.add_nodes([single_subject_wf])
 
@@ -351,19 +349,16 @@ to workflows in *sMRIPrep*'s documentation]\
 """
 
     from ..utils.bids import collect_derivatives
+
     deriv_cache = {}
     std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
     std_spaces.append("fsnative")
     for deriv_dir in derivatives:
         deriv_cache.update(collect_derivatives(deriv_dir, subject_id, std_spaces, freesurfer))
 
-    inputnode = pe.Node(
-        niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode"
-    )
+    inputnode = pe.Node(niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode")
 
-    bidssrc = pe.Node(
-        BIDSDataGrabber(subject_data=subject_data, anat_only=True), name="bidssrc"
-    )
+    bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True), name="bidssrc")
 
     bids_info = pe.Node(
         BIDSInfo(bids_dir=layout.root), name="bids_info", run_without_submitting=True

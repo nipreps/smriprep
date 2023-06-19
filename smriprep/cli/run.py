@@ -37,10 +37,7 @@ def check_deps(workflow):
     return sorted(
         (node.interface.__class__.__name__, node.interface._cmd)
         for node in workflow._get_all_nodes()
-        if (
-            hasattr(node.interface, "_cmd")
-            and which(node.interface._cmd.split()[0]) is None
-        )
+        if (hasattr(node.interface, "_cmd") and which(node.interface._cmd.split()[0]) is None)
     )
 
 
@@ -75,7 +72,7 @@ def get_parser():
         "output_dir",
         action="store",
         type=Path,
-        help="the output path for the outcomes of preprocessing and visual " "reports",
+        help="the output path for the outcomes of preprocessing and visual reports",
     )
     parser.add_argument(
         "analysis_level",
@@ -85,9 +82,7 @@ def get_parser():
     )
 
     # optional arguments
-    parser.add_argument(
-        "--version", action="version", version=f"smriprep v{__version__}"
-    )
+    parser.add_argument("--version", action="version", version=f"smriprep v{__version__}")
 
     g_bids = parser.add_argument_group("Options for filtering BIDS queries")
     g_bids.add_argument(
@@ -146,8 +141,7 @@ def get_parser():
     g_perfm.add_argument(
         "--low-mem",
         action="store_true",
-        help="attempt to reduce memory usage (will increase disk usage "
-        "in working directory)",
+        help="attempt to reduce memory usage (will increase disk usage in working directory)",
     )
     g_perfm.add_argument(
         "--use-plugin",
@@ -155,9 +149,7 @@ def get_parser():
         default=None,
         help="nipype plugin configuration file",
     )
-    g_perfm.add_argument(
-        "--boilerplate", action="store_true", help="generate boilerplate only"
-    )
+    g_perfm.add_argument("--boilerplate", action="store_true", help="generate boilerplate only")
     g_perfm.add_argument(
         "-v",
         "--verbose",
@@ -286,8 +278,7 @@ def get_parser():
         "--stop-on-first-crash",
         action="store_true",
         default=False,
-        help="Force stopping on first crash, even if a work directory"
-        " was specified.",
+        help="Force stopping on first crash, even if a work directory was specified.",
     )
     g_other.add_argument(
         "--notrack",
@@ -405,12 +396,8 @@ def build_opts(opts):
             from niworkflows.utils.misc import _copy_any
 
             dseg_tsv = str(api.get("fsaverage", suffix="dseg", extension=[".tsv"]))
-            _copy_any(
-                dseg_tsv, str(Path(output_dir) / "smriprep" / "desc-aseg_dseg.tsv")
-            )
-            _copy_any(
-                dseg_tsv, str(Path(output_dir) / "smriprep" / "desc-aparcaseg_dseg.tsv")
-            )
+            _copy_any(dseg_tsv, str(Path(output_dir) / "smriprep" / "desc-aseg_dseg.tsv"))
+            _copy_any(dseg_tsv, str(Path(output_dir) / "smriprep" / "desc-aparcaseg_dseg.tsv"))
         logger.log(25, "sMRIPrep finished without errors")
     finally:
         from niworkflows.reports import generate_reports
@@ -418,9 +405,7 @@ def build_opts(opts):
 
         logger.log(25, "Writing reports for participants: %s", ", ".join(subject_list))
         # Generate reports phase
-        errno += generate_reports(
-            subject_list, output_dir, run_uuid, packagename="smriprep"
-        )
+        errno += generate_reports(subject_list, output_dir, run_uuid, packagename="smriprep")
         write_derivative_description(bids_dir, str(Path(output_dir) / "smriprep"))
         write_bidsignore(Path(output_dir) / "smriprep")
     sys.exit(int(errno > 0))
@@ -469,13 +454,9 @@ def build_workflow(opts, retval):
     # First check that bids_dir looks like a BIDS folder
     bids_dir = opts.bids_dir.resolve()
     layout = BIDSLayout(str(bids_dir), validate=False)
-    subject_list = collect_participants(
-        layout, participant_label=opts.participant_label
-    )
+    subject_list = collect_participants(layout, participant_label=opts.participant_label)
 
-    bids_filters = (
-        json.loads(opts.bids_filter_file.read_text()) if opts.bids_filter_file else None
-    )
+    bids_filters = json.loads(opts.bids_filter_file.read_text()) if opts.bids_filter_file else None
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
@@ -563,9 +544,7 @@ def build_workflow(opts, retval):
     if opts.reports_only:
         from niworkflows.reports import generate_reports
 
-        logger.log(
-            25, "Running --reports-only on participants %s", ", ".join(subject_list)
-        )
+        logger.log(25, "Running --reports-only on participants %s", ", ".join(subject_list))
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid
         retval["return_code"] = generate_reports(
@@ -664,9 +643,7 @@ def build_workflow(opts, retval):
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning("Could not generate CITATION.tex file:\n%s", " ".join(cmd))
     else:
-        copyfile(
-            pkgrf("smriprep", "data/boilerplate.bib"), str(log_dir / "CITATION.bib")
-        )
+        copyfile(pkgrf("smriprep", "data/boilerplate.bib"), str(log_dir / "CITATION.bib"))
     return retval
 
 
