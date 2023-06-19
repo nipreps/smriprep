@@ -20,9 +20,7 @@ import re
 import subprocess
 
 __version__ = "99.99.99"
-__copyright__ = (
-    "Copyright 2019, Center for Reproducible Neuroscience, Stanford University"
-)
+__copyright__ = "Copyright 2019, Center for Reproducible Neuroscience, Stanford University"
 __credits__ = [
     "Oscar Esteban",
     "Chris Gorgolewski",
@@ -87,9 +85,7 @@ def check_docker():
      1  Test run OK
     """
     try:
-        ret = subprocess.run(
-            ["docker", "version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+        ret = subprocess.run(["docker", "version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except OSError as e:
         from errno import ENOENT
 
@@ -117,9 +113,7 @@ def check_memory(image):
         return -1
 
     mem = [
-        line.decode().split()[1]
-        for line in ret.stdout.splitlines()
-        if line.startswith(b"Mem:")
+        line.decode().split()[1] for line in ret.stdout.splitlines() if line.startswith(b"Mem:")
     ][0]
     return int(mem)
 
@@ -170,7 +164,9 @@ def merge_help(wrapper_help, target_help):
 
     # Make sure we're not clobbering options we don't mean to
     overlap = set(w_flags).intersection(t_flags)
-    expected_overlap = set(["h", "version", "w", "fs-license-file", "use-plugin", "fs-subjects-dir"])
+    expected_overlap = set(
+        ["h", "version", "w", "fs-license-file", "use-plugin", "fs-subjects-dir"]
+    )
 
     assert overlap == expected_overlap, "Clobbering options: {}".format(
         ", ".join(overlap - expected_overlap)
@@ -339,12 +335,8 @@ def get_parser():
         metavar=("ENV_VAR", "value"),
         help="Set custom environment variable within container",
     )
-    g_dev.add_argument(
-        "-u", "--user", action="store", help="Run container as a given user/uid"
-    )
-    g_dev.add_argument(
-        "--no-tty", action="store_true", help="Run docker without TTY flag -it"
-    )
+    g_dev.add_argument("-u", "--user", action="store", help="Run container as a given user/uid")
+    g_dev.add_argument("--no-tty", action="store_true", help="Run docker without TTY flag -it")
 
     return parser
 
@@ -398,10 +390,7 @@ def main():
             "Do you have permission to run docker?"
         )
         return 1
-    if (
-        not (opts.help or opts.version or "--reports-only" in unknown_args)
-        and mem_total < 8000
-    ):
+    if not (opts.help or opts.version or "--reports-only" in unknown_args) and mem_total < 8000:
         print(
             "Warning: <8GB of RAM is available within your Docker "
             "environment.\nSome parts of sMRIPrep may fail to complete."
@@ -445,9 +434,7 @@ def main():
         command.extend(["-u", opts.user])
 
     if opts.fs_license_file:
-        command.extend(
-            ["-v", "{}:/opt/freesurfer/license.txt:ro".format(opts.fs_license_file)]
-        )
+        command.extend(["-v", "{}:/opt/freesurfer/license.txt:ro".format(opts.fs_license_file)])
 
     main_args = []
     if opts.bids_dir:
@@ -467,9 +454,7 @@ def main():
         unknown_args.extend(['--fs-subjects-dir', '/opt/subjects'])
 
     if opts.config:
-        command.extend(
-            ["-v", ":".join((opts.config, "/home/smriprep/.nipype/nipype.cfg", "ro"))]
-        )
+        command.extend(["-v", ":".join((opts.config, "/home/smriprep/.nipype/nipype.cfg", "ro"))])
 
     if opts.use_plugin:
         command.extend(["-v", ":".join((opts.use_plugin, "/tmp/plugin.yml", "ro"))])
