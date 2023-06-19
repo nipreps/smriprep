@@ -233,9 +233,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     fsnative2t1w_xfm = pe.Node(
         RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
     )
-    t1w2fsnative_xfm = pe.Node(
-        LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm"
-    )
+    t1w2fsnative_xfm = pe.Node(LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
     gifti_surface_wf = init_gifti_surface_wf()
@@ -371,9 +369,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=["subjects_dir", "subject_id", "use_T2", "use_FLAIR"]
-        ),
+        niu.IdentityInterface(fields=["subjects_dir", "subject_id", "use_T2", "use_FLAIR"]),
         name="inputnode",
     )
 
@@ -434,9 +430,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     # -parcstats* can be run per-hemisphere
     # -hyporelabel is volumetric, even though it's part of -autorecon-hemi
     parcstats = pe.MapNode(
-        ReconAll(
-            directive="autorecon-hemi", flags=["-nohyporelabel"], openmp=omp_nthreads
-        ),
+        ReconAll(directive="autorecon-hemi", flags=["-nohyporelabel"], openmp=omp_nthreads),
         iterfield="hemi",
         n_procs=omp_nthreads,
         mem_gb=5,
@@ -458,9 +452,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     def _dedup(in_list):
         vals = set(in_list)
         if len(vals) > 1:
-            raise ValueError(
-                f"Non-identical values can't be deduplicated:\n{in_list!r}"
-            )
+            raise ValueError(f"Non-identical values can't be deduplicated:\n{in_list!r}")
         return vals.pop()
 
     # fmt:off
@@ -608,9 +600,7 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="midthickness",
     )
 
-    save_midthickness = pe.Node(
-        nio.DataSink(parameterization=False), name="save_midthickness"
-    )
+    save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
 
     surface_list = pe.Node(
         niu.Merge(4, ravel_inputs=True),
@@ -618,7 +608,9 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         run_without_submitting=True,
     )
     fs2gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii", to_scanner=True), iterfield="in_file", name="fs2gii",
+        fs.MRIsConvert(out_datatype="gii", to_scanner=True),
+        iterfield="in_file",
+        name="fs2gii",
     )
     fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
     surfmorph_list = pe.Node(
@@ -628,7 +620,8 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
     )
     morphs2gii = pe.MapNode(
         MRIsConvertData(out_datatype="gii"),
-        iterfield="scalarcurv_file", name="morphs2gii",
+        iterfield="scalarcurv_file",
+        name="morphs2gii",
     )
 
     # fmt:off
@@ -696,9 +689,7 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     """
     workflow = Workflow(name=f"{name}_{segmentation}")
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            ["in_file", "subjects_dir", "subject_id", "fsnative2t1w_xfm"]
-        ),
+        niu.IdentityInterface(["in_file", "subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
         name="inputnode",
     )
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
@@ -1109,4 +1100,4 @@ def _sorted_by_basename(inlist):
 
 
 def _collate(files):
-    return [files[i:i + 2] for i in range(0, len(files), 2)]
+    return [files[i : i + 2] for i in range(0, len(files), 2)]

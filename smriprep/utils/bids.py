@@ -101,9 +101,7 @@ def predict_derivatives(subject_id, output_spaces, freesurfer):
             query["to"] = output_spaces
         return query
 
-    queries = [
-        _normalize_q(q, space=None) for q in spec["queries"]["baseline"].values()
-    ]
+    queries = [_normalize_q(q, space=None) for q in spec["queries"]["baseline"].values()]
 
     queries += [
         _normalize_q(q, space=s)

@@ -263,6 +263,7 @@ class MRIsConvertData(fs.utils.MRIsConvert):
     Wraps mris_convert to automatically select the correct ?h.white surface if
     passed a file from the subject's surf/ directory
     """
+
     input_spec = _MRIsConvertDataInputSpec
 
     def _gen_filename(self, name):
