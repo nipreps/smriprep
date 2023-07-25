@@ -10,7 +10,7 @@ attrs==23.1.0
     # via niworkflows
 bids-validator==1.11.0
     # via pybids
-certifi==2023.5.7
+certifi==2023.7.22
     # via requests
 charset-normalizer==3.1.0
     # via requests
