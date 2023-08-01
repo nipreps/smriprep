@@ -71,6 +71,7 @@ def init_anat_preproc_wf(
     longitudinal,
     t1w,
     t2w,
+    flair,
     omp_nthreads,
     output_dir,
     skull_strip_mode,
@@ -344,21 +345,13 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         niu.IdentityInterface(fields=["t1w_brain", "t1w_mask"]), name="buffernode"
     )
 
-    # 0.1 Optional: gradient distortion correction
-    if gradunwarp_file:
-        gradunwarp_t1w_wf = init_gradunwarp_wf("gradunwarp_t1w")
-        gradunwarp_t1w_wf.input_node.gradfile = gradunwarp_file
-        gradunwarp_t2w_wf = init_gradunwarp_wf("gradunwarp_t2w")
-        gradunwarp_t2w_wf.input_node.gradfile = gradunwarp_file
-        gradunwarp_flair_wf = init_gradunwarp_wf("gradunwarp_flair")
-        gradunwarp_flair_wf.input_node.gradfile = gradunwarp_file
-
     # 1. Anatomical reference generation - average input T1w images.
     anat_template_wf = init_anat_template_wf(
         longitudinal=longitudinal,
         omp_nthreads=omp_nthreads,
         num_files=num_t1w,
         contrast="T1w",
+        gradunwarp_file=gradunwarp_file,
     )
 
     anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
@@ -407,20 +400,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         omp_nthreads=omp_nthreads,
         templates=spaces.get_spaces(nonstandard=False, dim=(3,)),
     )
-
-
-    if gradunwarp_file:
-    # fmt:off
-        workflow.connect([
-            # Step 1.
-            (inputnode, gradunwarp_t1w, [('t1w', 'inputnode.input_file')]),
-            (inputnode, gradunwarp_t2w, [('t2w', 'inputnode.input_file')]),
-            (inputnode, gradunwarp_flair, [('flair', 'inputnode.input_file')]),
-            (gradunwarp_t1w.corrected_file, anat_template_wf, [('corrected_file', 'inputnode.t1w')]),
-            ])
-    else:
-        workflow.connect([(inputnode, anat_template_wf, [('t1w', 'inputnode.t1w')])])
-    # fmt:on
 
     # fmt:off
     workflow.connect([
@@ -567,6 +546,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             num_files=len(t2w),
             contrast="T2w",
             name="t2w_template_wf",
+            gradunwarp_file=gradunwarp_file,
         )
         bbreg = pe.Node(
             fs.BBRegister(
@@ -612,22 +592,14 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # Anatomical ribbon file using HCP signed-distance volume method
     anat_ribbon_wf = init_anat_ribbon_wf()
     # fmt:off
-    if gradunwarp_file:
-        workflow.connect([
-            (gradunwarp_t2w.corrected_file, surface_recon_wf, [('corrected_file', 'inputnode.t2w')]),
-            (gradunwarp_flair.corrected_file, surface_recon_wf, [('corrected_file', 'inputnode.flair')]),
-            ])
-    else:
-        workflow.connect([(inputnode, surface_recon_wf, [
-            ('t2w', 'inputnode.t2w'),
-            ('flair', 'inputnode.flair'),
-            ])])
 
     workflow.connect([
         (inputnode, fs_isrunning, [
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id')]),
         (inputnode, surface_recon_wf, [
+            ('t2w', 'inputnode.t2w'),
+            ('flair', 'inputnode.flair'),
             ('subject_id', 'inputnode.subject_id')]),
         (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
@@ -711,6 +683,7 @@ def init_anat_template_wf(
     num_files: int,
     contrast: str,
     name: str = "anat_template_wf",
+    gradunwarp_file: str = None,
 ):
     """
     Generate a canonically-oriented, structural average from all input images.
@@ -738,6 +711,8 @@ def init_anat_template_wf(
         Name of contrast, for reporting purposes, e.g., T1w, T2w, PDw
     name : :obj:`str`, optional
         Workflow name (default: anat_template_wf)
+    gradunwarp_file : :obj:`str`, optional
+        Gradient unwarping filename (default: None)
 
     Inputs
     ------
@@ -783,6 +758,21 @@ An anatomical {contrast}-reference map was computed after registration of
     )
     anat_conform = pe.MapNode(Conform(), iterfield="in_file", name="anat_conform")
 
+    # 0.5 Gradient unwarping (optional)
+    if gradunwarp_file:
+        gradunwarp_wf = init_gradunwarp_wf("gradunwarp")
+        gradunwarp_wf.inputs.inputnode.grad_file = gradunwarp_file
+        # fmt:off
+        workflow.connect([
+            (denoise, gradunwarp_wf, [('output_image', 'inputnode.input_file')]),
+            (gradunwarp_wf, anat_conform, [('outputnode.corrected_file', 'in_file')]),
+        ])
+    else:
+        workflow.connect([
+            (denoise, anat_conform, [('output_image', 'in_file')]),
+        ])
+        # fmt:on
+
     # fmt:off
     workflow.connect([
         (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
@@ -791,7 +781,6 @@ An anatomical {contrast}-reference map was computed after registration of
             ('target_zooms', 'target_zooms'),
             ('target_shape', 'target_shape'),
         ]),
-        (denoise, anat_conform, [('output_image', 'in_file')]),
         (anat_ref_dimensions, outputnode, [
             ('out_report', 'out_report'),
             ('t1w_valid_list', 'anat_valid_list'),
