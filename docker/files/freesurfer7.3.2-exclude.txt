@@ -1,9 +1,3 @@
-freesurfer/average/3T18yoSchwartzReactN32_as_orig.4dfp.hdr
-freesurfer/average/3T18yoSchwartzReactN32_as_orig.4dfp.ifh
-freesurfer/average/3T18yoSchwartzReactN32_as_orig.4dfp.img
-freesurfer/average/3T18yoSchwartzReactN32_as_orig.4dfp.img.rec
-freesurfer/average/3T18yoSchwartzReactN32_as_orig.4dfp.mat
-freesurfer/average/3T18yoSchwartzReactN32_as_orig.lst
 freesurfer/average/711-2B_as_mni_average_305.4dfp.hdr
 freesurfer/average/711-2B_as_mni_average_305.4dfp.ifh
 freesurfer/average/711-2B_as_mni_average_305.4dfp.img
