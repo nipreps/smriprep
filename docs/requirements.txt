@@ -2,7 +2,7 @@ git+https://github.com/AleksandarPetrov/napoleon.git@0dc3f28a309ad602be5f44a9049
 git+https://github.com/effigies/sphinxcontrib-versioning.git@master
 nbsphinx
 nipype >= 1.5.1
-niworkflows >= 1.4.0, <1.6
+niworkflows >= 1.8.0
 packaging
 pydot
 sphinx-argparse
