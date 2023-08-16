@@ -4,7 +4,7 @@ _machine_defaults: &machine_defaults
     TZ: "/usr/share/zoneinfo/America/Los_Angeles"
     SCRATCH: "/scratch"
   machine:
-    image: ubuntu-2204:current
+    image: ubuntu-2204:2023.04.2
     docker_layer_caching: true
   working_directory: /tmp/src/smriprep
   resource_class: large
@@ -159,8 +159,8 @@ jobs:
           paths:
             - src/smriprep
       - save_cache:
-         key: build-v1-{{ .Branch }}-{{ .Revision }}
-         paths:
+          key: build-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
             - /tmp/docker
             - /tmp/images
 
@@ -176,8 +176,8 @@ jobs:
             docker exec -it registry /bin/registry garbage-collect --delete-untagged \
                 /etc/docker/registry/config.yml
       - save_cache:
-         key: build-v1-{{ .Branch }}-{{ .Revision }}
-         paths:
+          key: build-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
             - /tmp/docker
             - /tmp/images
 
@@ -468,8 +468,8 @@ jobs:
             rm -rf /tmp/ds005/work/reportlets
             rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
       - save_cache:
-         key: ds005-anat-v9-{{ .Branch }}-{{ epoch }}
-         paths:
+          key: ds005-anat-v9-{{ .Branch }}-{{ epoch }}
+          paths:
             - /tmp/ds005/work
 
       - run:
@@ -600,8 +600,8 @@ jobs:
             sudo chown $(id -un):$(id -gn) -R /tmp/ds054
             rm -rf /tmp/ds054/work/reportlets
       - save_cache:
-         key: ds054-anat-v7-{{ .Branch }}-{{ epoch }}
-         paths:
+          key: ds054-anat-v7-{{ .Branch }}-{{ epoch }}
+          paths:
             - /tmp/ds054/work
       - run:
           name: Checking outputs of sMRIPrep
@@ -844,7 +844,6 @@ workflows:
                 - /ds005\/.*/
             tags:
               only: /.*/
-
 
       - deploy_docs_master:
           requires:
