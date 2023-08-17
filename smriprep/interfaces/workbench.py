@@ -144,6 +144,177 @@ class CreateSignedDistanceVolume(WBCommand):
     _cmd = "wb_command -create-signed-distance-volume"
 
 
+class SurfaceAffineRegressionInputSpec(CommandLineInputSpec):
+    in_surface = File(
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=0,
+        desc="Surface to warp",
+    )
+    target_surface = File(
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=1,
+        desc="Surface to match the coordinates of",
+    )
+    out_affine = File(
+        name_template="%s_xfm",
+        name_source=["in_surface"],
+        argstr="%s",
+        position=2,
+        desc="the output affine file",
+    )
+
+
+class SurfaceAffineRegressionOutputSpec(TraitedSpec):
+    out_affine = File(desc="The output affine file")
+
+
+class SurfaceAffineRegression(WBCommand):
+    """
+    REGRESS THE AFFINE TRANSFORM BETWEEN SURFACES ON THE SAME MESH
+    wb_command -surface-affine-regression
+      <source> - the surface to warp
+      <target> - the surface to match the coordinates of
+      <affine-out> - output - the output affine file
+
+    Use linear regression to compute an affine that minimizes the sum of
+    squares of the coordinate differences between the target surface and the
+    warped source surface.  Note that this has a bias to shrink the surface
+    that is being warped.  The output is written as a NIFTI 'world' matrix,
+    see -convert-affine to convert it for use in other software.
+    """
+    input_spec = SurfaceAffineRegressionInputSpec
+    output_spec = SurfaceAffineRegressionOutputSpec
+    _cmd = "wb_command -surface-affine-regression"
+
+
+class SurfaceApplyAffineInputSpec(CommandLineInputSpec):
+    in_surface = File(
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=0,
+        desc="the surface to transform",
+    )
+    affine = File(
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=1,
+        desc="the affine file",
+    )
+    out_surface = File(
+        name_template="%s_xformed.surf.gii",
+        name_source=["in_surface"],
+        argstr="%s",
+        position=2,
+        desc="the output transformed surface",
+    )
+    flirt_source = File(
+        exists=True,
+        requires=["flirt_target"],
+        argstr="-flirt %s",
+        position=3,
+        desc="Source volume (must be used if affine is a flirt affine)",
+    )
+    flirt_target = File(
+        exists=True,
+        requires=["flirt_source"],
+        argstr="%s",
+        position=4,
+        desc="Target volume (must be used if affine is a flirt affine)",
+    )
+
+
+class SurfaceApplyAffineOutputSpec(TraitedSpec):
+    out_surface = File(desc="the output transformed surface")
+
+
+class SurfaceApplyAffine(WBCommand):
+    """
+    APPLY AFFINE TRANSFORM TO SURFACE FILE
+    wb_command -surface-apply-affine
+      <in-surf> - the surface to transform
+      <affine> - the affine file
+      <out-surf> - output - the output transformed surface
+
+      [-flirt] - MUST be used if affine is a flirt affine
+         <source-volume> - the source volume used when generating the affine
+         <target-volume> - the target volume used when generating the affine
+
+    For flirt matrices, you must use the -flirt option, because flirt
+    matrices are not a complete description of the coordinate transform they
+    represent.  If the -flirt option is not present, the affine must be a
+    nifti 'world' affine, which can be obtained with the -convert-affine
+    command, or aff_conv from the 4dfp suite.
+    """
+    input_spec = SurfaceApplyAffineInputSpec
+    output_Spec = SurfaceApplyAffineOutputSpec
+    _cmd = "wb_command -surface-apply-affine"
+
+
+class SurfaceApplyWarpfieldInputSpec(CommandLineInputSpec):
+    in_surface = File(
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=0,
+        desc="the surface to transform",
+    )
+    warpfield = File(
+        exists=True,
+        mandatory=True,
+        argstr="%s",
+        position=1,
+        desc="the INVERSE warpfield",
+    )
+    out_surface = File(
+        name_template="%s_warped.surf.gii",
+        name_source=["in_surface"],
+        argstr="%s",
+        position=2,
+        desc="the output transformed surface",
+    )
+    fnirt_forward_warp = File(
+        exists=True,
+        argstr="-fnirt %s",
+        position=3,
+        desc="the forward warpfield (must be used if fnirt warpfield)",
+    )
+
+
+class SurfaceApplyWarpfieldOutputSpec(TraitedSpec):
+    out_surface = File(desc="the output transformed surface")
+
+
+class SurfaceApplyWarpfield(WBCommand):
+    """
+    APPLY WARPFIELD TO SURFACE FILE
+    wb_command -surface-apply-warpfield
+      <in-surf> - the surface to transform
+      <warpfield> - the INVERSE warpfield
+      <out-surf> - output - the output transformed surface
+
+      [-fnirt] - MUST be used if using a fnirt warpfield
+         <forward-warp> - the forward warpfield
+
+    NOTE: warping a surface requires the INVERSE of the warpfield used to
+    warp the volume it lines up with.  The header of the forward warp is
+    needed by the -fnirt option in order to correctly interpret the
+    displacements in the fnirt warpfield.
+
+    If the -fnirt option is not present, the warpfield must be a nifti
+    'world' warpfield, which can be obtained with the -convert-warpfield
+    command.
+    """
+    input_spec = SurfaceApplyWarpfieldInputSpec
+    output_spec = SurfaceApplyWarpfieldOutputSpec
+    _cmd = "wb_command -surface-apply-warpfield"
+
+
 class SurfaceSphereProjectUnprojectInputSpec(TraitedSpec):
     """COPY REGISTRATION DEFORMATIONS TO DIFFERENT SPHERE.
 
