@@ -241,6 +241,10 @@ ENV LANG="C.UTF-8" \
     FSLREMOTECALL="" \
     FSLGECUDAQ="cuda.q"
 
+# MSM
+RUN curl -L -H "Accept: application/octet-stream" https://api.github.com/repos/ecr05/MSM_HOCR/releases/assets/16253707 -o /usr/local/bin/msm \
+    && chmod +x /usr/local/bin/msm
+
 # Unless otherwise specified each process should only use one thread - nipype
 # will handle parallelization
 ENV MKL_NUM_THREADS=1 \
