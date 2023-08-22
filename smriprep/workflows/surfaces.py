@@ -574,15 +574,29 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
 
     Outputs
     -------
+    midthickness
+        Left and right midthickness (or graymid) surface GIFTIs
+    pial
+        Left and right pial surface GIFTIs
+    white
+        Left and right white surface GIFTIs
+    inflated
+        Left and right inflated surface GIFTIs
     surfaces
         GIFTI surfaces for gray/white matter boundary, pial surface,
         midthickness (or graymid) surface, and inflated surfaces
+    thickness
+        Left and right cortical thickness GIFTIs
+    sulc
+        Left and right sulcal depth map GIFTIs
+    curv
+        Left and right curvature map GIFTIs
     morphometrics
         GIFTIs of cortical thickness, curvature, and sulcal depth
 
     """
     from ..interfaces.freesurfer import MRIsConvertData
-    from ..interfaces.surf import NormalizeSurf
+    from ..interfaces.surf import NormalizeSurf, AggregateSurfaces
 
     workflow = Workflow(name=name)
 
@@ -590,7 +604,21 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         niu.IdentityInterface(["subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
         name="inputnode",
     )
-    outputnode = pe.Node(niu.IdentityInterface(["surfaces", "morphometrics"]), name="outputnode")
+    outputnode = pe.Node(
+        niu.IdentityInterface([
+            "pial",
+            "white",
+            "inflated",
+            "midthickness",
+            "thickness",
+            "sulc",
+            "curv",
+            # Preserve grouping
+            "surfaces",
+            "morphometrics",
+        ]),
+        name="outputnode"
+    )
 
     get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 
@@ -624,6 +652,8 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="morphs2gii",
     )
 
+    agg_surfaces = pe.Node(AggregateSurfaces(), name="agg_surfaces")
+
     # fmt:off
     workflow.connect([
         (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
@@ -648,6 +678,16 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
                                         ('curv', 'in3')]),
         (surfmorph_list, morphs2gii, [('out', 'scalarcurv_file')]),
         (morphs2gii, outputnode, [('converted', 'morphometrics')]),
+        # Output individual surfaces as well
+        (fix_surfs, agg_surfaces, [('out_file', 'surfaces')]),
+        (morphs2gii, agg_surfaces, [('converted', 'morphometrics')]),
+        (agg_surfaces, outputnode, [('pial', 'pial'),
+                                    ('white', 'white'),
+                                    ('inflated', 'inflated'),
+                                    ('midthickness', 'midthickness'),
+                                    ('thickness', 'thickness'),
+                                    ('sulc', 'sulc'),
+                                    ('curv', 'curv')]),
     ])
     # fmt:on
     return workflow
