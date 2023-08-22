@@ -52,6 +52,7 @@ def init_smriprep_wf(
     layout,
     longitudinal,
     low_mem,
+    msm_sulc,
     omp_nthreads,
     output_dir,
     run_uuid,
@@ -123,6 +124,8 @@ def init_smriprep_wf(
         See sub-workflows for specific differences
     low_mem : :obj:`bool`
         Write uncompressed .nii files in some cases to reduce memory usage
+    msm_sulc : :obj:`bool`
+        Run Multimodal Surface Matching with sulcal depth maps
     omp_nthreads : :obj:`int`
         Maximum number of threads an individual process may use
     output_dir : :obj:`str`
@@ -176,6 +179,7 @@ def init_smriprep_wf(
             layout=layout,
             longitudinal=longitudinal,
             low_mem=low_mem,
+            msm_sulc=msm_sulc,
             name="single_subject_%s_wf" % subject_id,
             omp_nthreads=omp_nthreads,
             output_dir=output_dir,
@@ -210,6 +214,7 @@ def init_single_subject_wf(
     layout,
     longitudinal,
     low_mem,
+    msm_sulc,
     name,
     omp_nthreads,
     output_dir,
@@ -409,6 +414,7 @@ to workflows in *sMRIPrep*'s documentation]\
         freesurfer=freesurfer,
         hires=hires,
         longitudinal=longitudinal,
+        msm_sulc=msm_sulc,
         name="anat_preproc_wf",
         t1w=subject_data["t1w"],
         t2w=subject_data["t2w"],
