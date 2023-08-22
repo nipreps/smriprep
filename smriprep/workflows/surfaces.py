@@ -1230,16 +1230,6 @@ surface space.
     return workflow
 
 
-def _extract_sulcs(in_files):
-    from pathlib import Path
-
-    sulcs = []
-    for fl in _sorted_by_basename(in_files):
-        if 'sulc' in Path(fl).name:
-            sulcs.append(fl)
-    return sulcs
-
-
 def _check_cw256(in_files, default_flags):
     import numpy as np
     from nibabel.funcs import concat_images
