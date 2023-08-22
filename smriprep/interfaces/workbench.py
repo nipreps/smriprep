@@ -199,7 +199,7 @@ class SurfaceApplyAffineInputSpec(CommandLineInputSpec):
         position=0,
         desc="the surface to transform",
     )
-    affine = File(
+    in_affine = File(
         exists=True,
         mandatory=True,
         argstr="%s",
