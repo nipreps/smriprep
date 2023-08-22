@@ -76,6 +76,10 @@ class MSMInputSpec(CommandLineInputSpec):
         argstr="--smoothout=%d",
         desc="smooth tranformed output with this sigma (default=0)",
     )
+    verbose = traits.Bool(
+        argstr="--verbose",
+        desc="switch on diagnostic messages",
+    )
 
 
 class MSMOutputSpec(TraitedSpec):

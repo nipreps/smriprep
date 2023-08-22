@@ -49,6 +49,7 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
+import templateflow.api as tf
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
@@ -501,7 +502,7 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, name: str = "sphere_reg_wf"):
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(["subjects_dir", "subject_id", "morphometrics"]),
+        niu.IdentityInterface(["subjects_dir", "subject_id", "sulc"]),
         name="inputnode",
     )
     outputnode = pe.Node(
@@ -550,19 +551,22 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, name: str = "sphere_reg_wf"):
         (sphere_gii, fix_meta, [('converted', 'in_file')]),
         (fix_meta, project_unproject, [('out_file', 'sphere_in')]),
         (sphere_gii, outputnode, [('converted', 'sphere_reg')]),
-        (project_unproject, outputnode, [('sphere_out', 'sphere_reg_fsLR')]),
     ])
     # fmt:on
 
-    if msm_sulc:
-        msm_sulc_wf = init_msm_sulc_wf()
+    if not msm_sulc:
+        workflow.connect(project_unproject, 'sphere_out', outputnode, 'sphere_reg_fsLR')
+        return workflow
 
-        select_sulc = pe.Node()
-
-        workflow.connect([
-            (get_surfaces, msm_sulc_wf, [(('sulc', _sorted_by_basename), 'inputnode.sulc_gii')]),
-        ])
-
+    msm_sulc_wf = init_msm_sulc_wf()
+    # fmt:off
+    workflow.connect([
+        (inputnode, msm_sulc_wf, [('sulc', 'inputnode.sulc')]),
+        (sphere_gii, msm_sulc_wf, [('converted', 'inputnode.sphere_reg')]),
+        (project_unproject, msm_sulc_wf, [('sphere_out', 'inputnode.sphere_reg_fsLR')]),
+        (msm_sulc_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
+    ])
+    # fmt:on
     return workflow
 
 
@@ -572,7 +576,7 @@ def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
     from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
 
     workflow = Workflow(name=name)
-    inputnode = pe.Node(niu.IdentityInterface(fields=['sulc_gii', 'sphere_reg', 'sphere_reg_fsLR']))
+    inputnode = pe.Node(niu.IdentityInterface(fields=['sulc', 'sphere_reg', 'sphere_reg_fsLR']))
     outputnode = pe.Node(niu.IdentityInterface(fields=['sphere_reg_fsLR']))
 
     # 0) Calculate affine
@@ -596,11 +600,7 @@ def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
         iterfield=['in_surface', 'affine'],
         name='apply_surface_affine',
     )
-
     # 2) Run MSMSulc
-    # Requires https://github.com/ecr05/MSM_HOCR/releases
-    # inmesh is the sulc map from the subject's fMRIPrep anat derivatives
-    # config is HCP https://github.com/Washington-University/HCPpipelines/blob/master/MSMConfig/MSMSulcStrainFinalconf
     # ./msm_centos_v3 --conf=MSMSulcStrainFinalconf \
     # --inmesh=${SUB}.${HEMI}.sphere_rot.native.surf.gii
     # --refmesh=fsaverage.${HEMI}_LR.spherical_std.164k_fs_LR.surf.gii
@@ -613,59 +613,43 @@ def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
         name='msmsulc',
         # memory?
     )
-
+    msmsulc.inputs.reference_data = [
+        str(
+            tf.get(
+                'fsaverage',
+                hemi=hemi,
+                density='164k',
+                desc='std',
+                suffix='sphere',
+                extension='.surf.gii',
+            )
+        )
+        for hemi in 'LR'
+    ]
+    msmsulc.inputs.reference_mesh = [
+        str(
+            tf.get(
+                'fsaverage',
+                hemi=hemi,
+                density='164k',
+                suffix='sulc',
+                extension='.shape.gii',
+            )
+        )
+        for hemi in 'LR'
+    ]
+    # fmt:off
     workflow.connect([
         (inputnode, regress_affine, [('sphere_reg', 'in_surface'),
                                      ('sphere_reg_fsLR', 'target_surface')]),
         (inputnode, apply_surface_affine, [('sphere_reg', 'in_surface')]),
         (regress_affine, apply_surface_affine, [('out_affine', 'in_affine')]),
-        # (inputnode, msmsulc, [('sulc_gii',)])
+        (inputnode, msmsulc, [('sulc', 'in_data')]),
         (apply_surface_affine, msmsulc, [('out_surface', 'in_mesh')]),
-
+        (msmsulc, outputnode, [('warped_mesh', 'sphere_reg_fsLR')]),
     ])
-
-
-    # 3) Resample native surfaces to 32k using MSM registration (do for both white and pial)
-    # wb_command -surface-resample \
-    # /fmriprep_out/sub-MSC02/ses-res03to06/anat/sub-MSC02_ses-res03to06_hemi-L_pial.surf.gii \
-    # /hackathon_MSM/L.sphere.reg.surf.gii \
-    # /home/feczk001/tmadison/.cache/templateflow/tpl-fsLR/tpl-fsLR_hemi-L_den-32k_sphere.surf.gii \
-    # BARYCENTRIC \
-    # resampled_sub-MSC02_ses-res03to06_hemi-L_pial.surf.gii
-    ## L.sphere.reg.surf.gii is the registration sphere output by MSM
-
-    # 4) Apply T1w-to-MNI affine and warpfield xfms (XCP-D)??
-    # wb_command -surface-apply-affine \
-    # /wkdir/xcpd_wf/single_subject_MSC02_wf/postprocess_surfaces_wf/warp_surfaces_to_template_wf/lh_apply_transforms_wf/resample_to_fsLR32k/mapflow/_resample_to_fsLR32k0/resampled_sub-MSC02_ses-res03to06_hemi-L_pial.surf.gii \
-    # /wkdir/xcpd_wf/single_subject_MSC02_wf/postprocess_surfaces_wf/warp_surfaces_to_template_wf/update_xfm_wf/convert_xfm2world/00_T1w_to_MNI152NLin6Asym_AffineTransform_MatrixOffsetTransformBase_world.nii.gz \
-    # MNIAffine_resampled_sub-MSC02_ses-res03to06_hemi-L_pial.surf.gii
-    #
-    # wb_command -surface-apply-warpfield \
-    # /wkdir/xcpd_wf/single_subject_${SUB}_wf/postprocess_surfaces_wf/warp_surfaces_to_template_wf/lh_apply_transforms_wf/apply_affine_to_fsLR32k/mapflow/_apply_affine_to_fsLR32k0/MNIAffine_resampled_sub-${SUB}_ses-${SES}_hemi-L_pial.surf.gii \
-    # /wkdir/xcpd_wf/single_subject_${SUB}_wf/postprocess_surfaces_wf/warp_surfaces_to_template_wf/update_xfm_wf/remerge_inv_warpfield/concat_4d.nii.gz \
-    # MNIwarped_MNIAffine_resampled_sub-${SUB}_ses-${SES}_hemi-L_pial.surf.gii \
-    # -fnirt /wkdir/xcpd_wf/single_subject_${SUB}_wf/postprocess_surfaces_wf/warp_surfaces_to_template_wf/update_xfm_wf/remerge_warpfield/concat_4d.nii.gz
-    ## /wkdir is the XCP-D (0.4.x) work directory
-    ## after doing both pial and white, use wb_command -surface-average to make midthickness surfs
-    ## (I then copied those midthickness surfs to /hackathon_MSM/32k_MNIaligned_msm_surfs/MNIwarped_MNIAffine_resampled_sub-${SUB}_ses-${SES}_hemi-L_midthickness.surf.gii)
-
-    # MG: These steps are already implemented, just need to pass new MSM sulc sphere
-        # 5) Resample morphometrics from native to 32k:
-        # wb_command -metric-resample \
-        # /anat/sub-${SUB}_ses-${SES}_hemi-L_curv.shape.gii /hackathon_MSM/L.sphere.reg.surf.gii  \
-        # /home/feczk001/tmadison/.cache/templateflow/tpl-fsLR/tpl-fsLR_hemi-L_den-32k_sphere.surf.gii \
-        # ADAP_BARY_AREA \
-        # space-fsLR_hemi-L_den-91k_curv.shape.gii \
-        # -area-surfs \
-        # /anat/sub-${SUB}_ses-${SES}_hemi-L_midthickness.surf.gii \
-        # /hackathon_MSM/32k_MNIaligned_msm_surfs/MNIwarped_MNIAffine_resampled_sub-${SUB}_ses-${SES}_hemi-L_midthickness.surf.gii
-
-        # 6) Resample BOLD timeseries
-        # wb_command -metric-resample /wd/fmriprep_23_1_wf/single_subject_${SUB}_wf/func_preproc_ses_${SES}_task_${TASK}_run_${RUN}_echo_1_wf/bold_fsLR_resampling_wf/_hemi_L/metric_dilate/lh.midthickness_converted_mapped.func.func.gii /hackathon_MSM/L.sphere.reg.surf.gii /home/feczk001/tmadison/.cache/templateflow/tpl-fsLR/tpl-fsLR_hemi-L_den-32k_sphere.surf.gii ADAP_BARY_AREA /hackathon_MSM/sub-${SUB}_ses-${SES}_task-${TASK}_run-${RUN}_space-fsLR_hemi-L_den-32k_bold.func.gii -area-surfs /wd/fmriprep_23_1_wf/single_subject_${SUB}_wf/anat_preproc_wf/surface_recon_wf/gifti_surface_wf/fix_surfs/mapflow/_fix_surfs*/lh.midthickness_converted.gii /hackathon_MSM/32k_MNIaligned_msm_surfs/MNIwarped_MNIAffine_resampled_sub-${SUB}_ses-${SES}_hemi-L_midthickness.surf.gii
-
-        # 7) Reorient subcortical BOLD to LAS
-
-        # 8) Make timeseries
+    # fmt:on
+    return workflow
 
 
 def init_gifti_surface_wf(*, name="gifti_surface_wf"):
@@ -1096,7 +1080,6 @@ def init_morph_grayords_wf(
         Paths to JSON files containing metadata corresponding to ``cifti_morph``
 
     """
-    import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
     from smriprep.interfaces.cifti import GenerateDScalar
 
