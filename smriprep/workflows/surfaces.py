@@ -306,7 +306,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                                         ('outputnode.pial', 'pial'),
                                         ('outputnode.white', 'white'),
                                         ('outputnode.inflated', 'inflated'),
-                                        ('outputnode.morphometrics', 'morphometrics'),
                                         ('outputnode.thickness', 'thickness'),
                                         ('outputnode.sulc', 'sulc'),
                                         ('outputnode.curv', 'curv')]),
