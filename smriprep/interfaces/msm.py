@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from nipype.interfaces.base import (
     CommandLine,
     CommandLineInputSpec,
@@ -14,9 +16,9 @@ class MSMInputSpec(CommandLineInputSpec):
         argstr="--inmesh=%s",
         desc="input mesh (available formats: VTK, ASCII, GIFTI). Needs to be a sphere",
     )
-    out_file = File(
+    out_base = File(
         name_source=["in_mesh"],
-        name_template="msm_%s",
+        name_template="%s_msm",
         argstr="--out=%s",
         desc="output basename",
     )
@@ -112,5 +114,17 @@ class MSM(CommandLine):
     """
 
     input_spec = MSMInputSpec
-    output_Spec = MSMOutputSpec
+    output_spec = MSMOutputSpec
     _cmd = "msm"
+
+
+    def _list_outputs(self):
+        from nipype.utils.filemanip import split_filename
+
+        outputs = self._outputs().get()
+        out_base = self.inputs.out_base or split_filename(self.inputs.in_mesh)[1]
+        cwd = Path.cwd()
+        outputs['warped_mesh'] = str(cwd / (out_base + 'sphere.reg.surf.gii'))
+        outputs['downsampled_warped_mesh'] = str(cwd / (out_base + 'sphere.LR.reg.surf.gii'))
+        outputs['warped_data'] = str(cwd / (out_base + 'transformed_and_reprojected.func.gii'))
+        return outputs
