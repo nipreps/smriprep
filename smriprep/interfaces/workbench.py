@@ -252,7 +252,7 @@ class SurfaceApplyAffine(WBCommand):
     command, or aff_conv from the 4dfp suite.
     """
     input_spec = SurfaceApplyAffineInputSpec
-    output_Spec = SurfaceApplyAffineOutputSpec
+    output_spec = SurfaceApplyAffineOutputSpec
     _cmd = "wb_command -surface-apply-affine"
 
 
