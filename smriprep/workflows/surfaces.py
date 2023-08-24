@@ -494,7 +494,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     return workflow
 
 
-def init_sphere_reg_wf(*, msm_sulc: bool = False, debug: bool = False, name: str = "sphere_reg_wf"):
+def init_sphere_reg_wf(*, msm_sulc: bool = False, name: str = "sphere_reg_wf"):
     """Generate GIFTI registration files to fsLR space"""
     from ..interfaces.surf import FixGiftiMetadata
     from ..interfaces.workbench import SurfaceSphereProjectUnproject
@@ -514,11 +514,11 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, debug: bool = False, name: str
     # Via FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
     #
     # See https://github.com/DCAN-Labs/DCAN-HCP/tree/9291324
-    sphere_gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_gii"
+    sphere_reg_gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_reg_gii"
     )
 
-    fix_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_meta")
+    fix_reg_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_reg_meta")
 
     # Via
     # ${CARET7DIR}/wb_command -surface-sphere-project-unproject
@@ -547,10 +547,10 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, debug: bool = False, name: str
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id'),
         ]),
-        (get_surfaces, sphere_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
-        (sphere_gii, fix_meta, [('converted', 'in_file')]),
-        (fix_meta, project_unproject, [('out_file', 'sphere_in')]),
-        (sphere_gii, outputnode, [('converted', 'sphere_reg')]),
+        (get_surfaces, sphere_reg_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
+        (sphere_reg_gii, fix_reg_meta, [('converted', 'in_file')]),
+        (fix_reg_meta, project_unproject, [('out_file', 'sphere_in')]),
+        (fix_reg_meta, outputnode, [('converted', 'sphere_reg')]),
     ])
     # fmt:on
 
@@ -558,11 +558,19 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, debug: bool = False, name: str
         workflow.connect(project_unproject, 'sphere_out', outputnode, 'sphere_reg_fsLR')
         return workflow
 
-    msm_sulc_wf = init_msm_sulc_wf(debug=debug)
+    sphere_gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype='gii'), iterfield='in_file', name='sphere_gii',
+    )
+    fix_sphere_meta = pe.MapNode(
+        FixGiftiMetadata(), iterfield='in_file', name='fix_sphere_meta',
+    )
+    msm_sulc_wf = init_msm_sulc_wf()
     # fmt:off
     workflow.connect([
+        (get_surfaces, sphere_gii, [(('sphere', _sorted_by_basename), 'in_file')]),
+        (sphere_gii, fix_sphere_meta, [('converted', 'in_file')]),
+        (fix_sphere_meta, msm_sulc_wf, [('out_file', 'inputnode.sphere')]),
         (inputnode, msm_sulc_wf, [('sulc', 'inputnode.sulc')]),
-        (sphere_gii, msm_sulc_wf, [('converted', 'inputnode.sphere_reg')]),
         (project_unproject, msm_sulc_wf, [('sphere_out', 'inputnode.sphere_reg_fsLR')]),
         (msm_sulc_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
     ])
@@ -570,13 +578,13 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, debug: bool = False, name: str
     return workflow
 
 
-def init_msm_sulc_wf(*, debug: bool = False, name: str = 'msm_sulc_wf'):
+def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
     """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
     from ..interfaces.msm import MSM
     from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
 
     workflow = Workflow(name=name)
-    inputnode = pe.Node(niu.IdentityInterface(fields=['sulc', 'sphere_reg', 'sphere_reg_fsLR']))
+    inputnode = pe.Node(niu.IdentityInterface(fields=['sulc', 'sphere', 'sphere_reg_fsLR']))
     outputnode = pe.Node(niu.IdentityInterface(fields=['sphere_reg_fsLR']))
 
     # 0) Calculate affine
@@ -597,7 +605,7 @@ def init_msm_sulc_wf(*, debug: bool = False, name: str = 'msm_sulc_wf'):
     # ${SUB}.L.sphere_rot.native.surf.gii
     apply_surface_affine = pe.MapNode(
         SurfaceApplyAffine(),
-        iterfield=['in_surface', 'affine'],
+        iterfield=['in_surface', 'in_affine'],
         name='apply_surface_affine',
     )
     # 2) Run MSMSulc
@@ -608,15 +616,13 @@ def init_msm_sulc_wf(*, debug: bool = False, name: str = 'msm_sulc_wf'):
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
     #--out=${HEMI}. --verbose
     msmsulc = pe.MapNode(
-        MSM(config_file=load_resource('smriprep', 'data/msm/MSMSulcStrainFinalconf')),
-        iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data'],
+        MSM(verbose=True, config_file=load_resource('msm/MSMSulcStrainFinalconf')),
+        iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
         name='msmsulc',
         # memory?
     )
-    if debug:
-        msmsulc.inputs.verbose = True
-
-    msmsulc.inputs.reference_data = [
+    msmsulc.inputs.out_base = ['lh.', 'rh.']  # To placate Path2BIDS
+    msmsulc.inputs.reference_mesh = [
         str(
             tf.get(
                 'fsaverage',
@@ -629,7 +635,7 @@ def init_msm_sulc_wf(*, debug: bool = False, name: str = 'msm_sulc_wf'):
         )
         for hemi in 'LR'
     ]
-    msmsulc.inputs.reference_mesh = [
+    msmsulc.inputs.reference_data = [
         str(
             tf.get(
                 'fsaverage',
@@ -643,9 +649,9 @@ def init_msm_sulc_wf(*, debug: bool = False, name: str = 'msm_sulc_wf'):
     ]
     # fmt:off
     workflow.connect([
-        (inputnode, regress_affine, [('sphere_reg', 'in_surface'),
+        (inputnode, regress_affine, [('sphere', 'in_surface'),
                                      ('sphere_reg_fsLR', 'target_surface')]),
-        (inputnode, apply_surface_affine, [('sphere_reg', 'in_surface')]),
+        (inputnode, apply_surface_affine, [('sphere', 'in_surface')]),
         (regress_affine, apply_surface_affine, [('out_affine', 'in_affine')]),
         (inputnode, msmsulc, [('sulc', 'in_data')]),
         (apply_surface_affine, msmsulc, [('out_surface', 'in_mesh')]),
