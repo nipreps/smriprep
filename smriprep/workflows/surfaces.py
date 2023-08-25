@@ -614,7 +614,7 @@ def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
     # --refmesh=fsaverage.${HEMI}_LR.spherical_std.164k_fs_LR.surf.gii
     # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
-    #--out=${HEMI}. --verbose
+    # --out=${HEMI}. --verbose
     msmsulc = pe.MapNode(
         MSM(verbose=True, config_file=load_resource('msm/MSMSulcStrainFinalconf')),
         iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
@@ -1091,6 +1091,7 @@ def init_morph_grayords_wf(
     """
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
     from smriprep.interfaces.cifti import GenerateDScalar
+    import templateflow.api as tf
 
     workflow = Workflow(name=name)
     workflow.__desc__ = f"""\
