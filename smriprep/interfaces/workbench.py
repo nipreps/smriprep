@@ -173,17 +173,17 @@ class SurfaceAffineRegressionOutputSpec(TraitedSpec):
 
 
 class SurfaceAffineRegression(WBCommand):
-    """
-    REGRESS THE AFFINE TRANSFORM BETWEEN SURFACES ON THE SAME MESH
+    """REGRESS THE AFFINE TRANSFORM BETWEEN SURFACES ON THE SAME MESH
+
     wb_command -surface-affine-regression
-      <source> - the surface to warp
-      <target> - the surface to match the coordinates of
-      <affine-out> - output - the output affine file
+       <source> - the surface to warp
+       <target> - the surface to match the coordinates of
+       <affine-out> - output - the output affine file
 
     Use linear regression to compute an affine that minimizes the sum of
     squares of the coordinate differences between the target surface and the
-    warped source surface.  Note that this has a bias to shrink the surface
-    that is being warped.  The output is written as a NIFTI 'world' matrix,
+    warped source surface. Note that this has a bias to shrink the surface
+    that is being warped. The output is written as a NIFTI 'world' matrix,
     see -convert-affine to convert it for use in other software.
     """
     input_spec = SurfaceAffineRegressionInputSpec
@@ -234,16 +234,16 @@ class SurfaceApplyAffineOutputSpec(TraitedSpec):
 
 
 class SurfaceApplyAffine(WBCommand):
-    """
-    APPLY AFFINE TRANSFORM TO SURFACE FILE
-    wb_command -surface-apply-affine
-      <in-surf> - the surface to transform
-      <affine> - the affine file
-      <out-surf> - output - the output transformed surface
+    """APPLY AFFINE TRANSFORM TO SURFACE FILE
 
-      [-flirt] - MUST be used if affine is a flirt affine
-         <source-volume> - the source volume used when generating the affine
-         <target-volume> - the target volume used when generating the affine
+    wb_command -surface-apply-affine
+       <in-surf> - the surface to transform
+       <affine> - the affine file
+       <out-surf> - output - the output transformed surface
+
+       [-flirt] - MUST be used if affine is a flirt affine
+          <source-volume> - the source volume used when generating the affine
+          <target-volume> - the target volume used when generating the affine
 
     For flirt matrices, you must use the -flirt option, because flirt
     matrices are not a complete description of the coordinate transform they
@@ -291,8 +291,8 @@ class SurfaceApplyWarpfieldOutputSpec(TraitedSpec):
 
 
 class SurfaceApplyWarpfield(WBCommand):
-    """
-    APPLY WARPFIELD TO SURFACE FILE
+    """APPLY WARPFIELD TO SURFACE FILE
+
     wb_command -surface-apply-warpfield
       <in-surf> - the surface to transform
       <warpfield> - the INVERSE warpfield
