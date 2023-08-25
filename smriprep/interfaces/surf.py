@@ -35,6 +35,8 @@ from nipype.interfaces.base import (
     SimpleInterface,
     File,
     isdefined,
+    InputMultiObject,
+    traits,
 )
 
 
@@ -113,6 +115,45 @@ class FixGiftiMetadata(SimpleInterface):
 
     def _run_interface(self, runtime):
         self._results["out_file"] = fix_gifti_metadata(self.inputs.in_file, newpath=runtime.cwd)
+        return runtime
+
+
+class AggregateSurfacesInputSpec(TraitedSpec):
+    surfaces = InputMultiObject(File(exists=True), desc="Input surfaces")
+    morphometrics = InputMultiObject(File(exists=True), desc="Input morphometrics")
+
+
+class AggregateSurfacesOutputSpec(TraitedSpec):
+    pial = traits.List(File(), maxlen=2, desc="Pial surfaces")
+    white = traits.List(File(), maxlen=2, desc="White surfaces")
+    inflated = traits.List(File(), maxlen=2, desc="Inflated surfaces")
+    midthickness = traits.List(File(), maxlen=2, desc="Midthickness (or graymid) surfaces")
+    thickness = traits.List(File(), maxlen=2, desc="Cortical thickness maps")
+    sulc = traits.List(File(), maxlen=2, desc="Sulcal depth maps")
+    curv = traits.List(File(), maxlen=2, desc="Curvature maps")
+
+
+class AggregateSurfaces(SimpleInterface):
+    """Aggregate and group surfaces & morphometrics into left/right pairs."""
+    input_spec = AggregateSurfacesInputSpec
+    output_spec = AggregateSurfacesOutputSpec
+
+    def _run_interface(self, runtime):
+        from collections import defaultdict
+        import os
+        import re
+
+        container = defaultdict(list)
+        inputs = (self.inputs.surfaces or []) + (self.inputs.morphometrics or [])
+        findre = re.compile(
+            r'(?:^|[^d])(?P<name>white|pial|inflated|midthickness|thickness|sulc|curv)'
+        )
+        for surface in sorted(inputs, key=os.path.basename):
+            match = findre.search(os.path.basename(surface))
+            if match:
+                container[match.group('name')].append(surface)
+        for name, files in container.items():
+            self._results[name] = files
         return runtime
 
 
