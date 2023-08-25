@@ -550,7 +550,7 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, name: str = "sphere_reg_wf"):
         (get_surfaces, sphere_reg_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
         (sphere_reg_gii, fix_reg_meta, [('converted', 'in_file')]),
         (fix_reg_meta, project_unproject, [('out_file', 'sphere_in')]),
-        (fix_reg_meta, outputnode, [('converted', 'sphere_reg')]),
+        (fix_reg_meta, outputnode, [('out_file', 'sphere_reg')]),
     ])
     # fmt:on
 
