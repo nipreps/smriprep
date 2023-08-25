@@ -584,8 +584,11 @@ def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
     from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
 
     workflow = Workflow(name=name)
-    inputnode = pe.Node(niu.IdentityInterface(fields=['sulc', 'sphere', 'sphere_reg_fsLR']))
-    outputnode = pe.Node(niu.IdentityInterface(fields=['sphere_reg_fsLR']))
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['sulc', 'sphere', 'sphere_reg_fsLR']),
+        name='inputnode',
+    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=['sphere_reg_fsLR']), name='outputnode')
 
     # 0) Calculate affine
     # ${CARET7DIR}/wb_command -surface-affine-regression \
@@ -619,7 +622,7 @@ def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
         MSM(verbose=True, config_file=load_resource('msm/MSMSulcStrainFinalconf')),
         iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
         name='msmsulc',
-        # memory?
+        mem_gb=2,
     )
     msmsulc.inputs.out_base = ['lh.', 'rh.']  # To placate Path2BIDS
     msmsulc.inputs.reference_mesh = [
