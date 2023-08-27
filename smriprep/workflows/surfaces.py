@@ -649,7 +649,7 @@ def init_surface_derivatives_wf(
     )
 
     gifti_surfaces_wf = init_gifti_surfaces_wf()
-    gifti_spheres_wf = init_gifti_surfaces_wf(surfaces=["sphere_reg"], name="gifti_spheres_wf")
+    gifti_spheres_wf = init_gifti_surfaces_wf(surfaces=["sphere_reg"], to_scanner=False, name="gifti_spheres_wf")
     gifti_morph_wf = init_gifti_morphometrics_wf()
     fsLR_reg_wf = init_fsLR_reg_wf()
     aseg_to_native_wf = init_segs_to_native_wf()
@@ -758,6 +758,7 @@ def init_fsLR_reg_wf(*, name="fsLR_reg_wf"):
 def init_gifti_surfaces_wf(
     *,
     surfaces: ty.List[str] = ["pial", "midthickness", "inflated", "white"],
+    to_scanner: bool = True,
     name: str = "gifti_surface_wf",
 ):
     r"""
@@ -805,7 +806,10 @@ def init_gifti_surfaces_wf(
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces", *surfaces]), name="outputnode")
 
-    get_surfaces = pe.Node(niu.Function(function=_get_surfaces), name="get_surfaces")
+    get_surfaces = pe.Node(
+        niu.Function(function=_get_surfaces, output_names=surfaces),
+        name="get_surfaces",
+    )
     get_surfaces.inputs.surfaces = surfaces
 
     surface_list = pe.Node(
@@ -814,7 +818,7 @@ def init_gifti_surfaces_wf(
         run_without_submitting=True,
     )
     fs2gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii", to_scanner=True),
+        fs.MRIsConvert(out_datatype="gii", to_scanner=to_scanner),
         iterfield="in_file",
         name="fs2gii",
     )
@@ -831,14 +835,14 @@ def init_gifti_surfaces_wf(
         (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
                                    ('subject_id', 'subject_id')]),
         (get_surfaces, surface_list, [
-            ((surf, _sorted_by_basename), f'in{i}') for i, surf in enumerate(surfaces)
+            (surf, f'in{i}') for i, surf in enumerate(surfaces, start=1)
         ]),
         (surface_list, fs2gii, [('out', 'in_file')]),
         (fs2gii, fix_surfs, [('converted', 'in_file')]),
         (fix_surfs, outputnode, [('out_file', 'surfaces')]),
         (fix_surfs, surface_groups, [('out_file', 'inlist')]),
         (surface_groups, outputnode, [
-            (f'out{i}', surf) for i, surf in enumerate(surfaces)
+            (f'out{i}', surf) for i, surf in enumerate(surfaces, start=1)
         ]),
     ])
     # fmt:on
@@ -925,14 +929,14 @@ def init_gifti_morphometrics_wf(
                                   ('subject_id', 'subject_id')]),
         (get_subject, morphometry_list, [
             ((morph, _sorted_by_basename), f'in{i}')
-            for i, morph in enumerate(morphometrics)
+            for i, morph in enumerate(morphometrics, start=1)
         ]),
         (morphometry_list, morphs2gii, [('out', 'scalarcurv_file')]),
         (morphs2gii, outputnode, [('converted', 'morphometrics')]),
         # Output individual surfaces as well
         (morphs2gii, morph_groups, [('converted', 'inlist')]),
         (morph_groups, outputnode, [
-            (f'out{i}', surf) for i, surf in enumerate(morphometrics)
+            (f'out{i}', surf) for i, surf in enumerate(morphometrics, start=1)
         ]),
     ])
     # fmt:on
@@ -1407,7 +1411,7 @@ def _extract_fs_fields(filenames: str | list[str]) -> tuple[str, str]:
     return str(subjects_dir), subject_id
 
 
-def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> dict[str, list[str]]:
+def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> tuple[list[str]]:
     """
     Get a list of FreeSurfer surface files for a given subject.
 
@@ -1426,8 +1430,8 @@ def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> di
 
     Returns
     -------
-    dict
-        A dictionary mapping each surface to a list of filenames
+    tuple
+        A list of surfaces for each requested surface, sorted
 
     """
     from pathlib import Path
@@ -1438,15 +1442,15 @@ def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> di
 
     surf_dir = Path(subjects_dir) / subject_id / "surf"
     all_surfs = {
-        surface: [
+        surface: sorted(
             str(fn)
-            for hemi in ["lh", "rh"]
-            for fn in surf_dir.glob(f"{hemi}.{surface.replace('_', '.')}")
-        ]
+            for fn in surf_dir.glob(f"[lr]h.{surface.replace('_', '.')}")
+        )
         for surface in expanded_surfaces
     }
 
     if all_surfs.get("graymid") and not all_surfs.get("midthickness"):
         all_surfs["midthickness"] = all_surfs.pop("graymid")
 
-    return {surface: all_surfs[surface] for surface in surfaces}
+    ret = tuple(all_surfs[surface] for surface in surfaces)
+    return ret if len(ret) > 1 else ret[0]
