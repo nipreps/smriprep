@@ -187,7 +187,10 @@ def normalize_surfs(
         pointset.data = nb.affines.apply_affine(transform, pointset.data)
 
     fname = os.path.basename(in_file)
-    if "midthickness" in fname.lower() or "graymid" in fname.lower():
+    if "graymid" in fname.lower():
+        # Rename graymid to midthickness
+        fname = fname.replace("graymid", "midthickness")
+    if "midthickness" in fname.lower():
         pointset.meta.setdefault("AnatomicalStructureSecondary", "MidThickness")
         pointset.meta.setdefault("GeometricType", "Anatomical")
 

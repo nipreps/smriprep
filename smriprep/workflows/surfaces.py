@@ -805,7 +805,9 @@ def init_gifti_surfaces_wf(
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces", *surfaces]), name="outputnode")
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+    get_surfaces = pe.Node(
+        niu.Function(function=_get_surfaces, surfaces=surfaces), name="get_surfaces"
+    )
 
     surface_list = pe.Node(
         niu.Merge(len(surfaces), ravel_inputs=True),
@@ -825,16 +827,12 @@ def init_gifti_surfaces_wf(
         run_without_submitting=True,
     )
 
-    # Nipype maps both graymid and midthickness to graymid
-    # We will call it midthickness, but get whatever is there
-    in_surfaces = ["graymid" if surf == "midthickness" else surf for surf in surfaces]
-
     # fmt:off
     workflow.connect([
         (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
                                    ('subject_id', 'subject_id')]),
         (get_surfaces, surface_list, [
-            ((surf, _sorted_by_basename), f'in{i}') for i, surf in enumerate(in_surfaces)
+            ((surf, _sorted_by_basename), f'in{i}') for i, surf in enumerate(surfaces)
         ]),
         (surface_list, fs2gii, [('out', 'in_file')]),
         (fs2gii, fix_surfs, [('converted', 'in_file')]),
@@ -1408,3 +1406,48 @@ def _extract_fs_fields(filenames: str | list[str]) -> tuple[str, str]:
     subjects_dir, subject_id = sub_dir.parent, sub_dir.name
     assert all(path == subjects_dir / subject_id / 'surf' / path.name for path in paths)
     return str(subjects_dir), subject_id
+
+
+def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> dict[str, list[str]]:
+    """
+    Get a list of FreeSurfer surface files for a given subject.
+
+    If ``midthickness`` is requested but not present in the directory,
+    ``graymid`` will be returned instead. For surfaces with dots (``.``) in
+    their names, pass the name with underscores (``_``).
+
+    Parameters
+    ----------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    surfaces
+        List of surfaces to fetch
+
+    Returns
+    -------
+    dict
+        A dictionary mapping each surface to a list of filenames
+
+    """
+    from pathlib import Path
+
+    expanded_surfaces = surfaces.copy()
+    if "midthickness" in surfaces:
+        expanded_surfaces.append("graymid")
+
+    surf_dir = Path(subjects_dir) / subject_id / "surf"
+    all_surfs = {
+        surface: [
+            str(fn)
+            for hemi in ["lh", "rh"]
+            for fn in surf_dir.glob(f"{hemi}.{surface.replace('_', '.')}")
+        ]
+        for surface in expanded_surfaces
+    }
+
+    if all_surfs.get("graymid") and not all_surfs.get("midthickness"):
+        all_surfs["midthickness"] = all_surfs.pop("graymid")
+
+    return {surface: all_surfs[surface] for surface in surfaces}
