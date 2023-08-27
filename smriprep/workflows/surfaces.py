@@ -223,6 +223,14 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
 
+    sync = pe.Node(
+        niu.Function(
+            function=_extract_fs_fields,
+            output_names=['subjects_dir', 'subject_id'],
+        ),
+        name="sync",
+    )
+
     # fmt:off
     workflow.connect([
         # Configuration
@@ -263,8 +271,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ]),
         (midthickness, save_midthickness, [('out_file', 'surf.@graymid')]),
         # Output
-        (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
-                                           ('outputnode.subject_id', 'subject_id')]),
+        (save_midthickness, sync, [('out_file', 'filenames')]),
+        (sync, outputnode, [('subjects_dir', 'subjects_dir'),
+                            ('subject_id', 'subject_id')]),
     ])
     # fmt:on
 
@@ -1403,3 +1412,15 @@ def _sorted_by_basename(inlist):
 
 def _collate(files):
     return [files[i : i + 2] for i in range(0, len(files), 2)]
+
+
+def _extract_fs_fields(filenames: str | list[str]) -> tuple[str, str]:
+    from pathlib import Path
+
+    if isinstance(filenames, str):
+        filenames = [filenames]
+    paths = [Path(fn) for fn in filenames]
+    sub_dir = paths[0].parent.parent
+    subjects_dir, subject_id = sub_dir.parent, sub_dir.name
+    assert all(path == subjects_dir / subject_id / 'surf' / path.name for path in paths)
+    return str(subjects_dir), subject_id
