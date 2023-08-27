@@ -649,8 +649,9 @@ def init_surface_derivatives_wf(
     )
 
     gifti_surfaces_wf = init_gifti_surfaces_wf()
+    gifti_spheres_wf = init_gifti_surfaces_wf(surfaces=["sphere_reg"], name="gifti_spheres_wf")
     gifti_morph_wf = init_gifti_morphometrics_wf()
-    sphere_reg_wf = init_sphere_reg_wf()
+    fsLR_reg_wf = init_fsLR_reg_wf()
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
 
@@ -662,13 +663,16 @@ def init_surface_derivatives_wf(
             ('subject_id', 'inputnode.subject_id'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
         ]),
+        (inputnode, gifti_spheres_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+        ]),
         (inputnode, gifti_morph_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
         ]),
-        (inputnode, sphere_reg_wf, [
-            ('subjects_dir', 'inputnode.subjects_dir'),
-            ('subject_id', 'inputnode.subject_id'),
+        (gifti_spheres_wf, fsLR_reg_wf, [
+            ('outputnode.sphere_reg', 'inputnode.sphere_reg'),
         ]),
         (inputnode, aseg_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
@@ -685,9 +689,9 @@ def init_surface_derivatives_wf(
 
         # Output
         (gifti_surfaces_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
+        (gifti_spheres_wf, outputnode, [('outputnode.sphere_reg', 'sphere_reg')]),
         (gifti_morph_wf, outputnode, [('outputnode.morphometrics', 'morphometrics')]),
-        (sphere_reg_wf, outputnode, [('outputnode.sphere_reg', 'sphere_reg'),
-                                     ('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
+        (fsLR_reg_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
         (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
         (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
     ])
@@ -711,31 +715,14 @@ def init_surface_derivatives_wf(
     return workflow
 
 
-def init_sphere_reg_wf(*, name="sphere_reg_wf"):
+def init_fsLR_reg_wf(*, name="fsLR_reg_wf"):
     """Generate GIFTI registration files to fsLR space"""
-    from ..interfaces.surf import FixGiftiMetadata
     from ..interfaces.workbench import SurfaceSphereProjectUnproject
 
     workflow = Workflow(name=name)
 
-    inputnode = pe.Node(
-        niu.IdentityInterface(["subjects_dir", "subject_id"]),
-        name="inputnode",
-    )
-    outputnode = pe.Node(
-        niu.IdentityInterface(["sphere_reg", "sphere_reg_fsLR"]), name="outputnode"
-    )
-
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
-
-    # Via FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
-    #
-    # See https://github.com/DCAN-Labs/DCAN-HCP/tree/9291324
-    sphere_gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_gii"
-    )
-
-    fix_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_meta")
+    inputnode = pe.Node(niu.IdentityInterface(["sphere_reg"]), name="inputnode")
+    outputnode = pe.Node(niu.IdentityInterface(["sphere_reg_fsLR"]), name="outputnode")
 
     # Via
     # ${CARET7DIR}/wb_command -surface-sphere-project-unproject
@@ -760,14 +747,7 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
 
     # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [
-            ('subjects_dir', 'subjects_dir'),
-            ('subject_id', 'subject_id'),
-        ]),
-        (get_surfaces, sphere_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
-        (sphere_gii, fix_meta, [('converted', 'in_file')]),
-        (fix_meta, project_unproject, [('out_file', 'sphere_in')]),
-        (sphere_gii, outputnode, [('converted', 'sphere_reg')]),
+        (inputnode, project_unproject, [('sphere_reg', 'sphere_in')]),
         (project_unproject, outputnode, [('sphere_out', 'sphere_reg_fsLR')]),
     ])
     # fmt:on
