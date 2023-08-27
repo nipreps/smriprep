@@ -186,13 +186,6 @@ def normalize_surfs(
     if not np.allclose(transform, np.eye(4)):
         pointset.data = nb.affines.apply_affine(transform, pointset.data)
 
-    # mris_convert --to-scanner removes VolGeom transform from coordinates,
-    # but not metadata.
-    # We could set to default LIA affine, but there seems little advantage
-    for XYZC in "XYZC":
-        for RAS in "RAS":
-            pointset.meta.pop(f"VolGeom{XYZC}_{RAS}", None)
-
     fname = os.path.basename(in_file)
     if "midthickness" in fname.lower() or "graymid" in fname.lower():
         pointset.meta.setdefault("AnatomicalStructureSecondary", "MidThickness")
@@ -201,6 +194,17 @@ def normalize_surfs(
     # FreeSurfer incorrectly uses "Sphere" for spherical surfaces
     if pointset.meta.get("GeometricType") == "Sphere":
         pointset.meta["GeometricType"] = "Spherical"
+    else:
+        # mris_convert --to-scanner removes VolGeom transform from coordinates,
+        # but not metadata.
+        # We could set to default LIA affine, but there seems little advantage.
+        #
+        # Following the lead of HCP pipelines, we only adjust the coordinates
+        # for anatomical surfaces. To ensure consistent treatment by FreeSurfer,
+        # we leave the metadata for spherical surfaces intact.
+        for XYZC in "XYZC":
+            for RAS in "RAS":
+                pointset.meta.pop(f"VolGeom{XYZC}_{RAS}", None)
 
     if newpath is not None:
         newpath = os.getcwd()
