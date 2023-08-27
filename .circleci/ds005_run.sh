@@ -19,4 +19,5 @@ docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
     --ncpus 2 --omp-nthreads 2 -vv \
     --fs-license-file /tmp/fslicense/license.txt \
     --fs-subjects-dir /tmp/ds005/freesurfer \
+    --cifti-output \
     ${@:1}

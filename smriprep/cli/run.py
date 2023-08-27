@@ -214,6 +214,17 @@ def get_parser():
         help="Path to existing FreeSurfer subjects directory to reuse. "
         "(default: OUTPUT_DIR/freesurfer)",
     )
+    g_fs.add_argument(
+        "--cifti-output",
+        nargs="?",
+        const="91k",
+        default=False,
+        choices=("91k", "170k"),
+        type=str,
+        help="Output morphometry as CIFTI dense scalars. "
+        "Optionally, the number of grayordinate can be specified "
+        "(default is 91k, which equates to 2mm resolution)",
+    )
 
     # Surface generation xor
     g_surfs = parser.add_argument_group("Surface preprocessing options")
@@ -597,6 +608,7 @@ def build_workflow(opts, retval):
         subject_list=subject_list,
         work_dir=str(work_dir),
         bids_filters=bids_filters,
+        cifti_output=opts.cifti_output,
     )
     retval["return_code"] = 0
 

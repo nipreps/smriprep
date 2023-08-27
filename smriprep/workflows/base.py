@@ -61,6 +61,7 @@ def init_smriprep_wf(
     subject_list,
     work_dir,
     bids_filters,
+    cifti_output,
 ):
     """
     Create the execution graph of *sMRIPrep*, with a sub-workflow for each subject.
@@ -99,6 +100,7 @@ def init_smriprep_wf(
                 subject_list=['smripreptest'],
                 work_dir='.',
                 bids_filters=None,
+                cifti_output=None,
             )
 
     Parameters
@@ -184,6 +186,7 @@ def init_smriprep_wf(
             spaces=spaces,
             subject_id=subject_id,
             bids_filters=bids_filters,
+            cifti_output=cifti_output,
         )
 
         single_subject_wf.config["execution"]["crashdump_dir"] = os.path.join(
@@ -218,6 +221,7 @@ def init_single_subject_wf(
     spaces,
     subject_id,
     bids_filters,
+    cifti_output,
 ):
     """
     Create a single subject workflow.
@@ -258,6 +262,7 @@ def init_single_subject_wf(
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_id='test',
                 bids_filters=None,
+                cifti_output=None,
             )
 
     Parameters
@@ -416,7 +421,7 @@ to workflows in *sMRIPrep*'s documentation]\
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
         spaces=spaces,
-        cifti_output=False,  # Enabling this needs a CLI flag
+        cifti_output=cifti_output,
     )
 
     # fmt:off
