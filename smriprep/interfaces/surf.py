@@ -42,7 +42,7 @@ from nipype.interfaces.base import (
 
 class _NormalizeSurfInputSpec(BaseInterfaceInputSpec):
     in_file = File(mandatory=True, exists=True, desc="Freesurfer-generated GIFTI file")
-    transform_file = File(exists=True, desc="FSL or LTA affine transform file")
+    transform_file = File(desc="FSL or LTA affine transform file")
 
 
 class _NormalizeSurfOutputSpec(TraitedSpec):
@@ -157,7 +157,9 @@ class AggregateSurfaces(SimpleInterface):
         return runtime
 
 
-def normalize_surfs(in_file: str, transform_file: str, newpath: Optional[str] = None) -> str:
+def normalize_surfs(
+    in_file: str, transform_file: str | None, newpath: Optional[str] = None
+) -> str:
     """
     Update GIFTI metadata and apply rigid coordinate correction.
 
@@ -170,12 +172,15 @@ def normalize_surfs(in_file: str, transform_file: str, newpath: Optional[str] = 
     """
 
     img = nb.load(in_file)
-    xfm_fmt = {
-        ".txt": "itk",
-        ".mat": "fsl",
-        ".lta": "fs",
-    }[Path(transform_file).suffix]
-    transform = nt.linear.load(transform_file, fmt=xfm_fmt).matrix
+    if transform_file is None:
+        transform = np.eye(4)
+    else:
+        xfm_fmt = {
+            ".txt": "itk",
+            ".mat": "fsl",
+            ".lta": "fs",
+        }[Path(transform_file).suffix]
+        transform = nt.linear.load(transform_file, fmt=xfm_fmt).matrix
     pointset = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")[0]
 
     if not np.allclose(transform, np.eye(4)):
