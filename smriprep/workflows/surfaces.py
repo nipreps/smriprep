@@ -757,7 +757,7 @@ def init_fsLR_reg_wf(*, name="fsLR_reg_wf"):
 
 def init_gifti_surfaces_wf(
     *,
-    surfaces: ty.List[str] = ["pial", "midthickness", "inflated", "white", "sphere_reg"],
+    surfaces: ty.List[str] = ["pial", "midthickness", "inflated", "white"],
     name: str = "gifti_surface_wf",
 ):
     r"""
