@@ -55,6 +55,7 @@ from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRun
 from .fit.registration import init_register_template_wf
 from .outputs import (
     init_anat_reports_wf,
+    init_ds_surfaces_wf,
     init_ds_template_wf,
     init_ds_mask_wf,
     init_ds_dseg_wf,
@@ -293,8 +294,12 @@ def init_anat_preproc_wf(
     ])
     # fmt:on
     if freesurfer:
+        surfaces = ["white", "pial", "midthickness", "inflated", "sphere_reg", "sphere_reg_fsLR"]
         surface_derivatives_wf = init_surface_derivatives_wf(cifti_output=cifti_output)
         anat_ribbon_wf = init_anat_ribbon_wf()
+        ds_surfaces_wf = init_ds_surfaces_wf(
+            bids_root=bids_root, output_dir=output_dir, surfaces=surfaces
+        )
 
         # fmt:off
         workflow.connect([
@@ -311,11 +316,15 @@ def init_anat_preproc_wf(
                 ('outputnode.white', 'inputnode.white'),
                 ('outputnode.pial', 'inputnode.pial'),
             ]),
+            (anat_fit_wf, ds_surfaces_wf, [
+                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+            ]),
+            (surface_derivatives_wf, ds_surfaces_wf, [
+                (f'outputnode.{surface}', f'inputnode.{surface}')
+                for surface in surfaces
+            ]),
             (surface_derivatives_wf, anat_second_derivatives_wf, [
-                ('outputnode.surfaces', 'inputnode.surfaces'),
                 ('outputnode.morphometrics', 'inputnode.morphometrics'),
-                ('outputnode.sphere_reg', 'inputnode.sphere_reg'),
-                ('outputnode.sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
                 ('outputnode.cifti_morph', 'inputnode.cifti_morph'),
