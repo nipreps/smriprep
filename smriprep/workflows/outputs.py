@@ -711,8 +711,6 @@ def init_anat_second_derivatives_wf(
         FreeSurfer's aparc+aseg segmentation, in native T1w space
     cifti_morph
         Morphometric CIFTI-2 dscalar files
-    cifti_density
-        Grayordinate density
     cifti_metadata
         JSON files containing metadata dictionaries
 
@@ -984,6 +982,7 @@ def init_anat_second_derivatives_wf(
         ds_cifti_morph = pe.MapNode(
             DerivativesDataSink(
                 base_directory=output_dir,
+                density=cifti_output,
                 suffix=['curv', 'sulc', 'thickness'],
                 compress=False,
                 space='fsLR',
@@ -996,7 +995,6 @@ def init_anat_second_derivatives_wf(
         workflow.connect([
             (inputnode, ds_cifti_morph, [('cifti_morph', 'in_file'),
                                          ('source_files', 'source_file'),
-                                         ('cifti_density', 'density'),
                                          (('cifti_metadata', _read_jsons), 'meta_dict')])
         ])
         # fmt:on
