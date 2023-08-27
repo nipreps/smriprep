@@ -805,9 +805,8 @@ def init_gifti_surfaces_wf(
     )
     outputnode = pe.Node(niu.IdentityInterface(["surfaces", *surfaces]), name="outputnode")
 
-    get_surfaces = pe.Node(
-        niu.Function(function=_get_surfaces, surfaces=surfaces), name="get_surfaces"
-    )
+    get_surfaces = pe.Node(niu.Function(function=_get_surfaces), name="get_surfaces")
+    get_surfaces.inputs.surfaces = surfaces
 
     surface_list = pe.Node(
         niu.Merge(len(surfaces), ravel_inputs=True),
