@@ -308,7 +308,8 @@ def init_anat_preproc_wf(
                 ('outputnode.t1w_mask', 'inputnode.t1w_mask'),
             ]),
             (surface_derivatives_wf, anat_ribbon_wf, [
-                ('outputnode.surfaces', 'inputnode.surfaces'),
+                ('outputnode.white', 'inputnode.white'),
+                ('outputnode.pial', 'inputnode.pial'),
             ]),
             (surface_derivatives_wf, anat_second_derivatives_wf, [
                 ('outputnode.surfaces', 'inputnode.surfaces'),

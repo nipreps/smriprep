@@ -636,6 +636,9 @@ def init_surface_derivatives_wf(
         niu.IdentityInterface(
             fields=[
                 "surfaces",
+                "white",
+                "pial",
+                "midthickness",
                 "morphometrics",
                 "sphere_reg",
                 "sphere_reg_fsLR",
@@ -649,7 +652,11 @@ def init_surface_derivatives_wf(
     )
 
     gifti_surfaces_wf = init_gifti_surfaces_wf()
-    gifti_spheres_wf = init_gifti_surfaces_wf(surfaces=["sphere_reg"], to_scanner=False, name="gifti_spheres_wf")
+    gifti_spheres_wf = init_gifti_surfaces_wf(
+        surfaces=["sphere_reg"],
+        to_scanner=False,
+        name="gifti_spheres_wf",
+    )
     gifti_morph_wf = init_gifti_morphometrics_wf()
     fsLR_reg_wf = init_fsLR_reg_wf()
     aseg_to_native_wf = init_segs_to_native_wf()
@@ -688,7 +695,12 @@ def init_surface_derivatives_wf(
         ]),
 
         # Output
-        (gifti_surfaces_wf, outputnode, [('outputnode.surfaces', 'surfaces')]),
+        (gifti_surfaces_wf, outputnode, [
+            ('outputnode.surfaces', 'surfaces'),
+            ('outputnode.white', 'white'),
+            ('outputnode.pial', 'pial'),
+            ('outputnode.midthickness', 'midthickness'),
+        ]),
         (gifti_spheres_wf, outputnode, [('outputnode.sphere_reg', 'sphere_reg')]),
         (gifti_morph_wf, outputnode, [('outputnode.morphometrics', 'morphometrics')]),
         (fsLR_reg_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
@@ -1037,7 +1049,8 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "surfaces",
+                "white",
+                "pial",
                 "t1w_mask",
             ]
         ),
@@ -1050,31 +1063,6 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
             ]
         ),
         name="outputnode",
-    )
-
-    # 0, 1 = wm; 2, 3 = pial; 6, 7 = mid
-    # note that order of lh / rh within each surf type is not guaranteed due to use
-    # of unsorted glob by FreeSurferSource prior, but we can do a sort
-    # to ensure consistent ordering
-    select_wm = pe.Node(
-        niu.Select(index=[0, 1]),
-        name="select_wm",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    select_pial = pe.Node(
-        niu.Select(index=[2, 3]),
-        name="select_pial",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    select_midthick = pe.Node(
-        niu.Select(index=[6, 7]),
-        name="select_midthick",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
     )
 
     create_wm_distvol = pe.MapNode(
@@ -1160,15 +1148,17 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
     )
 
     # make HCP-style ribbon volume in T1w space
+    # fmt: off
     workflow.connect(
         [
-            (inputnode, select_wm, [("surfaces", "inlist")]),
-            (inputnode, select_pial, [("surfaces", "inlist")]),
-            (inputnode, select_midthick, [("surfaces", "inlist")]),
-            (select_wm, create_wm_distvol, [(("out", _sorted_by_basename), "surf_file")]),
-            (inputnode, create_wm_distvol, [("t1w_mask", "ref_file")]),
-            (select_pial, create_pial_distvol, [(("out", _sorted_by_basename), "surf_file")]),
-            (inputnode, create_pial_distvol, [("t1w_mask", "ref_file")]),
+            (inputnode, create_wm_distvol, [
+                ("white", "surf_file"),
+                ("t1w_mask", "ref_file"),
+            ]),
+            (inputnode, create_pial_distvol, [
+                ("pial", "surf_file"),
+                ("t1w_mask", "ref_file"),
+            ]),
             (create_wm_distvol, thresh_wm_distvol, [("out_file", "in_file")]),
             (create_pial_distvol, uthresh_pial_distvol, [("out_file", "in_file")]),
             (thresh_wm_distvol, bin_wm_distvol, [("out_file", "in_file")]),
@@ -1185,6 +1175,7 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
             (combine_ribbon_vol_hemis, outputnode, [("out_file", "anat_ribbon")]),
         ]
     )
+    # fmt: on
     return workflow
 
 
