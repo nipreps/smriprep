@@ -825,12 +825,16 @@ def init_gifti_surfaces_wf(
         run_without_submitting=True,
     )
 
+    # Nipype maps both graymid and midthickness to graymid
+    # We will call it midthickness, but get whatever is there
+    in_surfaces = ["graymid" if surf == "midthickness" else surf for surf in surfaces]
+
     # fmt:off
     workflow.connect([
         (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
                                    ('subject_id', 'subject_id')]),
         (get_surfaces, surface_list, [
-            ((surf, _sorted_by_basename), f'in{i}') for i, surf in enumerate(surfaces)
+            ((surf, _sorted_by_basename), f'in{i}') for i, surf in enumerate(in_surfaces)
         ]),
         (surface_list, fs2gii, [('out', 'in_file')]),
         (fs2gii, fix_surfs, [('converted', 'in_file')]),
