@@ -235,7 +235,7 @@ def normalize_surfs(
             for RAS in "RAS":
                 pointset.meta.pop(f"VolGeom{XYZC}_{RAS}", None)
 
-    if newpath is not None:
+    if newpath is None:
         newpath = os.getcwd()
     out_file = os.path.join(newpath, fname)
     img.to_filename(out_file)
@@ -259,7 +259,7 @@ def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
     if pointset.meta.get("GeometricType") == "Sphere":
         pointset.meta["GeometricType"] = "Spherical"
 
-    if newpath is not None:
+    if newpath is None:
         newpath = os.getcwd()
     out_file = os.path.join(newpath, os.path.basename(in_file))
     img.to_filename(out_file)
@@ -280,7 +280,7 @@ def make_ribbon(
         for white, pial in zip(white_distvols, pial_distvols)
     ]
 
-    if newpath is not None:
+    if newpath is None:
         newpath = os.getcwd()
     out_file = os.path.join(newpath, "ribbon.nii.gz")
 
