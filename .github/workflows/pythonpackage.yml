@@ -5,7 +5,7 @@ on:
     branches: [ '*' ]
     tags: [ '*' ]
   pull_request:
-    branches: [ master, 'maint/*' ]
+    branches: [ master, 'maint/*', 'next' ]
   schedule:
     - cron: '0 0 * * *'
 
