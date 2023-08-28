@@ -157,6 +157,32 @@ class AggregateSurfaces(SimpleInterface):
         return runtime
 
 
+class MakeRibbonInputSpec(TraitedSpec):
+    white_distvols = traits.List(
+        File(exists=True), minlen=2, maxlen=2, desc="White matter distance volumes"
+    )
+    pial_distvols = traits.List(
+        File(exists=True), minlen=2, maxlen=2, desc="Pial matter distance volumes"
+    )
+
+
+class MakeRibbonOutputSpec(TraitedSpec):
+    ribbon = File(desc="Binary ribbon mask")
+
+
+class MakeRibbon(SimpleInterface):
+    """Create a binary ribbon mask from white and pial distance volumes."""
+
+    input_spec = MakeRibbonInputSpec
+    output_spec = MakeRibbonOutputSpec
+
+    def _run_interface(self, runtime):
+        self._results["ribbon"] = make_ribbon(
+            self.inputs.white_distvols, self.inputs.pial_distvols, newpath=runtime.cwd
+        )
+        return runtime
+
+
 def normalize_surfs(
     in_file: str, transform_file: str | None, newpath: Optional[str] = None
 ) -> str:
@@ -237,4 +263,27 @@ def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
         newpath = os.getcwd()
     out_file = os.path.join(newpath, os.path.basename(in_file))
     img.to_filename(out_file)
+    return out_file
+
+
+def make_ribbon(
+    white_distvols: list[str],
+    pial_distvols: list[str],
+    newpath: Optional[str] = None,
+) -> str:
+    base_img = nb.load(white_distvols[0])
+    header = base_img.header
+    header.set_data_dtype("uint8")
+
+    ribbons = [
+        (np.array(nb.load(white).dataobj) > 0) & (np.array(nb.load(pial).dataobj) < 0)
+        for white, pial in zip(white_distvols, pial_distvols)
+    ]
+
+    if newpath is not None:
+        newpath = os.getcwd()
+    out_file = os.path.join(newpath, "ribbon.nii.gz")
+
+    ribbon = base_img.__class__(ribbons[0] | ribbons[1], base_img.affine, base_img.header)
+    ribbon.to_filename(out_file)
     return out_file
