@@ -280,7 +280,7 @@ jobs:
           paths:
             - /home/circleci/.local
 
-  test_wrapper:
+  test:
     <<: *machine_defaults
     steps:
       - attach_workspace:
@@ -321,6 +321,24 @@ jobs:
             which smriprep-docker
             smriprep-docker -i nipreps/smriprep:latest --help
             smriprep-docker -i nipreps/smriprep:latest --version
+      - restore_cache:
+          keys:
+            - testdata-v2-{{ .Branch }}-{{ epoch }}
+            - testdata-v2-{{ .Branch }}
+            - testdata-v2-
+      - restore_cache:
+          keys:
+            - templateflow-v1-{{ .Branch }}-{{ epoch }}
+            - templateflow-v1-{{ .Branch }}
+            - templateflow-v1-
+      - run:
+          name: Run Pytest
+          no_output_timeout: 2h
+          command: |
+            bash /tmp/src/smriprep/.circleci/pytest.sh
+      - codecov/upload:
+          file: /tmp/data/pytest_cov.xml
+          flags: pytest
 
   test_deploy_pypi:
     <<: *python_defaults
@@ -789,7 +807,7 @@ workflows:
             tags:
               only: /.*/
 
-      - test_wrapper:
+      - test:
           context:
             - nipreps-common
           requires:
@@ -848,7 +866,7 @@ workflows:
             - build_docs
             - ds005
             - ds054
-            - test_wrapper
+            - test
           filters:
             branches:
               only: /master/
@@ -861,7 +879,7 @@ workflows:
             - ds005
             - ds054
             - test_deploy_pypi
-            - test_wrapper
+            - test
           filters:
             branches:
               ignore: /.*/
