@@ -42,7 +42,7 @@ from nipype.interfaces.base import (
 
 class _NormalizeSurfInputSpec(BaseInterfaceInputSpec):
     in_file = File(mandatory=True, exists=True, desc="Freesurfer-generated GIFTI file")
-    transform_file = File(desc="FSL or LTA affine transform file")
+    transform_file = File(exists=True, desc="FSL, LTA or ITK affine transform file")
 
 
 class _NormalizeSurfOutputSpec(TraitedSpec):
