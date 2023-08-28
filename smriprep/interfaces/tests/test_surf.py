@@ -28,11 +28,7 @@ def test_MakeRibbon(tmp_path):
 
     ribbon = nb.load(result.outputs.ribbon)
     expected = nb.load(
-        load_resource(
-            load_resource(
-                "../interfaces/tests/data/sub-fsaverage_res-4_desc-cropped_ribbon.nii.gz"
-            )
-        )
+        load_resource("../interfaces/tests/data/sub-fsaverage_res-4_desc-cropped_ribbon.nii.gz")
     )
 
     assert ribbon.shape == expected.shape

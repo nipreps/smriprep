@@ -14,7 +14,7 @@ from ...data import load_resource
 def test_ribbon_workflow(tmp_path: Path):
     """Create ribbon mask for fsaverage subject"""
 
-    for command in ("mris_convert", "wb_command", "fslmaths"):
+    for command in ("mris_convert", "wb_command"):
         if not which(command):
             pytest.skip(f"Could not find {command} in PATH")
 
