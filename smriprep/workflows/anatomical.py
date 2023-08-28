@@ -310,7 +310,7 @@ def init_anat_preproc_wf(
                 ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
             ]),
             (anat_fit_wf, anat_ribbon_wf, [
-                ('outputnode.t1w_mask', 'inputnode.t1w_mask'),
+                ('outputnode.t1w_mask', 'inputnode.ref_file'),
             ]),
             (surface_derivatives_wf, anat_ribbon_wf, [
                 ('outputnode.white', 'inputnode.white'),

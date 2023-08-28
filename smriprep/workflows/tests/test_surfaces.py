@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from shutil import which
 
 import nibabel as nb
@@ -10,7 +11,7 @@ from ..surfaces import init_anat_ribbon_wf, init_gifti_surfaces_wf
 from ...data import load_resource
 
 
-def test_ribbon_workflow(tmp_path):
+def test_ribbon_workflow(tmp_path: Path):
     """Create ribbon mask for fsaverage subject"""
 
     for command in ("mris_convert", "wb_command", "fslmaths"):
@@ -28,32 +29,26 @@ def test_ribbon_workflow(tmp_path):
 
     gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=['white', 'pial'])
     anat_ribbon_wf = init_anat_ribbon_wf()
-    anat_ribbon_wf.inputs.inputnode.t1w_mask = test_ribbon
+    anat_ribbon_wf.inputs.inputnode.ref_file = test_ribbon
 
     gifti_surfaces_wf.inputs.inputnode.subjects_dir = os.getenv('SUBJECTS_DIR')
     gifti_surfaces_wf.inputs.inputnode.subject_id = 'fsaverage'
 
     wf = pe.Workflow(name='test_ribbon_wf', base_dir=tmp_path)
-    wf.connect(
-        [
-            (
-                gifti_surfaces_wf,
-                anat_ribbon_wf,
-                [
-                    ('outputnode.white', 'inputnode.white'),
-                    ('outputnode.pial', 'inputnode.pial'),
-                ],
-            ),
-        ]
-    )
+    # fmt: off
+    wf.connect([
+        (gifti_surfaces_wf, anat_ribbon_wf, [
+            ('outputnode.white', 'inputnode.white'),
+            ('outputnode.pial', 'inputnode.pial'),
+        ]),
+    ])
+    # fmt: on
     result = wf.run()
 
-    combine_ribbon_vol_hemis = next(
-        node for node in result.nodes() if node.name == 'combine_ribbon_vol_hemis'
-    )
+    make_ribbon = next(node for node in result.nodes() if node.name == 'make_ribbon')
 
     expected = nb.load(test_ribbon)
-    ribbon = nb.load(combine_ribbon_vol_hemis.result.outputs.out_file)
+    ribbon = nb.load(make_ribbon.result.outputs.ribbon)
 
     assert ribbon.shape == expected.shape
     assert np.allclose(ribbon.affine, expected.affine)

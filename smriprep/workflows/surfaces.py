@@ -31,12 +31,13 @@ import typing as ty
 from nipype.pipeline import engine as pe
 from nipype.interfaces.base import Undefined
 from nipype.interfaces import (
-    fsl,
     io as nio,
     utility as niu,
     freesurfer as fs,
     workbench as wb,
 )
+
+from smriprep.interfaces.surf import MakeRibbon
 
 from ..data import load_resource
 from ..interfaces.freesurfer import ReconAll, MakeMidthickness
@@ -1049,23 +1050,10 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
     workflow = pe.Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=[
-                "white",
-                "pial",
-                "t1w_mask",
-            ]
-        ),
+        niu.IdentityInterface(fields=["white", "pial", "ref_file"]),
         name="inputnode",
     )
-    outputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=[
-                "anat_ribbon",
-            ]
-        ),
-        name="outputnode",
-    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=["anat_ribbon"]), name="outputnode")
 
     create_wm_distvol = pe.MapNode(
         CreateSignedDistanceVolume(),
@@ -1079,102 +1067,22 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
         name="create_pial_distvol",
     )
 
-    thresh_wm_distvol = pe.MapNode(
-        fsl.maths.MathsCommand(args="-thr 0 -bin -mul 255"),
-        iterfield=["in_file"],
-        name="thresh_wm_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
+    make_ribbon = pe.Node(MakeRibbon(), name="make_ribbon", mem_gb=DEFAULT_MEMORY_MIN_GB)
 
-    uthresh_pial_distvol = pe.MapNode(
-        fsl.maths.MathsCommand(args="-uthr 0 -abs -bin -mul 255"),
-        iterfield=["in_file"],
-        name="uthresh_pial_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    bin_wm_distvol = pe.MapNode(
-        fsl.maths.UnaryMaths(operation="bin"),
-        iterfield=["in_file"],
-        name="bin_wm_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    bin_pial_distvol = pe.MapNode(
-        fsl.maths.UnaryMaths(operation="bin"),
-        iterfield=["in_file"],
-        name="bin_pial_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    split_wm_distvol = pe.Node(
-        niu.Split(splits=[1, 1]),
-        name="split_wm_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    merge_wm_distvol_no_flatten = pe.Node(
-        niu.Merge(2),
-        no_flatten=True,
-        name="merge_wm_distvol_no_flatten",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    make_ribbon_vol = pe.MapNode(
-        fsl.maths.MultiImageMaths(op_string="-mas %s -mul 255"),
-        iterfield=["in_file", "operand_files"],
-        name="make_ribbon_vol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    bin_ribbon_vol = pe.MapNode(
-        fsl.maths.UnaryMaths(operation="bin"),
-        iterfield=["in_file"],
-        name="bin_ribbon_vol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    split_squeeze_ribbon_vol = pe.Node(
-        niu.Split(splits=[1, 1], squeeze=True),
-        name="split_squeeze_ribbon",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    combine_ribbon_vol_hemis = pe.Node(
-        fsl.maths.BinaryMaths(operation="add"),
-        name="combine_ribbon_vol_hemis",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    # make HCP-style ribbon volume in T1w space
     # fmt: off
     workflow.connect(
         [
             (inputnode, create_wm_distvol, [
                 ("white", "surf_file"),
-                ("t1w_mask", "ref_file"),
+                ("ref_file", "ref_file"),
             ]),
             (inputnode, create_pial_distvol, [
                 ("pial", "surf_file"),
-                ("t1w_mask", "ref_file"),
+                ("ref_file", "ref_file"),
             ]),
-            (create_wm_distvol, thresh_wm_distvol, [("out_file", "in_file")]),
-            (create_pial_distvol, uthresh_pial_distvol, [("out_file", "in_file")]),
-            (thresh_wm_distvol, bin_wm_distvol, [("out_file", "in_file")]),
-            (uthresh_pial_distvol, bin_pial_distvol, [("out_file", "in_file")]),
-            (bin_wm_distvol, split_wm_distvol, [("out_file", "inlist")]),
-            (split_wm_distvol, merge_wm_distvol_no_flatten, [("out1", "in1")]),
-            (split_wm_distvol, merge_wm_distvol_no_flatten, [("out2", "in2")]),
-            (bin_pial_distvol, make_ribbon_vol, [("out_file", "in_file")]),
-            (merge_wm_distvol_no_flatten, make_ribbon_vol, [("out", "operand_files")]),
-            (make_ribbon_vol, bin_ribbon_vol, [("out_file", "in_file")]),
-            (bin_ribbon_vol, split_squeeze_ribbon_vol, [("out_file", "inlist")]),
-            (split_squeeze_ribbon_vol, combine_ribbon_vol_hemis, [("out1", "in_file")]),
-            (split_squeeze_ribbon_vol, combine_ribbon_vol_hemis, [("out2", "operand_file")]),
-            (combine_ribbon_vol_hemis, outputnode, [("out_file", "anat_ribbon")]),
+            (create_wm_distvol, make_ribbon, [("out_file", "white_distvols")]),
+            (create_pial_distvol, make_ribbon, [("out_file", "pial_distvols")]),
+            (make_ribbon, outputnode, [("ribbon", "anat_ribbon")]),
         ]
     )
     # fmt: on
