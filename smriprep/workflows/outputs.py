@@ -657,6 +657,78 @@ def init_ds_fs_registration_wf(
     return workflow
 
 
+def init_ds_surfaces_wf(
+    *,
+    bids_root: str,
+    output_dir: str,
+    surfaces: list[str],
+    name="ds_surfaces_wf",
+) -> Workflow:
+    """
+    Save GIFTI surfaces
+
+    Parameters
+    ----------
+    bids_root : :class:`str`
+        Root path of BIDS dataset
+    output_dir : :class:`str`
+        Directory in which to save derivatives
+    surfaces : :class:`str`
+        List of surfaces to generate DataSinks for
+    name : :class:`str`
+        Workflow name (default: ds_surfaces_wf)
+
+    Inputs
+    ------
+    source_files
+        List of input T1w images
+    ``<surface>``
+        Left and right GIFTIs for each surface passed to ``surfaces``
+
+    Outputs
+    -------
+    ``<surface>``
+        Left and right GIFTIs in ``output_dir`` for each surface passed to ``surfaces``
+
+    """
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=["source_files"] + surfaces),
+        name="inputnode",
+    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=surfaces), name="outputnode")
+
+    for surf in surfaces:
+        ds_surf = pe.MapNode(
+            DerivativesDataSink(
+                base_directory=output_dir,
+                hemi=["L", "R"],
+                suffix=surf.split("_")[0],  # Split for sphere_reg and sphere_reg_fsLR
+                extension=".surf.gii",
+            ),
+            iterfield=("in_file", "hemi"),
+            name=f"ds_{surf}",
+            run_without_submitting=True,
+        )
+        if surf.startswith("sphere_reg"):
+            ds_surf.inputs.desc = "reg"
+            if surf == "sphere_reg_fsLR":
+                ds_surf.inputs.space = "fsLR"
+
+        # fmt:off
+        workflow.connect([
+            (inputnode, ds_surf, [
+                (surf, 'in_file'),
+                ('source_files', 'source_file'),
+            ]),
+            (ds_surf, outputnode, [('out_file', surf)]),
+        ])
+        # fmt:on
+
+    return workflow
+
+
 def init_anat_second_derivatives_wf(
     *,
     bids_root: str,
@@ -711,8 +783,6 @@ def init_anat_second_derivatives_wf(
         FreeSurfer's aparc+aseg segmentation, in native T1w space
     cifti_morph
         Morphometric CIFTI-2 dscalar files
-    cifti_density
-        Grayordinate density
     cifti_metadata
         JSON files containing metadata dictionaries
 
@@ -870,46 +940,6 @@ def init_anat_second_derivatives_wf(
 
     from niworkflows.interfaces.surf import Path2BIDS
 
-    # Surfaces
-    name_surfs = pe.MapNode(
-        Path2BIDS(), iterfield="in_file", name="name_surfs", run_without_submitting=True
-    )
-    ds_surfs = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir, extension=".surf.gii"),
-        iterfield=["in_file", "hemi", "suffix"],
-        name="ds_surfs",
-        run_without_submitting=True,
-    )
-    # Sphere registrations
-    name_regs = pe.MapNode(
-        Path2BIDS(), iterfield="in_file", name="name_regs", run_without_submitting=True
-    )
-    ds_regs = pe.MapNode(
-        DerivativesDataSink(
-            base_directory=output_dir,
-            desc="reg",
-            suffix="sphere",
-            extension=".surf.gii",
-        ),
-        iterfield=["in_file", "hemi"],
-        name="ds_regs",
-        run_without_submitting=True,
-    )
-    name_reg_fsLR = pe.MapNode(
-        Path2BIDS(), iterfield="in_file", name="name_reg_fsLR", run_without_submitting=True
-    )
-    ds_reg_fsLR = pe.MapNode(
-        DerivativesDataSink(
-            base_directory=output_dir,
-            space="fsLR",
-            desc="reg",
-            suffix="sphere",
-            extension=".surf.gii",
-        ),
-        iterfield=["in_file", "hemi"],
-        name="ds_reg_fsLR",
-        run_without_submitting=True,
-    )
     # Morphometrics
     name_morphs = pe.MapNode(
         Path2BIDS(),
@@ -952,19 +982,6 @@ def init_anat_second_derivatives_wf(
 
     # fmt:off
     workflow.connect([
-        (inputnode, name_surfs, [('surfaces', 'in_file')]),
-        (inputnode, ds_surfs, [('surfaces', 'in_file'),
-                               ('source_files', 'source_file')]),
-        (name_surfs, ds_surfs, [('hemi', 'hemi'),
-                                ('suffix', 'suffix')]),
-        (inputnode, name_regs, [('sphere_reg', 'in_file')]),
-        (inputnode, ds_regs, [('sphere_reg', 'in_file'),
-                              ('source_files', 'source_file')]),
-        (name_regs, ds_regs, [('hemi', 'hemi')]),
-        (inputnode, name_reg_fsLR, [('sphere_reg_fsLR', 'in_file')]),
-        (inputnode, ds_reg_fsLR, [('sphere_reg_fsLR', 'in_file'),
-                                  ('source_files', 'source_file')]),
-        (name_reg_fsLR, ds_reg_fsLR, [('hemi', 'hemi')]),
         (inputnode, name_morphs, [('morphometrics', 'in_file')]),
         (inputnode, ds_morphs, [('morphometrics', 'in_file'),
                                 ('source_files', 'source_file')]),
@@ -984,6 +1001,7 @@ def init_anat_second_derivatives_wf(
         ds_cifti_morph = pe.MapNode(
             DerivativesDataSink(
                 base_directory=output_dir,
+                density=cifti_output,
                 suffix=['curv', 'sulc', 'thickness'],
                 compress=False,
                 space='fsLR',
@@ -996,7 +1014,6 @@ def init_anat_second_derivatives_wf(
         workflow.connect([
             (inputnode, ds_cifti_morph, [('cifti_morph', 'in_file'),
                                          ('source_files', 'source_file'),
-                                         ('cifti_density', 'density'),
                                          (('cifti_metadata', _read_jsons), 'meta_dict')])
         ])
         # fmt:on

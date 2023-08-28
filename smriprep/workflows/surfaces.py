@@ -213,6 +213,24 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
 
+    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+
+    midthickness = pe.MapNode(
+        MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
+        iterfield="in_file",
+        name="midthickness",
+    )
+
+    save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
+
+    sync = pe.Node(
+        niu.Function(
+            function=_extract_fs_fields,
+            output_names=['subjects_dir', 'subject_id'],
+        ),
+        name="sync",
+    )
+
     # fmt:off
     workflow.connect([
         # Configuration
@@ -238,9 +256,24 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
         (recon_config, autorecon_resume_wf, [('use_t2w', 'inputnode.use_T2'),
                                              ('use_flair', 'inputnode.use_FLAIR')]),
+        # Generate mid-thickness surfaces
+        (autorecon_resume_wf, get_surfaces, [
+            ('outputnode.subjects_dir', 'subjects_dir'),
+            ('outputnode.subject_id', 'subject_id'),
+        ]),
+        (autorecon_resume_wf, save_midthickness, [
+            ('outputnode.subjects_dir', 'base_directory'),
+            ('outputnode.subject_id', 'container'),
+        ]),
+        (get_surfaces, midthickness, [
+            ('white', 'in_file'),
+            ('graymid', 'graymid'),
+        ]),
+        (midthickness, save_midthickness, [('out_file', 'surf.@graymid')]),
         # Output
-        (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
-                                           ('outputnode.subject_id', 'subject_id')]),
+        (save_midthickness, sync, [('out_file', 'filenames')]),
+        (sync, outputnode, [('subjects_dir', 'subjects_dir'),
+                            ('subject_id', 'subject_id')]),
     ])
     # fmt:on
 
@@ -603,6 +636,10 @@ def init_surface_derivatives_wf(
         niu.IdentityInterface(
             fields=[
                 "surfaces",
+                "white",
+                "pial",
+                "midthickness",
+                "inflated",
                 "morphometrics",
                 "sphere_reg",
                 "sphere_reg_fsLR",
@@ -615,22 +652,35 @@ def init_surface_derivatives_wf(
         name="outputnode",
     )
 
-    gifti_surface_wf = init_gifti_surface_wf()
-    sphere_reg_wf = init_sphere_reg_wf()
+    gifti_surfaces_wf = init_gifti_surfaces_wf()
+    gifti_spheres_wf = init_gifti_surfaces_wf(
+        surfaces=["sphere_reg"],
+        to_scanner=False,
+        name="gifti_spheres_wf",
+    )
+    gifti_morph_wf = init_gifti_morphometrics_wf()
+    fsLR_reg_wf = init_fsLR_reg_wf()
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
 
     # fmt:off
     workflow.connect([
         # Configuration
-        (inputnode, gifti_surface_wf, [
+        (inputnode, gifti_surfaces_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
         ]),
-        (inputnode, sphere_reg_wf, [
+        (inputnode, gifti_spheres_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
+        ]),
+        (inputnode, gifti_morph_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+        ]),
+        (gifti_spheres_wf, fsLR_reg_wf, [
+            ('outputnode.sphere_reg', 'inputnode.sphere_reg'),
         ]),
         (inputnode, aseg_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
@@ -646,10 +696,16 @@ def init_surface_derivatives_wf(
         ]),
 
         # Output
-        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
-                                        ('outputnode.morphometrics', 'morphometrics')]),
-        (sphere_reg_wf, outputnode, [('outputnode.sphere_reg', 'sphere_reg'),
-                                     ('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
+        (gifti_surfaces_wf, outputnode, [
+            ('outputnode.surfaces', 'surfaces'),
+            ('outputnode.white', 'white'),
+            ('outputnode.pial', 'pial'),
+            ('outputnode.midthickness', 'midthickness'),
+            ('outputnode.inflated', 'inflated'),
+        ]),
+        (gifti_spheres_wf, outputnode, [('outputnode.sphere_reg', 'sphere_reg')]),
+        (gifti_morph_wf, outputnode, [('outputnode.morphometrics', 'morphometrics')]),
+        (fsLR_reg_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
         (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
         (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
     ])
@@ -673,31 +729,14 @@ def init_surface_derivatives_wf(
     return workflow
 
 
-def init_sphere_reg_wf(*, name="sphere_reg_wf"):
+def init_fsLR_reg_wf(*, name="fsLR_reg_wf"):
     """Generate GIFTI registration files to fsLR space"""
-    from ..interfaces.surf import FixGiftiMetadata
     from ..interfaces.workbench import SurfaceSphereProjectUnproject
 
     workflow = Workflow(name=name)
 
-    inputnode = pe.Node(
-        niu.IdentityInterface(["subjects_dir", "subject_id"]),
-        name="inputnode",
-    )
-    outputnode = pe.Node(
-        niu.IdentityInterface(["sphere_reg", "sphere_reg_fsLR"]), name="outputnode"
-    )
-
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
-
-    # Via FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
-    #
-    # See https://github.com/DCAN-Labs/DCAN-HCP/tree/9291324
-    sphere_gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_gii"
-    )
-
-    fix_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_meta")
+    inputnode = pe.Node(niu.IdentityInterface(["sphere_reg"]), name="inputnode")
+    outputnode = pe.Node(niu.IdentityInterface(["sphere_reg_fsLR"]), name="outputnode")
 
     # Via
     # ${CARET7DIR}/wb_command -surface-sphere-project-unproject
@@ -722,14 +761,7 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
 
     # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [
-            ('subjects_dir', 'subjects_dir'),
-            ('subject_id', 'subject_id'),
-        ]),
-        (get_surfaces, sphere_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
-        (sphere_gii, fix_meta, [('converted', 'in_file')]),
-        (fix_meta, project_unproject, [('out_file', 'sphere_in')]),
-        (sphere_gii, outputnode, [('converted', 'sphere_reg')]),
+        (inputnode, project_unproject, [('sphere_reg', 'sphere_in')]),
         (project_unproject, outputnode, [('sphere_out', 'sphere_reg_fsLR')]),
     ])
     # fmt:on
@@ -737,25 +769,119 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
     return workflow
 
 
-def init_gifti_surface_wf(*, name="gifti_surface_wf"):
+def init_gifti_surfaces_wf(
+    *,
+    surfaces: ty.List[str] = ["pial", "midthickness", "inflated", "white"],
+    to_scanner: bool = True,
+    name: str = "gifti_surface_wf",
+):
     r"""
     Prepare GIFTI surfaces from a FreeSurfer subjects directory.
 
-    If midthickness (or graymid) surfaces do not exist, they are generated and
-    saved to the subject directory as ``lh/rh.midthickness``.
-    These, along with the gray/white matter boundary (``lh/rh.white``), pial
-    surfaces (``lh/rh.pial``) and inflated surfaces (``lh/rh.inflated``) are
-    converted to GIFTI files.
-    Additionally, the vertex coordinates are :py:class:`recentered
-    <smriprep.interfaces.NormalizeSurf>` to align with native T1w space.
+    The default surfaces are ``lh/rh.pial``, ``lh/rh.midthickness``,
+    ``lh/rh.inflated``, and ``lh/rh.white``.
+
+    Vertex coordinates are :py:class:`transformed
+    <smriprep.interfaces.NormalizeSurf>` to align with native T1w space
+    when ``fsnative2t1w_xfm`` is provided.
 
     Workflow Graph
         .. workflow::
             :graph2use: orig
             :simple_form: yes
 
-            from smriprep.workflows.surfaces import init_gifti_surface_wf
-            wf = init_gifti_surface_wf()
+            from smriprep.workflows.surfaces import init_gifti_surfaces_wf
+            wf = init_gifti_surfaces_wf()
+
+    Inputs
+    ------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    fsnative2t1w_xfm
+        LTA formatted affine transform file
+
+    Outputs
+    -------
+    surfaces
+        GIFTI surfaces for all requested surfaces
+    ``<surface>``
+        Left and right GIFTIs for each surface passed to ``surfaces``
+
+    """
+    from ..interfaces.surf import NormalizeSurf
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(["subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
+        name="inputnode",
+    )
+    outputnode = pe.Node(niu.IdentityInterface(["surfaces", *surfaces]), name="outputnode")
+
+    get_surfaces = pe.Node(
+        niu.Function(function=_get_surfaces, output_names=surfaces),
+        name="get_surfaces",
+    )
+    get_surfaces.inputs.surfaces = surfaces
+
+    surface_list = pe.Node(
+        niu.Merge(len(surfaces), ravel_inputs=True),
+        name="surface_list",
+        run_without_submitting=True,
+    )
+    fs2gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype="gii", to_scanner=to_scanner),
+        iterfield="in_file",
+        name="fs2gii",
+    )
+    fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
+
+    surface_groups = pe.Node(
+        niu.Split(splits=[2] * len(surfaces)),
+        name="surface_groups",
+        run_without_submitting=True,
+    )
+
+    # fmt:off
+    workflow.connect([
+        (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
+                                   ('subject_id', 'subject_id')]),
+        (get_surfaces, surface_list, [
+            (surf, f'in{i}') for i, surf in enumerate(surfaces, start=1)
+        ]),
+        (surface_list, fs2gii, [('out', 'in_file')]),
+        (fs2gii, fix_surfs, [('converted', 'in_file')]),
+        (fix_surfs, outputnode, [('out_file', 'surfaces')]),
+        (fix_surfs, surface_groups, [('out_file', 'inlist')]),
+        (surface_groups, outputnode, [
+            (f'out{i}', surf) for i, surf in enumerate(surfaces, start=1)
+        ]),
+    ])
+    # fmt:on
+    return workflow
+
+
+def init_gifti_morphometrics_wf(
+    *,
+    morphometrics: ty.List[str] = ["thickness", "curv", "sulc"],
+    name: str = "gifti_morphometrics_wf",
+):
+    r"""
+    Prepare GIFTI shape files from morphometrics found in a FreeSurfer subjects
+    directory.
+
+    The default morphometrics are ``lh/rh.thickness``, ``lh/rh.curv``, and
+    ``lh/rh.sulc``.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_gifti_morphometrics_wf
+            wf = init_gifti_morphometrics_wf()
 
     Inputs
     ------
@@ -768,29 +894,13 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
 
     Outputs
     -------
-    midthickness
-        Left and right midthickness (or graymid) surface GIFTIs
-    pial
-        Left and right pial surface GIFTIs
-    white
-        Left and right white surface GIFTIs
-    inflated
-        Left and right inflated surface GIFTIs
-    surfaces
-        GIFTI surfaces for gray/white matter boundary, pial surface,
-        midthickness (or graymid) surface, and inflated surfaces
-    thickness
-        Left and right cortical thickness GIFTIs
-    sulc
-        Left and right sulcal depth map GIFTIs
-    curv
-        Left and right curvature map GIFTIs
     morphometrics
-        GIFTIs of cortical thickness, curvature, and sulcal depth
+        GIFTI shape files for all requested morphometrics
+    ``<morphometric>``
+        Left and right GIFTIs for each morphometry type passed to ``morphometrics``
 
     """
     from ..interfaces.freesurfer import MRIsConvertData
-    from ..interfaces.surf import NormalizeSurf, AggregateSurfaces
 
     workflow = Workflow(name=name)
 
@@ -799,44 +909,19 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="inputnode",
     )
     outputnode = pe.Node(
-        niu.IdentityInterface([
-            "pial",
-            "white",
-            "inflated",
-            "midthickness",
-            "thickness",
-            "sulc",
-            "curv",
-            # Preserve grouping
-            "surfaces",
-            "morphometrics",
-        ]),
-        name="outputnode"
+        niu.IdentityInterface(
+            [
+                "morphometrics",
+                *morphometrics,
+            ]
+        ),
+        name="outputnode",
     )
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+    get_subject = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 
-    midthickness = pe.MapNode(
-        MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
-        iterfield="in_file",
-        name="midthickness",
-    )
-
-    save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
-
-    surface_list = pe.Node(
-        niu.Merge(4, ravel_inputs=True),
-        name="surface_list",
-        run_without_submitting=True,
-    )
-    fs2gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii", to_scanner=True),
-        iterfield="in_file",
-        name="fs2gii",
-    )
-    fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
-    surfmorph_list = pe.Node(
-        niu.Merge(3, ravel_inputs=True),
+    morphometry_list = pe.Node(
+        niu.Merge(len(morphometrics), ravel_inputs=True),
         name="surfmorph_list",
         run_without_submitting=True,
     )
@@ -846,42 +931,27 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="morphs2gii",
     )
 
-    agg_surfaces = pe.Node(AggregateSurfaces(), name="agg_surfaces")
+    morph_groups = pe.Node(
+        niu.Split(splits=[2] * len(morphometrics)),
+        name="morph_groups",
+        run_without_submitting=True,
+    )
 
     # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
-                                   ('subject_id', 'subject_id')]),
-        (inputnode, save_midthickness, [('subjects_dir', 'base_directory'),
-                                        ('subject_id', 'container')]),
-        # Generate midthickness surfaces and save to FreeSurfer derivatives
-        (get_surfaces, midthickness, [('white', 'in_file'),
-                                      ('graymid', 'graymid')]),
-        (midthickness, save_midthickness, [('out_file', 'surf.@graymid')]),
-        # Produce valid GIFTI surface files (dense mesh)
-        (get_surfaces, surface_list, [('white', 'in1'),
-                                      ('pial', 'in2'),
-                                      ('inflated', 'in3')]),
-        (save_midthickness, surface_list, [('out_file', 'in4')]),
-        (surface_list, fs2gii, [('out', 'in_file')]),
-        (fs2gii, fix_surfs, [('converted', 'in_file')]),
-        (inputnode, fix_surfs, [('fsnative2t1w_xfm', 'transform_file')]),
-        (fix_surfs, outputnode, [('out_file', 'surfaces')]),
-        (get_surfaces, surfmorph_list, [('thickness', 'in1'),
-                                        ('sulc', 'in2'),
-                                        ('curv', 'in3')]),
-        (surfmorph_list, morphs2gii, [('out', 'scalarcurv_file')]),
+        (inputnode, get_subject, [('subjects_dir', 'subjects_dir'),
+                                  ('subject_id', 'subject_id')]),
+        (get_subject, morphometry_list, [
+            ((morph, _sorted_by_basename), f'in{i}')
+            for i, morph in enumerate(morphometrics, start=1)
+        ]),
+        (morphometry_list, morphs2gii, [('out', 'scalarcurv_file')]),
         (morphs2gii, outputnode, [('converted', 'morphometrics')]),
         # Output individual surfaces as well
-        (fix_surfs, agg_surfaces, [('out_file', 'surfaces')]),
-        (morphs2gii, agg_surfaces, [('converted', 'morphometrics')]),
-        (agg_surfaces, outputnode, [('pial', 'pial'),
-                                    ('white', 'white'),
-                                    ('inflated', 'inflated'),
-                                    ('midthickness', 'midthickness'),
-                                    ('thickness', 'thickness'),
-                                    ('sulc', 'sulc'),
-                                    ('curv', 'curv')]),
+        (morphs2gii, morph_groups, [('converted', 'inlist')]),
+        (morph_groups, outputnode, [
+            (f'out{i}', surf) for i, surf in enumerate(morphometrics, start=1)
+        ]),
     ])
     # fmt:on
     return workflow
@@ -981,7 +1051,8 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "surfaces",
+                "white",
+                "pial",
                 "t1w_mask",
             ]
         ),
@@ -994,31 +1065,6 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
             ]
         ),
         name="outputnode",
-    )
-
-    # 0, 1 = wm; 2, 3 = pial; 6, 7 = mid
-    # note that order of lh / rh within each surf type is not guaranteed due to use
-    # of unsorted glob by FreeSurferSource prior, but we can do a sort
-    # to ensure consistent ordering
-    select_wm = pe.Node(
-        niu.Select(index=[0, 1]),
-        name="select_wm",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    select_pial = pe.Node(
-        niu.Select(index=[2, 3]),
-        name="select_pial",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    select_midthick = pe.Node(
-        niu.Select(index=[6, 7]),
-        name="select_midthick",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
     )
 
     create_wm_distvol = pe.MapNode(
@@ -1104,15 +1150,17 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
     )
 
     # make HCP-style ribbon volume in T1w space
+    # fmt: off
     workflow.connect(
         [
-            (inputnode, select_wm, [("surfaces", "inlist")]),
-            (inputnode, select_pial, [("surfaces", "inlist")]),
-            (inputnode, select_midthick, [("surfaces", "inlist")]),
-            (select_wm, create_wm_distvol, [(("out", _sorted_by_basename), "surf_file")]),
-            (inputnode, create_wm_distvol, [("t1w_mask", "ref_file")]),
-            (select_pial, create_pial_distvol, [(("out", _sorted_by_basename), "surf_file")]),
-            (inputnode, create_pial_distvol, [("t1w_mask", "ref_file")]),
+            (inputnode, create_wm_distvol, [
+                ("white", "surf_file"),
+                ("t1w_mask", "ref_file"),
+            ]),
+            (inputnode, create_pial_distvol, [
+                ("pial", "surf_file"),
+                ("t1w_mask", "ref_file"),
+            ]),
             (create_wm_distvol, thresh_wm_distvol, [("out_file", "in_file")]),
             (create_pial_distvol, uthresh_pial_distvol, [("out_file", "in_file")]),
             (thresh_wm_distvol, bin_wm_distvol, [("out_file", "in_file")]),
@@ -1129,6 +1177,7 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
             (combine_ribbon_vol_hemis, outputnode, [("out_file", "anat_ribbon")]),
         ]
     )
+    # fmt: on
     return workflow
 
 
@@ -1341,3 +1390,60 @@ def _sorted_by_basename(inlist):
 
 def _collate(files):
     return [files[i : i + 2] for i in range(0, len(files), 2)]
+
+
+def _extract_fs_fields(filenames: str | list[str]) -> tuple[str, str]:
+    from pathlib import Path
+
+    if isinstance(filenames, str):
+        filenames = [filenames]
+    paths = [Path(fn) for fn in filenames]
+    sub_dir = paths[0].parent.parent
+    subjects_dir, subject_id = sub_dir.parent, sub_dir.name
+    assert all(path == subjects_dir / subject_id / 'surf' / path.name for path in paths)
+    return str(subjects_dir), subject_id
+
+
+def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> tuple[list[str]]:
+    """
+    Get a list of FreeSurfer surface files for a given subject.
+
+    If ``midthickness`` is requested but not present in the directory,
+    ``graymid`` will be returned instead. For surfaces with dots (``.``) in
+    their names, pass the name with underscores (``_``).
+
+    Parameters
+    ----------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    surfaces
+        List of surfaces to fetch
+
+    Returns
+    -------
+    tuple
+        A list of surfaces for each requested surface, sorted
+
+    """
+    from pathlib import Path
+
+    expanded_surfaces = surfaces.copy()
+    if "midthickness" in surfaces:
+        expanded_surfaces.append("graymid")
+
+    surf_dir = Path(subjects_dir) / subject_id / "surf"
+    all_surfs = {
+        surface: sorted(
+            str(fn)
+            for fn in surf_dir.glob(f"[lr]h.{surface.replace('_', '.')}")
+        )
+        for surface in expanded_surfaces
+    }
+
+    if all_surfs.get("graymid") and not all_surfs.get("midthickness"):
+        all_surfs["midthickness"] = all_surfs.pop("graymid")
+
+    ret = tuple(all_surfs[surface] for surface in surfaces)
+    return ret if len(ret) > 1 else ret[0]

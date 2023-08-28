@@ -41,5 +41,11 @@ smriprep/sub-01/anat/sub-01_hemi-R_white.surf.gii
 smriprep/sub-01/anat/sub-01_label-CSF_probseg.nii.gz
 smriprep/sub-01/anat/sub-01_label-GM_probseg.nii.gz
 smriprep/sub-01/anat/sub-01_label-WM_probseg.nii.gz
+smriprep/sub-01/anat/sub-01_space-fsLR_den-91k_curv.dscalar.nii
+smriprep/sub-01/anat/sub-01_space-fsLR_den-91k_curv.json
+smriprep/sub-01/anat/sub-01_space-fsLR_den-91k_sulc.dscalar.nii
+smriprep/sub-01/anat/sub-01_space-fsLR_den-91k_sulc.json
+smriprep/sub-01/anat/sub-01_space-fsLR_den-91k_thickness.dscalar.nii
+smriprep/sub-01/anat/sub-01_space-fsLR_den-91k_thickness.json
 smriprep/sub-01.html
 /tmp/ds005/derivatives
