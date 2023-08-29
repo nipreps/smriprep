@@ -284,6 +284,6 @@ def make_ribbon(
         newpath = os.getcwd()
     out_file = os.path.join(newpath, "ribbon.nii.gz")
 
-    ribbon = base_img.__class__(ribbons[0] | ribbons[1], base_img.affine, base_img.header)
+    ribbon = base_img.__class__(ribbons[0] | ribbons[1], base_img.affine, header)
     ribbon.to_filename(out_file)
     return out_file
