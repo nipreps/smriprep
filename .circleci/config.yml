@@ -282,6 +282,8 @@ jobs:
 
   test:
     <<: *machine_defaults
+    environment:
+      - FS_LICENSE: /tmp/fslicense/license.txt
     steps:
       - attach_workspace:
           at: /tmp
@@ -811,6 +813,7 @@ workflows:
           context:
             - nipreps-common
           requires:
+            - get_data
             - build
           filters:
             branches:
