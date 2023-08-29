@@ -1046,6 +1046,31 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
 
 
 def init_anat_ribbon_wf(name="anat_ribbon_wf"):
+    """Create anatomical ribbon mask
+
+    Workflow Graph
+
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_anat_ribbon_wf
+            wf = init_anat_ribbon_wf()
+
+    Inputs
+    ------
+    white
+        Left and right gray/white surfaces (as GIFTI files)
+    pial
+        Left and right pial surfaces (as GIFTI files)
+    ref_file
+        Reference image (one 3D volume) to define the target space
+
+    Outputs
+    -------
+    anat_ribbon
+        Cortical gray matter mask, sampled into ``ref_file`` space
+    """
     DEFAULT_MEMORY_MIN_GB = 0.01
     workflow = pe.Workflow(name=name)
 
