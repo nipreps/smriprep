@@ -129,6 +129,8 @@ jobs:
                 --build-arg VCS_REF=`git rev-parse --short HEAD` \
                 --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" .
       - run:
+          command: docker images
+      - run:
           name: Check Docker image
           command: |
             export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )

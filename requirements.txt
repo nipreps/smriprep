@@ -8,15 +8,15 @@ astor==0.8.1
     # via formulaic
 attrs==23.1.0
     # via niworkflows
-bids-validator==1.11.0
+bids-validator==1.12.0
     # via pybids
-certifi==2023.5.7
+certifi==2023.7.22
     # via requests
-charset-normalizer==3.1.0
+charset-normalizer==3.2.0
     # via requests
 ci-info==0.3.0
     # via etelemetry
-click==8.1.3
+click==8.1.7
     # via
     #   nipype
     #   pybids
@@ -30,19 +30,19 @@ etelemetry==0.3.0
     # via nipype
 filelock==3.12.2
     # via nipype
-fonttools==4.40.0
+fonttools==4.42.1
     # via matplotlib
 formulaic==0.5.2
     # via pybids
 greenlet==2.0.2
     # via sqlalchemy
-h5py==3.8.0
+h5py==3.9.0
     # via nitransforms
 idna==3.4
     # via requests
-imageio==2.31.1
+imageio==2.31.2
     # via scikit-image
-indexed-gzip==1.7.1
+indexed-gzip==1.8.3
     # via smriprep (pyproject.toml)
 interface-meta==1.3.0
     # via formulaic
@@ -50,22 +50,22 @@ isodate==0.6.1
     # via rdflib
 jinja2==3.1.2
     # via niworkflows
-joblib==1.2.0
+joblib==1.3.2
     # via
     #   nilearn
     #   scikit-learn
-kiwisolver==1.4.4
+kiwisolver==1.4.5
     # via matplotlib
-lazy-loader==0.2
+lazy-loader==0.3
     # via scikit-image
 lockfile==0.12.2
     # via smriprep (pyproject.toml)
-looseversion==1.2.0
+looseversion==1.3.0
     # via
     #   nipype
     #   niworkflows
     #   smriprep (pyproject.toml)
-lxml==4.9.2
+lxml==4.9.3
     # via
     #   nilearn
     #   prov
@@ -96,13 +96,13 @@ nipype==1.8.6
     # via
     #   niworkflows
     #   smriprep (pyproject.toml)
-nitransforms==23.0.0
+nitransforms==23.0.1
     # via niworkflows
-niworkflows==1.8.0
+niworkflows==1.8.1
     # via smriprep (pyproject.toml)
 num2words==0.5.12
     # via pybids
-numpy==1.24.3
+numpy==1.25.2
     # via
     #   contourpy
     #   formulaic
@@ -132,28 +132,28 @@ packaging==23.1
     #   niworkflows
     #   scikit-image
     #   smriprep (pyproject.toml)
-pandas==2.0.2
+pandas==2.0.3
     # via
     #   formulaic
     #   nilearn
     #   niworkflows
     #   pybids
     #   seaborn
-pillow==9.5.0
+pillow==10.0.0
     # via
     #   imageio
     #   matplotlib
     #   scikit-image
 prov==2.0.0
     # via nipype
-pybids==0.16.1
+pybids==0.16.3
     # via
     #   niworkflows
     #   smriprep (pyproject.toml)
     #   templateflow
 pydot==1.4.2
     # via nipype
-pyparsing==3.1.0
+pyparsing==3.0.9
     # via
     #   matplotlib
     #   pydot
@@ -168,11 +168,11 @@ pytz==2023.3
     # via pandas
 pywavelets==1.4.1
     # via scikit-image
-pyyaml==6.0
+pyyaml==6.0.1
     # via
     #   niworkflows
     #   smriprep (pyproject.toml)
-rdflib==6.3.2
+rdflib==7.0.0
     # via
     #   nipype
     #   prov
@@ -181,11 +181,11 @@ requests==2.31.0
     #   etelemetry
     #   nilearn
     #   templateflow
-scikit-image==0.20.0
+scikit-image==0.21.0
     # via niworkflows
-scikit-learn==1.2.2
+scikit-learn==1.3.0
     # via nilearn
-scipy==1.10.1
+scipy==1.11.2
     # via
     #   formulaic
     #   nilearn
@@ -203,7 +203,7 @@ six==1.16.0
     # via
     #   isodate
     #   python-dateutil
-sqlalchemy==2.0.16
+sqlalchemy==2.0.20
     # via pybids
 svgutils==0.3.4
     # via niworkflows
@@ -211,11 +211,11 @@ templateflow==23.0.0
     # via
     #   niworkflows
     #   smriprep (pyproject.toml)
-threadpoolctl==3.1.0
+threadpoolctl==3.2.0
     # via scikit-learn
-tifffile==2023.4.12
+tifffile==2023.8.25
     # via scikit-image
-tqdm==4.65.0
+tqdm==4.66.1
     # via templateflow
 traits==6.3.2
     # via
@@ -223,13 +223,13 @@ traits==6.3.2
     #   niworkflows
 transforms3d==0.4.1
     # via niworkflows
-typing-extensions==4.6.3
+typing-extensions==4.7.1
     # via
     #   formulaic
     #   sqlalchemy
 tzdata==2023.3
     # via pandas
-urllib3==2.0.3
+urllib3==2.0.4
     # via requests
 wrapt==1.15.0
     # via formulaic
