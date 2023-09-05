@@ -185,6 +185,15 @@ class SurfaceAffineRegression(WBCommand):
     warped source surface. Note that this has a bias to shrink the surface
     that is being warped. The output is written as a NIFTI 'world' matrix,
     see -convert-affine to convert it for use in other software.
+
+    >>> sar = SurfaceAffineRegression()
+    >>> sar.inputs.in_surface = 'sub-01_hemi-L_sulc.shape.gii'
+    >>> sar.inputs.target_surface = 'tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii'
+    >>> sar.cmdline
+    'wb_command -surface-affine-regression \
+    sub-01_hemi-L_sulc.shape.gii \
+    tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii \
+    sub-01_hemi-L_sulc.shape_xfm'
     """
     input_spec = SurfaceAffineRegressionInputSpec
     output_spec = SurfaceAffineRegressionOutputSpec
@@ -250,6 +259,25 @@ class SurfaceApplyAffine(WBCommand):
     represent.  If the -flirt option is not present, the affine must be a
     nifti 'world' affine, which can be obtained with the -convert-affine
     command, or aff_conv from the 4dfp suite.
+
+    .. testsetup::
+
+    >>> np.savetxt('affine.txt', np.eye(4), delimiter='\t')
+
+    .. doctest::
+
+    >>> saa = SurfaceApplyAffine()
+    >>> saa.inputs.in_surface = 'sub-01_hemi-L_sphere.surf.gii'
+    >>> saa.inputs.in_affine = 'affine.txt'
+    >>> saa.cmdline
+    'wb_command -surface-apply-affine \
+    sub-01_hemi-L_sphere.surf.gii \
+    affine.txt \
+    sub-01_hemi-L_sphere.surf_xformed.surf.gii'
+
+    .. testcleanup::
+
+    >>> os.unlink('affine.txt')
     """
     input_spec = SurfaceApplyAffineInputSpec
     output_spec = SurfaceApplyAffineOutputSpec
@@ -309,6 +337,15 @@ class SurfaceApplyWarpfield(WBCommand):
     If the -fnirt option is not present, the warpfield must be a nifti
     'world' warpfield, which can be obtained with the -convert-warpfield
     command.
+
+    >>> saw = SurfaceApplyWarpfield()
+    >>> saw.inputs.in_surface = 'sub-01_hemi-L_sphere.surf.gii'
+    >>> saw.inputs.warpfield = 'sub-01_desc-warped_T1w.nii.gz'
+    >>> saw.cmdline
+    'wb_command -surface-apply-warpfield \
+    sub-01_hemi-L_sphere.surf.gii \
+    sub-01_desc-warped_T1w.nii.gz \
+    sub-01_hemi-L_sphere.surf_warped.surf.gii'
     """
     input_spec = SurfaceApplyWarpfieldInputSpec
     output_spec = SurfaceApplyWarpfieldOutputSpec

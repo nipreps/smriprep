@@ -124,6 +124,23 @@ class MSM(CommandLine):
     optimisation framework (FastPD Komodakis 2007), which significantly reduces the search
     space of possible deformations for each vertex, and allows flexibility with regards to the
     choice of similarity metric used to match the images.
+
+    >>> msm = MSM(
+    ...   config_file=load('msm/MSMSulcStrainFinalconf'),
+    ...   in_mesh='sub-01_hemi-L_sphere.surf.gii',
+    ...   reference_mesh='tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii',
+    ...   in_data='sub-01_hemi-L_sulc.shape.gii',
+    ...   reference_data='tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii',
+    ...   out_base='L.',
+    ... )
+    >>> msm.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    'msm --conf=.../MSMSulcStrainFinalconf \
+    --indata=sub-01_hemi-L_sulc.shape.gii \
+    --inmesh=sub-01_hemi-L_sphere.surf.gii \
+    --out=L. \
+    --refdata=tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii \
+    --refmesh=tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii'
+
     """
 
     input_spec = MSMInputSpec
