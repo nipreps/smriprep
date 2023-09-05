@@ -215,11 +215,10 @@ def get_parser():
         help="disable sub-millimeter (hires) reconstruction",
     )
     g_surfs.add_argument(
-        "--msm-sulc",
-        "--msmsulc",
-        action="store_true",
+        "--no-msm",
+        action="store_false",
         dest="msm_sulc",
-        help="Enable Multimodal Surface Matching surface registration."
+        help="Disable Multimodal Surface Matching surface registration."
     )
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
