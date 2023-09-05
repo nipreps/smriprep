@@ -189,7 +189,7 @@ class SurfaceAffineRegression(WBCommand):
     >>> sar = SurfaceAffineRegression()
     >>> sar.inputs.in_surface = 'sub-01_hemi-L_sulc.shape.gii'
     >>> sar.inputs.target_surface = 'tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii'
-    >>> sar.cmdline
+    >>> sar.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     'wb_command -surface-affine-regression \
     sub-01_hemi-L_sulc.shape.gii \
     tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii \
@@ -269,7 +269,7 @@ class SurfaceApplyAffine(WBCommand):
     >>> saa = SurfaceApplyAffine()
     >>> saa.inputs.in_surface = 'sub-01_hemi-L_sphere.surf.gii'
     >>> saa.inputs.in_affine = 'affine.txt'
-    >>> saa.cmdline
+    >>> saa.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     'wb_command -surface-apply-affine \
     sub-01_hemi-L_sphere.surf.gii \
     affine.txt \
@@ -341,7 +341,7 @@ class SurfaceApplyWarpfield(WBCommand):
     >>> saw = SurfaceApplyWarpfield()
     >>> saw.inputs.in_surface = 'sub-01_hemi-L_sphere.surf.gii'
     >>> saw.inputs.warpfield = 'sub-01_desc-warped_T1w.nii.gz'
-    >>> saw.cmdline
+    >>> saw.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     'wb_command -surface-apply-warpfield \
     sub-01_hemi-L_sphere.surf.gii \
     sub-01_desc-warped_T1w.nii.gz \
