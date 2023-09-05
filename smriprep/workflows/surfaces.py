@@ -49,6 +49,7 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
+import templateflow.api as tf
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
@@ -493,7 +494,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     return workflow
 
 
-def init_sphere_reg_wf(*, name="sphere_reg_wf"):
+def init_sphere_reg_wf(*, msm_sulc: bool = False, name: str = "sphere_reg_wf"):
     """Generate GIFTI registration files to fsLR space"""
     from ..interfaces.surf import FixGiftiMetadata
     from ..interfaces.workbench import SurfaceSphereProjectUnproject
@@ -501,7 +502,7 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(["subjects_dir", "subject_id"]),
+        niu.IdentityInterface(["subjects_dir", "subject_id", "sulc"]),
         name="inputnode",
     )
     outputnode = pe.Node(
@@ -513,11 +514,11 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
     # Via FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
     #
     # See https://github.com/DCAN-Labs/DCAN-HCP/tree/9291324
-    sphere_gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_gii"
+    sphere_reg_gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_reg_gii"
     )
 
-    fix_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_meta")
+    fix_reg_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_reg_meta")
 
     # Via
     # ${CARET7DIR}/wb_command -surface-sphere-project-unproject
@@ -546,14 +547,120 @@ def init_sphere_reg_wf(*, name="sphere_reg_wf"):
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id'),
         ]),
-        (get_surfaces, sphere_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
-        (sphere_gii, fix_meta, [('converted', 'in_file')]),
-        (fix_meta, project_unproject, [('out_file', 'sphere_in')]),
-        (sphere_gii, outputnode, [('converted', 'sphere_reg')]),
-        (project_unproject, outputnode, [('sphere_out', 'sphere_reg_fsLR')]),
+        (get_surfaces, sphere_reg_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
+        (sphere_reg_gii, fix_reg_meta, [('converted', 'in_file')]),
+        (fix_reg_meta, project_unproject, [('out_file', 'sphere_in')]),
+        (fix_reg_meta, outputnode, [('out_file', 'sphere_reg')]),
     ])
     # fmt:on
 
+    if not msm_sulc:
+        workflow.connect(project_unproject, 'sphere_out', outputnode, 'sphere_reg_fsLR')
+        return workflow
+
+    sphere_gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype='gii'), iterfield='in_file', name='sphere_gii',
+    )
+    fix_sphere_meta = pe.MapNode(
+        FixGiftiMetadata(), iterfield='in_file', name='fix_sphere_meta',
+    )
+    msm_sulc_wf = init_msm_sulc_wf()
+    # fmt:off
+    workflow.connect([
+        (get_surfaces, sphere_gii, [(('sphere', _sorted_by_basename), 'in_file')]),
+        (sphere_gii, fix_sphere_meta, [('converted', 'in_file')]),
+        (fix_sphere_meta, msm_sulc_wf, [('out_file', 'inputnode.sphere')]),
+        (inputnode, msm_sulc_wf, [('sulc', 'inputnode.sulc')]),
+        (project_unproject, msm_sulc_wf, [('sphere_out', 'inputnode.sphere_reg_fsLR')]),
+        (msm_sulc_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
+    ])
+    # fmt:on
+    return workflow
+
+
+def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
+    """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
+    from ..interfaces.msm import MSM
+    from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
+
+    workflow = Workflow(name=name)
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['sulc', 'sphere', 'sphere_reg_fsLR']),
+        name='inputnode',
+    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=['sphere_reg_fsLR']), name='outputnode')
+
+    # 0) Calculate affine
+    # ${CARET7DIR}/wb_command -surface-affine-regression \
+    # $SUB.L.sphere.native.surf.gii  \
+    # $SUB.sphere.reg.reg_LR.native.surf.gii \
+    # "$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}.mat
+    regress_affine = pe.MapNode(
+        SurfaceAffineRegression(),
+        iterfield=['in_surface', 'target_surface'],
+        name='regress_affine',
+    )
+
+    # 1) Apply affine to native sphere:
+    # wb_command -surface-apply-affine \
+    # ${SUB}.L.sphere.native.surf.gii \
+    # L.mat \
+    # ${SUB}.L.sphere_rot.native.surf.gii
+    apply_surface_affine = pe.MapNode(
+        SurfaceApplyAffine(),
+        iterfield=['in_surface', 'in_affine'],
+        name='apply_surface_affine',
+    )
+    # 2) Run MSMSulc
+    # ./msm_centos_v3 --conf=MSMSulcStrainFinalconf \
+    # --inmesh=${SUB}.${HEMI}.sphere_rot.native.surf.gii
+    # --refmesh=fsaverage.${HEMI}_LR.spherical_std.164k_fs_LR.surf.gii
+    # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
+    # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
+    # --out=${HEMI}. --verbose
+    msmsulc = pe.MapNode(
+        MSM(verbose=True, config_file=load_resource('msm/MSMSulcStrainFinalconf')),
+        iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
+        name='msmsulc',
+        mem_gb=2,
+    )
+    msmsulc.inputs.out_base = ['lh.', 'rh.']  # To placate Path2BIDS
+    msmsulc.inputs.reference_mesh = [
+        str(
+            tf.get(
+                'fsaverage',
+                hemi=hemi,
+                density='164k',
+                desc='std',
+                suffix='sphere',
+                extension='.surf.gii',
+            )
+        )
+        for hemi in 'LR'
+    ]
+    msmsulc.inputs.reference_data = [
+        str(
+            tf.get(
+                'fsaverage',
+                hemi=hemi,
+                density='164k',
+                suffix='sulc',
+                extension='.shape.gii',
+            )
+        )
+        for hemi in 'LR'
+    ]
+    # fmt:off
+    workflow.connect([
+        (inputnode, regress_affine, [('sphere', 'in_surface'),
+                                     ('sphere_reg_fsLR', 'target_surface')]),
+        (inputnode, apply_surface_affine, [('sphere', 'in_surface')]),
+        (regress_affine, apply_surface_affine, [('out_affine', 'in_affine')]),
+        (inputnode, msmsulc, [('sulc', 'in_data')]),
+        (apply_surface_affine, msmsulc, [('out_surface', 'in_mesh')]),
+        (msmsulc, outputnode, [('warped_mesh', 'sphere_reg_fsLR')]),
+    ])
+    # fmt:on
     return workflow
 
 
@@ -985,9 +1092,9 @@ def init_morph_grayords_wf(
         Paths to JSON files containing metadata corresponding to ``cifti_morph``
 
     """
-    import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
     from smriprep.interfaces.cifti import GenerateDScalar
+    import templateflow.api as tf
 
     workflow = Workflow(name=name)
     workflow.__desc__ = f"""\

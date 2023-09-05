@@ -214,6 +214,12 @@ def get_parser():
         dest="hires",
         help="disable sub-millimeter (hires) reconstruction",
     )
+    g_surfs.add_argument(
+        "--no-msm",
+        action="store_false",
+        dest="msm_sulc",
+        help="Disable Multimodal Surface Matching surface registration."
+    )
     g_surfs_xor = g_surfs.add_mutually_exclusive_group()
 
     g_surfs_xor.add_argument(
@@ -567,6 +573,7 @@ def build_workflow(opts, retval):
         layout=layout,
         longitudinal=opts.longitudinal,
         low_mem=opts.low_mem,
+        msm_sulc=opts.msm_sulc,
         omp_nthreads=omp_nthreads,
         output_dir=str(output_dir),
         run_uuid=run_uuid,
