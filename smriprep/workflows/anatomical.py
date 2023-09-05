@@ -531,8 +531,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     )
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
     sphere_reg_wf = init_sphere_reg_wf(msm_sulc=msm_sulc, name="sphere_reg_wf")
-    if msm_sulc:
-        workflow.connect(surface_recon_wf, 'outputnode.sulc', sphere_reg_wf, 'inputnode.sulc')
 
     if t2w:
         t2w_template_wf = init_anat_template_wf(
@@ -622,6 +620,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         (surface_recon_wf, sphere_reg_wf, [
             ('outputnode.subject_id', 'inputnode.subject_id'),
             ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+            ('outputnode.sulc', 'inputnode.sulc'),
         ]),
         (sphere_reg_wf, outputnode, [
             ('outputnode.sphere_reg', 'sphere_reg'),
