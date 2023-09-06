@@ -494,7 +494,12 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     return workflow
 
 
-def init_sphere_reg_wf(*, msm_sulc: bool = False, name: str = "sphere_reg_wf"):
+def init_sphere_reg_wf(
+    *,
+    msm_sulc: bool = False,
+    sloppy: bool = False,
+    name: str = "sphere_reg_wf",
+):
     """Generate GIFTI registration files to fsLR space"""
     from ..interfaces.surf import FixGiftiMetadata
     from ..interfaces.workbench import SurfaceSphereProjectUnproject
@@ -564,7 +569,7 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, name: str = "sphere_reg_wf"):
     fix_sphere_meta = pe.MapNode(
         FixGiftiMetadata(), iterfield='in_file', name='fix_sphere_meta',
     )
-    msm_sulc_wf = init_msm_sulc_wf()
+    msm_sulc_wf = init_msm_sulc_wf(sloppy=sloppy)
     # fmt:off
     workflow.connect([
         (get_surfaces, sphere_gii, [(('sphere', _sorted_by_basename), 'in_file')]),
@@ -578,7 +583,7 @@ def init_sphere_reg_wf(*, msm_sulc: bool = False, name: str = "sphere_reg_wf"):
     return workflow
 
 
-def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
+def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
     from ..interfaces.msm import MSM
     from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
@@ -618,8 +623,9 @@ def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
     # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
     # --out=${HEMI}. --verbose
+    msm_conf = load_resource(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
     msmsulc = pe.MapNode(
-        MSM(verbose=True, config_file=load_resource('msm/MSMSulcStrainFinalconf')),
+        MSM(verbose=True, config_file=msm_conf),
         iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
         name='msmsulc',
         mem_gb=2,

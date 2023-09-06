@@ -530,7 +530,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires
     )
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
-    sphere_reg_wf = init_sphere_reg_wf(msm_sulc=msm_sulc, name="sphere_reg_wf")
+    sphere_reg_wf = init_sphere_reg_wf(msm_sulc=msm_sulc, sloppy=sloppy, name="sphere_reg_wf")
 
     if t2w:
         t2w_template_wf = init_anat_template_wf(
