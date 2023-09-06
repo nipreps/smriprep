@@ -297,6 +297,9 @@ def init_anat_preproc_wf(
     # fmt:on
     if freesurfer:
         surfaces = ["white", "pial", "midthickness", "inflated", "sphere_reg", "sphere_reg_fsLR"]
+        if msm_sulc:
+            surfaces.append("sphere_reg_msm")
+
         surface_derivatives_wf = init_surface_derivatives_wf(
             msm_sulc=msm_sulc,
             cifti_output=cifti_output,
