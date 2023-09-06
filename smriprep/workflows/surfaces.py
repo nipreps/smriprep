@@ -688,7 +688,9 @@ def init_surface_derivatives_wf(
             ('outputnode.sphere_reg', 'inputnode.sphere_reg'),
         ]),
         (gifti_spheres_wf, msm_sulc_wf, [('outputnode.sphere', 'inputnode.sphere')]),
-        (fsLR_reg_wf, msm_sulc_wf, [('outputnode.sphere_reg', 'inputnode.sphere_reg')]),
+        (fsLR_reg_wf, msm_sulc_wf, [
+            ('outputnode.sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
+        ]),
         (gifti_morph_wf, msm_sulc_wf, [('outputnode.sulc', 'inputnode.sulc')]),
         (inputnode, aseg_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
