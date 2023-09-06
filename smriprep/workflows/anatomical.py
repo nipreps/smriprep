@@ -244,7 +244,6 @@ def init_anat_preproc_wf(
         freesurfer=freesurfer,
         hires=hires,
         longitudinal=longitudinal,
-        msm_sulc=msm_sulc,
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
         spaces=spaces,
