@@ -300,6 +300,7 @@ def init_anat_preproc_wf(
         surface_derivatives_wf = init_surface_derivatives_wf(
             msm_sulc=msm_sulc,
             cifti_output=cifti_output,
+            sloppy=sloppy,
         )
         anat_ribbon_wf = init_anat_ribbon_wf()
         ds_surfaces_wf = init_ds_surfaces_wf(

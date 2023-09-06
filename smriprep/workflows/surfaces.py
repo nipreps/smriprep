@@ -581,6 +581,7 @@ def init_surface_derivatives_wf(
     *,
     msm_sulc: bool = False,
     cifti_output: ty.Literal["91k", "170k", False] = False,
+    sloppy: bool = False,
     name="surface_derivatives_wf",
 ):
     r"""
@@ -664,7 +665,7 @@ def init_surface_derivatives_wf(
     )
     gifti_morph_wf = init_gifti_morphometrics_wf()
     fsLR_reg_wf = init_fsLR_reg_wf()
-    msm_sulc_wf = init_msm_sulc_wf()
+    msm_sulc_wf = init_msm_sulc_wf(sloppy=sloppy)
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
 
@@ -780,7 +781,7 @@ def init_fsLR_reg_wf(*, name="fsLR_reg_wf"):
     return workflow
 
 
-def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
+def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
     from ..interfaces.msm import MSM
     from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
@@ -820,8 +821,9 @@ def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
     # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
     # --out=${HEMI}. --verbose
+    msm_conf = load_resource(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
     msmsulc = pe.MapNode(
-        MSM(verbose=True, config_file=load_resource('msm/MSMSulcStrainFinalconf')),
+        MSM(verbose=True, config_file=msm_conf),
         iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
         name='msmsulc',
         mem_gb=2,
