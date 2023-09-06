@@ -50,6 +50,7 @@ from niworkflows.interfaces.freesurfer import (
     RefineBrainMask,
 )
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
+import templateflow.api as tf
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
@@ -578,6 +579,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
 
 def init_surface_derivatives_wf(
     *,
+    msm_sulc: bool = False,
     cifti_output: ty.Literal["91k", "170k", False] = False,
     name="surface_derivatives_wf",
 ):
@@ -644,6 +646,7 @@ def init_surface_derivatives_wf(
                 "morphometrics",
                 "sphere_reg",
                 "sphere_reg_fsLR",
+                "sphere_reg_msm",
                 "out_aseg",
                 "out_aparc",
                 "cifti_morph",
@@ -655,12 +658,13 @@ def init_surface_derivatives_wf(
 
     gifti_surfaces_wf = init_gifti_surfaces_wf()
     gifti_spheres_wf = init_gifti_surfaces_wf(
-        surfaces=["sphere_reg"],
+        surfaces=["sphere", "sphere_reg"],
         to_scanner=False,
         name="gifti_spheres_wf",
     )
     gifti_morph_wf = init_gifti_morphometrics_wf()
     fsLR_reg_wf = init_fsLR_reg_wf()
+    msm_sulc_wf = init_msm_sulc_wf()
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
 
@@ -683,6 +687,9 @@ def init_surface_derivatives_wf(
         (gifti_spheres_wf, fsLR_reg_wf, [
             ('outputnode.sphere_reg', 'inputnode.sphere_reg'),
         ]),
+        (gifti_spheres_wf, msm_sulc_wf, [('outputnode.sphere', 'inputnode.sphere')]),
+        (fsLR_reg_wf, msm_sulc_wf, [('outputnode.sphere_reg', 'inputnode.sphere_reg')]),
+        (gifti_morph_wf, msm_sulc_wf, [('outputnode.sulc', 'inputnode.sulc')]),
         (inputnode, aseg_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
@@ -707,6 +714,7 @@ def init_surface_derivatives_wf(
         (gifti_spheres_wf, outputnode, [('outputnode.sphere_reg', 'sphere_reg')]),
         (gifti_morph_wf, outputnode, [('outputnode.morphometrics', 'morphometrics')]),
         (fsLR_reg_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
+        (msm_sulc_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_msm')]),
         (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
         (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
     ])
@@ -736,7 +744,7 @@ def init_fsLR_reg_wf(*, name="fsLR_reg_wf"):
 
     workflow = Workflow(name=name)
 
-    inputnode = pe.Node(niu.IdentityInterface(["sphere_reg"]), name="inputnode")
+    inputnode = pe.Node(niu.IdentityInterface(["sphere_reg", "sulc"]), name="inputnode")
     outputnode = pe.Node(niu.IdentityInterface(["sphere_reg_fsLR"]), name="outputnode")
 
     # Via
@@ -767,6 +775,92 @@ def init_fsLR_reg_wf(*, name="fsLR_reg_wf"):
     ])
     # fmt:on
 
+    return workflow
+
+
+def init_msm_sulc_wf(*, name: str = 'msm_sulc_wf'):
+    """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
+    from ..interfaces.msm import MSM
+    from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
+
+    workflow = Workflow(name=name)
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['sulc', 'sphere', 'sphere_reg_fsLR']),
+        name='inputnode',
+    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=['sphere_reg_fsLR']), name='outputnode')
+
+    # 0) Calculate affine
+    # ${CARET7DIR}/wb_command -surface-affine-regression \
+    # $SUB.L.sphere.native.surf.gii  \
+    # $SUB.sphere.reg.reg_LR.native.surf.gii \
+    # "$AtlasSpaceFolder"/"$NativeFolder"/MSMSulc/${Hemisphere}.mat
+    regress_affine = pe.MapNode(
+        SurfaceAffineRegression(),
+        iterfield=['in_surface', 'target_surface'],
+        name='regress_affine',
+    )
+
+    # 1) Apply affine to native sphere:
+    # wb_command -surface-apply-affine \
+    # ${SUB}.L.sphere.native.surf.gii \
+    # L.mat \
+    # ${SUB}.L.sphere_rot.native.surf.gii
+    apply_surface_affine = pe.MapNode(
+        SurfaceApplyAffine(),
+        iterfield=['in_surface', 'in_affine'],
+        name='apply_surface_affine',
+    )
+    # 2) Run MSMSulc
+    # ./msm_centos_v3 --conf=MSMSulcStrainFinalconf \
+    # --inmesh=${SUB}.${HEMI}.sphere_rot.native.surf.gii
+    # --refmesh=fsaverage.${HEMI}_LR.spherical_std.164k_fs_LR.surf.gii
+    # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
+    # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
+    # --out=${HEMI}. --verbose
+    msmsulc = pe.MapNode(
+        MSM(verbose=True, config_file=load_resource('msm/MSMSulcStrainFinalconf')),
+        iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
+        name='msmsulc',
+        mem_gb=2,
+    )
+    msmsulc.inputs.out_base = ['lh.', 'rh.']  # To placate Path2BIDS
+    msmsulc.inputs.reference_mesh = [
+        str(
+            tf.get(
+                'fsaverage',
+                hemi=hemi,
+                density='164k',
+                desc='std',
+                suffix='sphere',
+                extension='.surf.gii',
+            )
+        )
+        for hemi in 'LR'
+    ]
+    msmsulc.inputs.reference_data = [
+        str(
+            tf.get(
+                'fsaverage',
+                hemi=hemi,
+                density='164k',
+                suffix='sulc',
+                extension='.shape.gii',
+            )
+        )
+        for hemi in 'LR'
+    ]
+    # fmt:off
+    workflow.connect([
+        (inputnode, regress_affine, [('sphere', 'in_surface'),
+                                     ('sphere_reg_fsLR', 'target_surface')]),
+        (inputnode, apply_surface_affine, [('sphere', 'in_surface')]),
+        (regress_affine, apply_surface_affine, [('out_affine', 'in_affine')]),
+        (inputnode, msmsulc, [('sulc', 'in_data')]),
+        (apply_surface_affine, msmsulc, [('out_surface', 'in_mesh')]),
+        (msmsulc, outputnode, [('warped_mesh', 'sphere_reg_fsLR')]),
+    ])
+    # fmt:on
     return workflow
 
 

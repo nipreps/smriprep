@@ -81,6 +81,7 @@ def init_anat_preproc_wf(
     freesurfer: bool,
     hires: bool,
     longitudinal: bool,
+    msm_sulc: bool,
     t1w: list,
     t2w: list,
     skull_strip_mode: str,
@@ -113,6 +114,7 @@ def init_anat_preproc_wf(
                 freesurfer=True,
                 hires=True,
                 longitudinal=False,
+                msm_sulc=False,
                 t1w=['t1w.nii.gz'],
                 t2w=[],
                 skull_strip_mode='force',
@@ -242,6 +244,7 @@ def init_anat_preproc_wf(
         freesurfer=freesurfer,
         hires=hires,
         longitudinal=longitudinal,
+        msm_sulc=msm_sulc,
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
         spaces=spaces,
@@ -295,7 +298,10 @@ def init_anat_preproc_wf(
     # fmt:on
     if freesurfer:
         surfaces = ["white", "pial", "midthickness", "inflated", "sphere_reg", "sphere_reg_fsLR"]
-        surface_derivatives_wf = init_surface_derivatives_wf(cifti_output=cifti_output)
+        surface_derivatives_wf = init_surface_derivatives_wf(
+            msm_sulc=msm_sulc,
+            cifti_output=cifti_output,
+        )
         anat_ribbon_wf = init_anat_ribbon_wf()
         ds_surfaces_wf = init_ds_surfaces_wf(
             bids_root=bids_root, output_dir=output_dir, surfaces=surfaces

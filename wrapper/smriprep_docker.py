@@ -34,7 +34,7 @@ __bugreports__ = "https://github.com/nipreps/smriprep/issues"
 MISSING = """
 Image '{}' is missing
 Would you like to download? [Y/n] """
-PKG_PATH = '/opt/conda/lib/python3.9/site-packages'
+PKG_PATH = '/opt/conda/envs/smriprep/lib/python3.10/site-packages'
 
 # Monkey-patch Py2 subprocess
 if not hasattr(subprocess, "DEVNULL"):

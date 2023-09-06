@@ -17,6 +17,7 @@ docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
     --skull-strip-template MNI152NLin2009cAsym:res-2 \
     --sloppy --mem-gb 4 \
     --ncpus 2 --omp-nthreads 2 -vv \
+    --no-msm \
     --fs-license-file /tmp/fslicense/license.txt \
     --fs-subjects-dir /tmp/ds005/freesurfer \
     --cifti-output \
