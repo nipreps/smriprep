@@ -26,7 +26,6 @@ from pathlib import Path
 from json import loads
 from pkg_resources import resource_filename as pkgrf
 from bids.layout import BIDSLayout
-from bids.layout.writing import build_path
 
 
 def get_outputnode_spec():
@@ -51,9 +50,7 @@ def get_outputnode_spec():
     return fields
 
 
-def collect_derivatives(
-    derivatives_dir, subject_id, std_spaces, freesurfer, spec=None, patterns=None
-):
+def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patterns=None):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:
         _spec, _patterns = tuple(
@@ -65,26 +62,8 @@ def collect_derivatives(
         if patterns is None:
             patterns = _patterns
 
-    derivs_cache = defaultdict(list, {})
+    derivs_cache = defaultdict(list)
     layout = BIDSLayout(derivatives_dir, config=["bids", "derivatives"], validate=False)
-    derivatives_dir = Path(derivatives_dir)
-
-    def _check_item(item):
-        if not item:
-            return None
-
-        if isinstance(item, str):
-            item = [item]
-
-        result = []
-        for i in item:
-            if not (derivatives_dir / i).exists():
-                i = i.rstrip(".gz")
-                if not (derivatives_dir / i).exists():
-                    return None
-            result.append(str(derivatives_dir / i))
-
-        return result
 
     for k, q in spec["baseline"].items():
         q["subject"] = subject_id
@@ -118,18 +97,14 @@ def collect_derivatives(
                 continue
             transforms.setdefault(space, {})[k] = item[0] if len(item) == 1 else item
 
-    if freesurfer:
-        for k, q in spec["surfaces"].items():
-            q["subject"] = subject_id
-            item = _check_item(build_path(q, patterns))
-            if not item:
-                continue
+    for k, q in spec["surfaces"].items():
+        q["subject"] = subject_id
+        item = layout.get(return_type='filename', **q)
+        if not item or len(item) != 2:
+            continue
 
-            if len(item) == 1:
-                item = item[0]
-            derivs_cache[k] = item
+        derivs_cache[k] = sorted(item)
 
-    derivs_cache["template"] = std_spaces
     return derivs_cache
 
 
