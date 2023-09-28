@@ -624,7 +624,7 @@ BIDS dataset."""
     # If desc-preproc_T1w.nii.gz is provided, just validate it
     anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
     if not have_t1w:
-        LOGGER.info("Stage 1: Adding template workflow")
+        LOGGER.info("ANAT Stage 1: Adding template workflow")
         ants_ver = ANTsInfo.version() or "(version unknown)"
         desc += f"""\
  {"Each" if num_t1w > 1 else "The"} T1w image was corrected for intensity
@@ -660,7 +660,7 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
         ])
         # fmt:on
     else:
-        LOGGER.info("Found preprocessed T1w - skipping Stage 1")
+        LOGGER.info("ANAT Found preprocessed T1w - skipping Stage 1")
         desc += """ A preprocessed T1w image was provided as a precomputed input
 and used as T1w-reference throughout the workflow.
 """
@@ -679,7 +679,7 @@ and used as T1w-reference throughout the workflow.
     # We always need to generate t1w_brain; how to do that depends on whether we have
     # a pre-corrected T1w or precomputed mask, or are given an already masked image
     if not have_mask:
-        LOGGER.info("Stage 2: Preparing brain extraction workflow")
+        LOGGER.info("ANAT Stage 2: Preparing brain extraction workflow")
         if skull_strip_mode == "auto":
             run_skull_strip = all(_is_skull_stripped(img) for img in t1w)
         else:
@@ -717,7 +717,7 @@ as target template.
             # fmt:on
         # Determine mask from T1w and uniformize
         elif not have_t1w:
-            LOGGER.info("Stage 2: Skipping skull-strip, INU-correction only")
+            LOGGER.info("ANAT Stage 2: Skipping skull-strip, INU-correction only")
             desc += """\
 The provided T1w image was previously skull-stripped; a brain mask was
 derived from the input image.
@@ -739,7 +739,7 @@ derived from the input image.
             # fmt:on
         # Binarize the already uniformized image
         else:
-            LOGGER.info("Stage 2: Skipping skull-strip, generating mask from input")
+            LOGGER.info("ANAT Stage 2: Skipping skull-strip, generating mask from input")
             desc += """\
 The provided T1w image was previously skull-stripped; a brain mask was
 derived from the input image.
@@ -762,7 +762,7 @@ derived from the input image.
         ])
         # fmt:on
     else:
-        LOGGER.info("Found brain mask")
+        LOGGER.info("ANAT Found brain mask")
         desc += """\
 A pre-computed brain mask was provided as input and used throughout the workflow.
 """
@@ -772,7 +772,7 @@ A pre-computed brain mask was provided as input and used throughout the workflow
         workflow.connect([(anat_validate, apply_mask, [("out_file", "in_file")])])
         # Run N4 if it hasn't been pre-run
         if not have_t1w:
-            LOGGER.info("Skipping skull-strip, INU-correction only")
+            LOGGER.info("ANAT Skipping skull-strip, INU-correction only")
             n4_only_wf = init_n4_only_wf(
                 omp_nthreads=omp_nthreads,
                 atropos_use_random_seed=not skull_strip_fixed_seed,
@@ -787,13 +787,13 @@ A pre-computed brain mask was provided as input and used throughout the workflow
             ])
             # fmt:on
         else:
-            LOGGER.info("Skipping Stage 2")
+            LOGGER.info("ANAT Skipping Stage 2")
             workflow.connect([(apply_mask, t1w_buffer, [("out_file", "t1w_brain")])])
         workflow.connect([(refined_buffer, outputnode, [("t1w_mask", "t1w_mask")])])
 
     # Stage 3: Segmentation
     if not (have_dseg and have_tpms):
-        LOGGER.info("Stage 3: Preparing segmentation workflow")
+        LOGGER.info("ANAT Stage 3: Preparing segmentation workflow")
         fsl_ver = fsl.FAST().version or "(version unknown)"
         desc += f"""\
 Brain tissue segmentation of cerebrospinal fluid (CSF),
@@ -833,13 +833,13 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             ])
         # fmt:on
     else:
-        LOGGER.info("Skipping Stage 3")
+        LOGGER.info("ANAT Skipping Stage 3")
     if have_dseg:
-        LOGGER.info("Found discrete segmentation")
+        LOGGER.info("ANAT Found discrete segmentation")
         desc += "Precomputed discrete tissue segmentations were provided as inputs.\n"
         seg_buffer.inputs.t1w_dseg = precomputed["t1w_dseg"]
     if have_tpms:
-        LOGGER.info("Found tissue probability maps")
+        LOGGER.info("ANAT Found tissue probability maps")
         desc += "Precomputed tissue probabiilty maps were provided as inputs.\n"
         seg_buffer.inputs.t1w_tpms = precomputed["t1w_tpms"]
 
@@ -858,7 +858,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     std2anat_buffer.inputs.in1 = [xfm["reverse"] for xfm in found_xfms.values()]
 
     if templates:
-        LOGGER.info(f"Stage 4: Preparing normalization workflow for {templates}")
+        LOGGER.info(f"ANAT Stage 4: Preparing normalization workflow for {templates}")
         register_template_wf = init_register_template_wf(
             sloppy=sloppy,
             omp_nthreads=omp_nthreads,
@@ -885,7 +885,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         ])
         # fmt:on
     if found_xfms:
-        LOGGER.info(f"Stage 4: Found pre-computed registrations for {found_xfms}")
+        LOGGER.info(f"ANAT Stage 4: Found pre-computed registrations for {found_xfms}")
 
     # Do not attempt refinement (Stage 6, below)
     if have_mask or not freesurfer:
@@ -901,7 +901,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     workflow.__desc__ = desc
 
     if not freesurfer:
-        LOGGER.info("Skipping Stages 5 and 6")
+        LOGGER.info("ANAT Skipping Stages 5+")
         return workflow
 
     fs_isrunning = pe.Node(
@@ -910,7 +910,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     fs_isrunning.inputs.logger = LOGGER
 
     # Stage 5: Surface reconstruction (--fs-no-reconall not set)
-    LOGGER.info("Stage 5: Preparing surface reconstruction workflow")
+    LOGGER.info("ANAT Stage 5: Preparing surface reconstruction workflow")
     surface_recon_wf = init_surface_recon_wf(
         name="surface_recon_wf",
         omp_nthreads=omp_nthreads,
@@ -956,7 +956,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         ])
         # fmt:on
     elif "reverse" in fsnative_xfms:
-        LOGGER.info("Found fsnative-T1w transform - skipping registration")
+        LOGGER.info("ANAT Found fsnative-T1w transform - skipping registration")
         outputnode.inputs.fsnative2t1w_xfm = fsnative_xfms["reverse"]
     else:
         raise RuntimeError(
@@ -964,7 +964,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         )
 
     if not have_mask:
-        LOGGER.info("Stage 6: Preparing mask refinement workflow")
+        LOGGER.info("ANAT Stage 6: Preparing mask refinement workflow")
         # Stage 6: Refine ANTs mask with FreeSurfer segmentation
         refinement_wf = init_refinement_wf()
         applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
@@ -987,10 +987,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         ])
         # fmt:on
     else:
-        LOGGER.info("Found brain mask - skipping Stage 6")
+        LOGGER.info("ANAT Found brain mask - skipping Stage 6")
 
     if t2w and not have_t2w:
-        LOGGER.info("Stage 7: Creating T2w template")
+        LOGGER.info("ANAT Stage 7: Creating T2w template")
         t2w_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
@@ -1049,9 +1049,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         ])
         # fmt:on
     elif not t2w:
-        LOGGER.info("No T2w images provided - skipping Stage 7")
+        LOGGER.info("ANAT No T2w images provided - skipping Stage 7")
     else:
-        LOGGER.info("Found preprocessed T2w - skipping Stage 7")
+        LOGGER.info("ANAT Found preprocessed T2w - skipping Stage 7")
 
     return workflow
 
