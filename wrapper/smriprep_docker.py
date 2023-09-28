@@ -263,7 +263,7 @@ def get_parser():
         "--image",
         metavar="IMG",
         type=str,
-        default="nipreps/smriprep:{}".format(__version__),
+        default=f"nipreps/smriprep:{__version__}",
         help="image name",
     )
 
@@ -356,7 +356,7 @@ def main():
     check = check_docker()
     if check < 1:
         if opts.version:
-            print("smriprep wrapper {!s}".format(__version__))
+            print(f"smriprep wrapper {__version__}")
         if opts.help:
             parser.print_help()
         if check == -1:
@@ -369,7 +369,7 @@ def main():
     if not check_image(opts.image):
         resp = "Y"
         if opts.version:
-            print("smriprep wrapper {!s}".format(__version__))
+            print(f"smriprep wrapper {__version__}")
         if opts.help:
             parser.print_help()
         if opts.version or opts.help:
@@ -424,7 +424,7 @@ def main():
     # Patch working repositories into installed package directories
     if opts.patch:
         for pkg, repo_path in opts.patch.items():
-            command.extend(['-v', '{}:{}/{}:ro'.format(repo_path, PKG_PATH, pkg)])
+            command.extend(['-v', f'{repo_path}:{PKG_PATH}/{pkg}:ro'])
 
     if opts.env:
         for envvar in opts.env:
@@ -434,7 +434,7 @@ def main():
         command.extend(["-u", opts.user])
 
     if opts.fs_license_file:
-        command.extend(["-v", "{}:/opt/freesurfer/license.txt:ro".format(opts.fs_license_file)])
+        command.extend(["-v", f"{opts.fs_license_file}:/opt/freesurfer/license.txt:ro"])  # noqa: E501
 
     main_args = []
     if opts.bids_dir:
@@ -450,7 +450,7 @@ def main():
         unknown_args.extend(["-w", "/scratch"])
 
     if opts.fs_subjects_dir:
-        command.extend(['-v', '{}:/opt/subjects'.format(opts.fs_subjects_dir)])
+        command.extend(['-v', f'{opts.fs_subjects_dir}:/opt/subjects'])
         unknown_args.extend(['--fs-subjects-dir', '/opt/subjects'])
 
     if opts.config:
@@ -485,7 +485,7 @@ def main():
     print("RUNNING: " + " ".join(command))
     ret = subprocess.run(command)
     if ret.returncode:
-        print("sMRIPrep: Please report errors to {}".format(__bugreports__))
+        print(f"sMRIPrep: Please report errors to {__bugreports__}")
     return ret.returncode
 
 

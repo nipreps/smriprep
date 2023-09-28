@@ -167,9 +167,9 @@ def collect_derivatives(
                 return None
 
             if space:
-                derivs_cache["std_%s" % k] += item if len(item) == 1 else [item]
+                derivs_cache[f"std_{k}"] += item if len(item) == 1 else [item]
             else:
-                derivs_cache["t1w_%s" % k] = item[0] if len(item) == 1 else item
+                derivs_cache[f"t1w_{k}"] = item[0] if len(item) == 1 else item
 
     for space in std_spaces:
         for k, q in spec["std_xfms"].items():

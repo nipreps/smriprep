@@ -117,7 +117,7 @@ def _prepare_cifti(grayordinates: str) -> ty.Tuple[list, dict]:
 
     tf_url = "https://templateflow.s3.amazonaws.com"
     surfaces_url = (  # midthickness is the default, but varying levels of inflation are all valid
-        f"{tf_url}/tpl-fsLR/tpl-fsLR_den-{surface_density}_hemi-%s_midthickness.surf.gii"
+        f"{tf_url}/tpl-fsLR/tpl-fsLR_den-{surface_density}_hemi-{{}}_midthickness.surf.gii"  # noqa: E501
     )
     metadata = {
         "Density": (
@@ -125,8 +125,8 @@ def _prepare_cifti(grayordinates: str) -> ty.Tuple[list, dict]:
             f"{res_mm} average vertex spacing on the surface"
         ),
         "SpatialReference": {
-            "CIFTI_STRUCTURE_CORTEX_LEFT": surfaces_url % "L",
-            "CIFTI_STRUCTURE_CORTEX_RIGHT": surfaces_url % "R",
+            "CIFTI_STRUCTURE_CORTEX_LEFT": surfaces_url.format("L"),
+            "CIFTI_STRUCTURE_CORTEX_RIGHT": surfaces_url.format("R"),
         },
     }
     return surface_labels, metadata

@@ -222,15 +222,11 @@ def init_anat_preproc_wf(
     """
     workflow = Workflow(name=name)
     num_t1w = len(t1w)
-    desc = """
+    desc = f"""
 Anatomical data preprocessing
 
-: """
-    desc += """\
-A total of {num_t1w} T1-weighted (T1w) images were found within the input
-BIDS dataset.""".format(
-        num_t1w=num_t1w
-    )
+: A total of {num_t1w} T1-weighted (T1w) images were found within the input
+BIDS dataset."""
 
     inputnode = pe.Node(
         niu.IdentityInterface(fields=["t1w", "t2w", "roi", "flair", "subjects_dir", "subject_id"]),

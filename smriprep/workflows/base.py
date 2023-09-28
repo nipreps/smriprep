@@ -164,7 +164,7 @@ def init_smriprep_wf(
                 freesurfer_home=os.getenv("FREESURFER_HOME"),
                 spaces=spaces.get_fs_spaces(),
             ),
-            name="fsdir_run_%s" % run_uuid.replace("-", "_"),
+            name="fsdir_run_{}".format(run_uuid.replace("-", "_")),
             run_without_submitting=True,
         )
         if fs_subjects_dir is not None:
@@ -181,7 +181,7 @@ def init_smriprep_wf(
             longitudinal=longitudinal,
             low_mem=low_mem,
             msm_sulc=msm_sulc,
-            name="single_subject_%s_wf" % subject_id,
+            name=f"single_subject_%{subject_id}_wf",
             omp_nthreads=omp_nthreads,
             output_dir=output_dir,
             skull_strip_fixed_seed=skull_strip_fixed_seed,
@@ -329,21 +329,19 @@ def init_single_subject_wf(
 
     if not subject_data["t1w"]:
         raise Exception(
-            "No T1w images found for participant {}. "
-            "All workflows require T1w images.".format(subject_id)
+            f"No T1w images found for participant {subject_id}. "
+            f"All workflows require T1w images."
         )
 
     workflow = Workflow(name=name)
-    workflow.__desc__ = """
+    workflow.__desc__ = f"""
 Results included in this manuscript come from preprocessing
-performed using *sMRIPprep* {smriprep_ver}
+performed using *sMRIPprep* {__version__}
 (@fmriprep1; @fmriprep2; RRID:SCR_016216),
 which is based on *Nipype* {nipype_ver}
 (@nipype1; @nipype2; RRID:SCR_002502).
 
-""".format(
-        smriprep_ver=__version__, nipype_ver=nipype_ver
-    )
+"""
     workflow.__postdesc__ = """
 
 For more details of the pipeline, see [the section corresponding

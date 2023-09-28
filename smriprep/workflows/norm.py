@@ -135,8 +135,7 @@ The following template{tpls} were selected for spatial normalization
 and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
 """.format(
             ants_ver=ANTsInfo.version() or "(version unknown)",
-            targets="%s standard space%s"
-            % (
+            targets="{} standard space{}".format(
                 defaultdict("several".format, {1: "one", 2: "two", 3: "three", 4: "four"})[ntpls],
                 "s" * (ntpls != 1),
             ),
@@ -148,10 +147,10 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         # Append template citations to description
         for template in templates:
             template_meta = get_metadata(template.split(":")[0])
-            template_refs = ["@%s" % template.split(":")[0].lower()]
+            template_refs = ["@{}".format(template.split(":")[0].lower())]
 
             if template_meta.get("RRID", None):
-                template_refs += ["RRID:%s" % template_meta["RRID"]]
+                template_refs += ["RRID:{}".format(template_meta["RRID"])]
 
             workflow.__desc__ += """\
 *{template_name}* [{template_refs}; TemplateFlow ID: {template}]""".format(
