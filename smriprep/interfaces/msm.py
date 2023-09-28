@@ -44,7 +44,7 @@ class MSMInputSpec(CommandLineInputSpec):
         exists=True,
         argstr="--trans=%s",
         desc="Transformed source mesh (output of a previous registration). "
-        "Use this to initiliase the current registration.",
+        "Use this to initialise the current registration.",
     )
     in_register = File(
         exists=True,
@@ -87,7 +87,7 @@ class MSMInputSpec(CommandLineInputSpec):
     )
     smooth_output_sigma = traits.Int(
         argstr="--smoothout=%d",
-        desc="smooth tranformed output with this sigma (default=0)",
+        desc="smooth transformed output with this sigma (default=0)",
     )
     verbose = traits.Bool(
         argstr="--verbose",
