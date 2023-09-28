@@ -722,11 +722,73 @@ def init_ds_surfaces_wf(
 
         # fmt:off
         workflow.connect([
-            (inputnode, ds_surf, [
-                (surf, 'in_file'),
-                ('source_files', 'source_file'),
-            ]),
+            (inputnode, ds_surf, [(surf, 'in_file'), ('source_files', 'source_file')]),
             (ds_surf, outputnode, [('out_file', surf)]),
+        ])
+        # fmt:on
+
+    return workflow
+
+
+def init_ds_surface_metrics_wf(
+    *,
+    bids_root: str,
+    output_dir: str,
+    metrics: list[str],
+    name="ds_surface_metrics_wf",
+) -> Workflow:
+    """
+    Save GIFTI surface metrics
+
+    Parameters
+    ----------
+    bids_root : :class:`str`
+        Root path of BIDS dataset
+    output_dir : :class:`str`
+        Directory in which to save derivatives
+    metrics : :class:`str`
+        List of metrics to generate DataSinks for
+    name : :class:`str`
+        Workflow name (default: ds_surface_metrics_wf)
+
+    Inputs
+    ------
+    source_files
+        List of input T1w images
+    ``<metric>``
+        Left and right GIFTIs for each metric passed to ``metrics``
+
+    Outputs
+    -------
+    ``<metric>``
+        Left and right GIFTIs in ``output_dir`` for each metric passed to ``metrics``
+
+    """
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=["source_files"] + metrics),
+        name="inputnode",
+    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=metrics), name="outputnode")
+
+    for metric in metrics:
+        ds_surf = pe.MapNode(
+            DerivativesDataSink(
+                base_directory=output_dir,
+                hemi=["L", "R"],
+                suffix=metric,
+                extension=".shape.gii",
+            ),
+            iterfield=("in_file", "hemi"),
+            name=f"ds_{metric}",
+            run_without_submitting=True,
+        )
+
+        # fmt:off
+        workflow.connect([
+            (inputnode, ds_surf, [(metric, 'in_file'), ('source_files', 'source_file')]),
+            (ds_surf, outputnode, [('out_file', metric)]),
         ])
         # fmt:on
 

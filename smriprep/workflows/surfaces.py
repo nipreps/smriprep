@@ -1004,7 +1004,7 @@ def init_gifti_morphometrics_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(["subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
+        niu.IdentityInterface(["subjects_dir", "subject_id"]),
         name="inputnode",
     )
     outputnode = pe.Node(
