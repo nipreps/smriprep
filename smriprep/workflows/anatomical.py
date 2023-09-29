@@ -1133,10 +1133,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         # fmt:on
     if spheres:
         gifti_spheres_wf = init_gifti_surfaces_wf(
-            spheres=spheres, to_scanner=False, name='gifti_spheres_wf'
+            surfaces=spheres, to_scanner=False, name='gifti_spheres_wf'
         )
         ds_spheres_wf = init_ds_surfaces_wf(
-            bids_root=bids_root, output_dir=output_dir, surfaces=surfs, name='ds_spheres_wf'
+            bids_root=bids_root, output_dir=output_dir, surfaces=spheres, name='ds_spheres_wf'
         )
         # fmt:off
         workflow.connect([
@@ -1149,7 +1149,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
                 (f'outputnode.{sphere}', sphere) for sphere in spheres
             ]),
             (sourcefile_buffer, ds_spheres_wf, [("source_files", "inputnode.source_files")]),
-            (gifti_surfaces_wf, ds_spheres_wf, [
+            (gifti_spheres_wf, ds_spheres_wf, [
                 (f'outputnode.{sphere}', f'inputnode.{sphere}') for sphere in spheres
             ]),
         ])
@@ -1168,7 +1168,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ]),
-            (gifti_surfaces_wf, surfaces_buffer, [
+            (gifti_morph_wf, surfaces_buffer, [
                 (f'outputnode.{metric}', metric) for metric in metrics
             ]),
             (sourcefile_buffer, ds_morph_wf, [("source_files", "inputnode.source_files")]),
@@ -1221,11 +1221,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         # fmt:off
         workflow.connect([
             (surfaces_buffer, fsLR_reg_wf, [('sphere_reg', 'inputnode.sphere_reg')]),
-            (fsLR_reg_wf, fsLR_buffer, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
             (sourcefile_buffer, ds_fsLR_reg_wf, [("source_files", "inputnode.source_files")]),
             (fsLR_reg_wf, ds_fsLR_reg_wf, [
                 ('outputnode.sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR')
             ]),
+            (ds_fsLR_reg_wf, fsLR_buffer, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
         ])
         # fmt:on
     else:
@@ -1240,21 +1240,21 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             bids_root=bids_root,
             output_dir=output_dir,
             surfaces=["sphere_reg_msm"],
-            name='ds_fsLR_reg_wf',
+            name='ds_msmsulc_wf',
         )
 
         # fmt:off
         workflow.connect([
             (surfaces_buffer, msm_sulc_wf, [
-                ('sulc', 'inputnode.sulc')
+                ('sulc', 'inputnode.sulc'),
                 ('sphere', 'inputnode.sphere'),
             ]),
             (fsLR_buffer, msm_sulc_wf, [('sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR')]),
-            (msm_sulc_wf, msm_buffer, [('outputnode.sphere_reg_msm', 'sphere_reg_msm')]),
             (sourcefile_buffer, ds_msmsulc_wf, [("source_files", "inputnode.source_files")]),
             (msm_sulc_wf, ds_msmsulc_wf, [
-                ('outputnode.sphere_reg_msm', 'inputnode.sphere_reg_msm')
+                ('outputnode.sphere_reg_fsLR', 'inputnode.sphere_reg_msm')
             ]),
+            (ds_msmsulc_wf, msm_buffer, [('outputnode.sphere_reg_msm', 'sphere_reg_msm')]),
         ])
         # fmt:on
     elif msm_sulc:
