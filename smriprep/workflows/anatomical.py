@@ -302,9 +302,7 @@ def init_anat_preproc_wf(
     ])
     # fmt:on
     if freesurfer:
-        surfaces = ["white", "pial", "midthickness", "inflated", "sphere_reg", "sphere_reg_fsLR"]
-        if msm_sulc:
-            surfaces.append("sphere_reg_msm")
+        surfaces = ["white", "pial", "midthickness", "inflated"]
 
         surface_derivatives_wf = init_surface_derivatives_wf(
             msm_sulc=msm_sulc,
@@ -553,6 +551,16 @@ BIDS dataset."""
                 "t1w_tpms",
                 "anat2std_xfm",
                 "fsnative2t1w_xfm",
+                # Surface and metric derivatives for fsLR resampling
+                "white",
+                "pial",
+                "midthickness",
+                "sphere",
+                "thickness",
+                "sulc",
+                "sphere_reg",
+                "sphere_reg_fsLR",
+                "sphere_reg_msm",
                 # Reverse transform; not computable from forward transform
                 "std2anat_xfm",
                 # Metadata
@@ -596,7 +604,9 @@ BIDS dataset."""
 
     # Stage 8 results: GIFTI surfaces
     surfaces_buffer = pe.Node(
-        niu.IdentityInterface(fields=["sphere_reg", "sphere", "sulc"]),
+        niu.IdentityInterface(
+            fields=["white", "pial", "midthickness", "sphere", "sphere_reg", "thickness", "sulc"]
+        ),
         name="surfaces_buffer",
     )
 
@@ -614,6 +624,17 @@ BIDS dataset."""
         (std2anat_buffer, outputnode, [("out", "std2anat_xfm")]),
         (template_buffer, outputnode, [("out", "template")]),
         (sourcefile_buffer, outputnode, [("source_files", "t1w_valid_list")]),
+        (surfaces_buffer, outputnode, [
+            ("white", "white"),
+            ("pial", "pial"),
+            ("midthickness", "midthickness"),
+            ("sphere", "sphere"),
+            ("sphere_reg", "sphere_reg"),
+            ("thickness", "thickness"),
+            ("sulc", "sulc"),
+        ]),
+        (fsLR_buffer, outputnode, [("sphere_reg_fsLR", "sphere_reg_fsLR")]),
+        (msm_buffer, outputnode, [("sphere_reg_msm", "sphere_reg_msm")]),
     ])
     # fmt:on
 
@@ -1072,8 +1093,13 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         LOGGER.info("ANAT Found preprocessed T2w - skipping Stage 7")
 
     # Stages 8-10: Surface conversion and registration
-    needed_anat_surfs = []
-    needed_metrics = ["sulc"] if msm_sulc else []
+    # sphere_reg is needed to generate sphere_reg_fsLR
+    # sphere and sulc are needed to generate sphere_reg_msm
+    # white, pial, midthickness and thickness are needed to resample in the cortical ribbon
+    # TODO: Consider paring down or splitting into a subworkflow that can be called on-demand
+    # A subworkflow would still need to check for precomputed outputs
+    needed_anat_surfs = ["white", "pial", "midthickness"]
+    needed_metrics = ["thickness"] + (["sulc"] if msm_sulc else [])
     needed_spheres = ["sphere_reg"] + (["sphere"] if msm_sulc else [])
 
     # Detect pre-computed surfaces
