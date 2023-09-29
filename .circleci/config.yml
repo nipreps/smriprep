@@ -12,6 +12,9 @@ _machine_defaults: &machine_defaults
 _python_defaults: &python_defaults
   docker:
     - image: cimg/python:3.10.9
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PAT
   working_directory: /tmp/src/smriprep
 
 _docker_auth: &docker_auth
@@ -43,6 +46,9 @@ _pull_from_registry: &pull_from_registry
 docs_deploy: &docs
   docker:
     - image: node:8.10.0
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PAT
   working_directory: /tmp/gh-pages
   steps:
     - run:
