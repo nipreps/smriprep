@@ -291,6 +291,7 @@ def init_anat_preproc_wf(
             ("outputnode.fsnative2t1w_xfm", "fsnative2t1w_xfm"),
             ("outputnode.sphere_reg", "sphere_reg"),
             (f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}", "sphere_reg_fsLR"),
+            ("outputnode.anat_ribbon", "anat_ribbon"),
         ]),
         (anat_fit_wf, anat_second_derivatives_wf, [
             ('outputnode.template', 'inputnode.template'),
@@ -308,7 +309,6 @@ def init_anat_preproc_wf(
         surface_derivatives_wf = init_surface_derivatives_wf(
             cifti_output=cifti_output,
         )
-        anat_ribbon_wf = init_anat_ribbon_wf()
         ds_surfaces_wf = init_ds_surfaces_wf(
             bids_root=bids_root, output_dir=output_dir, surfaces=["inflated"]
         )
@@ -323,11 +323,6 @@ def init_anat_preproc_wf(
                 # Just for collation. These can probably go away at some point.
                 ('outputnode.thickness', 'inputnode.thickness'),
                 ('outputnode.sulc', 'inputnode.sulc'),
-            ]),
-            (anat_fit_wf, anat_ribbon_wf, [
-                ('outputnode.t1w_mask', 'inputnode.ref_file'),
-                ('outputnode.white', 'inputnode.white'),
-                ('outputnode.pial', 'inputnode.pial'),
             ]),
             (anat_fit_wf, ds_surfaces_wf, [
                 ('outputnode.t1w_valid_list', 'inputnode.source_files'),
@@ -345,12 +340,6 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, outputnode, [
                 ('outputnode.out_aseg', 't1w_aseg'),
                 ('outputnode.out_aparc', 't1w_aparc'),
-            ]),
-            (anat_ribbon_wf, outputnode, [
-                ("outputnode.anat_ribbon", "anat_ribbon"),
-            ]),
-            (anat_ribbon_wf, anat_second_derivatives_wf, [
-                ("outputnode.anat_ribbon", "inputnode.anat_ribbon"),
             ]),
         ])
         # fmt:on
@@ -558,6 +547,7 @@ BIDS dataset."""
                 "sphere_reg",
                 "sphere_reg_fsLR",
                 "sphere_reg_msm",
+                "anat_ribbon",
                 # Reverse transform; not computable from forward transform
                 "std2anat_xfm",
                 # Metadata
@@ -789,12 +779,17 @@ derived from the input image.
             ])
             # fmt:on
 
-        ds_mask_wf = init_ds_mask_wf(bids_root=bids_root, output_dir=output_dir)
+        ds_t1w_mask_wf = init_ds_mask_wf(
+            bids_root=bids_root,
+            output_dir=output_dir,
+            mask_type="brain",
+            name="ds_t1w_mask_wf",
+        )
         # fmt:off
         workflow.connect([
-            (sourcefile_buffer, ds_mask_wf, [("source_files", "inputnode.source_files")]),
-            (refined_buffer, ds_mask_wf, [("t1w_mask", "inputnode.t1w_mask")]),
-            (ds_mask_wf, outputnode, [("outputnode.t1w_mask", "t1w_mask")]),
+            (sourcefile_buffer, ds_t1w_mask_wf, [("source_files", "inputnode.source_files")]),
+            (refined_buffer, ds_t1w_mask_wf, [("t1w_mask", "inputnode.mask_file")]),
+            (ds_t1w_mask_wf, outputnode, [("outputnode.mask_file", "t1w_mask")]),
         ])
         # fmt:on
     else:
@@ -1181,6 +1176,35 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             ]),
         ])
         # fmt:on
+
+    if "anat_ribbon" not in precomputed:
+        LOGGER.info("ANAT Stage 8a: Creating cortical ribbon mask")
+        anat_ribbon_wf = init_anat_ribbon_wf()
+        ds_ribbon_mask_wf = init_ds_mask_wf(
+            bids_root=bids_root,
+            output_dir=output_dir,
+            mask_type="ribbon",
+            name="ds_ribbon_mask_wf",
+        )
+        # fmt:off
+        workflow.connect([
+            (t1w_buffer, anat_ribbon_wf, [
+                ("t1w_preproc", "inputnode.ref_file"),
+            ]),
+            (surfaces_buffer, anat_ribbon_wf, [
+                ("white", "inputnode.white"),
+                ("pial", "inputnode.pial"),
+            ]),
+            (sourcefile_buffer, ds_ribbon_mask_wf, [("source_files", "inputnode.source_files")]),
+            (anat_ribbon_wf, ds_ribbon_mask_wf, [
+                ("outputnode.anat_ribbon", "inputnode.mask_file"),
+            ]),
+            (ds_ribbon_mask_wf, outputnode, [("outputnode.mask_file", "anat_ribbon")]),
+        ])
+        # fmt:on
+    else:
+        LOGGER.info("ANAT Stage 8a: Found pre-computed cortical ribbon mask")
+        outputnode.inputs.anat_ribbon = precomputed["anat_ribbon"]
 
     # Stage 9: Baseline fsLR registration
     if len(precomputed.get("sphere_reg_fsLR", [])) < 2:

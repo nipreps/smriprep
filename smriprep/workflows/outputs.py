@@ -316,8 +316,9 @@ def init_ds_template_wf(
 
 def init_ds_mask_wf(
     *,
-    bids_root,
-    output_dir,
+    bids_root: str,
+    output_dir: str,
+    mask_type: str,
     name="ds_mask_wf",
 ):
     """
@@ -336,40 +337,48 @@ def init_ds_mask_wf(
     ------
     source_files
         List of input T1w images
-    t1w_mask
-        Mask of the ``t1w_preproc``
+    mask_file
+        Mask to save
 
     Outputs
     -------
-    t1w_mask
-        The location in the output directory of the T1w mask
+    mask_file
+        The location in the output directory of the mask
 
     """
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["source_files", "t1w_mask"]),
+        niu.IdentityInterface(fields=["source_files", "mask_file"]),
         name="inputnode",
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=["t1w_mask"]), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=["mask_file"]), name="outputnode")
 
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name="raw_sources")
     raw_sources.inputs.bids_root = bids_root
 
-    ds_t1w_mask = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc="brain", suffix="mask", compress=True),
+    ds_mask = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc=mask_type,
+            suffix="mask",
+            compress=True,
+        ),
         name="ds_t1w_mask",
         run_without_submitting=True,
     )
-    ds_t1w_mask.inputs.Type = "Brain"
+    if mask_type == "brain":
+        ds_mask.inputs.Type = "Brain"
+    else:
+        ds_mask.inputs.Type = "ROI"
 
     # fmt:off
     workflow.connect([
         (inputnode, raw_sources, [('source_files', 'in_files')]),
-        (inputnode, ds_t1w_mask, [('t1w_mask', 'in_file'),
-                                  ('source_files', 'source_file')]),
-        (raw_sources, ds_t1w_mask, [('out', 'RawSources')]),
-        (ds_t1w_mask, outputnode, [('out_file', 't1w_mask')]),
+        (inputnode, ds_mask, [('mask_file', 'in_file'),
+                              ('source_files', 'source_file')]),
+        (raw_sources, ds_mask, [('out', 'RawSources')]),
+        (ds_mask, outputnode, [('out_file', 'mask_file')]),
     ])
     # fmt:on
 
@@ -865,11 +874,9 @@ def init_anat_second_derivatives_wf(
                 "t1w_dseg",
                 "t1w_tpms",
                 "anat2std_xfm",
-                "surfaces",
                 "sphere_reg",
                 "sphere_reg_fsLR",
                 "morphometrics",
-                "anat_ribbon",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
                 "cifti_morph",
@@ -1019,18 +1026,6 @@ def init_anat_second_derivatives_wf(
         name="ds_morphs",
         run_without_submitting=True,
     )
-    # Ribbon volume
-    ds_anat_ribbon = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir,
-            desc="ribbon",
-            suffix="mask",
-            extension=".nii.gz",
-            compress=True,
-        ),
-        name="ds_anat_ribbon",
-        run_without_submitting=True,
-    )
 
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
@@ -1057,9 +1052,6 @@ def init_anat_second_derivatives_wf(
                                     ('source_files', 'source_file')]),
         (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),
                                     ('source_files', 'source_file')]),
-        (inputnode, ds_anat_ribbon, [('anat_ribbon', 'in_file'),
-                                     ('source_files', 'source_file')]),
-
     ])
     # fmt:on
 
