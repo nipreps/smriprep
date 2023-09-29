@@ -289,6 +289,8 @@ def init_anat_preproc_wf(
             ("outputnode.anat2std_xfm", "anat2std_xfm"),
             ("outputnode.std2anat_xfm", "std2anat_xfm"),
             ("outputnode.fsnative2t1w_xfm", "fsnative2t1w_xfm"),
+            ("outputnode.sphere_reg", "sphere_reg"),
+            (f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}", "sphere_reg_fsLR"),
         ]),
         (anat_fit_wf, anat_second_derivatives_wf, [
             ('outputnode.template', 'inputnode.template'),
@@ -302,16 +304,13 @@ def init_anat_preproc_wf(
     ])
     # fmt:on
     if freesurfer:
-        surfaces = ["white", "pial", "midthickness", "inflated"]
 
         surface_derivatives_wf = init_surface_derivatives_wf(
-            msm_sulc=msm_sulc,
             cifti_output=cifti_output,
-            sloppy=sloppy,
         )
         anat_ribbon_wf = init_anat_ribbon_wf()
         ds_surfaces_wf = init_ds_surfaces_wf(
-            bids_root=bids_root, output_dir=output_dir, surfaces=surfaces
+            bids_root=bids_root, output_dir=output_dir, surfaces=["inflated"]
         )
 
         # fmt:off
@@ -321,11 +320,12 @@ def init_anat_preproc_wf(
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                # Just for collation. These can probably go away at some point.
+                ('outputnode.thickness', 'inputnode.thickness'),
+                ('outputnode.sulc', 'inputnode.sulc'),
             ]),
             (anat_fit_wf, anat_ribbon_wf, [
                 ('outputnode.t1w_mask', 'inputnode.ref_file'),
-            ]),
-            (surface_derivatives_wf, anat_ribbon_wf, [
                 ('outputnode.white', 'inputnode.white'),
                 ('outputnode.pial', 'inputnode.pial'),
             ]),
@@ -333,8 +333,7 @@ def init_anat_preproc_wf(
                 ('outputnode.t1w_valid_list', 'inputnode.source_files'),
             ]),
             (surface_derivatives_wf, ds_surfaces_wf, [
-                (f'outputnode.{surface}', f'inputnode.{surface}')
-                for surface in surfaces
+                ('outputnode.inflated', 'inputnode.inflated'),
             ]),
             (surface_derivatives_wf, anat_second_derivatives_wf, [
                 ('outputnode.morphometrics', 'inputnode.morphometrics'),
@@ -346,8 +345,6 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, outputnode, [
                 ('outputnode.out_aseg', 't1w_aseg'),
                 ('outputnode.out_aparc', 't1w_aparc'),
-                ('outputnode.sphere_reg', 'sphere_reg'),
-                ('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR'),
             ]),
             (anat_ribbon_wf, outputnode, [
                 ("outputnode.anat_ribbon", "anat_ribbon"),
@@ -1099,8 +1096,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     # TODO: Consider paring down or splitting into a subworkflow that can be called on-demand
     # A subworkflow would still need to check for precomputed outputs
     needed_anat_surfs = ["white", "pial", "midthickness"]
-    needed_metrics = ["thickness"] + (["sulc"] if msm_sulc else [])
-    needed_spheres = ["sphere_reg"] + (["sphere"] if msm_sulc else [])
+    needed_metrics = ["thickness", "sulc"]
+    needed_spheres = ["sphere_reg", "sphere"]
 
     # Detect pre-computed surfaces
     found_surfs = {

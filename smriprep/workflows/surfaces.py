@@ -579,9 +579,7 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
 
 def init_surface_derivatives_wf(
     *,
-    msm_sulc: bool = False,
     cifti_output: ty.Literal["91k", "170k", False] = False,
-    sloppy: bool = False,
     name="surface_derivatives_wf",
 ):
     r"""
@@ -632,6 +630,8 @@ def init_surface_derivatives_wf(
                 "subject_id",
                 "fsnative2t1w_xfm",
                 "reference",
+                "thickness",
+                "sulc",
             ]
         ),
         name="inputnode",
@@ -639,15 +639,8 @@ def init_surface_derivatives_wf(
     outputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "surfaces",
-                "white",
-                "pial",
-                "midthickness",
                 "inflated",
                 "morphometrics",
-                "sphere_reg",
-                "sphere_reg_fsLR",
-                "sphere_reg_msm",
                 "out_aseg",
                 "out_aparc",
                 "cifti_morph",
@@ -657,17 +650,12 @@ def init_surface_derivatives_wf(
         name="outputnode",
     )
 
-    gifti_surfaces_wf = init_gifti_surfaces_wf()
-    gifti_spheres_wf = init_gifti_surfaces_wf(
-        surfaces=["sphere", "sphere_reg"],
-        to_scanner=False,
-        name="gifti_spheres_wf",
-    )
-    gifti_morph_wf = init_gifti_morphometrics_wf()
-    fsLR_reg_wf = init_fsLR_reg_wf()
-    msm_sulc_wf = init_msm_sulc_wf(sloppy=sloppy)
+    gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=["inflated"])
+    gifti_morph_wf = init_gifti_morphometrics_wf(morphometrics=["curv"])
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
+
+    all_morph = pe.Node(niu.Merge(3), name="all_morph")
 
     # fmt:off
     workflow.connect([
@@ -677,22 +665,10 @@ def init_surface_derivatives_wf(
             ('subject_id', 'inputnode.subject_id'),
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
         ]),
-        (inputnode, gifti_spheres_wf, [
-            ('subjects_dir', 'inputnode.subjects_dir'),
-            ('subject_id', 'inputnode.subject_id'),
-        ]),
         (inputnode, gifti_morph_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
         ]),
-        (gifti_spheres_wf, fsLR_reg_wf, [
-            ('outputnode.sphere_reg', 'inputnode.sphere_reg'),
-        ]),
-        (gifti_spheres_wf, msm_sulc_wf, [('outputnode.sphere', 'inputnode.sphere')]),
-        (fsLR_reg_wf, msm_sulc_wf, [
-            ('outputnode.sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
-        ]),
-        (gifti_morph_wf, msm_sulc_wf, [('outputnode.sulc', 'inputnode.sulc')]),
         (inputnode, aseg_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
@@ -706,20 +682,15 @@ def init_surface_derivatives_wf(
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
         ]),
 
+        # Collate morphometry from inputnode and workflows
+        (inputnode, all_morph, [('thickness', 'in1'), ('sulc', 'in2')]),
+        (gifti_morph_wf, all_morph, [('outputnode.curv', 'in3')]),
+
         # Output
-        (gifti_surfaces_wf, outputnode, [
-            ('outputnode.surfaces', 'surfaces'),
-            ('outputnode.white', 'white'),
-            ('outputnode.pial', 'pial'),
-            ('outputnode.midthickness', 'midthickness'),
-            ('outputnode.inflated', 'inflated'),
-        ]),
-        (gifti_spheres_wf, outputnode, [('outputnode.sphere_reg', 'sphere_reg')]),
-        (gifti_morph_wf, outputnode, [('outputnode.morphometrics', 'morphometrics')]),
-        (fsLR_reg_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
-        (msm_sulc_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_msm')]),
+        (gifti_surfaces_wf, outputnode, [('outputnode.inflated', 'inflated')]),
         (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
         (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
+        (all_morph, outputnode, [('out', 'morphometrics')]),
     ])
     # fmt:on
 
