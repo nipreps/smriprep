@@ -49,6 +49,7 @@ def init_smriprep_wf(
     freesurfer,
     fs_subjects_dir,
     hires,
+    fs_reuse_base,
     layout,
     longitudinal,
     low_mem,
@@ -177,6 +178,7 @@ def init_smriprep_wf(
             freesurfer=freesurfer,
             fast_track=fast_track,
             hires=hires,
+            fs_reuse_base=fs_reuse_base,
             layout=layout,
             longitudinal=longitudinal,
             low_mem=low_mem,
@@ -212,6 +214,7 @@ def init_single_subject_wf(
     fast_track,
     freesurfer,
     hires,
+    fs_reuse_base,
     layout,
     longitudinal,
     low_mem,
@@ -280,6 +283,8 @@ def init_single_subject_wf(
         Enable FreeSurfer surface reconstruction (may increase runtime)
     hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
+    fs_reuse_base : bool
+        Adjust pipeline to reuse base template of existing longitudinal freesurfer
     layout : BIDSLayout object
         BIDS dataset layout
     longitudinal : :obj:`bool`
@@ -415,6 +420,7 @@ to workflows in *sMRIPrep*'s documentation]\
         existing_derivatives=deriv_cache,
         freesurfer=freesurfer,
         hires=hires,
+        fs_reuse_base=fs_reuse_base,
         longitudinal=longitudinal,
         msm_sulc=msm_sulc,
         name="anat_preproc_wf",

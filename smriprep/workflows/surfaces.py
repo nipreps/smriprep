@@ -53,7 +53,7 @@ import templateflow.api as tf
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
-def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
+def init_surface_recon_wf(*, omp_nthreads, hires, fs_reuse_base, name="surface_recon_wf"):
     r"""
     Reconstruct anatomical surfaces using FreeSurfer's ``recon-all``.
 
@@ -124,6 +124,8 @@ def init_surface_recon_wf(*, omp_nthreads, hires, name="surface_recon_wf"):
         Maximum number of threads an individual process may use
     hires : bool
         Enable sub-millimeter preprocessing in FreeSurfer
+    fs_reuse_base : bool
+        Adjust pipeline to reuse base template of existing longitudinal freesurfer
 
     Inputs
     ------
@@ -222,85 +224,122 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         name="outputnode",
     )
 
-    recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name="recon_config")
-
-    fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
-    fov_check.inputs.default_flags = ['-noskullstrip', '-noT2pial', '-noFLAIRpial']
-
-    autorecon1 = pe.Node(
-        ReconAll(directive="autorecon1", openmp=omp_nthreads),
-        name="autorecon1",
-        n_procs=omp_nthreads,
-        mem_gb=5,
-    )
-    autorecon1.interface._can_resume = False
-    autorecon1.interface._always_run = True
-
-    skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
-
     fsnative2t1w_xfm = pe.Node(
         RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
     )
     t1w2fsnative_xfm = pe.Node(LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
 
-    autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
     gifti_surface_wf = init_gifti_surface_wf()
 
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
     refine = pe.Node(RefineBrainMask(), name="refine")
 
+    if not fs_reuse_base:
+
+        recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name="recon_config")
+
+        fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
+        fov_check.inputs.default_flags = ['-noskullstrip', '-noT2pial', '-noFLAIRpial']
+
+        autorecon1 = pe.Node(
+            ReconAll(directive="autorecon1", openmp=omp_nthreads),
+            name="autorecon1",
+            n_procs=omp_nthreads,
+            mem_gb=5,
+        )
+        autorecon1.interface._can_resume = False
+        autorecon1.interface._always_run = True
+
+        skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
+
+        autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
+
+        # fmt:off
+        workflow.connect(
+            # Configuration
+            (inputnode, recon_config, [('t1w', 't1w_list'),
+                                       ('t2w', 't2w_list'),
+                                       ('flair', 'flair_list')]),
+            # Passing subjects_dir / subject_id enforces serial order
+            (inputnode, autorecon1, [('subjects_dir', 'subjects_dir'),
+                                     ('subject_id', 'subject_id')]),
+            (autorecon1, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
+                                              ('subject_id', 'subject_id')]),
+            (skull_strip_extern, autorecon_resume_wf, [('subjects_dir', 'inputnode.subjects_dir'),
+                                                       ('subject_id', 'inputnode.subject_id')]),
+            (autorecon_resume_wf, gifti_surface_wf, [
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+                ('outputnode.subject_id', 'inputnode.subject_id')]),
+            # Reconstruction phases
+            (inputnode, autorecon1, [('t1w', 'T1_files')]),
+            (inputnode, fov_check, [('t1w', 'in_files')]),
+            (fov_check, autorecon1, [('out', 'flags')]),
+            (recon_config, autorecon1, [('t2w', 'T2_file'),
+                                        ('flair', 'FLAIR_file'),
+                                        ('hires', 'hires'),
+                                        # First run only (recon-all saves expert options)
+                                        ('mris_inflate', 'mris_inflate')]),
+            (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
+            (recon_config, autorecon_resume_wf, [('use_t2w', 'inputnode.use_T2'),
+                                                 ('use_flair', 'inputnode.use_FLAIR')]),
+            (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
+
+
+            (autorecon_resume_wf, aseg_to_native_wf, [
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+                ('outputnode.subject_id', 'inputnode.subject_id')]),
+
+            (autorecon_resume_wf, aparc_to_native_wf, [
+                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+                ('outputnode.subject_id', 'inputnode.subject_id')]),
+            # Output
+            (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
+                                               ('outputnode.subject_id', 'subject_id')]),
+        )
+        # fmt:on
+    else:
+        fs_base_inputs = pe.Node(nio.FreeSurferSource())
+        # fmt:off
+        workflow.connect([
+            (inputnode, fs_base_inputs, [('subjects_dir', 'subjects_dir'),
+                                         ('subject_id', 'subject_id')]),
+            (inputnode, gifti_surface_wf, [
+                ('subjects_dir', 'inputnode.subjects_dir'),
+                ('subject_id', 'inputnode.subject_id')]),
+            (fs_base_inputs, fsnative2t1w_xfm, [('T1', 'source_file')]),
+
+            (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
+            (inputnode, aparc_to_native_wf, [
+                ('subjects_dir', 'inputnode.subjects_dir'),
+                ('subject_id', 'inputnode.subject_id')]),
+            (fsnative2t1w_xfm, aparc_to_native_wf, [
+                ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
+            (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
+
+            # Output
+            (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
+                                     ('subject_id', 'subject_id')]),
+        ])
+        # fmt:on
+
     # fmt:off
     workflow.connect([
-        # Configuration
-        (inputnode, recon_config, [('t1w', 't1w_list'),
-                                   ('t2w', 't2w_list'),
-                                   ('flair', 'flair_list')]),
-        # Passing subjects_dir / subject_id enforces serial order
-        (inputnode, autorecon1, [('subjects_dir', 'subjects_dir'),
-                                 ('subject_id', 'subject_id')]),
-        (autorecon1, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
-                                          ('subject_id', 'subject_id')]),
-        (skull_strip_extern, autorecon_resume_wf, [('subjects_dir', 'inputnode.subjects_dir'),
-                                                   ('subject_id', 'inputnode.subject_id')]),
-        (autorecon_resume_wf, gifti_surface_wf, [
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-            ('outputnode.subject_id', 'inputnode.subject_id')]),
-        # Reconstruction phases
-        (inputnode, autorecon1, [('t1w', 'T1_files')]),
-        (inputnode, fov_check, [('t1w', 'in_files')]),
-        (fov_check, autorecon1, [('out', 'flags')]),
-        (recon_config, autorecon1, [('t2w', 'T2_file'),
-                                    ('flair', 'FLAIR_file'),
-                                    ('hires', 'hires'),
-                                    # First run only (recon-all saves expert options)
-                                    ('mris_inflate', 'mris_inflate')]),
-        (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
-        (recon_config, autorecon_resume_wf, [('use_t2w', 'inputnode.use_T2'),
-                                             ('use_flair', 'inputnode.use_FLAIR')]),
         # Construct transform from FreeSurfer conformed image to sMRIPrep
         # reoriented image
         (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
-        (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
         (fsnative2t1w_xfm, t1w2fsnative_xfm, [('out_reg_file', 'in_lta')]),
         # Refine ANTs mask, deriving new mask from FS' aseg
         (inputnode, refine, [('corrected_t1', 'in_anat'),
                              ('ants_segs', 'in_ants')]),
         (inputnode, aseg_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
-        (autorecon_resume_wf, aseg_to_native_wf, [
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-            ('outputnode.subject_id', 'inputnode.subject_id')]),
         (fsnative2t1w_xfm, aseg_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
-        (autorecon_resume_wf, aparc_to_native_wf, [
-            ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-            ('outputnode.subject_id', 'inputnode.subject_id')]),
+
         (fsnative2t1w_xfm, aparc_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
 
         # Output
-        (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
-                                           ('outputnode.subject_id', 'subject_id')]),
         (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
                                         ('outputnode.morphometrics', 'morphometrics'),
                                         ('outputnode.midthickness', 'midthickness'),

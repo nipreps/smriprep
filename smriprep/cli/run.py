@@ -205,7 +205,12 @@ def get_parser():
         help="Path to existing FreeSurfer subjects directory to reuse. "
         "(default: OUTPUT_DIR/freesurfer)",
     )
-
+    g_fs.add_argument(
+        "--fs-reuse-base",
+        action="store_true",
+        dest="fs_reuse_base",
+        help="Reuse freesurfer base template (from longitudinal preprocessing)",
+    )
     # Surface generation xor
     g_surfs = parser.add_argument_group("Surface preprocessing options")
     g_surfs.add_argument(
@@ -570,6 +575,7 @@ def build_workflow(opts, retval):
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,
         hires=opts.hires,
+        fs_reuse_base=opts.fs_reuse_base,
         layout=layout,
         longitudinal=opts.longitudinal,
         low_mem=opts.low_mem,
