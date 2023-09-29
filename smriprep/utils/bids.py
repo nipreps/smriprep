@@ -28,31 +28,6 @@ from pkg_resources import resource_filename as pkgrf
 from bids.layout import BIDSLayout
 
 
-def get_outputnode_spec():
-    """
-    Generate outputnode's fields from I/O spec file.
-
-    Examples
-    --------
-    >>> get_outputnode_spec()  # doctest: +NORMALIZE_WHITESPACE
-    ['t1w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms',
-    'std_preproc', 'std_mask', 'std_dseg', 'std_tpms',
-    'anat2std_xfm', 'std2anat_xfm',
-    't1w2fsnative_xfm', 'fsnative2t1w_xfm',
-    'white', 'pial', 'midthickness', 'sphere',
-    'thickness', 'sulc', 'curv',
-    'sphere_reg', 'sphere_reg_fsLR', 'sphere_reg_msm',
-    'anat_ribbon']
-
-    """
-    spec = loads(Path(pkgrf("smriprep", "data/io_spec.json")).read_text())["queries"]
-    fields = ["_".join((m, s)) for m in ("t1w", "std") for s in spec["baseline"].keys()]
-    fields += [s for s in spec["std_xfms"].keys()]
-    fields += [s for s in spec["surfaces"].keys()]
-    fields += [s for s in spec["masks"].keys()]
-    return fields
-
-
 def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patterns=None):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:

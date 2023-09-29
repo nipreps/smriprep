@@ -70,24 +70,6 @@
         "mode": "image"
       }
     },
-    "std_xfms": {
-      "anat2std_xfm": {
-        "datatype": "anat",
-        "extension": "h5",
-        "from": "T1w",
-        "to": [],
-        "suffix": "xfm",
-        "mode": "image"
-      },
-      "std2anat_xfm": {
-        "datatype": "anat",
-        "extension": "h5",
-        "from": [],
-        "to": "T1w",
-        "suffix": "xfm",
-        "mode": "image"
-      }
-    },
     "surfaces": {
       "white": {
         "datatype": "anat",
