@@ -366,7 +366,7 @@ to workflows in *sMRIPrep*'s documentation]\
     std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
     std_spaces.append("fsnative")
     for deriv_dir in derivatives:
-        deriv_cache.update(collect_derivatives(deriv_dir, subject_id, std_spaces, freesurfer))
+        deriv_cache.update(collect_derivatives(deriv_dir, subject_id, std_spaces))
 
     inputnode = pe.Node(niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode")
 
