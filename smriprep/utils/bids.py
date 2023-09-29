@@ -21,7 +21,6 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Utilities to handle BIDS inputs."""
-from collections import defaultdict
 from pathlib import Path
 from json import loads
 from pkg_resources import resource_filename as pkgrf
@@ -40,9 +39,9 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
         if patterns is None:
             patterns = _patterns
 
-    derivs_cache = defaultdict(list)
     layout = BIDSLayout(derivatives_dir, config=["bids", "derivatives"], validate=False)
 
+    derivs_cache = {}
     for k, q in spec["baseline"].items():
         q["subject"] = subject_id
         item = layout.get(return_type='filename', **q)
@@ -50,18 +49,6 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
             continue
 
         derivs_cache["t1w_%s" % k] = item[0] if len(item) == 1 else item
-
-    for space in std_spaces:
-        for k, q in spec["std_xfms"].items():
-            q["subject"] = subject_id
-            q["from"] = q["from"] or space
-            q["to"] = q["to"] or space
-            item = layout.get(return_type='filename', **q)
-            if not item:
-                continue
-            derivs_cache[k] += item
-
-    derivs_cache = dict(derivs_cache)  # Back to a standard dictionary
 
     transforms = derivs_cache.setdefault('transforms', {})
     for space in std_spaces:
