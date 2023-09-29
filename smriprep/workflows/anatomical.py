@@ -393,6 +393,7 @@ def init_anat_fit_wf(
                 freesurfer=True,
                 hires=True,
                 longitudinal=False,
+                msm_sulc=True,
                 t1w=['t1w.nii.gz'],
                 t2w=['t2w.nii.gz'],
                 skull_strip_mode='force',
