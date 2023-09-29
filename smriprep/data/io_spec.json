@@ -163,6 +163,17 @@
         "suffix": "sphere",
         "extension": ".surf.gii"
       }
+    },
+    "masks": {
+      "anat_ribbon": {
+        "datatype": "anat",
+        "desc": "ribbon",
+        "suffix": "mask",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
+      }
     }
   },
   "patterns": [
