@@ -256,7 +256,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
 
         # fmt:off
-        workflow.connect(
+        workflow.connect([
             # Configuration
             (inputnode, recon_config, [('t1w', 't1w_list'),
                                        ('t2w', 't2w_list'),
@@ -296,10 +296,10 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             # Output
             (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
                                                ('outputnode.subject_id', 'subject_id')]),
-        )
+        ])
         # fmt:on
     else:
-        fs_base_inputs = pe.Node(nio.FreeSurferSource())
+        fs_base_inputs = pe.Node(nio.FreeSurferSource(), name='fs_base_inputs')
         # fmt:off
         workflow.connect([
             (inputnode, fs_base_inputs, [('subjects_dir', 'subjects_dir'),
