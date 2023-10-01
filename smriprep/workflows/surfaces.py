@@ -300,6 +300,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         # fmt:on
     else:
         fs_base_inputs = pe.Node(nio.FreeSurferSource(), name='fs_base_inputs')
+
         # fmt:off
         workflow.connect([
             (inputnode, fs_base_inputs, [('subjects_dir', 'subjects_dir'),
@@ -309,13 +310,13 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                 ('subject_id', 'inputnode.subject_id')]),
             (fs_base_inputs, fsnative2t1w_xfm, [('T1', 'source_file')]),
 
-            (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
+            (inputnode, aseg_to_native_wf, [
+                ('subjects_dir', 'inputnode.subjects_dir'),
+                ('subject_id', 'inputnode.subject_id')]),
+
             (inputnode, aparc_to_native_wf, [
                 ('subjects_dir', 'inputnode.subjects_dir'),
                 ('subject_id', 'inputnode.subject_id')]),
-            (fsnative2t1w_xfm, aparc_to_native_wf, [
-                ('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
-            (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
 
             # Output
             (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
