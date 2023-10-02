@@ -876,7 +876,6 @@ def init_anat_second_derivatives_wf(
                 "anat2std_xfm",
                 "sphere_reg",
                 "sphere_reg_fsLR",
-                "morphometrics",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
                 "cifti_morph",
@@ -1011,22 +1010,6 @@ def init_anat_second_derivatives_wf(
     if not freesurfer:
         return workflow
 
-    from niworkflows.interfaces.surf import Path2BIDS
-
-    # Morphometrics
-    name_morphs = pe.MapNode(
-        Path2BIDS(),
-        iterfield="in_file",
-        name="name_morphs",
-        run_without_submitting=True,
-    )
-    ds_morphs = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir, extension=".shape.gii"),
-        iterfield=["in_file", "hemi", "suffix"],
-        name="ds_morphs",
-        run_without_submitting=True,
-    )
-
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc="aseg", suffix="dseg", compress=True),
@@ -1043,11 +1026,6 @@ def init_anat_second_derivatives_wf(
 
     # fmt:off
     workflow.connect([
-        (inputnode, name_morphs, [('morphometrics', 'in_file')]),
-        (inputnode, ds_morphs, [('morphometrics', 'in_file'),
-                                ('source_files', 'source_file')]),
-        (name_morphs, ds_morphs, [('hemi', 'hemi'),
-                                  ('suffix', 'suffix')]),
         (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file'),
                                     ('source_files', 'source_file')]),
         (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),

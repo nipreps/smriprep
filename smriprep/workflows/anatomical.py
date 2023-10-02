@@ -312,6 +312,9 @@ def init_anat_preproc_wf(
         ds_surfaces_wf = init_ds_surfaces_wf(
             bids_root=bids_root, output_dir=output_dir, surfaces=["inflated"]
         )
+        ds_curv_wf = init_ds_surface_metrics_wf(
+            bids_root=bids_root, output_dir=output_dir, metrics=["curv"], name="ds_curv_wf"
+        )
 
         # fmt:off
         workflow.connect([
@@ -320,9 +323,6 @@ def init_anat_preproc_wf(
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
-                # Just for collation. These can probably go away at some point.
-                ('outputnode.thickness', 'inputnode.thickness'),
-                ('outputnode.sulc', 'inputnode.sulc'),
             ]),
             (anat_fit_wf, ds_surfaces_wf, [
                 ('outputnode.t1w_valid_list', 'inputnode.source_files'),
@@ -330,8 +330,13 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, ds_surfaces_wf, [
                 ('outputnode.inflated', 'inputnode.inflated'),
             ]),
+            (anat_fit_wf, ds_curv_wf, [
+                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+            ]),
+            (surface_derivatives_wf, ds_curv_wf, [
+                ('outputnode.curv', 'inputnode.curv'),
+            ]),
             (surface_derivatives_wf, anat_second_derivatives_wf, [
-                ('outputnode.morphometrics', 'inputnode.morphometrics'),
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
                 ('outputnode.cifti_morph', 'inputnode.cifti_morph'),

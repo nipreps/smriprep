@@ -630,8 +630,6 @@ def init_surface_derivatives_wf(
                 "subject_id",
                 "fsnative2t1w_xfm",
                 "reference",
-                "thickness",
-                "sulc",
             ]
         ),
         name="inputnode",
@@ -640,7 +638,7 @@ def init_surface_derivatives_wf(
         niu.IdentityInterface(
             fields=[
                 "inflated",
-                "morphometrics",
+                "curv",
                 "out_aseg",
                 "out_aparc",
                 "cifti_morph",
@@ -654,8 +652,6 @@ def init_surface_derivatives_wf(
     gifti_morph_wf = init_gifti_morphometrics_wf(morphometrics=["curv"])
     aseg_to_native_wf = init_segs_to_native_wf()
     aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
-
-    all_morph = pe.Node(niu.Merge(3), name="all_morph")
 
     # fmt:off
     workflow.connect([
@@ -682,15 +678,11 @@ def init_surface_derivatives_wf(
             ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
         ]),
 
-        # Collate morphometry from inputnode and workflows
-        (inputnode, all_morph, [('thickness', 'in1'), ('sulc', 'in2')]),
-        (gifti_morph_wf, all_morph, [('outputnode.curv', 'in3')]),
-
         # Output
         (gifti_surfaces_wf, outputnode, [('outputnode.inflated', 'inflated')]),
         (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
         (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
-        (all_morph, outputnode, [('out', 'morphometrics')]),
+        (gifti_morph_wf, outputnode, [('outputnode.curv', 'curv')]),
     ])
     # fmt:on
 
