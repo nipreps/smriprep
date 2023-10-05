@@ -57,7 +57,7 @@ def init_surface_recon_wf(
     *,
     omp_nthreads,
     hires,
-    fs_reuse_base,
+    fs_reuse_base=False,
     name="surface_recon_wf"
 ):
     r"""
