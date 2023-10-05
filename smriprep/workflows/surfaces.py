@@ -273,7 +273,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                                      ('subject_id', 'subject_id')]),
             (autorecon1, skull_strip_extern, [
                 ('subjects_dir', 'subjects_dir'),
-                 ('subject_id', 'subject_id')]),
+                ('subject_id', 'subject_id')]),
             (skull_strip_extern, autorecon_resume_wf, [
                 ('subjects_dir', 'inputnode.subjects_dir'),
                 ('subject_id', 'inputnode.subject_id')]),
