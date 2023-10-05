@@ -209,7 +209,8 @@ def get_parser():
         "--fs-reuse-base",
         action="store_true",
         dest="fs_reuse_base",
-        help="Reuse freesurfer base template (from longitudinal preprocessing)",
+        help="Reuse freesurfer base template"
+        "(from longitudinal preprocessing)",
     )
     # Surface generation xor
     g_surfs = parser.add_argument_group("Surface preprocessing options")

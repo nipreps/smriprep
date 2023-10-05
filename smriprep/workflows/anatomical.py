@@ -131,7 +131,8 @@ def init_anat_preproc_wf(
     hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     fs_reuse_base : bool
-        Adjust pipeline to reuse base template of existing longitudinal freesurfer
+        Adjust pipeline to reuse base template
+        of an existing longitudinal freesurfer output
     longitudinal : :obj:`bool`
         Create unbiased structural template, regardless of number of inputs
         (may increase runtime)
@@ -530,7 +531,10 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
 
     # 5. Surface reconstruction (--fs-no-reconall not set)
     surface_recon_wf = init_surface_recon_wf(
-        name="surface_recon_wf", omp_nthreads=omp_nthreads, hires=hires, fs_reuse_base=fs_reuse_base,
+        name="surface_recon_wf",
+        omp_nthreads=omp_nthreads,
+        hires=hires,
+        fs_reuse_base=fs_reuse_base,
     )
     applyrefined = pe.Node(fsl.ApplyMask(), name="applyrefined")
     sphere_reg_wf = init_sphere_reg_wf(msm_sulc=msm_sulc, sloppy=sloppy, name="sphere_reg_wf")

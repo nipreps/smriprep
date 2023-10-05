@@ -53,7 +53,13 @@ import templateflow.api as tf
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
-def init_surface_recon_wf(*, omp_nthreads, hires, fs_reuse_base, name="surface_recon_wf"):
+def init_surface_recon_wf(
+    *,
+    omp_nthreads,
+    hires,
+    fs_reuse_base,
+    name="surface_recon_wf"
+):
     r"""
     Reconstruct anatomical surfaces using FreeSurfer's ``recon-all``.
 
@@ -125,7 +131,8 @@ def init_surface_recon_wf(*, omp_nthreads, hires, fs_reuse_base, name="surface_r
     hires : bool
         Enable sub-millimeter preprocessing in FreeSurfer
     fs_reuse_base : bool
-        Adjust pipeline to reuse base template of existing longitudinal freesurfer
+        Adjust pipeline to reuse base template
+        of an existing longitudinal freesurfer output
 
     Inputs
     ------
@@ -264,10 +271,12 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             # Passing subjects_dir / subject_id enforces serial order
             (inputnode, autorecon1, [('subjects_dir', 'subjects_dir'),
                                      ('subject_id', 'subject_id')]),
-            (autorecon1, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
-                                              ('subject_id', 'subject_id')]),
-            (skull_strip_extern, autorecon_resume_wf, [('subjects_dir', 'inputnode.subjects_dir'),
-                                                       ('subject_id', 'inputnode.subject_id')]),
+            (autorecon1, skull_strip_extern, [
+                ('subjects_dir', 'subjects_dir'),
+                 ('subject_id', 'subject_id')]),
+            (skull_strip_extern, autorecon_resume_wf, [
+                ('subjects_dir', 'inputnode.subjects_dir'),
+                ('subject_id', 'inputnode.subject_id')]),
             (autorecon_resume_wf, gifti_surface_wf, [
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id')]),
@@ -275,31 +284,35 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             (inputnode, autorecon1, [('t1w', 'T1_files')]),
             (inputnode, fov_check, [('t1w', 'in_files')]),
             (fov_check, autorecon1, [('out', 'flags')]),
-            (recon_config, autorecon1, [('t2w', 'T2_file'),
-                                        ('flair', 'FLAIR_file'),
-                                        ('hires', 'hires'),
-                                        # First run only (recon-all saves expert options)
-                                        ('mris_inflate', 'mris_inflate')]),
-            (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
-            (recon_config, autorecon_resume_wf, [('use_t2w', 'inputnode.use_T2'),
-                                                 ('use_flair', 'inputnode.use_FLAIR')]),
+            (recon_config, autorecon1, [
+                ('t2w', 'T2_file'),
+                ('flair', 'FLAIR_file'),
+                ('hires', 'hires'),
+                # First run only (recon-all saves expert options)
+                ('mris_inflate', 'mris_inflate')]),
+            (inputnode, skull_strip_extern, [
+                ('skullstripped_t1', 'in_brain')]),
+            (recon_config, autorecon_resume_wf, [
+                ('use_t2w', 'inputnode.use_T2'),
+                ('use_flair', 'inputnode.use_FLAIR')]),
             (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
-
-
             (autorecon_resume_wf, aseg_to_native_wf, [
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id')]),
-
             (autorecon_resume_wf, aparc_to_native_wf, [
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id')]),
             # Output
-            (autorecon_resume_wf, outputnode, [('outputnode.subjects_dir', 'subjects_dir'),
-                                               ('outputnode.subject_id', 'subject_id')]),
+            (autorecon_resume_wf, outputnode, [
+                ('outputnode.subjects_dir', 'subjects_dir'),
+                ('outputnode.subject_id', 'subject_id')]),
         ])
         # fmt:on
     else:
-        fs_base_inputs = pe.Node(nio.FreeSurferSource(), name='fs_base_inputs')
+        fs_base_inputs = pe.Node(
+            nio.FreeSurferSource(),
+            name='fs_base_inputs'
+        )
 
         # fmt:off
         workflow.connect([
@@ -317,7 +330,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             (inputnode, aparc_to_native_wf, [
                 ('subjects_dir', 'inputnode.subjects_dir'),
                 ('subject_id', 'inputnode.subject_id')]),
-
             # Output
             (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
                                      ('subject_id', 'subject_id')]),

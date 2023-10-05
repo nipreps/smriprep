@@ -284,7 +284,8 @@ def init_single_subject_wf(
     hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     fs_reuse_base : bool
-        Adjust pipeline to reuse base template of existing longitudinal freesurfer
+        Adjust pipeline to reuse base template
+        of an existing longitudinal freesurfer output
     layout : BIDSLayout object
         BIDS dataset layout
     longitudinal : :obj:`bool`
