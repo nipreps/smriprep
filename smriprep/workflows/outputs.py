@@ -316,8 +316,9 @@ def init_ds_template_wf(
 
 def init_ds_mask_wf(
     *,
-    bids_root,
-    output_dir,
+    bids_root: str,
+    output_dir: str,
+    mask_type: str,
     name="ds_mask_wf",
 ):
     """
@@ -336,40 +337,48 @@ def init_ds_mask_wf(
     ------
     source_files
         List of input T1w images
-    t1w_mask
-        Mask of the ``t1w_preproc``
+    mask_file
+        Mask to save
 
     Outputs
     -------
-    t1w_mask
-        The location in the output directory of the T1w mask
+    mask_file
+        The location in the output directory of the mask
 
     """
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["source_files", "t1w_mask"]),
+        niu.IdentityInterface(fields=["source_files", "mask_file"]),
         name="inputnode",
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=["t1w_mask"]), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=["mask_file"]), name="outputnode")
 
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name="raw_sources")
     raw_sources.inputs.bids_root = bids_root
 
-    ds_t1w_mask = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc="brain", suffix="mask", compress=True),
+    ds_mask = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc=mask_type,
+            suffix="mask",
+            compress=True,
+        ),
         name="ds_t1w_mask",
         run_without_submitting=True,
     )
-    ds_t1w_mask.inputs.Type = "Brain"
+    if mask_type == "brain":
+        ds_mask.inputs.Type = "Brain"
+    else:
+        ds_mask.inputs.Type = "ROI"
 
     # fmt:off
     workflow.connect([
         (inputnode, raw_sources, [('source_files', 'in_files')]),
-        (inputnode, ds_t1w_mask, [('t1w_mask', 'in_file'),
-                                  ('source_files', 'source_file')]),
-        (raw_sources, ds_t1w_mask, [('out', 'RawSources')]),
-        (ds_t1w_mask, outputnode, [('out_file', 't1w_mask')]),
+        (inputnode, ds_mask, [('mask_file', 'in_file'),
+                              ('source_files', 'source_file')]),
+        (raw_sources, ds_mask, [('out', 'RawSources')]),
+        (ds_mask, outputnode, [('out_file', 'mask_file')]),
     ])
     # fmt:on
 
@@ -722,11 +731,73 @@ def init_ds_surfaces_wf(
 
         # fmt:off
         workflow.connect([
-            (inputnode, ds_surf, [
-                (surf, 'in_file'),
-                ('source_files', 'source_file'),
-            ]),
+            (inputnode, ds_surf, [(surf, 'in_file'), ('source_files', 'source_file')]),
             (ds_surf, outputnode, [('out_file', surf)]),
+        ])
+        # fmt:on
+
+    return workflow
+
+
+def init_ds_surface_metrics_wf(
+    *,
+    bids_root: str,
+    output_dir: str,
+    metrics: list[str],
+    name="ds_surface_metrics_wf",
+) -> Workflow:
+    """
+    Save GIFTI surface metrics
+
+    Parameters
+    ----------
+    bids_root : :class:`str`
+        Root path of BIDS dataset
+    output_dir : :class:`str`
+        Directory in which to save derivatives
+    metrics : :class:`str`
+        List of metrics to generate DataSinks for
+    name : :class:`str`
+        Workflow name (default: ds_surface_metrics_wf)
+
+    Inputs
+    ------
+    source_files
+        List of input T1w images
+    ``<metric>``
+        Left and right GIFTIs for each metric passed to ``metrics``
+
+    Outputs
+    -------
+    ``<metric>``
+        Left and right GIFTIs in ``output_dir`` for each metric passed to ``metrics``
+
+    """
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=["source_files"] + metrics),
+        name="inputnode",
+    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=metrics), name="outputnode")
+
+    for metric in metrics:
+        ds_surf = pe.MapNode(
+            DerivativesDataSink(
+                base_directory=output_dir,
+                hemi=["L", "R"],
+                suffix=metric,
+                extension=".shape.gii",
+            ),
+            iterfield=("in_file", "hemi"),
+            name=f"ds_{metric}",
+            run_without_submitting=True,
+        )
+
+        # fmt:off
+        workflow.connect([
+            (inputnode, ds_surf, [(metric, 'in_file'), ('source_files', 'source_file')]),
+            (ds_surf, outputnode, [('out_file', metric)]),
         ])
         # fmt:on
 
@@ -803,11 +874,8 @@ def init_anat_second_derivatives_wf(
                 "t1w_dseg",
                 "t1w_tpms",
                 "anat2std_xfm",
-                "surfaces",
                 "sphere_reg",
                 "sphere_reg_fsLR",
-                "morphometrics",
-                "anat_ribbon",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
                 "cifti_morph",
@@ -942,34 +1010,6 @@ def init_anat_second_derivatives_wf(
     if not freesurfer:
         return workflow
 
-    from niworkflows.interfaces.surf import Path2BIDS
-
-    # Morphometrics
-    name_morphs = pe.MapNode(
-        Path2BIDS(),
-        iterfield="in_file",
-        name="name_morphs",
-        run_without_submitting=True,
-    )
-    ds_morphs = pe.MapNode(
-        DerivativesDataSink(base_directory=output_dir, extension=".shape.gii"),
-        iterfield=["in_file", "hemi", "suffix"],
-        name="ds_morphs",
-        run_without_submitting=True,
-    )
-    # Ribbon volume
-    ds_anat_ribbon = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir,
-            desc="ribbon",
-            suffix="mask",
-            extension=".nii.gz",
-            compress=True,
-        ),
-        name="ds_anat_ribbon",
-        run_without_submitting=True,
-    )
-
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc="aseg", suffix="dseg", compress=True),
@@ -986,18 +1026,10 @@ def init_anat_second_derivatives_wf(
 
     # fmt:off
     workflow.connect([
-        (inputnode, name_morphs, [('morphometrics', 'in_file')]),
-        (inputnode, ds_morphs, [('morphometrics', 'in_file'),
-                                ('source_files', 'source_file')]),
-        (name_morphs, ds_morphs, [('hemi', 'hemi'),
-                                  ('suffix', 'suffix')]),
         (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file'),
                                     ('source_files', 'source_file')]),
         (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),
                                     ('source_files', 'source_file')]),
-        (inputnode, ds_anat_ribbon, [('anat_ribbon', 'in_file'),
-                                     ('source_files', 'source_file')]),
-
     ])
     # fmt:on
 

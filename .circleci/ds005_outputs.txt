@@ -16,6 +16,7 @@ smriprep/sub-01/anat/sub-01_desc-brain_mask.json
 smriprep/sub-01/anat/sub-01_desc-brain_mask.nii.gz
 smriprep/sub-01/anat/sub-01_desc-preproc_T1w.json
 smriprep/sub-01/anat/sub-01_desc-preproc_T1w.nii.gz
+smriprep/sub-01/anat/sub-01_desc-ribbon_mask.json
 smriprep/sub-01/anat/sub-01_desc-ribbon_mask.nii.gz
 smriprep/sub-01/anat/sub-01_dseg.nii.gz
 smriprep/sub-01/anat/sub-01_from-fsnative_to-T1w_mode-image_xfm.txt
@@ -27,6 +28,7 @@ smriprep/sub-01/anat/sub-01_hemi-L_midthickness.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_pial.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_space-fsLR_desc-msmsulc_sphere.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_space-fsLR_desc-reg_sphere.surf.gii
+smriprep/sub-01/anat/sub-01_hemi-L_sphere.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_sulc.shape.gii
 smriprep/sub-01/anat/sub-01_hemi-L_thickness.shape.gii
 smriprep/sub-01/anat/sub-01_hemi-L_white.surf.gii
@@ -37,6 +39,7 @@ smriprep/sub-01/anat/sub-01_hemi-R_midthickness.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_pial.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_space-fsLR_desc-msmsulc_sphere.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_space-fsLR_desc-reg_sphere.surf.gii
+smriprep/sub-01/anat/sub-01_hemi-R_sphere.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_sulc.shape.gii
 smriprep/sub-01/anat/sub-01_hemi-R_thickness.shape.gii
 smriprep/sub-01/anat/sub-01_hemi-R_white.surf.gii

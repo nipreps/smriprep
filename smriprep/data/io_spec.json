@@ -70,68 +70,91 @@
         "mode": "image"
       }
     },
-    "std_xfms": {
-      "anat2std_xfm": {
+    "surfaces": {
+      "white": {
         "datatype": "anat",
-        "extension": "h5",
-        "from": "T1w",
-        "to": [],
-        "suffix": "xfm",
-        "mode": "image"
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "white",
+        "extension": ".surf.gii"
       },
-      "std2anat_xfm": {
+      "pial": {
         "datatype": "anat",
-        "extension": "h5",
-        "from": [],
-        "to": "T1w",
-        "suffix": "xfm",
-        "mode": "image"
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "pial",
+        "extension": ".surf.gii"
+      },
+      "midthickness": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "midthickness",
+        "extension": ".surf.gii"
+      },
+      "sphere": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "desc": null,
+        "suffix": "sphere",
+        "extension": ".surf.gii"
+      },
+      "thickness": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "thickness",
+        "extension": ".shape.gii"
+      },
+      "sulc": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "sulc",
+        "extension": ".shape.gii"
+      },
+      "curv": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "curv",
+        "extension": ".shape.gii"
+      },
+      "sphere_reg": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "desc": "reg",
+        "suffix": "sphere",
+        "extension": ".surf.gii"
+      },
+      "sphere_reg_fsLR": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": "fsLR",
+        "desc": "reg",
+        "suffix": "sphere",
+        "extension": ".surf.gii"
+      },
+      "sphere_reg_msm": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": "fsLR",
+        "desc": "msmsulc",
+        "suffix": "sphere",
+        "extension": ".surf.gii"
       }
     },
-    "surfaces": {
-      "t1w_aseg": {
-        "datatype": "anat",
-        "desc": "aseg",
-        "suffix": "dseg"
-      },
-      "t1w_aparc": {
-        "datatype": "anat",
-        "desc": "aparcaseg",
-        "suffix": "dseg"
-      },
-      "t1w2fsnative_xfm": {
-        "datatype": "anat",
-        "from": "T1w",
-        "to": "fsnative",
-        "extension": "txt",
-        "suffix": "xfm",
-        "mode": "image"
-      },
-      "fsnative2t1w_xfm": {
-        "datatype": "anat",
-        "from": "fsnative",
-        "to": "T1w",
-        "extension": "txt",
-        "suffix": "xfm",
-        "mode": "image"
-      },
-      "surfaces": {
-        "datatype": "anat",
-        "hemi": ["L", "R"],
-        "extension": "surf.gii",
-        "suffix": [ "inflated", "midthickness", "pial", "white"]
-      },
-      "morphometrics": {
-        "datatype": "anat",
-        "hemi": ["L", "R"],
-        "extension": "shape.gii",
-        "suffix": ["thickness", "sulc", "curv"]
-      },
+    "masks": {
       "anat_ribbon": {
         "datatype": "anat",
         "desc": "ribbon",
         "suffix": "mask",
-        "extension": "nii.gz"
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       }
     }
   },
