@@ -586,7 +586,11 @@ def init_sphere_reg_wf(
 def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
     from ..interfaces.msm import MSM
-    from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
+    from ..interfaces.workbench import (
+        SurfaceAffineRegression,
+        SurfaceApplyAffine,
+        SurfaceModifySphere,
+    )
 
     workflow = Workflow(name=name)
     inputnode = pe.Node(
@@ -616,6 +620,14 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
         iterfield=['in_surface', 'in_affine'],
         name='apply_surface_affine',
     )
+
+    # Fix for oblongated sphere
+    modify_sphere = pe.MapNode(
+        SurfaceModifySphere(radius=100),
+        iterfield=['in_surface'],
+        name='modify_sphere',
+    )
+
     # 2) Run MSMSulc
     # ./msm_centos_v3 --conf=MSMSulcStrainFinalconf \
     # --inmesh=${SUB}.${HEMI}.sphere_rot.native.surf.gii
@@ -662,8 +674,9 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
                                      ('sphere_reg_fsLR', 'target_surface')]),
         (inputnode, apply_surface_affine, [('sphere', 'in_surface')]),
         (regress_affine, apply_surface_affine, [('out_affine', 'in_affine')]),
+        (apply_surface_affine, modify_sphere, [('out_surface', 'in_surface')]),
         (inputnode, msmsulc, [('sulc', 'in_data')]),
-        (apply_surface_affine, msmsulc, [('out_surface', 'in_mesh')]),
+        (modify_sphere, msmsulc, [('out_surface', 'in_mesh')]),
         (msmsulc, outputnode, [('warped_mesh', 'sphere_reg_fsLR')]),
     ])
     # fmt:on

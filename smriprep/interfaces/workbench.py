@@ -352,6 +352,71 @@ class SurfaceApplyWarpfield(WBCommand):
     _cmd = "wb_command -surface-apply-warpfield"
 
 
+class SurfaceModifySphereInputSpec(CommandLineInputSpec):
+    in_surface = File(
+        exists=True,
+        mandatory=True,
+        position=0,
+        argstr="%s",
+        desc="the sphere to modify",
+    )
+    radius = traits.Int(
+        mandatory=True,
+        position=1,
+        argstr="%d",
+        desc='the radius the output sphere should have'
+    )
+    out_surface = File(
+        name_template="%s_mod.surf.gii",
+        name_source="in_surface",
+        position=2,
+        argstr="%s",
+        desc="the modified sphere",
+    )
+    recenter = traits.Bool(
+        False,
+        position=3,
+        argstr="-recenter",
+        desc="recenter the sphere by means of the bounding box",
+    )
+
+
+class SurfaceModifySphereOutputSpec(TraitedSpec):
+    out_surface = File(desc="the modified sphere")
+
+
+class SurfaceModifySphere(WBCommand):
+    """CHANGE RADIUS AND OPTIONALLY RECENTER A SPHERE
+
+    wb_command -surface-modify-sphere
+      <sphere-in> - the sphere to modify
+      <radius> - the radius the output sphere should have
+      <sphere-out> - output - the output sphere
+
+      [-recenter] - recenter the sphere by means of the bounding box
+
+    This command may be useful if you have used -surface-resample to resample
+    a sphere, which can suffer from problems generally not present in
+    -surface-sphere-project-unproject.  If the sphere should already be
+    centered around the origin, using -recenter may still shift it slightly
+    before changing the radius, which is likely to be undesireable.
+
+    If <sphere-in> is not close to spherical, or not centered around the
+    origin and -recenter is not used, a warning is printed.
+
+    >>> sms = SurfaceModifySphere()
+    >>> sms.inputs.in_surface = 'sub-01_hemi-L_sphere.surf.gii'
+    >>> sms.inputs.radius = 100
+    >>> sms.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    'wb_command -surface-modify-sphere \
+    sub-01_hemi-L_sphere.surf.gii 100 sub-01_hemi-L_sphere.surf_mod.surf.gii'
+    """
+
+    input_spec = SurfaceModifySphereInputSpec
+    output_spec = SurfaceModifySphereOutputSpec
+    _cmd = 'wb_command -surface-modify-sphere'
+
+
 class SurfaceSphereProjectUnprojectInputSpec(TraitedSpec):
     """COPY REGISTRATION DEFORMATIONS TO DIFFERENT SPHERE.
 
