@@ -223,7 +223,7 @@ You're awesome. :wave::smiley:
 
 [link_git]: https://git-scm.com/
 [link_handbook]: https://guides.github.com/introduction/git-handbook/
-[link_swc_intro]: http://swcarpentry.github.io/git-novice/
+[link_swc_intro]: https://swcarpentry.github.io/git-novice/
 
 [writing_formatting_github]: https://help.github.com/articles/getting-started-with-writing-and-formatting-on-github
 [markdown]: https://daringfireball.net/projects/markdown

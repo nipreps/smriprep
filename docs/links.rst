@@ -1,7 +1,7 @@
 .. _fMRIPrep: https://github.com/nipreps/fmriprep
 .. _FreeSurfer: https://surfer.nmr.mgh.harvard.edu/
-.. _Nipype: http://nipype.readthedocs.io/en/latest/
-.. _BIDS: http://bids.neuroimaging.io
+.. _Nipype: https://nipype.readthedocs.io/en/latest/
+.. _BIDS: https://bids.neuroimaging.io/
 .. _Installation: installation.html
 .. _workflows: workflows.html
 .. _FSL: https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/
