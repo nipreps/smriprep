@@ -533,11 +533,9 @@ def build_workflow(opts, retval):
             "logging": {"log_directory": str(log_dir), "log_to_file": True},
             "execution": {
                 "crashdump_dir": str(log_dir),
-                "crashfile_format": "pklz",
+                "crashfile_format": "txt",
                 "get_linked_libs": False,
                 "stop_on_first_crash": opts.stop_on_first_crash,
-                "poll_sleep_duration": 0.1,
-                "keep_unnecessary_outputs": True,
             },
             "monitoring": {
                 "enabled": opts.resource_monitor,
