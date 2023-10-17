@@ -229,7 +229,7 @@ typing-extensions==4.7.1
     #   sqlalchemy
 tzdata==2023.3
     # via pandas
-urllib3==2.0.4
+urllib3==2.0.7
     # via requests
 wrapt==1.15.0
     # via formulaic
