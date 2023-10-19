@@ -31,12 +31,13 @@ import typing as ty
 from nipype.pipeline import engine as pe
 from nipype.interfaces.base import Undefined
 from nipype.interfaces import (
-    fsl,
     io as nio,
     utility as niu,
     freesurfer as fs,
     workbench as wb,
 )
+
+from smriprep.interfaces.surf import MakeRibbon
 
 from ..data import load_resource
 from ..interfaces.freesurfer import ReconAll, MakeMidthickness
@@ -45,20 +46,21 @@ from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.freesurfer import (
     FSDetectInputs,
     FSInjectBrainExtracted,
-    PatchedLTAConvert as LTAConvert,
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
+from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 import templateflow.api as tf
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
 def init_surface_recon_wf(
     *,
-    omp_nthreads,
-    hires,
-    fs_reuse_base=False,
-    name="surface_recon_wf"
+    omp_nthreads: int,
+    hires: bool,
+    fs_reuse_base: bool,
+    precomputed: dict,
+    name="surface_recon_wf",
 ):
     r"""
     Reconstruct anatomical surfaces using FreeSurfer's ``recon-all``.
@@ -122,7 +124,7 @@ def init_surface_recon_wf(
             :simple_form: yes
 
             from smriprep.workflows.surfaces import init_surface_recon_wf
-            wf = init_surface_recon_wf(omp_nthreads=1, hires=True)
+            wf = init_surface_recon_wf(omp_nthreads=1, hires=True, precomputed={})
 
     Parameters
     ----------
@@ -144,10 +146,6 @@ def init_surface_recon_wf(
         List of FLAIR images
     skullstripped_t1
         Skull-stripped T1-weighted image (or mask of image)
-    ants_segs
-        Brain tissue segmentation from ANTS ``antsBrainExtraction.sh``
-    corrected_t1
-        INU-corrected, merged T1-weighted image
     subjects_dir
         FreeSurfer SUBJECTS_DIR
     subject_id
@@ -159,26 +157,12 @@ def init_surface_recon_wf(
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    t1w2fsnative_xfm
-        LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
     fsnative2t1w_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
-    surfaces
-        GIFTI surfaces for gray/white matter boundary, pial surface,
-        midthickness (or graymid) surface, and inflated surfaces
-    out_brainmask
-        Refined brainmask, derived from FreeSurfer's ``aseg`` volume
-    out_aseg
-        FreeSurfer's aseg segmentation, in native T1w space
-    out_aparc
-        FreeSurfer's aparc+aseg segmentation, in native T1w space
-    morphometrics
-        GIFTIs of cortical thickness, curvature, and sulcal depth
 
     See also
     --------
     * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
-    * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
 
     """
     workflow = Workflow(name=name)
@@ -199,8 +183,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                 "t2w",
                 "flair",
                 "skullstripped_t1",
-                "corrected_t1",
-                "ants_segs",
                 "subjects_dir",
                 "subject_id",
             ]
@@ -214,33 +196,46 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                 "subject_id",
                 "t1w2fsnative_xfm",
                 "fsnative2t1w_xfm",
-                "surfaces",
-                "out_brainmask",
-                "out_aseg",
-                "out_aparc",
-                "morphometrics",
-                "midthickness",
-                "pial",
-                "white",
-                "inflated",
-                "thickness",
-                "sulc",
-                "curv",
             ]
         ),
         name="outputnode",
     )
 
-    fsnative2t1w_xfm = pe.Node(
-        RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
+    recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name="recon_config")
+
+    fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
+    fov_check.inputs.default_flags = ['-noskullstrip', '-noT2pial', '-noFLAIRpial']
+
+    autorecon1 = pe.Node(
+        ReconAll(directive="autorecon1", openmp=omp_nthreads),
+        name="autorecon1",
+        n_procs=omp_nthreads,
+        mem_gb=5,
     )
-    t1w2fsnative_xfm = pe.Node(LTAConvert(out_lta=True, invert=True), name="t1w2fsnative_xfm")
+    autorecon1.interface._can_resume = False
+    autorecon1.interface._always_run = True
 
-    gifti_surface_wf = init_gifti_surface_wf()
+    skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
 
-    aseg_to_native_wf = init_segs_to_native_wf()
-    aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
-    refine = pe.Node(RefineBrainMask(), name="refine")
+    autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
+
+    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+
+    midthickness = pe.MapNode(
+        MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
+        iterfield="in_file",
+        name="midthickness",
+    )
+
+    save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
+
+    sync = pe.Node(
+        niu.Function(
+            function=_extract_fs_fields,
+            output_names=['subjects_dir', 'subject_id'],
+        ),
+        name="sync",
+    )
 
     if not fs_reuse_base:
 
@@ -271,45 +266,35 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             # Passing subjects_dir / subject_id enforces serial order
             (inputnode, autorecon1, [('subjects_dir', 'subjects_dir'),
                                      ('subject_id', 'subject_id')]),
-            (autorecon1, skull_strip_extern, [
-                ('subjects_dir', 'subjects_dir'),
-                ('subject_id', 'subject_id')]),
-            (skull_strip_extern, autorecon_resume_wf, [
-                ('subjects_dir', 'inputnode.subjects_dir'),
-                ('subject_id', 'inputnode.subject_id')]),
-            (autorecon_resume_wf, gifti_surface_wf, [
-                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.subject_id', 'inputnode.subject_id')]),
+            (autorecon1, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
+                                              ('subject_id', 'subject_id')]),
+            (skull_strip_extern, autorecon_resume_wf, [('subjects_dir', 'inputnode.subjects_dir'),
+                                                       ('subject_id', 'inputnode.subject_id')]),
             # Reconstruction phases
             (inputnode, autorecon1, [('t1w', 'T1_files')]),
             (inputnode, fov_check, [('t1w', 'in_files')]),
             (fov_check, autorecon1, [('out', 'flags')]),
-            (recon_config, autorecon1, [
-                ('t2w', 'T2_file'),
-                ('flair', 'FLAIR_file'),
-                ('hires', 'hires'),
-                # First run only (recon-all saves expert options)
-                ('mris_inflate', 'mris_inflate')]),
-            (inputnode, skull_strip_extern, [
-                ('skullstripped_t1', 'in_brain')]),
-            (recon_config, autorecon_resume_wf, [
-                ('use_t2w', 'inputnode.use_T2'),
-                ('use_flair', 'inputnode.use_FLAIR')]),
-            (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
-            (autorecon_resume_wf, aseg_to_native_wf, [
-                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.subject_id', 'inputnode.subject_id')]),
-            (autorecon_resume_wf, aparc_to_native_wf, [
-                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.subject_id', 'inputnode.subject_id')]),
-            # Output
-            (autorecon_resume_wf, outputnode, [
+            (recon_config, autorecon1, [('t2w', 'T2_file'),
+                                        ('flair', 'FLAIR_file'),
+                                        ('hires', 'hires'),
+                                        # First run only (recon-all saves expert options)
+                                        ('mris_inflate', 'mris_inflate')]),
+            (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
+            (recon_config, autorecon_resume_wf, [('use_t2w', 'inputnode.use_T2'),
+                                                 ('use_flair', 'inputnode.use_FLAIR')]),
+            # Generate mid-thickness surfaces
+            (autorecon_resume_wf, get_surfaces, [
                 ('outputnode.subjects_dir', 'subjects_dir'),
-                ('outputnode.subject_id', 'subject_id')]),
+                ('outputnode.subject_id', 'subject_id'),
+            ]),
+            (autorecon_resume_wf, save_midthickness, [
+                ('outputnode.subjects_dir', 'base_directory'),
+                ('outputnode.subject_id', 'container'),
+            ]),
         ])
         # fmt:on
     else:
-        fs_base_inputs = pe.Node(
+        fs_base_inputs = autorecon1 = pe.Node(
             nio.FreeSurferSource(),
             name='fs_base_inputs'
         )
@@ -318,55 +303,152 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         workflow.connect([
             (inputnode, fs_base_inputs, [('subjects_dir', 'subjects_dir'),
                                          ('subject_id', 'subject_id')]),
-            (inputnode, gifti_surface_wf, [
-                ('subjects_dir', 'inputnode.subjects_dir'),
-                ('subject_id', 'inputnode.subject_id')]),
-            (fs_base_inputs, fsnative2t1w_xfm, [('T1', 'source_file')]),
-
-            (inputnode, aseg_to_native_wf, [
-                ('subjects_dir', 'inputnode.subjects_dir'),
-                ('subject_id', 'inputnode.subject_id')]),
-
-            (inputnode, aparc_to_native_wf, [
-                ('subjects_dir', 'inputnode.subjects_dir'),
-                ('subject_id', 'inputnode.subject_id')]),
-            # Output
-            (inputnode, outputnode, [('subjects_dir', 'subjects_dir'),
-                                     ('subject_id', 'subject_id')]),
+            # Generate mid-thickness surfaces
+            (inputnode, get_surfaces, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
+            (inputnode, save_midthickness, [
+                ('subjects_dir', 'base_directory'),
+                ('subject_id', 'container'),
+            ]),
         ])
         # fmt:on
 
+
     # fmt:off
     workflow.connect([
-        # Construct transform from FreeSurfer conformed image to sMRIPrep
-        # reoriented image
-        (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
-        (fsnative2t1w_xfm, t1w2fsnative_xfm, [('out_reg_file', 'in_lta')]),
-        # Refine ANTs mask, deriving new mask from FS' aseg
-        (inputnode, refine, [('corrected_t1', 'in_anat'),
-                             ('ants_segs', 'in_ants')]),
-        (inputnode, aseg_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
-        (fsnative2t1w_xfm, aseg_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
-        (inputnode, aparc_to_native_wf, [('corrected_t1', 'inputnode.in_file')]),
-
-        (fsnative2t1w_xfm, aparc_to_native_wf, [('out_reg_file', 'inputnode.fsnative2t1w_xfm')]),
-        (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
-
+        (get_surfaces, midthickness, [
+            ('white', 'in_file'),
+            ('graymid', 'graymid'),
+        ]),
+        (midthickness, save_midthickness, [('out_file', 'surf.@graymid')]),
         # Output
-        (gifti_surface_wf, outputnode, [('outputnode.surfaces', 'surfaces'),
-                                        ('outputnode.morphometrics', 'morphometrics'),
-                                        ('outputnode.midthickness', 'midthickness'),
-                                        ('outputnode.pial', 'pial'),
-                                        ('outputnode.white', 'white'),
-                                        ('outputnode.inflated', 'inflated'),
-                                        ('outputnode.thickness', 'thickness'),
-                                        ('outputnode.sulc', 'sulc'),
-                                        ('outputnode.curv', 'curv')]),
-        (t1w2fsnative_xfm, outputnode, [('out_lta', 't1w2fsnative_xfm')]),
-        (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
+        (save_midthickness, sync, [('out_file', 'filenames')]),
+        (sync, outputnode, [('subjects_dir', 'subjects_dir'),
+                            ('subject_id', 'subject_id')]),
+    ])
+    # fmt:on
+
+    if "fsnative" not in precomputed.get("transforms", {}):
+        fsnative2t1w_xfm = pe.Node(
+            RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
+        )
+
+        # fmt:off
+        workflow.connect([
+            (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
+            (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
+            (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
+        ])
+        # fmt:on
+
+    return workflow
+
+
+def init_refinement_wf(*, name="refinement_wf"):
+    r"""
+    Refine ANTs brain extraction with FreeSurfer segmentation
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_refinement_wf
+            wf = init_refinement_wf()
+
+    Inputs
+    ------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    reference_image
+        Input
+    t2w
+        List of T2-weighted structural images (only first used)
+    flair
+        List of FLAIR images
+    skullstripped_t1
+        Skull-stripped T1-weighted image (or mask of image)
+    ants_segs
+        Brain tissue segmentation from ANTS ``antsBrainExtraction.sh``
+    corrected_t1
+        INU-corrected, merged T1-weighted image
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+
+    Outputs
+    -------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    t1w2fsnative_xfm
+        LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    out_brainmask
+        Refined brainmask, derived from FreeSurfer's ``aseg`` volume
+
+    See also
+    --------
+    * :py:func:`~smriprep.workflows.surfaces.init_autorecon_resume_wf`
+
+    """
+    workflow = Workflow(name=name)
+    workflow.__desc__ = """\
+Brain surfaces were reconstructed using `recon-all` [FreeSurfer {fs_ver},
+RRID:SCR_001847, @fs_reconall], and the brain mask estimated
+previously was refined with a custom variation of the method to reconcile
+ANTs-derived and FreeSurfer-derived segmentations of the cortical
+gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
+""".format(
+        fs_ver=fs.Info().looseversion() or "<ver>"
+    )
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "reference_image",
+                "ants_segs",
+                "fsnative2t1w_xfm",
+                "subjects_dir",
+                "subject_id",
+            ]
+        ),
+        name="inputnode",
+    )
+    outputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "out_brainmask",
+            ]
+        ),
+        name="outputnode",
+    )
+
+    aseg_to_native_wf = init_segs_to_native_wf()
+    refine = pe.Node(RefineBrainMask(), name="refine")
+
+    # fmt:off
+    workflow.connect([
+        # Refine ANTs mask, deriving new mask from FS' aseg
+        (inputnode, aseg_to_native_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+            ('reference_image', 'inputnode.in_file'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+        (inputnode, refine, [('reference_image', 'in_anat'),
+                             ('ants_segs', 'in_ants')]),
+        (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
         (refine, outputnode, [('out_file', 'out_brainmask')]),
-        (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
-        (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
     ])
     # fmt:on
 
@@ -546,36 +628,141 @@ def init_autorecon_resume_wf(*, omp_nthreads, name="autorecon_resume_wf"):
     return workflow
 
 
-def init_sphere_reg_wf(
+def init_surface_derivatives_wf(
     *,
-    msm_sulc: bool = False,
-    sloppy: bool = False,
-    name: str = "sphere_reg_wf",
+    cifti_output: ty.Literal["91k", "170k", False] = False,
+    name="surface_derivatives_wf",
 ):
+    r"""
+    Generate sMRIPrep derivatives from FreeSurfer derivatives
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_surface_derivatives_wf
+            wf = init_surface_derivatives_wf()
+
+    Inputs
+    ------
+    reference
+        Reference image in native T1w space, for defining a resampling grid
+    fsnative2t1w_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+
+    Outputs
+    -------
+    surfaces
+        GIFTI surfaces for gray/white matter boundary, pial surface,
+        midthickness (or graymid) surface, and inflated surfaces
+    morphometrics
+        GIFTIs of cortical thickness, curvature, and sulcal depth
+    out_aseg
+        FreeSurfer's aseg segmentation, in native T1w space
+    out_aparc
+        FreeSurfer's aparc+aseg segmentation, in native T1w space
+
+    See also
+    --------
+    * :py:func:`~smriprep.workflows.surfaces.init_gifti_surface_wf`
+
+    """
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "subjects_dir",
+                "subject_id",
+                "fsnative2t1w_xfm",
+                "reference",
+            ]
+        ),
+        name="inputnode",
+    )
+    outputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                "inflated",
+                "curv",
+                "out_aseg",
+                "out_aparc",
+                "cifti_morph",
+                "cifti_metadata",
+            ]
+        ),
+        name="outputnode",
+    )
+
+    gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=["inflated"])
+    gifti_morph_wf = init_gifti_morphometrics_wf(morphometrics=["curv"])
+    aseg_to_native_wf = init_segs_to_native_wf()
+    aparc_to_native_wf = init_segs_to_native_wf(segmentation="aparc_aseg")
+
+    # fmt:off
+    workflow.connect([
+        # Configuration
+        (inputnode, gifti_surfaces_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+        (inputnode, gifti_morph_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+        ]),
+        (inputnode, aseg_to_native_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+            ('reference', 'inputnode.in_file'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+        (inputnode, aparc_to_native_wf, [
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
+            ('reference', 'inputnode.in_file'),
+            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+        ]),
+
+        # Output
+        (gifti_surfaces_wf, outputnode, [('outputnode.inflated', 'inflated')]),
+        (aseg_to_native_wf, outputnode, [('outputnode.out_file', 'out_aseg')]),
+        (aparc_to_native_wf, outputnode, [('outputnode.out_file', 'out_aparc')]),
+        (gifti_morph_wf, outputnode, [('outputnode.curv', 'curv')]),
+    ])
+    # fmt:on
+
+    if cifti_output:
+        morph_grayords_wf = init_morph_grayords_wf(grayord_density=cifti_output)
+        # fmt:off
+        workflow.connect([
+            (inputnode, morph_grayords_wf, [
+                ('subject_id', 'inputnode.subject_id'),
+                ('subjects_dir', 'inputnode.subjects_dir'),
+            ]),
+            (morph_grayords_wf, outputnode, [
+                ("outputnode.cifti_morph", "cifti_morph"),
+                ("outputnode.cifti_metadata", "cifti_metadata"),
+            ]),
+        ])
+        # fmt:on
+
+    return workflow
+
+
+def init_fsLR_reg_wf(*, name="fsLR_reg_wf"):
     """Generate GIFTI registration files to fsLR space"""
-    from ..interfaces.surf import FixGiftiMetadata
     from ..interfaces.workbench import SurfaceSphereProjectUnproject
 
     workflow = Workflow(name=name)
 
-    inputnode = pe.Node(
-        niu.IdentityInterface(["subjects_dir", "subject_id", "sulc"]),
-        name="inputnode",
-    )
-    outputnode = pe.Node(
-        niu.IdentityInterface(["sphere_reg", "sphere_reg_fsLR"]), name="outputnode"
-    )
-
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
-
-    # Via FreeSurfer2CaretConvertAndRegisterNonlinear.sh#L270-L273
-    #
-    # See https://github.com/DCAN-Labs/DCAN-HCP/tree/9291324
-    sphere_reg_gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii"), iterfield="in_file", name="sphere_reg_gii"
-    )
-
-    fix_reg_meta = pe.MapNode(FixGiftiMetadata(), iterfield="in_file", name="fix_reg_meta")
+    inputnode = pe.Node(niu.IdentityInterface(["sphere_reg", "sulc"]), name="inputnode")
+    outputnode = pe.Node(niu.IdentityInterface(["sphere_reg_fsLR"]), name="outputnode")
 
     # Via
     # ${CARET7DIR}/wb_command -surface-sphere-project-unproject
@@ -600,45 +787,22 @@ def init_sphere_reg_wf(
 
     # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [
-            ('subjects_dir', 'subjects_dir'),
-            ('subject_id', 'subject_id'),
-        ]),
-        (get_surfaces, sphere_reg_gii, [(('sphere_reg', _sorted_by_basename), 'in_file')]),
-        (sphere_reg_gii, fix_reg_meta, [('converted', 'in_file')]),
-        (fix_reg_meta, project_unproject, [('out_file', 'sphere_in')]),
-        (fix_reg_meta, outputnode, [('out_file', 'sphere_reg')]),
+        (inputnode, project_unproject, [('sphere_reg', 'sphere_in')]),
+        (project_unproject, outputnode, [('sphere_out', 'sphere_reg_fsLR')]),
     ])
     # fmt:on
 
-    if not msm_sulc:
-        workflow.connect(project_unproject, 'sphere_out', outputnode, 'sphere_reg_fsLR')
-        return workflow
-
-    sphere_gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype='gii'), iterfield='in_file', name='sphere_gii',
-    )
-    fix_sphere_meta = pe.MapNode(
-        FixGiftiMetadata(), iterfield='in_file', name='fix_sphere_meta',
-    )
-    msm_sulc_wf = init_msm_sulc_wf(sloppy=sloppy)
-    # fmt:off
-    workflow.connect([
-        (get_surfaces, sphere_gii, [(('sphere', _sorted_by_basename), 'in_file')]),
-        (sphere_gii, fix_sphere_meta, [('converted', 'in_file')]),
-        (fix_sphere_meta, msm_sulc_wf, [('out_file', 'inputnode.sphere')]),
-        (inputnode, msm_sulc_wf, [('sulc', 'inputnode.sulc')]),
-        (project_unproject, msm_sulc_wf, [('sphere_out', 'inputnode.sphere_reg_fsLR')]),
-        (msm_sulc_wf, outputnode, [('outputnode.sphere_reg_fsLR', 'sphere_reg_fsLR')]),
-    ])
-    # fmt:on
     return workflow
 
 
 def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
     from ..interfaces.msm import MSM
-    from ..interfaces.workbench import SurfaceAffineRegression, SurfaceApplyAffine
+    from ..interfaces.workbench import (
+        SurfaceAffineRegression,
+        SurfaceApplyAffine,
+        SurfaceModifySphere,
+    )
 
     workflow = Workflow(name=name)
     inputnode = pe.Node(
@@ -668,6 +832,14 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
         iterfield=['in_surface', 'in_affine'],
         name='apply_surface_affine',
     )
+
+    # Fix for oblongated sphere
+    modify_sphere = pe.MapNode(
+        SurfaceModifySphere(radius=100),
+        iterfield=['in_surface'],
+        name='modify_sphere',
+    )
+
     # 2) Run MSMSulc
     # ./msm_centos_v3 --conf=MSMSulcStrainFinalconf \
     # --inmesh=${SUB}.${HEMI}.sphere_rot.native.surf.gii
@@ -714,33 +886,128 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
                                      ('sphere_reg_fsLR', 'target_surface')]),
         (inputnode, apply_surface_affine, [('sphere', 'in_surface')]),
         (regress_affine, apply_surface_affine, [('out_affine', 'in_affine')]),
+        (apply_surface_affine, modify_sphere, [('out_surface', 'in_surface')]),
         (inputnode, msmsulc, [('sulc', 'in_data')]),
-        (apply_surface_affine, msmsulc, [('out_surface', 'in_mesh')]),
+        (modify_sphere, msmsulc, [('out_surface', 'in_mesh')]),
         (msmsulc, outputnode, [('warped_mesh', 'sphere_reg_fsLR')]),
     ])
     # fmt:on
     return workflow
 
 
-def init_gifti_surface_wf(*, name="gifti_surface_wf"):
+def init_gifti_surfaces_wf(
+    *,
+    surfaces: ty.List[str] = ["pial", "midthickness", "inflated", "white"],
+    to_scanner: bool = True,
+    name: str = "gifti_surface_wf",
+):
     r"""
     Prepare GIFTI surfaces from a FreeSurfer subjects directory.
 
-    If midthickness (or graymid) surfaces do not exist, they are generated and
-    saved to the subject directory as ``lh/rh.midthickness``.
-    These, along with the gray/white matter boundary (``lh/rh.white``), pial
-    surfaces (``lh/rh.pial``) and inflated surfaces (``lh/rh.inflated``) are
-    converted to GIFTI files.
-    Additionally, the vertex coordinates are :py:class:`recentered
-    <smriprep.interfaces.NormalizeSurf>` to align with native T1w space.
+    The default surfaces are ``lh/rh.pial``, ``lh/rh.midthickness``,
+    ``lh/rh.inflated``, and ``lh/rh.white``.
+
+    Vertex coordinates are :py:class:`transformed
+    <smriprep.interfaces.NormalizeSurf>` to align with native T1w space
+    when ``fsnative2t1w_xfm`` is provided.
 
     Workflow Graph
         .. workflow::
             :graph2use: orig
             :simple_form: yes
 
-            from smriprep.workflows.surfaces import init_gifti_surface_wf
-            wf = init_gifti_surface_wf()
+            from smriprep.workflows.surfaces import init_gifti_surfaces_wf
+            wf = init_gifti_surfaces_wf()
+
+    Inputs
+    ------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    fsnative2t1w_xfm
+        LTA formatted affine transform file
+
+    Outputs
+    -------
+    surfaces
+        GIFTI surfaces for all requested surfaces
+    ``<surface>``
+        Left and right GIFTIs for each surface passed to ``surfaces``
+
+    """
+    from ..interfaces.surf import NormalizeSurf
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(["subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
+        name="inputnode",
+    )
+    outputnode = pe.Node(niu.IdentityInterface(["surfaces", *surfaces]), name="outputnode")
+
+    get_surfaces = pe.Node(
+        niu.Function(function=_get_surfaces, output_names=surfaces),
+        name="get_surfaces",
+    )
+    get_surfaces.inputs.surfaces = surfaces
+
+    surface_list = pe.Node(
+        niu.Merge(len(surfaces), ravel_inputs=True),
+        name="surface_list",
+        run_without_submitting=True,
+    )
+    fs2gii = pe.MapNode(
+        fs.MRIsConvert(out_datatype="gii", to_scanner=to_scanner),
+        iterfield="in_file",
+        name="fs2gii",
+    )
+    fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
+
+    surface_groups = pe.Node(
+        niu.Split(splits=[2] * len(surfaces)),
+        name="surface_groups",
+        run_without_submitting=True,
+    )
+
+    # fmt:off
+    workflow.connect([
+        (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
+                                   ('subject_id', 'subject_id')]),
+        (get_surfaces, surface_list, [
+            (surf, f'in{i}') for i, surf in enumerate(surfaces, start=1)
+        ]),
+        (surface_list, fs2gii, [('out', 'in_file')]),
+        (fs2gii, fix_surfs, [('converted', 'in_file')]),
+        (fix_surfs, outputnode, [('out_file', 'surfaces')]),
+        (fix_surfs, surface_groups, [('out_file', 'inlist')]),
+        (surface_groups, outputnode, [
+            (f'out{i}', surf) for i, surf in enumerate(surfaces, start=1)
+        ]),
+    ])
+    # fmt:on
+    return workflow
+
+
+def init_gifti_morphometrics_wf(
+    *,
+    morphometrics: ty.List[str] = ["thickness", "curv", "sulc"],
+    name: str = "gifti_morphometrics_wf",
+):
+    r"""
+    Prepare GIFTI shape files from morphometrics found in a FreeSurfer subjects
+    directory.
+
+    The default morphometrics are ``lh/rh.thickness``, ``lh/rh.curv``, and
+    ``lh/rh.sulc``.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_gifti_morphometrics_wf
+            wf = init_gifti_morphometrics_wf()
 
     Inputs
     ------
@@ -753,75 +1020,34 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
 
     Outputs
     -------
-    midthickness
-        Left and right midthickness (or graymid) surface GIFTIs
-    pial
-        Left and right pial surface GIFTIs
-    white
-        Left and right white surface GIFTIs
-    inflated
-        Left and right inflated surface GIFTIs
-    surfaces
-        GIFTI surfaces for gray/white matter boundary, pial surface,
-        midthickness (or graymid) surface, and inflated surfaces
-    thickness
-        Left and right cortical thickness GIFTIs
-    sulc
-        Left and right sulcal depth map GIFTIs
-    curv
-        Left and right curvature map GIFTIs
     morphometrics
-        GIFTIs of cortical thickness, curvature, and sulcal depth
+        GIFTI shape files for all requested morphometrics
+    ``<morphometric>``
+        Left and right GIFTIs for each morphometry type passed to ``morphometrics``
 
     """
     from ..interfaces.freesurfer import MRIsConvertData
-    from ..interfaces.surf import NormalizeSurf, AggregateSurfaces
 
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(["subjects_dir", "subject_id", "fsnative2t1w_xfm"]),
+        niu.IdentityInterface(["subjects_dir", "subject_id"]),
         name="inputnode",
     )
     outputnode = pe.Node(
-        niu.IdentityInterface([
-            "pial",
-            "white",
-            "inflated",
-            "midthickness",
-            "thickness",
-            "sulc",
-            "curv",
-            # Preserve grouping
-            "surfaces",
-            "morphometrics",
-        ]),
-        name="outputnode"
+        niu.IdentityInterface(
+            [
+                "morphometrics",
+                *morphometrics,
+            ]
+        ),
+        name="outputnode",
     )
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
+    get_subject = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
 
-    midthickness = pe.MapNode(
-        MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
-        iterfield="in_file",
-        name="midthickness",
-    )
-
-    save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
-
-    surface_list = pe.Node(
-        niu.Merge(4, ravel_inputs=True),
-        name="surface_list",
-        run_without_submitting=True,
-    )
-    fs2gii = pe.MapNode(
-        fs.MRIsConvert(out_datatype="gii", to_scanner=True),
-        iterfield="in_file",
-        name="fs2gii",
-    )
-    fix_surfs = pe.MapNode(NormalizeSurf(), iterfield="in_file", name="fix_surfs")
-    surfmorph_list = pe.Node(
-        niu.Merge(3, ravel_inputs=True),
+    morphometry_list = pe.Node(
+        niu.Merge(len(morphometrics), ravel_inputs=True),
         name="surfmorph_list",
         run_without_submitting=True,
     )
@@ -831,42 +1057,27 @@ def init_gifti_surface_wf(*, name="gifti_surface_wf"):
         name="morphs2gii",
     )
 
-    agg_surfaces = pe.Node(AggregateSurfaces(), name="agg_surfaces")
+    morph_groups = pe.Node(
+        niu.Split(splits=[2] * len(morphometrics)),
+        name="morph_groups",
+        run_without_submitting=True,
+    )
 
     # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
-                                   ('subject_id', 'subject_id')]),
-        (inputnode, save_midthickness, [('subjects_dir', 'base_directory'),
-                                        ('subject_id', 'container')]),
-        # Generate midthickness surfaces and save to FreeSurfer derivatives
-        (get_surfaces, midthickness, [('white', 'in_file'),
-                                      ('graymid', 'graymid')]),
-        (midthickness, save_midthickness, [('out_file', 'surf.@graymid')]),
-        # Produce valid GIFTI surface files (dense mesh)
-        (get_surfaces, surface_list, [('white', 'in1'),
-                                      ('pial', 'in2'),
-                                      ('inflated', 'in3')]),
-        (save_midthickness, surface_list, [('out_file', 'in4')]),
-        (surface_list, fs2gii, [('out', 'in_file')]),
-        (fs2gii, fix_surfs, [('converted', 'in_file')]),
-        (inputnode, fix_surfs, [('fsnative2t1w_xfm', 'transform_file')]),
-        (fix_surfs, outputnode, [('out_file', 'surfaces')]),
-        (get_surfaces, surfmorph_list, [('thickness', 'in1'),
-                                        ('sulc', 'in2'),
-                                        ('curv', 'in3')]),
-        (surfmorph_list, morphs2gii, [('out', 'scalarcurv_file')]),
+        (inputnode, get_subject, [('subjects_dir', 'subjects_dir'),
+                                  ('subject_id', 'subject_id')]),
+        (get_subject, morphometry_list, [
+            ((morph, _sorted_by_basename), f'in{i}')
+            for i, morph in enumerate(morphometrics, start=1)
+        ]),
+        (morphometry_list, morphs2gii, [('out', 'scalarcurv_file')]),
         (morphs2gii, outputnode, [('converted', 'morphometrics')]),
         # Output individual surfaces as well
-        (fix_surfs, agg_surfaces, [('out_file', 'surfaces')]),
-        (morphs2gii, agg_surfaces, [('converted', 'morphometrics')]),
-        (agg_surfaces, outputnode, [('pial', 'pial'),
-                                    ('white', 'white'),
-                                    ('inflated', 'inflated'),
-                                    ('midthickness', 'midthickness'),
-                                    ('thickness', 'thickness'),
-                                    ('sulc', 'sulc'),
-                                    ('curv', 'curv')]),
+        (morphs2gii, morph_groups, [('converted', 'inlist')]),
+        (morph_groups, outputnode, [
+            (f'out{i}', surf) for i, surf in enumerate(morphometrics, start=1)
+        ]),
     ])
     # fmt:on
     return workflow
@@ -914,6 +1125,9 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     outputnode = pe.Node(niu.IdentityInterface(["out_file"]), name="outputnode")
     # Extract the aseg and aparc+aseg outputs
     fssource = pe.Node(nio.FreeSurferSource(), name="fs_datasource")
+
+    lta = pe.Node(ConcatenateXFMs(out_fmt="fs"), name="lta", run_without_submitting=True)
+
     # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
     # and convert to NIfTI while we're at it
     resample = pe.Node(
@@ -944,9 +1158,12 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
         (inputnode, fssource, [
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id')]),
-        (inputnode, resample, [('in_file', 'target_file'),
-                               ('fsnative2t1w_xfm', 'lta_file')]),
+        (inputnode, lta, [('in_file', 'reference'),
+                          ('fsnative2t1w_xfm', 'in_xfms')]),
+        (fssource, lta, [('T1', 'moving')]),
+        (inputnode, resample, [('in_file', 'target_file')]),
         (fssource, resample, [(segmentation, 'source_file')]),
+        (lta, resample, [('out_xfm', 'lta_file')]),
         (resample, outputnode, [('transformed_file', 'out_file')]),
     ])
     # fmt:on
@@ -954,51 +1171,39 @@ def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
 
 
 def init_anat_ribbon_wf(name="anat_ribbon_wf"):
+    """Create anatomical ribbon mask
+
+    Workflow Graph
+
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_anat_ribbon_wf
+            wf = init_anat_ribbon_wf()
+
+    Inputs
+    ------
+    white
+        Left and right gray/white surfaces (as GIFTI files)
+    pial
+        Left and right pial surfaces (as GIFTI files)
+    ref_file
+        Reference image (one 3D volume) to define the target space
+
+    Outputs
+    -------
+    anat_ribbon
+        Cortical gray matter mask, sampled into ``ref_file`` space
+    """
     DEFAULT_MEMORY_MIN_GB = 0.01
     workflow = pe.Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=[
-                "surfaces",
-                "t1w_mask",
-            ]
-        ),
+        niu.IdentityInterface(fields=["white", "pial", "ref_file"]),
         name="inputnode",
     )
-    outputnode = pe.Node(
-        niu.IdentityInterface(
-            fields=[
-                "anat_ribbon",
-            ]
-        ),
-        name="outputnode",
-    )
-
-    # 0, 1 = wm; 2, 3 = pial; 6, 7 = mid
-    # note that order of lh / rh within each surf type is not guaranteed due to use
-    # of unsorted glob by FreeSurferSource prior, but we can do a sort
-    # to ensure consistent ordering
-    select_wm = pe.Node(
-        niu.Select(index=[0, 1]),
-        name="select_wm",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    select_pial = pe.Node(
-        niu.Select(index=[2, 3]),
-        name="select_pial",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    select_midthick = pe.Node(
-        niu.Select(index=[6, 7]),
-        name="select_midthick",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=["anat_ribbon"]), name="outputnode")
 
     create_wm_distvol = pe.MapNode(
         CreateSignedDistanceVolume(),
@@ -1012,102 +1217,25 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
         name="create_pial_distvol",
     )
 
-    thresh_wm_distvol = pe.MapNode(
-        fsl.maths.MathsCommand(args="-thr 0 -bin -mul 255"),
-        iterfield=["in_file"],
-        name="thresh_wm_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
+    make_ribbon = pe.Node(MakeRibbon(), name="make_ribbon", mem_gb=DEFAULT_MEMORY_MIN_GB)
 
-    uthresh_pial_distvol = pe.MapNode(
-        fsl.maths.MathsCommand(args="-uthr 0 -abs -bin -mul 255"),
-        iterfield=["in_file"],
-        name="uthresh_pial_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    bin_wm_distvol = pe.MapNode(
-        fsl.maths.UnaryMaths(operation="bin"),
-        iterfield=["in_file"],
-        name="bin_wm_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    bin_pial_distvol = pe.MapNode(
-        fsl.maths.UnaryMaths(operation="bin"),
-        iterfield=["in_file"],
-        name="bin_pial_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    split_wm_distvol = pe.Node(
-        niu.Split(splits=[1, 1]),
-        name="split_wm_distvol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    merge_wm_distvol_no_flatten = pe.Node(
-        niu.Merge(2),
-        no_flatten=True,
-        name="merge_wm_distvol_no_flatten",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    make_ribbon_vol = pe.MapNode(
-        fsl.maths.MultiImageMaths(op_string="-mas %s -mul 255"),
-        iterfield=["in_file", "operand_files"],
-        name="make_ribbon_vol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    bin_ribbon_vol = pe.MapNode(
-        fsl.maths.UnaryMaths(operation="bin"),
-        iterfield=["in_file"],
-        name="bin_ribbon_vol",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    split_squeeze_ribbon_vol = pe.Node(
-        niu.Split(splits=[1, 1], squeeze=True),
-        name="split_squeeze_ribbon",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-        run_without_submitting=True,
-    )
-
-    combine_ribbon_vol_hemis = pe.Node(
-        fsl.maths.BinaryMaths(operation="add"),
-        name="combine_ribbon_vol_hemis",
-        mem_gb=DEFAULT_MEMORY_MIN_GB,
-    )
-
-    # make HCP-style ribbon volume in T1w space
+    # fmt: off
     workflow.connect(
         [
-            (inputnode, select_wm, [("surfaces", "inlist")]),
-            (inputnode, select_pial, [("surfaces", "inlist")]),
-            (inputnode, select_midthick, [("surfaces", "inlist")]),
-            (select_wm, create_wm_distvol, [(("out", _sorted_by_basename), "surf_file")]),
-            (inputnode, create_wm_distvol, [("t1w_mask", "ref_file")]),
-            (select_pial, create_pial_distvol, [(("out", _sorted_by_basename), "surf_file")]),
-            (inputnode, create_pial_distvol, [("t1w_mask", "ref_file")]),
-            (create_wm_distvol, thresh_wm_distvol, [("out_file", "in_file")]),
-            (create_pial_distvol, uthresh_pial_distvol, [("out_file", "in_file")]),
-            (thresh_wm_distvol, bin_wm_distvol, [("out_file", "in_file")]),
-            (uthresh_pial_distvol, bin_pial_distvol, [("out_file", "in_file")]),
-            (bin_wm_distvol, split_wm_distvol, [("out_file", "inlist")]),
-            (split_wm_distvol, merge_wm_distvol_no_flatten, [("out1", "in1")]),
-            (split_wm_distvol, merge_wm_distvol_no_flatten, [("out2", "in2")]),
-            (bin_pial_distvol, make_ribbon_vol, [("out_file", "in_file")]),
-            (merge_wm_distvol_no_flatten, make_ribbon_vol, [("out", "operand_files")]),
-            (make_ribbon_vol, bin_ribbon_vol, [("out_file", "in_file")]),
-            (bin_ribbon_vol, split_squeeze_ribbon_vol, [("out_file", "inlist")]),
-            (split_squeeze_ribbon_vol, combine_ribbon_vol_hemis, [("out1", "in_file")]),
-            (split_squeeze_ribbon_vol, combine_ribbon_vol_hemis, [("out2", "operand_file")]),
-            (combine_ribbon_vol_hemis, outputnode, [("out_file", "anat_ribbon")]),
+            (inputnode, create_wm_distvol, [
+                ("white", "surf_file"),
+                ("ref_file", "ref_file"),
+            ]),
+            (inputnode, create_pial_distvol, [
+                ("pial", "surf_file"),
+                ("ref_file", "ref_file"),
+            ]),
+            (create_wm_distvol, make_ribbon, [("out_file", "white_distvols")]),
+            (create_pial_distvol, make_ribbon, [("out_file", "pial_distvols")]),
+            (make_ribbon, outputnode, [("ribbon", "anat_ribbon")]),
         ]
     )
+    # fmt: on
     return workflow
 
 
@@ -1150,9 +1278,9 @@ def init_morph_grayords_wf(
         Paths to JSON files containing metadata corresponding to ``cifti_morph``
 
     """
+    import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
     from smriprep.interfaces.cifti import GenerateDScalar
-    import templateflow.api as tf
 
     workflow = Workflow(name=name)
     workflow.__desc__ = f"""\
@@ -1320,3 +1448,60 @@ def _sorted_by_basename(inlist):
 
 def _collate(files):
     return [files[i : i + 2] for i in range(0, len(files), 2)]
+
+
+def _extract_fs_fields(filenames: str | list[str]) -> tuple[str, str]:
+    from pathlib import Path
+
+    if isinstance(filenames, str):
+        filenames = [filenames]
+    paths = [Path(fn) for fn in filenames]
+    sub_dir = paths[0].parent.parent
+    subjects_dir, subject_id = sub_dir.parent, sub_dir.name
+    assert all(path == subjects_dir / subject_id / 'surf' / path.name for path in paths)
+    return str(subjects_dir), subject_id
+
+
+def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> tuple[list[str]]:
+    """
+    Get a list of FreeSurfer surface files for a given subject.
+
+    If ``midthickness`` is requested but not present in the directory,
+    ``graymid`` will be returned instead. For surfaces with dots (``.``) in
+    their names, pass the name with underscores (``_``).
+
+    Parameters
+    ----------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+    surfaces
+        List of surfaces to fetch
+
+    Returns
+    -------
+    tuple
+        A list of surfaces for each requested surface, sorted
+
+    """
+    from pathlib import Path
+
+    expanded_surfaces = surfaces.copy()
+    if "midthickness" in surfaces:
+        expanded_surfaces.append("graymid")
+
+    surf_dir = Path(subjects_dir) / subject_id / "surf"
+    all_surfs = {
+        surface: sorted(
+            str(fn)
+            for fn in surf_dir.glob(f"[lr]h.{surface.replace('_', '.')}")
+        )
+        for surface in expanded_surfaces
+    }
+
+    if all_surfs.get("graymid") and not all_surfs.get("midthickness"):
+        all_surfs["midthickness"] = all_surfs.pop("graymid")
+
+    ret = tuple(all_surfs[surface] for surface in surfaces)
+    return ret if len(ret) > 1 else ret[0]

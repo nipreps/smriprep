@@ -3,86 +3,158 @@
     "baseline": {
       "preproc": {
         "datatype": "anat",
+        "space": null,
         "desc": "preproc",
-        "suffix": "T1w"
+        "suffix": "T1w",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       },
       "mask": {
         "datatype": "anat",
+        "space": null,
         "desc": "brain",
-        "suffix": "mask"
+        "suffix": "mask",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       },
       "dseg": {
         "datatype": "anat",
-        "suffix": "dseg"
+        "space": null,
+        "desc": null,
+        "suffix": "dseg",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       },
       "tpms": {
         "datatype": "anat",
-        "label": ["GM", "WM", "CSF"],
-        "suffix": "probseg"
+        "space": null,
+        "label": [
+          "GM",
+          "WM",
+          "CSF"
+        ],
+        "suffix": "probseg",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       }
     },
-    "std_xfms": {
-      "anat2std_xfm": {
+    "transforms": {
+      "forward": {
         "datatype": "anat",
-        "extension": "h5",
+        "extension": [
+          "h5",
+          "txt"
+        ],
         "from": "T1w",
-        "to": [],
+        "to": null,
         "suffix": "xfm",
         "mode": "image"
       },
-      "std2anat_xfm": {
+      "reverse": {
         "datatype": "anat",
-        "extension": "h5",
-        "from": [],
+        "extension": [
+          "h5",
+          "txt"
+        ],
+        "from": null,
         "to": "T1w",
         "suffix": "xfm",
         "mode": "image"
       }
     },
     "surfaces": {
-      "t1w_aseg": {
-        "datatype": "anat",
-        "desc": "aseg",
-        "suffix": "dseg"
-      },
-      "t1w_aparc": {
-        "datatype": "anat",
-        "desc": "aparcaseg",
-        "suffix": "dseg"
-      },
-      "t1w2fsnative_xfm": {
-        "datatype": "anat",
-        "from": "T1w",
-        "to": "fsnative",
-        "extension": "txt",
-        "suffix": "xfm",
-        "mode": "image"
-      },
-      "fsnative2t1w_xfm": {
-        "datatype": "anat",
-        "from": "fsnative",
-        "to": "T1w",
-        "extension": "txt",
-        "suffix": "xfm",
-        "mode": "image"
-      },
-      "surfaces": {
+      "white": {
         "datatype": "anat",
         "hemi": ["L", "R"],
-        "extension": "surf.gii",
-        "suffix": [ "inflated", "midthickness", "pial", "white"]
+        "space": null,
+        "suffix": "white",
+        "extension": ".surf.gii"
       },
-      "morphometrics": {
+      "pial": {
         "datatype": "anat",
         "hemi": ["L", "R"],
-        "extension": "shape.gii",
-        "suffix": ["thickness", "sulc", "curv"]
+        "space": null,
+        "suffix": "pial",
+        "extension": ".surf.gii"
       },
+      "midthickness": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "midthickness",
+        "extension": ".surf.gii"
+      },
+      "sphere": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "desc": null,
+        "suffix": "sphere",
+        "extension": ".surf.gii"
+      },
+      "thickness": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "thickness",
+        "extension": ".shape.gii"
+      },
+      "sulc": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "sulc",
+        "extension": ".shape.gii"
+      },
+      "curv": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "suffix": "curv",
+        "extension": ".shape.gii"
+      },
+      "sphere_reg": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "desc": "reg",
+        "suffix": "sphere",
+        "extension": ".surf.gii"
+      },
+      "sphere_reg_fsLR": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": "fsLR",
+        "desc": "reg",
+        "suffix": "sphere",
+        "extension": ".surf.gii"
+      },
+      "sphere_reg_msm": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": "fsLR",
+        "desc": "msmsulc",
+        "suffix": "sphere",
+        "extension": ".surf.gii"
+      }
+    },
+    "masks": {
       "anat_ribbon": {
         "datatype": "anat",
         "desc": "ribbon",
         "suffix": "mask",
-        "extension": "nii.gz"
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       }
     }
   },

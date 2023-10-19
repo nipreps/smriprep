@@ -22,10 +22,12 @@
 #
 """Handling surfaces."""
 import os
+from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import nibabel as nb
+import nitransforms as nt
 
 from nipype.interfaces.base import (
     BaseInterfaceInputSpec,
@@ -40,7 +42,7 @@ from nipype.interfaces.base import (
 
 class _NormalizeSurfInputSpec(BaseInterfaceInputSpec):
     in_file = File(mandatory=True, exists=True, desc="Freesurfer-generated GIFTI file")
-    transform_file = File(exists=True, desc="FSL or LTA affine transform file")
+    transform_file = File(exists=True, desc="FSL, LTA or ITK affine transform file")
 
 
 class _NormalizeSurfOutputSpec(TraitedSpec):
@@ -155,7 +157,35 @@ class AggregateSurfaces(SimpleInterface):
         return runtime
 
 
-def normalize_surfs(in_file: str, transform_file: str, newpath: Optional[str] = None) -> str:
+class MakeRibbonInputSpec(TraitedSpec):
+    white_distvols = traits.List(
+        File(exists=True), minlen=2, maxlen=2, desc="White matter distance volumes"
+    )
+    pial_distvols = traits.List(
+        File(exists=True), minlen=2, maxlen=2, desc="Pial matter distance volumes"
+    )
+
+
+class MakeRibbonOutputSpec(TraitedSpec):
+    ribbon = File(desc="Binary ribbon mask")
+
+
+class MakeRibbon(SimpleInterface):
+    """Create a binary ribbon mask from white and pial distance volumes."""
+
+    input_spec = MakeRibbonInputSpec
+    output_spec = MakeRibbonOutputSpec
+
+    def _run_interface(self, runtime):
+        self._results["ribbon"] = make_ribbon(
+            self.inputs.white_distvols, self.inputs.pial_distvols, newpath=runtime.cwd
+        )
+        return runtime
+
+
+def normalize_surfs(
+    in_file: str, transform_file: str | None, newpath: Optional[str] = None
+) -> str:
     """
     Update GIFTI metadata and apply rigid coordinate correction.
 
@@ -168,29 +198,44 @@ def normalize_surfs(in_file: str, transform_file: str, newpath: Optional[str] = 
     """
 
     img = nb.load(in_file)
-    transform = load_transform(transform_file)
+    if transform_file is None:
+        transform = np.eye(4)
+    else:
+        xfm_fmt = {
+            ".txt": "itk",
+            ".mat": "fsl",
+            ".lta": "fs",
+        }[Path(transform_file).suffix]
+        transform = nt.linear.load(transform_file, fmt=xfm_fmt).matrix
     pointset = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")[0]
 
     if not np.allclose(transform, np.eye(4)):
         pointset.data = nb.affines.apply_affine(transform, pointset.data)
 
-    # mris_convert --to-scanner removes VolGeom transform from coordinates,
-    # but not metadata.
-    # We could set to default LIA affine, but there seems little advantage
-    for XYZC in "XYZC":
-        for RAS in "RAS":
-            pointset.meta.pop(f"VolGeom{XYZC}_{RAS}", None)
-
     fname = os.path.basename(in_file)
-    if "midthickness" in fname.lower() or "graymid" in fname.lower():
+    if "graymid" in fname.lower():
+        # Rename graymid to midthickness
+        fname = fname.replace("graymid", "midthickness")
+    if "midthickness" in fname.lower():
         pointset.meta.setdefault("AnatomicalStructureSecondary", "MidThickness")
         pointset.meta.setdefault("GeometricType", "Anatomical")
 
     # FreeSurfer incorrectly uses "Sphere" for spherical surfaces
     if pointset.meta.get("GeometricType") == "Sphere":
         pointset.meta["GeometricType"] = "Spherical"
+    else:
+        # mris_convert --to-scanner removes VolGeom transform from coordinates,
+        # but not metadata.
+        # We could set to default LIA affine, but there seems little advantage.
+        #
+        # Following the lead of HCP pipelines, we only adjust the coordinates
+        # for anatomical surfaces. To ensure consistent treatment by FreeSurfer,
+        # we leave the metadata for spherical surfaces intact.
+        for XYZC in "XYZC":
+            for RAS in "RAS":
+                pointset.meta.pop(f"VolGeom{XYZC}_{RAS}", None)
 
-    if newpath is not None:
+    if newpath is None:
         newpath = os.getcwd()
     out_file = os.path.join(newpath, fname)
     img.to_filename(out_file)
@@ -214,37 +259,32 @@ def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
     if pointset.meta.get("GeometricType") == "Sphere":
         pointset.meta["GeometricType"] = "Spherical"
 
-    if newpath is not None:
+    if newpath is None:
         newpath = os.getcwd()
     out_file = os.path.join(newpath, os.path.basename(in_file))
     img.to_filename(out_file)
     return out_file
 
 
-def load_transform(fname: str) -> np.ndarray:
-    """Load affine transform from file
+def make_ribbon(
+    white_distvols: list[str],
+    pial_distvols: list[str],
+    newpath: Optional[str] = None,
+) -> str:
+    base_img = nb.load(white_distvols[0])
+    header = base_img.header
+    header.set_data_dtype("uint8")
 
-    Parameters
-    ----------
-    fname : str or None
-        Filename of an LTA or FSL-style MAT transform file.
-        If ``None``, return an identity transform
+    ribbons = [
+        (np.array(nb.load(white).dataobj) > 0) & (np.array(nb.load(pial).dataobj) < 0)
+        for white, pial in zip(white_distvols, pial_distvols)
+    ]
 
-    Returns
-    -------
-    affine : (4, 4) numpy.ndarray
-    """
-    if fname is None:
-        return np.eye(4)
+    if newpath is None:
+        newpath = os.getcwd()
+    out_file = os.path.join(newpath, "ribbon.nii.gz")
 
-    if fname.endswith(".mat"):
-        return np.loadtxt(fname)
-    elif fname.endswith(".lta"):
-        with open(fname, "rb") as fobj:
-            for line in fobj:
-                if line.startswith(b"1 4 4"):
-                    break
-            lines = fobj.readlines()[:4]
-        return np.genfromtxt(lines)
-
-    raise ValueError("Unknown transform type; pass FSL (.mat) or LTA (.lta)")
+    ribbon_data = ribbons[0] | ribbons[1]
+    ribbon = base_img.__class__(ribbon_data, base_img.affine, header)
+    ribbon.to_filename(out_file)
+    return out_file

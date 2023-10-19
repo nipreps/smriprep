@@ -12,6 +12,9 @@ _machine_defaults: &machine_defaults
 _python_defaults: &python_defaults
   docker:
     - image: cimg/python:3.10.9
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PAT
   working_directory: /tmp/src/smriprep
 
 _docker_auth: &docker_auth
@@ -43,6 +46,9 @@ _pull_from_registry: &pull_from_registry
 docs_deploy: &docs
   docker:
     - image: node:8.10.0
+      auth:
+        username: $DOCKER_USER
+        password: $DOCKER_PAT
   working_directory: /tmp/gh-pages
   steps:
     - run:
@@ -282,8 +288,10 @@ jobs:
           paths:
             - /home/circleci/.local
 
-  test_wrapper:
+  test:
     <<: *machine_defaults
+    environment:
+      - FS_LICENSE: /tmp/fslicense/license.txt
     steps:
       - attach_workspace:
           at: /tmp
@@ -323,6 +331,24 @@ jobs:
             which smriprep-docker
             smriprep-docker -i nipreps/smriprep:latest --help
             smriprep-docker -i nipreps/smriprep:latest --version
+      - restore_cache:
+          keys:
+            - testdata-v2-{{ .Branch }}-{{ epoch }}
+            - testdata-v2-{{ .Branch }}
+            - testdata-v2-
+      - restore_cache:
+          keys:
+            - templateflow-v1-{{ .Branch }}-{{ epoch }}
+            - templateflow-v1-{{ .Branch }}
+            - templateflow-v1-
+      - run:
+          name: Run Pytest
+          no_output_timeout: 2h
+          command: |
+            bash /tmp/src/smriprep/.circleci/pytest.sh
+      - codecov/upload:
+          file: /tmp/data/pytest_cov.xml
+          flags: pytest
 
   test_deploy_pypi:
     <<: *python_defaults
@@ -414,9 +440,9 @@ jobs:
       - run: *pull_from_registry
       - restore_cache:
           keys:
-            - ds005-anat-v9-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v9-{{ .Branch }}
-            - ds005-anat-v9-master
+            - ds005-anat-v0-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v0-{{ .Branch }}
+            - ds005-anat-v0-next
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -470,7 +496,7 @@ jobs:
             rm -rf /tmp/ds005/work/reportlets
             rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
       - save_cache:
-          key: ds005-anat-v9-{{ .Branch }}-{{ epoch }}
+          key: ds005-anat-v0-{{ .Branch }}-{{ epoch }}
           paths:
             - /tmp/ds005/work
 
@@ -772,8 +798,6 @@ workflows:
               only: /.*/
 
       - get_data:
-          context:
-            - fs-license
           filters:
             branches:
               ignore:
@@ -793,10 +817,11 @@ workflows:
             tags:
               only: /.*/
 
-      - test_wrapper:
+      - test:
           context:
             - nipreps-common
           requires:
+            - get_data
             - build
           filters:
             branches:
@@ -852,7 +877,7 @@ workflows:
             - build_docs
             - ds005
             - ds054
-            - test_wrapper
+            - test
           filters:
             branches:
               only: /master/
@@ -865,7 +890,7 @@ workflows:
             - ds005
             - ds054
             - test_deploy_pypi
-            - test_wrapper
+            - test
           filters:
             branches:
               ignore: /.*/

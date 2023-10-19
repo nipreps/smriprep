@@ -23,7 +23,6 @@
 """*sMRIPrep* base processing workflows."""
 import sys
 import os
-from pathlib import Path
 from copy import deepcopy
 
 from nipype import __version__ as nipype_ver
@@ -45,7 +44,7 @@ def init_smriprep_wf(
     *,
     sloppy,
     debug,
-    fast_track,
+    derivatives,
     freesurfer,
     fs_subjects_dir,
     hires,
@@ -64,6 +63,7 @@ def init_smriprep_wf(
     subject_list,
     work_dir,
     bids_filters,
+    cifti_output,
 ):
     """
     Create the execution graph of *sMRIPrep*, with a sub-workflow for each subject.
@@ -85,7 +85,7 @@ def init_smriprep_wf(
             wf = init_smriprep_wf(
                 sloppy=False,
                 debug=False,
-                fast_track=False,
+                derivatives=[],
                 freesurfer=True,
                 fs_subjects_dir=None,
                 hires=True,
@@ -104,6 +104,7 @@ def init_smriprep_wf(
                 subject_list=['smripreptest'],
                 work_dir='.',
                 bids_filters=None,
+                cifti_output=None,
             )
 
     Parameters
@@ -112,7 +113,7 @@ def init_smriprep_wf(
         Quick, impercise operations. Used to decrease workflow duration.
     debug : :obj:`bool`
         Enable debugging outputs
-    fast_track : :obj:`bool`
+    derivatives : :obj:`list` of directories
         Fast-track the workflow by searching for existing derivatives.
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
@@ -177,7 +178,7 @@ def init_smriprep_wf(
             sloppy=sloppy,
             debug=debug,
             freesurfer=freesurfer,
-            fast_track=fast_track,
+            derivatives=derivatives,
             hires=hires,
             fs_reuse_base=fs_reuse_base,
             layout=layout,
@@ -193,6 +194,7 @@ def init_smriprep_wf(
             spaces=spaces,
             subject_id=subject_id,
             bids_filters=bids_filters,
+            cifti_output=cifti_output,
         )
 
         single_subject_wf.config["execution"]["crashdump_dir"] = os.path.join(
@@ -212,7 +214,7 @@ def init_single_subject_wf(
     *,
     sloppy,
     debug,
-    fast_track,
+    derivatives,
     freesurfer,
     hires,
     fs_reuse_base,
@@ -229,6 +231,7 @@ def init_single_subject_wf(
     spaces,
     subject_id,
     bids_filters,
+    cifti_output,
 ):
     """
     Create a single subject workflow.
@@ -255,7 +258,7 @@ def init_single_subject_wf(
                 sloppy=False,
                 debug=False,
                 freesurfer=True,
-                fast_track=False,
+                derivatives=[],
                 hires=True,
                 fs_reuse_base=False,
                 layout=BIDSLayout('.'),
@@ -271,6 +274,7 @@ def init_single_subject_wf(
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
                 subject_id='test',
                 bids_filters=None,
+                cifti_output=None,
             )
 
     Parameters
@@ -279,8 +283,8 @@ def init_single_subject_wf(
         Quick, impercise operations. Used to decrease workflow duration.
     debug : :obj:`bool`
         Enable debugging outputs
-    fast_track : :obj:`bool`
-        If ``True``, attempt to collect previously run derivatives.
+    derivatives : :obj:`list` of directories
+        Fast-track the workflow by searching for existing derivatives.
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (may increase runtime)
     hires : :obj:`bool`
@@ -364,14 +368,13 @@ to workflows in *sMRIPrep*'s documentation]\
 
 """
 
-    deriv_cache = None
-    if fast_track:
-        from ..utils.bids import collect_derivatives
+    from ..utils.bids import collect_derivatives
 
-        std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
-        deriv_cache = collect_derivatives(
-            Path(output_dir) / "smriprep", subject_id, std_spaces, freesurfer
-        )
+    deriv_cache = {}
+    std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
+    std_spaces.append("fsnative")
+    for deriv_dir in derivatives:
+        deriv_cache.update(collect_derivatives(deriv_dir, subject_id, std_spaces))
 
     inputnode = pe.Node(niu.IdentityInterface(fields=["subjects_dir"]), name="inputnode")
 
@@ -420,7 +423,7 @@ to workflows in *sMRIPrep*'s documentation]\
         bids_root=layout.root,
         sloppy=sloppy,
         debug=debug,
-        existing_derivatives=deriv_cache,
+        precomputed=deriv_cache,
         freesurfer=freesurfer,
         hires=hires,
         fs_reuse_base=fs_reuse_base,
@@ -435,7 +438,7 @@ to workflows in *sMRIPrep*'s documentation]\
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
         spaces=spaces,
-        cifti_output=False,  # Enabling this needs a CLI flag
+        cifti_output=cifti_output,
     )
 
     # fmt:off

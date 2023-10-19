@@ -32,16 +32,15 @@ from templateflow import __version__ as tf_ver
 from templateflow.api import get_metadata
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.norm import SpatialNormalization
-from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
-from ..interfaces.templateflow import TemplateFlowSelect, TemplateDesc
+from ...interfaces.templateflow import TemplateFlowSelect, TemplateDesc
 
 
-def init_anat_norm_wf(
+def init_register_template_wf(
     *,
     sloppy,
     omp_nthreads,
     templates,
-    name="anat_norm_wf",
+    name="register_template_wf",
 ):
     """
     Build an individual spatial normalization workflow using ``antsRegistration``.
@@ -51,8 +50,8 @@ def init_anat_norm_wf(
             :graph2use: orig
             :simple_form: yes
 
-            from smriprep.workflows.norm import init_anat_norm_wf
-            wf = init_anat_norm_wf(
+            from smriprep.workflows.fit.registration import init_register_template_wf
+            wf = init_register_template_wf(
                 sloppy=False,
                 omp_nthreads=1,
                 templates=['MNI152NLin2009cAsym', 'MNI152NLin6Asym'],
@@ -84,37 +83,18 @@ def init_anat_norm_wf(
     ------
     moving_image
         The input image that will be normalized to standard space.
-    moving_mask
-        A precise brain mask separating skull/skin/fat from brain
-        structures.
-    moving_segmentation
-        A brain tissue segmentation of the ``moving_image``.
-    moving_tpms
-        tissue probability maps (TPMs) corresponding to the
-        ``moving_segmentation``.
     lesion_mask
         (optional) A mask to exclude regions from the cost-function
         input domain to enable standardization of lesioned brains.
-    orig_t1w
-        The original T1w image from the BIDS structure.
     template
         Template name and specification
 
     Outputs
     -------
-    standardized
-        The T1w after spatial normalization, in template space.
     anat2std_xfm
         The T1w-to-template transform.
     std2anat_xfm
         The template-to-T1w transform.
-    std_mask
-        The ``moving_mask`` in template space (matches ``standardized`` output).
-    std_dseg
-        The ``moving_segmentation`` in template space (matches ``standardized``
-        output).
-    std_tpms
-        The ``moving_tpms`` in template space (matches ``standardized`` output).
     template
         Template name extracted from the input parameter ``template``, for further
         use in downstream nodes.
@@ -167,9 +147,6 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
                 "lesion_mask",
                 "moving_image",
                 "moving_mask",
-                "moving_segmentation",
-                "moving_tpms",
-                "orig_t1w",
                 "template",
             ]
         ),
@@ -179,15 +156,11 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
 
     out_fields = [
         "anat2std_xfm",
-        "standardized",
         "std2anat_xfm",
-        "std_dseg",
-        "std_mask",
-        "std_tpms",
         "template",
         "template_spec",
     ]
-    poutputnode = pe.Node(niu.IdentityInterface(fields=out_fields), name="poutputnode")
+    outputnode = _make_outputnode(workflow, out_fields, joinsource='inputnode')
 
     split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name="split_desc")
 
@@ -213,73 +186,43 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         mem_gb=2,
     )
 
-    # Resample T1w-space inputs
-    tpl_moving = pe.Node(
-        ApplyTransforms(
-            dimension=3,
-            default_value=0,
-            float=True,
-            interpolation="LanczosWindowedSinc",
-        ),
-        name="tpl_moving",
-    )
-
-    std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="std_mask")
-    std_dseg = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="std_dseg")
-
-    std_tpms = pe.MapNode(
-        ApplyTransforms(dimension=3, default_value=0, float=True, interpolation="Gaussian"),
-        iterfield=["input_image"],
-        name="std_tpms",
-    )
-
     # fmt:off
     workflow.connect([
         (inputnode, split_desc, [('template', 'template')]),
-        (inputnode, poutputnode, [('template', 'template')]),
         (inputnode, trunc_mov, [('moving_image', 'op1')]),
         (inputnode, registration, [
             ('moving_mask', 'moving_mask'),
             ('lesion_mask', 'lesion_mask')]),
-        (inputnode, tpl_moving, [('moving_image', 'input_image')]),
-        (inputnode, std_mask, [('moving_mask', 'input_image')]),
-        (split_desc, tf_select, [('name', 'template'),
-                                 ('spec', 'template_spec')]),
-        (split_desc, registration, [('name', 'template'),
-                                    ('spec', 'template_spec')]),
-        (tf_select, tpl_moving, [('t1w_file', 'reference_image')]),
-        (tf_select, std_mask, [('t1w_file', 'reference_image')]),
-        (tf_select, std_dseg, [('t1w_file', 'reference_image')]),
-        (tf_select, std_tpms, [('t1w_file', 'reference_image')]),
+        (split_desc, tf_select, [
+            ('name', 'template'),
+            ('spec', 'template_spec'),
+        ]),
+        (split_desc, registration, [
+            ('name', 'template'),
+            ('spec', 'template_spec'),
+        ]),
         (trunc_mov, registration, [
             ('output_image', 'moving_image')]),
-        (registration, tpl_moving, [('composite_transform', 'transforms')]),
-        (registration, std_mask, [('composite_transform', 'transforms')]),
-        (inputnode, std_dseg, [('moving_segmentation', 'input_image')]),
-        (registration, std_dseg, [('composite_transform', 'transforms')]),
-        (inputnode, std_tpms, [('moving_tpms', 'input_image')]),
-        (registration, std_tpms, [('composite_transform', 'transforms')]),
-        (registration, poutputnode, [
+        (split_desc, outputnode, [
+            ('name', 'template'),
+            ('spec', 'template_spec'),
+        ]),
+        (registration, outputnode, [
             ('composite_transform', 'anat2std_xfm'),
-            ('inverse_composite_transform', 'std2anat_xfm')]),
-        (tpl_moving, poutputnode, [('output_image', 'standardized')]),
-        (std_mask, poutputnode, [('output_image', 'std_mask')]),
-        (std_dseg, poutputnode, [('output_image', 'std_dseg')]),
-        (std_tpms, poutputnode, [('output_image', 'std_tpms')]),
-        (split_desc, poutputnode, [('spec', 'template_spec')]),
-    ])
-    # fmt:on
-
-    # Provide synchronized output
-    outputnode = pe.JoinNode(
-        niu.IdentityInterface(fields=out_fields),
-        name="outputnode",
-        joinsource="inputnode",
-    )
-    # fmt:off
-    workflow.connect([
-        (poutputnode, outputnode, [(f, f) for f in out_fields]),
+            ('inverse_composite_transform', 'std2anat_xfm'),
+        ]),
     ])
     # fmt:on
 
     return workflow
+
+
+def _make_outputnode(workflow, out_fields, joinsource):
+    if joinsource:
+        pout = pe.Node(niu.IdentityInterface(fields=out_fields), name="poutputnode")
+        out = pe.JoinNode(
+            niu.IdentityInterface(fields=out_fields), name="outputnode", joinsource=joinsource
+        )
+        workflow.connect([(pout, out, [(f, f) for f in out_fields])])
+        return pout
+    return pe.Node(niu.IdentityInterface(fields=out_fields), name="outputnode")

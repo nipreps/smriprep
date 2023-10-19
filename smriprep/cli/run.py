@@ -72,7 +72,7 @@ def get_parser():
         "output_dir",
         action="store",
         type=Path,
-        help="the output path for the outcomes of preprocessing and visual " "reports",
+        help="the output path for the outcomes of preprocessing and visual reports",
     )
     parser.add_argument(
         "analysis_level",
@@ -92,6 +92,15 @@ def get_parser():
         nargs="+",
         help="a space delimited list of participant identifiers or a single "
         "identifier (the sub- prefix can be removed)",
+    )
+    g_bids.add_argument(
+        "-d",
+        "--derivatives",
+        action="store",
+        metavar="PATH",
+        type=Path,
+        nargs="*",
+        help="Search PATH(s) for pre-computed derivatives.",
     )
     g_bids.add_argument(
         "--bids-filter-file",
@@ -132,7 +141,7 @@ def get_parser():
     g_perfm.add_argument(
         "--low-mem",
         action="store_true",
-        help="attempt to reduce memory usage (will increase disk usage " "in working directory)",
+        help="attempt to reduce memory usage (will increase disk usage in working directory)",
     )
     g_perfm.add_argument(
         "--use-plugin",
@@ -212,6 +221,18 @@ def get_parser():
         help="Reuse freesurfer base template"
         "(from longitudinal preprocessing)",
     )
+    g_fs.add_argument(
+        "--cifti-output",
+        nargs="?",
+        const="91k",
+        default=False,
+        choices=("91k", "170k"),
+        type=str,
+        help="Output morphometry as CIFTI dense scalars. "
+        "Optionally, the number of grayordinate can be specified "
+        "(default is 91k, which equates to 2mm resolution)",
+    )
+
     # Surface generation xor
     g_surfs = parser.add_argument_group("Surface preprocessing options")
     g_surfs.add_argument(
@@ -248,7 +269,8 @@ def get_parser():
         "--fast-track",
         action="store_true",
         default=False,
-        help="fast-track the workflow by searching for existing derivatives.",
+        help="fast-track the workflow by searching for existing derivatives. "
+        "(DEPRECATED for --derivatives).",
     )
     g_other.add_argument(
         "--resource-monitor",
@@ -280,7 +302,7 @@ def get_parser():
         "--stop-on-first-crash",
         action="store_true",
         default=False,
-        help="Force stopping on first crash, even if a work directory" " was specified.",
+        help="Force stopping on first crash, even if a work directory was specified.",
     )
     g_other.add_argument(
         "--notrack",
@@ -427,6 +449,7 @@ def build_workflow(opts, retval):
     from shutil import copyfile
     from os import cpu_count
     import uuid
+    import warnings
     from time import strftime
     from subprocess import check_call, CalledProcessError, TimeoutExpired
     from pkg_resources import resource_filename as pkgrf
@@ -517,9 +540,11 @@ def build_workflow(opts, retval):
             "logging": {"log_directory": str(log_dir), "log_to_file": True},
             "execution": {
                 "crashdump_dir": str(log_dir),
-                "crashfile_format": "txt",
+                "crashfile_format": "pklz",
                 "get_linked_libs": False,
                 "stop_on_first_crash": opts.stop_on_first_crash,
+                "poll_sleep_duration": 0.1,
+                "keep_unnecessary_outputs": True,
             },
             "monitoring": {
                 "enabled": opts.resource_monitor,
@@ -568,11 +593,20 @@ def build_workflow(opts, retval):
         ),
     )
 
+    derivatives = opts.derivatives or []
+    if opts.fast_track:
+        # XXX Makes strong assumption of legacy layout
+        smriprep_dir = str(output_dir / "smriprep")
+        warnings.warn(
+            f"Received DEPRECATED --fast-track flag. Adding {smriprep_dir} to --derivatives list."
+        )
+        derivatives.append(smriprep_dir)
+
     # Build main workflow
     retval["workflow"] = init_smriprep_wf(
         sloppy=opts.sloppy,
         debug=False,
-        fast_track=opts.fast_track,
+        derivatives=derivatives,
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,
         hires=opts.hires,
@@ -591,6 +625,7 @@ def build_workflow(opts, retval):
         subject_list=subject_list,
         work_dir=str(work_dir),
         bids_filters=bids_filters,
+        cifti_output=opts.cifti_output,
     )
     retval["return_code"] = 0
 
