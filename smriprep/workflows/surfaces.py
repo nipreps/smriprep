@@ -315,7 +315,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ])
         # fmt:on
 
-
     # fmt:off
     workflow.connect([
         (get_surfaces, midthickness, [

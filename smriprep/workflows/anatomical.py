@@ -265,6 +265,7 @@ def init_anat_preproc_wf(
         sloppy=sloppy,
         omp_nthreads=omp_nthreads,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
+        fs_reuse_base=fs_reuse_base,
     )
     anat_second_derivatives_wf = init_anat_second_derivatives_wf(
         bids_root=bids_root,
@@ -376,6 +377,7 @@ def init_anat_fit_wf(
     sloppy: bool = False,
     name="anat_fit_wf",
     skull_strip_fixed_seed: bool = False,
+    fs_reuse_base: bool = False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
