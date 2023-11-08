@@ -1,1 +1,2 @@
 smriprep/_version.py export-subst
+*.gii binary

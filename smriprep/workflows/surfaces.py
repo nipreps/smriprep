@@ -49,7 +49,6 @@ from niworkflows.interfaces.freesurfer import (
     PatchedRobustRegister as RobustRegister,
     RefineBrainMask,
 )
-import templateflow.api as tf
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
@@ -585,6 +584,7 @@ def init_sphere_reg_wf(
 
 def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
+    from ..interfaces.gifti import InvertShape
     from ..interfaces.msm import MSM
     from ..interfaces.workbench import (
         SurfaceAffineRegression,
@@ -628,13 +628,23 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
         name='modify_sphere',
     )
 
-    # 2) Run MSMSulc
+    # 2) Invert sulc
+    # wb_command -metric-math "-1 * var" ...
+    invert_sulc = pe.MapNode(
+        InvertShape(shape='sulc'),
+        iterfield=['shape_file', 'hemisphere'],
+        name='invert_sulc',
+    )
+    invert_sulc.inputs.hemisphere = ['L', 'R']
+
+    # 3) Run MSMSulc
     # ./msm_centos_v3 --conf=MSMSulcStrainFinalconf \
     # --inmesh=${SUB}.${HEMI}.sphere_rot.native.surf.gii
     # --refmesh=fsaverage.${HEMI}_LR.spherical_std.164k_fs_LR.surf.gii
     # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
     # --out=${HEMI}. --verbose
+    atlases = load_resource('atlases')
     msm_conf = load_resource(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
     msmsulc = pe.MapNode(
         MSM(verbose=True, config_file=msm_conf),
@@ -644,42 +654,24 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     )
     msmsulc.inputs.out_base = ['lh.', 'rh.']  # To placate Path2BIDS
     msmsulc.inputs.reference_mesh = [
-        str(
-            tf.get(
-                'fsaverage',
-                hemi=hemi,
-                density='164k',
-                desc='std',
-                suffix='sphere',
-                extension='.surf.gii',
-            )
-        )
-        for hemi in 'LR'
+        str(atlases / f'fsaverage.{hemi}_LR.spherical_std.164k_fs_LR.surf.gii') for hemi in 'LR'
     ]
     msmsulc.inputs.reference_data = [
-        str(
-            tf.get(
-                'fsaverage',
-                hemi=hemi,
-                density='164k',
-                suffix='sulc',
-                extension='.shape.gii',
-            )
-        )
-        for hemi in 'LR'
+        str(atlases / f'{hemi}.refsulc.164k_fs_LR.shape.gii') for hemi in 'LR'
     ]
-    # fmt:off
     workflow.connect([
-        (inputnode, regress_affine, [('sphere', 'in_surface'),
-                                     ('sphere_reg_fsLR', 'target_surface')]),
+        (inputnode, regress_affine, [
+            ('sphere', 'in_surface'),
+            ('sphere_reg_fsLR', 'target_surface'),
+        ]),
         (inputnode, apply_surface_affine, [('sphere', 'in_surface')]),
+        (inputnode, invert_sulc, [('sulc', 'shape_file')]),
         (regress_affine, apply_surface_affine, [('out_affine', 'in_affine')]),
         (apply_surface_affine, modify_sphere, [('out_surface', 'in_surface')]),
-        (inputnode, msmsulc, [('sulc', 'in_data')]),
         (modify_sphere, msmsulc, [('out_surface', 'in_mesh')]),
+        (invert_sulc, msmsulc, [('shape_file', 'in_data')]),
         (msmsulc, outputnode, [('warped_mesh', 'sphere_reg_fsLR')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
     return workflow
 
 
