@@ -50,7 +50,6 @@ from niworkflows.interfaces.freesurfer import (
     RefineBrainMask,
 )
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
-import templateflow.api as tf
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
@@ -806,6 +805,7 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
     # --out=${HEMI}. --verbose
+    atlases = load_resource('atlases')
     msm_conf = load_resource(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
     msmsulc = pe.MapNode(
         MSM(verbose=True, config_file=msm_conf),
@@ -815,29 +815,10 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     )
     msmsulc.inputs.out_base = ['lh.', 'rh.']  # To placate Path2BIDS
     msmsulc.inputs.reference_mesh = [
-        str(
-            tf.get(
-                'fsaverage',
-                hemi=hemi,
-                density='164k',
-                desc='std',
-                suffix='sphere',
-                extension='.surf.gii',
-            )
-        )
-        for hemi in 'LR'
+        str(atlases / f'fsaverage.{hemi}_LR.spherical_std.164k_fs_LR.surf.gii') for hemi in 'LR'
     ]
     msmsulc.inputs.reference_data = [
-        str(
-            tf.get(
-                'fsaverage',
-                hemi=hemi,
-                density='164k',
-                suffix='sulc',
-                extension='.shape.gii',
-            )
-        )
-        for hemi in 'LR'
+        str(atlases / f'{hemi}.refsulc.164k_fs_LR.shape.gii') for hemi in 'LR'
     ]
     workflow.connect([
         (inputnode, regress_affine, [
