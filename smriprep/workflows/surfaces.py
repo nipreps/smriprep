@@ -919,10 +919,14 @@ def init_gifti_surfaces_wf(
         run_without_submitting=True,
     )
 
-    # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
-                                   ('subject_id', 'subject_id')]),
+        (inputnode, get_surfaces, [
+            ('subjects_dir', 'subjects_dir'),
+            ('subject_id', 'subject_id'),
+        ]),
+        (inputnode, fix_surfs, [
+            ('fsnative2t1w_xfm', 'transform_file'),
+        ]),
         (get_surfaces, surface_list, [
             (surf, f'in{i}') for i, surf in enumerate(surfaces, start=1)
         ]),
@@ -933,8 +937,7 @@ def init_gifti_surfaces_wf(
         (surface_groups, outputnode, [
             (f'out{i}', surf) for i, surf in enumerate(surfaces, start=1)
         ]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
     return workflow
 
 

@@ -199,18 +199,18 @@ def normalize_surfs(
 
     img = nb.load(in_file)
     if transform_file is None:
-        transform = np.eye(4)
+        transform = nt.linear.Affine()
     else:
         xfm_fmt = {
             ".txt": "itk",
             ".mat": "fsl",
             ".lta": "fs",
         }[Path(transform_file).suffix]
-        transform = nt.linear.load(transform_file, fmt=xfm_fmt).matrix
+        transform = nt.linear.load(transform_file, fmt=xfm_fmt)
     pointset = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")[0]
 
-    if not np.allclose(transform, np.eye(4)):
-        pointset.data = nb.affines.apply_affine(transform, pointset.data)
+    if not np.allclose(transform.matrix, np.eye(4)):
+        pointset.data = transform.map(pointset.data, inverse=True)
 
     fname = os.path.basename(in_file)
     if "graymid" in fname.lower():
