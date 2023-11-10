@@ -37,6 +37,8 @@ from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
 
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
+
+from niworkflows.workflows.gradunwarp import init_gradunwarp_wf
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
     PatchedLTAConvert as LTAConvert,
@@ -69,6 +71,7 @@ def init_anat_preproc_wf(
     longitudinal,
     t1w,
     t2w,
+    flair,
     omp_nthreads,
     output_dir,
     skull_strip_mode,
@@ -81,12 +84,14 @@ def init_anat_preproc_wf(
     existing_derivatives=None,
     name="anat_preproc_wf",
     skull_strip_fixed_seed=False,
+    gradunwarp_file=None,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
 
     This includes:
 
+      - Correct gradient distortion in each T1w and T2w
       - T1w reference: realigning and then averaging T1w images.
       - Brain extraction and INU (bias field) correction.
       - Brain tissue segmentation.
@@ -156,6 +161,8 @@ def init_anat_preproc_wf(
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
+    gradunwarp_file: :obj:`str`
+        Vendor provided .coeff or .grad file for gradient distortion correction.
 
     Inputs
     ------
@@ -345,6 +352,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
         omp_nthreads=omp_nthreads,
         num_files=num_t1w,
         contrast="T1w",
+        gradunwarp_file=gradunwarp_file,
     )
 
     anat_validate = pe.Node(ValidateImage(), name="anat_validate", run_without_submitting=True)
@@ -539,6 +547,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
             num_files=len(t2w),
             contrast="T2w",
             name="t2w_template_wf",
+            gradunwarp_file=gradunwarp_file,
         )
         bbreg = pe.Node(
             fs.BBRegister(
@@ -584,6 +593,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823,
     # Anatomical ribbon file using HCP signed-distance volume method
     anat_ribbon_wf = init_anat_ribbon_wf()
     # fmt:off
+
     workflow.connect([
         (inputnode, fs_isrunning, [
             ('subjects_dir', 'subjects_dir'),
@@ -675,6 +685,7 @@ def init_anat_template_wf(
     num_files: int,
     contrast: str,
     name: str = "anat_template_wf",
+    gradunwarp_file: str = None,
 ):
     """
     Generate a canonically-oriented, structural average from all input images.
@@ -702,6 +713,8 @@ def init_anat_template_wf(
         Name of contrast, for reporting purposes, e.g., T1w, T2w, PDw
     name : :obj:`str`, optional
         Workflow name (default: anat_template_wf)
+    gradunwarp_file : :obj:`str`, optional
+        Gradient unwarping filename (default: None)
 
     Inputs
     ------
@@ -747,6 +760,21 @@ An anatomical {contrast}-reference map was computed after registration of
     )
     anat_conform = pe.MapNode(Conform(), iterfield="in_file", name="anat_conform")
 
+    # 0.5 Gradient unwarping (optional)
+    if gradunwarp_file:
+        gradunwarp_wf = init_gradunwarp_wf("gradunwarp")
+        gradunwarp_wf.inputs.inputnode.grad_file = gradunwarp_file
+        # fmt:off
+        workflow.connect([
+            (denoise, gradunwarp_wf, [('output_image', 'inputnode.input_file')]),
+            (gradunwarp_wf, anat_conform, [('outputnode.corrected_file', 'in_file')]),
+        ])
+    else:
+        workflow.connect([
+            (denoise, anat_conform, [('output_image', 'in_file')]),
+        ])
+        # fmt:on
+
     # fmt:off
     workflow.connect([
         (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
@@ -755,7 +783,6 @@ An anatomical {contrast}-reference map was computed after registration of
             ('target_zooms', 'target_zooms'),
             ('target_shape', 'target_shape'),
         ]),
-        (denoise, anat_conform, [('output_image', 'in_file')]),
         (anat_ref_dimensions, outputnode, [
             ('out_report', 'out_report'),
             ('t1w_valid_list', 'anat_valid_list'),

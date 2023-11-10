@@ -63,6 +63,7 @@ def init_smriprep_wf(
     subject_list,
     work_dir,
     bids_filters,
+    gradunwarp_file,
 ):
     """
     Create the execution graph of *sMRIPrep*, with a sub-workflow for each subject.
@@ -152,7 +153,8 @@ def init_smriprep_wf(
     bids_filters : dict
         Provides finer specification of the pipeline input files through pybids entities filters.
         A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
-
+    gradunwarp_file: :obj:`str`
+        Vendor provided .coeff or .grad file for gradient distortion correction.
     """
     smriprep_wf = Workflow(name="smriprep_wf")
     smriprep_wf.base_dir = work_dir
@@ -190,6 +192,7 @@ def init_smriprep_wf(
             spaces=spaces,
             subject_id=subject_id,
             bids_filters=bids_filters,
+            gradunwarp_file=gradunwarp_file,
         )
 
         single_subject_wf.config["execution"]["crashdump_dir"] = os.path.join(
@@ -225,6 +228,7 @@ def init_single_subject_wf(
     spaces,
     subject_id,
     bids_filters,
+    gradunwarp_file,
 ):
     """
     Create a single subject workflow.
@@ -309,6 +313,8 @@ def init_single_subject_wf(
     bids_filters : dict
         Provides finer specification of the pipeline input files through pybids entities filters.
         A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
+    gradunwarp_file: :obj:`str`
+        Vendor provided .coeff or .grad file for gradient distortion correction.
 
     Inputs
     ------
