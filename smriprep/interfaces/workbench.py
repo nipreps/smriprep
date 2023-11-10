@@ -399,7 +399,7 @@ class SurfaceModifySphere(WBCommand):
     a sphere, which can suffer from problems generally not present in
     -surface-sphere-project-unproject.  If the sphere should already be
     centered around the origin, using -recenter may still shift it slightly
-    before changing the radius, which is likely to be undesireable.
+    before changing the radius, which is likely to be undesirable.
 
     If <sphere-in> is not close to spherical, or not centered around the
     origin and -recenter is not used, a warning is printed.

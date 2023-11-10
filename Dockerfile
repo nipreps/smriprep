@@ -258,7 +258,7 @@ ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="sMRIPrep" \
       org.label-schema.description="sMRIPrep - robust sMRI preprocessing tool" \
-      org.label-schema.url="http://nipreps.org/smriprep" \
+      org.label-schema.url="https://www.nipreps.org/smriprep" \
       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/nipreps/smriprep" \
       org.label-schema.version=$VERSION \

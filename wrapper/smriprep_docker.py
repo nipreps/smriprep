@@ -164,9 +164,9 @@ def merge_help(wrapper_help, target_help):
 
     # Make sure we're not clobbering options we don't mean to
     overlap = set(w_flags).intersection(t_flags)
-    expected_overlap = set(
-        ["h", "version", "w", "d", "fs-license-file", "use-plugin", "fs-subjects-dir"]
-    )
+    expected_overlap = {
+        "h", "version", "w", "d", "fs-license-file", "use-plugin", "fs-subjects-dir"
+    }
 
     assert overlap == expected_overlap, "Clobbering options: {}".format(
         ", ".join(overlap - expected_overlap)
