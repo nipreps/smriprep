@@ -7,7 +7,7 @@ sMRIPrep: Structural MRI PREProcessing pipeline
 
 .. image:: https://circleci.com/gh/nipreps/smriprep/tree/master.svg?style=shield
   :target: https://circleci.com/gh/nipreps/smriprep/tree/master
-  
+
 .. image:: https://codecov.io/gh/nipreps/smriprep/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/nipreps/smriprep
   :alt: Coverage report
@@ -15,7 +15,7 @@ sMRIPrep: Structural MRI PREProcessing pipeline
 .. image:: https://img.shields.io/pypi/v/smriprep.svg
   :target: https://pypi.python.org/pypi/smriprep/
   :alt: Latest Version
-  
+
 .. image:: https://img.shields.io/badge/doi-10.1038%2Fs41592--018--0235--4-blue.svg
   :target: https://doi.org/10.1038/s41592-018-0235-4
   :alt: Published in Nature Methods

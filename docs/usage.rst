@@ -94,4 +94,3 @@ would be equivalent to the latest example: ::
         -v /path/to_output/dir:/out nipreps/smriprep:1.0.0 \
         /data /out participant
     ...
-
