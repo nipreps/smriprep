@@ -155,6 +155,7 @@
           ".nii.gz",
           ".nii"
         ]
+      }
     }
   },
   "patterns": [
