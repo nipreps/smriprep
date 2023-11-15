@@ -293,12 +293,20 @@ class MRIsConvertData(fs.utils.MRIsConvert):
         return super()._gen_filename(name)
 
 
-class MakeMidthickness(nwfs.MakeMidthickness):
+class MakeMidthicknessInputSpec(nwfs._MakeMidthicknessInputSpec, fs.base.FSTraitedSpecOpenMP):
+    pass
+
+
+class MakeMidthickness(nwfs.MakeMidthickness, fs.base.FSCommandOpenMP):
     """Patched MakeMidthickness interface
 
     Ensures output filenames are specified with hemisphere labels, when appropriate.
     This may not cover all use-cases in MRIsExpand, but we're just making midthickness
     files.
+
+    This interface also sets the OMP_NUM_THREADS environment variable to floor(1.5x) the
+    number of threads requested by the user, as tests indicate that cores are underutilized
+    by a factor of 2/3.
 
     >>> from smriprep.interfaces.freesurfer import MakeMidthickness
     >>> mris_expand = MakeMidthickness(thickness=True, distance=0.5)
@@ -316,9 +324,18 @@ class MakeMidthickness(nwfs.MakeMidthickness):
     'mris_expand -thickness lh.white 0.5 rh.graymid'
     """
 
+    input_spec = MakeMidthicknessInputSpec
+
     def _format_arg(self, name, trait_spec, value):
         # FreeSurfer at some point changed whether it would add the hemi label onto the
         # surface. Therefore we'll do it ourselves.
         if name == "out_name":
             value = self._associated_file(self.inputs.in_file, value)
         return super()._format_arg(name, trait_spec, value)
+
+    def _num_threads_update(self):
+        """mris_expand"""
+        if self.inputs.num_threads:
+            self.inputs.environ.update(
+                {"OMP_NUM_THREADS": str(self.inputs.num_threads * 3 // 2)}
+            )
