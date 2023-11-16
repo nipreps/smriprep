@@ -334,7 +334,6 @@ class MakeMidthickness(nwfs.MakeMidthickness, fs.base.FSCommandOpenMP):
         return super()._format_arg(name, trait_spec, value)
 
     def _num_threads_update(self):
-        """mris_expand"""
         if self.inputs.num_threads:
             self.inputs.environ.update(
                 {"OMP_NUM_THREADS": str(self.inputs.num_threads * 3 // 2)}
