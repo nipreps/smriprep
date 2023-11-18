@@ -220,6 +220,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
         iterfield="in_file",
         name="midthickness",
+        n_procs=min(omp_nthreads, 12),
     )
 
     save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
@@ -232,7 +233,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         name="sync",
     )
 
-    # fmt:off
     workflow.connect([
         # Configuration
         (inputnode, recon_config, [('t1w', 't1w_list'),
@@ -275,21 +275,18 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (save_midthickness, sync, [('out_file', 'filenames')]),
         (sync, outputnode, [('subjects_dir', 'subjects_dir'),
                             ('subject_id', 'subject_id')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
 
     if "fsnative" not in precomputed.get("transforms", {}):
         fsnative2t1w_xfm = pe.Node(
             RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
         )
 
-        # fmt:off
         workflow.connect([
             (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
             (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
             (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
-        ])
-        # fmt:on
+        ])  # fmt:skip
 
     return workflow
 
