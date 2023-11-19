@@ -71,7 +71,9 @@ from .surfaces import (
     init_anat_ribbon_wf,
     init_fsLR_reg_wf,
     init_gifti_morphometrics_wf,
+    init_hcp_morphometrics_wf,
     init_gifti_surfaces_wf,
+    init_morph_grayords_wf,
     init_msm_sulc_wf,
     init_surface_derivatives_wf,
     init_surface_recon_wf,
@@ -323,6 +325,10 @@ def init_anat_preproc_wf(
         surface_derivatives_wf = init_surface_derivatives_wf(
             cifti_output=cifti_output,
         )
+        hcp_morphometrics_wf = init_hcp_morphometrics_wf(omp_nthreads=omp_nthreads)
+        morph_grayords_wf = init_morph_grayords_wf(
+            grayord_density=cifti_output, omp_nthreads=omp_nthreads
+        )
         ds_surfaces_wf = init_ds_surfaces_wf(
             bids_root=bids_root, output_dir=output_dir, surfaces=["inflated"]
         )
@@ -336,6 +342,27 @@ def init_anat_preproc_wf(
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ]),
+            (anat_fit_wf, hcp_morphometrics_wf, [
+                ('outputnode.subject_id', 'inputnode.subject_id'),
+                ('outputnode.sulc', 'inputnode.sulc'),
+                ('outputnode.thickness', 'inputnode.thickness'),
+            ]),
+            (surface_derivatives_wf, hcp_morphometrics_wf, [
+                ('outputnode.curv', 'inputnode.curv'),
+            ]),
+            (anat_fit_wf, morph_grayords_wf, [
+                ('outputnode.midthickness', 'inputnode.midthickness'),
+                (
+                    f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
+                    "inputnode.sphere_reg_fsLR",
+                ),
+            ]),
+            (hcp_morphometrics_wf, morph_grayords_wf, [
+                ('outputnode.curv', 'inputnode.curv'),
+                ('outputnode.sulc', 'inputnode.sulc'),
+                ('outputnode.thickness', 'inputnode.thickness'),
+                ('outputnode.roi', 'inputnode.roi'),
             ]),
             (anat_fit_wf, ds_surfaces_wf, [
                 ('outputnode.t1w_valid_list', 'inputnode.source_files'),
