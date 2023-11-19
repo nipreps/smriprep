@@ -5,7 +5,7 @@ import nibabel as nb
 from nipype.interfaces.base import File, SimpleInterface, TraitedSpec, isdefined, traits
 
 
-class InvertShapeInputSpec(TraitedSpec):
+class MetricMathInputSpec(TraitedSpec):
     subject_id = traits.Str(desc='subject ID')
     hemisphere = traits.Enum(
         "L",
@@ -13,50 +13,68 @@ class InvertShapeInputSpec(TraitedSpec):
         mandatory=True,
         desc='hemisphere',
     )
-    shape = traits.Str(desc='name of shape to invert')
-    shape_file = File(exists=True, mandatory=True, desc='input GIFTI file')
+    metric = traits.Str(desc='name of metric to invert')
+    metric_file = File(exists=True, mandatory=True, desc='input GIFTI file')
+    operation = traits.Enum(
+        "invert",
+        "abs",
+        "bin",
+        mandatory=True,
+        desc='operation to perform',
+    )
 
 
-class InvertShapeOutputSpec(TraitedSpec):
-    shape_file = File(desc='output GIFTI file')
+class MetricMathOutputSpec(TraitedSpec):
+    metric_file = File(desc='output GIFTI file')
 
 
-class InvertShape(SimpleInterface):
-    """Prepare GIFTI shape file for use in MSMSulc
+class MetricMath(SimpleInterface):
+    """Prepare GIFTI metric file for use in MSMSulc
 
     This interface mirrors the action of the following portion
     of FreeSurfer2CaretConvertAndRegisterNonlinear.sh::
 
-        wb_command -set-structure ${shape_file} CORTEX_[LEFT|RIGHT]
-        wb_command -metric-math "var * -1" ${shape_file} -var var ${shape_file}
-        wb_command -set-map-names ${shape_file} -map 1 ${subject}_[L|R]_${shape}
+        wb_command -set-structure ${metric_file} CORTEX_[LEFT|RIGHT]
+        wb_command -metric-math "var * -1" ${metric_file} -var var ${metric_file}
+        wb_command -set-map-names ${metric_file} -map 1 ${subject}_[L|R]_${metric}
+        # If abs:
+        wb_command -metric-math "abs(var)" ${metric_file} -var var ${metric_file}
 
     We do not add palette information to the output file.
     """
 
-    input_spec = InvertShapeInputSpec
-    output_spec = InvertShapeOutputSpec
+    input_spec = MetricMathInputSpec
+    output_spec = MetricMathOutputSpec
 
     def _run_interface(self, runtime):
-        subject, hemi, shape = self.inputs.subject_id, self.inputs.hemisphere, self.inputs.shape
+        subject, hemi, metric = self.inputs.subject_id, self.inputs.hemisphere, self.inputs.metric
         if not isdefined(subject):
             subject = 'sub-XYZ'
 
-        img = nb.GiftiImage.from_filename(self.inputs.shape_file)
+        img = nb.GiftiImage.from_filename(self.inputs.metric_file)
         # wb_command -set-structure
         img.meta["AnatomicalStructurePrimary"] = {'L': 'CortexLeft', 'R': 'CortexRight'}[hemi]
         darray = img.darrays[0]
         # wb_command -set-map-names
         meta = darray.meta
-        meta['Name'] = f"{subject}_{hemi}_{shape}"
+        meta['Name'] = f"{subject}_{hemi}_{metric}"
 
-        # wb_command -metric-math "var * -1"
-        inv = -darray.data
+        datatype = darray.datatype
+        if self.inputs.operation == "abs":
+            # wb_command -metric-math "abs(var)"
+            data = abs(darray.data)
+        elif self.inputs.operation == "invert":
+            # wb_command -metric-math "var * -1"
+            data = -darray.data
+        elif self.inputs.operation == "bin":
+            # wb_command -metric-math "var > 0"
+            data = darray.data > 0
+            datatype = 'uint8'
 
         darray = nb.gifti.GiftiDataArray(
-            inv,
+            data,
             intent=darray.intent,
-            datatype=darray.datatype,
+            datatype=datatype,
             encoding=darray.encoding,
             endian=darray.endian,
             coordsys=darray.coordsys,
@@ -65,7 +83,7 @@ class InvertShape(SimpleInterface):
         )
         img.darrays[0] = darray
 
-        out_filename = os.path.join(runtime.cwd, f"{subject}.{hemi}.{shape}.native.shape.gii")
+        out_filename = os.path.join(runtime.cwd, f"{subject}.{hemi}.{metric}.native.shape.gii")
         img.to_filename(out_filename)
-        self._results["shape_file"] = out_filename
+        self._results["metric_file"] = out_filename
         return runtime

@@ -55,6 +55,8 @@ from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRun
 from .fit.registration import init_register_template_wf
 from .outputs import (
     init_anat_reports_wf,
+    init_ds_anat_volumes_wf,
+    init_ds_grayord_metrics_wf,
     init_ds_surface_metrics_wf,
     init_ds_surfaces_wf,
     init_ds_template_wf,
@@ -64,16 +66,20 @@ from .outputs import (
     init_ds_template_registration_wf,
     init_ds_fs_registration_wf,
     init_anat_second_derivatives_wf,
+    init_template_iterator_wf,
 )
 from .surfaces import (
     init_anat_ribbon_wf,
     init_fsLR_reg_wf,
     init_gifti_morphometrics_wf,
+    init_hcp_morphometrics_wf,
     init_gifti_surfaces_wf,
+    init_morph_grayords_wf,
     init_msm_sulc_wf,
     init_surface_derivatives_wf,
     init_surface_recon_wf,
     init_refinement_wf,
+    init_resample_midthickness_wf,
 )
 
 LOGGER = logging.getLogger("nipype.workflow")
@@ -113,6 +119,8 @@ def init_anat_preproc_wf(
 
             from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.anatomical import init_anat_preproc_wf
+            spaces = SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5'])
+            spaces.checkpoint()
             wf = init_anat_preproc_wf(
                 bids_root='.',
                 output_dir='.',
@@ -124,7 +132,7 @@ def init_anat_preproc_wf(
                 t2w=[],
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
-                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
+                spaces=spaces,
                 precomputed={},
                 omp_nthreads=1,
             )
@@ -261,14 +269,13 @@ def init_anat_preproc_wf(
         omp_nthreads=omp_nthreads,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
     )
-    anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+    template_iterator_wf = init_template_iterator_wf(spaces=spaces)
+    ds_std_volumes_wf = init_ds_anat_volumes_wf(
         bids_root=bids_root,
-        freesurfer=freesurfer,
         output_dir=output_dir,
-        spaces=spaces,
-        cifti_output=cifti_output,
+        name="ds_std_volumes_wf",
     )
-    # fmt:off
+
     workflow.connect([
         (inputnode, anat_fit_wf, [
             ("t1w", "inputnode.t1w"),
@@ -293,19 +300,32 @@ def init_anat_preproc_wf(
             (f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}", "sphere_reg_fsLR"),
             ("outputnode.anat_ribbon", "anat_ribbon"),
         ]),
-        (anat_fit_wf, anat_second_derivatives_wf, [
-            ('outputnode.template', 'inputnode.template'),
+        (anat_fit_wf, template_iterator_wf, [
+            ("outputnode.template", "inputnode.template"),
+            ("outputnode.anat2std_xfm", "inputnode.anat2std_xfm"),
+        ]),
+        (anat_fit_wf, ds_std_volumes_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files'),
             ("outputnode.t1w_preproc", "inputnode.t1w_preproc"),
             ("outputnode.t1w_mask", "inputnode.t1w_mask"),
             ("outputnode.t1w_dseg", "inputnode.t1w_dseg"),
             ("outputnode.t1w_tpms", "inputnode.t1w_tpms"),
-            ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
         ]),
-    ])
-    # fmt:on
-    if freesurfer:
+        (template_iterator_wf, ds_std_volumes_wf, [
+            ("outputnode.std_t1w", "inputnode.ref_file"),
+            ("outputnode.anat2std_xfm", "inputnode.anat2std_xfm"),
+            ("outputnode.space", "inputnode.space"),
+            ("outputnode.cohort", "inputnode.cohort"),
+            ("outputnode.resolution", "inputnode.resolution"),
+        ]),
+    ])  # fmt:skip
 
+    if freesurfer:
+        anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+            bids_root=bids_root,
+            output_dir=output_dir,
+            cifti_output=cifti_output,
+        )
         surface_derivatives_wf = init_surface_derivatives_wf(
             cifti_output=cifti_output,
         )
@@ -316,7 +336,6 @@ def init_anat_preproc_wf(
             bids_root=bids_root, output_dir=output_dir, metrics=["curv"], name="ds_curv_wf"
         )
 
-        # fmt:off
         workflow.connect([
             (anat_fit_wf, surface_derivatives_wf, [
                 ('outputnode.t1w_preproc', 'inputnode.reference'),
@@ -336,18 +355,78 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, ds_curv_wf, [
                 ('outputnode.curv', 'inputnode.curv'),
             ]),
+            (anat_fit_wf, anat_second_derivatives_wf, [
+                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+            ]),
             (surface_derivatives_wf, anat_second_derivatives_wf, [
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-                ('outputnode.cifti_morph', 'inputnode.cifti_morph'),
-                ('outputnode.cifti_metadata', 'inputnode.cifti_metadata'),
             ]),
             (surface_derivatives_wf, outputnode, [
                 ('outputnode.out_aseg', 't1w_aseg'),
                 ('outputnode.out_aparc', 't1w_aparc'),
             ]),
-        ])
-        # fmt:on
+        ])  # fmt:skip
+
+        if cifti_output:
+            hcp_morphometrics_wf = init_hcp_morphometrics_wf(omp_nthreads=omp_nthreads)
+            resample_midthickness_wf = init_resample_midthickness_wf(grayord_density=cifti_output)
+            morph_grayords_wf = init_morph_grayords_wf(
+                grayord_density=cifti_output, omp_nthreads=omp_nthreads
+            )
+
+            ds_grayord_metrics_wf = init_ds_grayord_metrics_wf(
+                bids_root=bids_root,
+                output_dir=output_dir,
+                metrics=['curv', 'thickness', 'sulc'],
+                cifti_output=cifti_output,
+            )
+
+            workflow.connect([
+                (anat_fit_wf, hcp_morphometrics_wf, [
+                    ('outputnode.subject_id', 'inputnode.subject_id'),
+                    ('outputnode.sulc', 'inputnode.sulc'),
+                    ('outputnode.thickness', 'inputnode.thickness'),
+                    ('outputnode.midthickness', 'inputnode.midthickness'),
+                ]),
+                (surface_derivatives_wf, hcp_morphometrics_wf, [
+                    ('outputnode.curv', 'inputnode.curv'),
+                ]),
+                (anat_fit_wf, resample_midthickness_wf, [
+                    ('outputnode.midthickness', 'inputnode.midthickness'),
+                    (
+                        f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
+                        "inputnode.sphere_reg_fsLR",
+                    ),
+                ]),
+                (anat_fit_wf, morph_grayords_wf, [
+                    ('outputnode.midthickness', 'inputnode.midthickness'),
+                    (
+                        f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
+                        "inputnode.sphere_reg_fsLR",
+                    ),
+                ]),
+                (hcp_morphometrics_wf, morph_grayords_wf, [
+                    ('outputnode.curv', 'inputnode.curv'),
+                    ('outputnode.sulc', 'inputnode.sulc'),
+                    ('outputnode.thickness', 'inputnode.thickness'),
+                    ('outputnode.roi', 'inputnode.roi'),
+                ]),
+                (resample_midthickness_wf, morph_grayords_wf, [
+                    ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
+                ]),
+                (anat_fit_wf, ds_grayord_metrics_wf, [
+                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ]),
+                (morph_grayords_wf, ds_grayord_metrics_wf, [
+                    ('outputnode.curv_fsLR', 'inputnode.curv'),
+                    ('outputnode.curv_metadata', 'inputnode.curv_metadata'),
+                    ('outputnode.thickness_fsLR', 'inputnode.thickness'),
+                    ('outputnode.thickness_metadata', 'inputnode.thickness_metadata'),
+                    ('outputnode.sulc_fsLR', 'inputnode.sulc'),
+                    ('outputnode.sulc_metadata', 'inputnode.sulc_metadata'),
+                ]),
+            ])  # fmt:skip
 
     return workflow
 
@@ -1264,7 +1343,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         # fmt:on
     elif msm_sulc:
         LOGGER.info("ANAT Stage 10: Found pre-computed MSM-Sulc registration sphere")
-        fsLR_buffer.inputs.sphere_reg_msm = sorted(precomputed["sphere_reg_msm"])
+        msm_buffer.inputs.sphere_reg_msm = sorted(precomputed["sphere_reg_msm"])
     else:
         LOGGER.info("ANAT Stage 10: MSM-Sulc disabled")
 
