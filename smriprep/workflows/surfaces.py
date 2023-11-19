@@ -1027,6 +1027,149 @@ def init_gifti_morphometrics_wf(
     return workflow
 
 
+def init_hcp_morphometrics_wf(
+    *,
+    omp_nthreads: int,
+    name: str = "hcp_morphometrics_wf",
+) -> Workflow:
+    """Convert FreeSurfer-style morphometrics to HCP-style.
+
+    The HCP uses different conventions for curvature and sulcal depth from FreeSurfer,
+    and performs some geometric preprocessing steps to get final metrics and a
+    subject-specific cortical ROI.
+
+    Workflow Graph
+
+    .. workflow::
+
+        from smriprep.workflows.surfaces import init_hcp_morphometrics_wf
+        wf = init_hcp_morphometrics_wf(omp_nthreads=1)
+
+    Parameters
+    ----------
+    omp_nthreads
+        Maximum number of threads an individual process may use
+
+    Inputs
+    ------
+    subject_id
+        FreeSurfer subject ID
+    thickness
+        FreeSurfer thickness file in GIFTI format
+    curv
+        FreeSurfer curvature file in GIFTI format
+    sulc
+        FreeSurfer sulcal depth file in GIFTI format
+
+    Outputs
+    -------
+    thickness
+        HCP-style thickness file in GIFTI format
+    curv
+        HCP-style curvature file in GIFTI format
+    sulc
+        HCP-style sulcal depth file in GIFTI format
+    roi
+        HCP-style cortical ROI file in GIFTI format
+    """
+    DEFAULT_MEMORY_MIN_GB = 0.01
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['subject_id', 'thickness', 'curv', 'sulc', 'midthickness']),
+        name='inputnode',
+    )
+
+    itersource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='itersource',
+        iterables=[('hemi', ['L', 'R'])],
+    )
+
+    outputnode = pe.JoinNode(
+        niu.IdentityInterface(fields=["thickness", "curv", "sulc", "roi"]),
+        name="outputnode",
+        joinsource="itersource",
+    )
+
+    select_surfaces = pe.Node(
+        KeySelect(
+            fields=[
+                "thickness",
+                "curv",
+                "sulc",
+                "midthickness",
+            ],
+            keys=["L", "R"],
+        ),
+        name="select_surfaces",
+        run_without_submitting=True,
+    )
+
+    # HCP inverts curvature and sulcal depth relative to FreeSurfer
+    invert_curv = pe.Node(MetricMath(metric='curv', operation='invert'), name='invert_curv')
+    invert_sulc = pe.Node(MetricMath(metric='sulc', operation='invert'), name='invert_sulc')
+    # Thickness is presumably already positive, but HCP uses abs(-thickness)
+    abs_thickness = pe.Node(MetricMath(metric='thickness', operation='abs'), name='abs_thickness')
+
+    # Native ROI is thickness > 0, with holes and islands filled
+    initial_roi = pe.Node(MetricMath(metric='roi', operation='bin'), name='initial_roi')
+    fill_holes = pe.Node(MetricFillHoles(), name="fill_holes", mem_gb=DEFAULT_MEMORY_MIN_GB)
+    native_roi = pe.Node(MetricRemoveIslands(), name="native_roi", mem_gb=DEFAULT_MEMORY_MIN_GB)
+
+    # Dilation happens separately from ROI creation
+    dilate_curv = pe.Node(
+        MetricDilate(distance=10, nearest=True),
+        name="dilate_curv",
+        n_procs=omp_nthreads,
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+    dilate_thickness = pe.Node(
+        MetricDilate(distance=10, nearest=True),
+        name="dilate_thickness",
+        n_procs=omp_nthreads,
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    workflow.connect([
+        (inputnode, select_surfaces, [
+            ('thickness', 'thickness'),
+            ('curv', 'curv'),
+            ('sulc', 'sulc'),
+            ('midthickness', 'midthickness'),
+        ]),
+        (inputnode, invert_curv, [('subject_id', 'subject_id')]),
+        (inputnode, invert_sulc, [('subject_id', 'subject_id')]),
+        (inputnode, abs_thickness, [('subject_id', 'subject_id')]),
+        (itersource, select_surfaces, [('hemi', 'key')]),
+        (itersource, invert_curv, [('hemi', 'hemisphere')]),
+        (itersource, invert_sulc, [('hemi', 'hemisphere')]),
+        (itersource, abs_thickness, [('hemi', 'hemisphere')]),
+        (select_surfaces, invert_curv, [('curv', 'metric_file')]),
+        (select_surfaces, invert_sulc, [('sulc', 'metric_file')]),
+        (select_surfaces, abs_thickness, [('thickness', 'metric_file')]),
+        (select_surfaces, dilate_curv, [('midthickness', 'surf_file')]),
+        (select_surfaces, dilate_thickness, [('midthickness', 'surf_file')]),
+        (invert_curv, dilate_curv, [('metric_file', 'in_file')]),
+        (abs_thickness, dilate_thickness, [('metric_file', 'in_file')]),
+        (dilate_curv, outputnode, [('out_file', 'curv')]),
+        (dilate_thickness, outputnode, [('out_file', 'thickness')]),
+        (invert_sulc, outputnode, [('metric_file', 'sulc')]),
+        # Native ROI file from thickness
+        (inputnode, initial_roi, [('subject_id', 'subject_id')]),
+        (itersource, initial_roi, [('hemi', 'hemisphere')]),
+        (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
+        (select_surfaces, fill_holes, [('midthickness', 'surface_file')]),
+        (select_surfaces, native_roi, [('midthickness', 'surface_file')]),
+        (initial_roi, fill_holes, [('metric_file', 'metric_file')]),
+        (fill_holes, native_roi, [('out_file', 'metric_file')]),
+        (native_roi, outputnode, [('out_file', 'roi')]),
+    ])  # fmt:skip
+
+    return workflow
+
+
 def init_segs_to_native_wf(*, name="segs_to_native", segmentation="aseg"):
     """
     Get a segmentation from FreeSurfer conformed space into native T1w space.
