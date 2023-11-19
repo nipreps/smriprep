@@ -377,6 +377,7 @@ def init_anat_preproc_wf(
                     ('outputnode.subject_id', 'inputnode.subject_id'),
                     ('outputnode.sulc', 'inputnode.sulc'),
                     ('outputnode.thickness', 'inputnode.thickness'),
+                    ('outputnode.midthickness', 'inputnode.midthickness'),
                 ]),
                 (surface_derivatives_wf, hcp_morphometrics_wf, [
                     ('outputnode.curv', 'inputnode.curv'),
