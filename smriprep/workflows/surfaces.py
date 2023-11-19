@@ -641,8 +641,6 @@ def init_surface_derivatives_wf(
                 "curv",
                 "out_aseg",
                 "out_aparc",
-                "cifti_morph",
-                "cifti_metadata",
             ]
         ),
         name="outputnode",
@@ -685,21 +683,6 @@ def init_surface_derivatives_wf(
         (gifti_morph_wf, outputnode, [('outputnode.curv', 'curv')]),
     ])
     # fmt:on
-
-    if cifti_output:
-        morph_grayords_wf = init_morph_grayords_wf(grayord_density=cifti_output)
-        # fmt:off
-        workflow.connect([
-            (inputnode, morph_grayords_wf, [
-                ('subject_id', 'inputnode.subject_id'),
-                ('subjects_dir', 'inputnode.subjects_dir'),
-            ]),
-            (morph_grayords_wf, outputnode, [
-                ("outputnode.cifti_morph", "cifti_morph"),
-                ("outputnode.cifti_metadata", "cifti_metadata"),
-            ]),
-        ])
-        # fmt:on
 
     return workflow
 
@@ -1328,6 +1311,7 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
 
 def init_morph_grayords_wf(
     grayord_density: ty.Literal['91k', '170k'],
+    omp_nthreads: int,
     name: str = "morph_grayords_wf",
 ):
     """
@@ -1352,163 +1336,175 @@ def init_morph_grayords_wf(
 
     Inputs
     ------
-    subject_id : :obj:`str`
-        FreeSurfer subject ID
-    subjects_dir : :obj:`str`
-        FreeSurfer SUBJECTS_DIR
+    curv
+        HCP-style curvature file in GIFTI format
+    sulc
+        HCP-style sulcal depth file in GIFTI format
+    thickness
+        HCP-style thickness file in GIFTI format
+    roi
+        HCP-style cortical ROI file in GIFTI format
+    midthickness
+        GIFTI surface mesh corresponding to the midthickness surface
+    sphere_reg_fsLR
+        GIFTI surface mesh corresponding to the subject's fsLR registration sphere
 
     Outputs
     -------
-    cifti_morph : :obj:`list` of :obj:`str`
-        Paths of CIFTI dscalar files
-    cifti_metadata : :obj:`list` of :obj:`str`
-        Paths to JSON files containing metadata corresponding to ``cifti_morph``
-
+    curv_fsLR
+        HCP-style curvature file in CIFTI-2 format, resampled to fsLR
+    curv_metadata
+        Path to JSON file containing metadata corresponding to ``curv_fsLR``
+    sulc_fsLR
+        HCP-style sulcal depth file in CIFTI-2 format, resampled to fsLR
+    sulc_metadata
+        Path to JSON file containing metadata corresponding to ``sulc_fsLR``
+    thickness_fsLR
+        HCP-style thickness file in CIFTI-2 format, resampled to fsLR
     """
     import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+
     from smriprep.interfaces.cifti import GenerateDScalar
 
     workflow = Workflow(name=name)
     workflow.__desc__ = f"""\
-*Grayordinate* "dscalar" files [@hcppipelines] containing {grayord_density} samples were
-also generated using the highest-resolution ``fsaverage`` as an intermediate standardized
-surface space.
+*Grayordinate* "dscalar" files containing {grayord_density} samples were
+resampled onto fsLR using the Connectome Workbench [@hcppipelines].
 """
 
     fslr_density = "32k" if grayord_density == "91k" else "59k"
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["subject_id", "subjects_dir"]),
+        niu.IdentityInterface(
+            fields=[
+                "curv",
+                "sulc",
+                "thickness",
+                "roi",
+                "midthickness",
+                "sphere_reg_fsLR",
+            ]
+        ),
         name="inputnode",
     )
 
+    # Note we have to use a different name than itersource to
+    # avoid duplicates in the workflow graph, even though the
+    # previous was already Joined
+    hemisource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='hemisource',
+        iterables=[('hemi', ['L', 'R'])],
+    )
+
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=["cifti_morph", "cifti_metadata"]),
+        niu.IdentityInterface(
+            fields=[
+                "curv_fsLR",
+                "curv_metadata",
+                "sulc_fsLR",
+                "sulc_metadata",
+                "thickness_fsLR",
+                "thickness_metadata",
+            ]
+        ),
         name="outputnode",
     )
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
-
-    surfmorph_list = pe.Node(
-        niu.Merge(3, ravel_inputs=True),
-        name="surfmorph_list",
+    atlases = load_resource('atlases')
+    select_surfaces = pe.Node(
+        KeySelect(
+            fields=[
+                "curv",
+                "sulc",
+                "thickness",
+                "roi",
+                "midthickness",
+                "sphere_reg",
+                "template_sphere",
+                "template_roi",
+            ],
+            keys=["L", "R"],
+        ),
+        name="select_surfaces",
         run_without_submitting=True,
     )
-
-    surf2surf = pe.MapNode(
-        fs.SurfaceTransform(target_subject="fsaverage", target_type="gii"),
-        iterfield=["source_file", "hemi"],
-        name="surf2surf",
-        mem_gb=0.01,
-    )
-    surf2surf.inputs.hemi = ["lh", "rh"] * 3
-
-    # Setup Workbench command. LR ordering for hemi can be assumed, as it is imposed
-    # by the iterfield of the MapNode in the surface sampling workflow above.
-    resample = pe.MapNode(
-        wb.MetricResample(method="ADAP_BARY_AREA", area_metrics=True),
-        name="resample",
-        iterfield=[
-            "in_file",
-            "out_file",
-            "new_sphere",
-            "new_area",
-            "current_sphere",
-            "current_area",
-        ],
-    )
-    resample.inputs.current_sphere = [
+    select_surfaces.inputs.template_sphere = [
         str(
             tf.get(
-                "fsaverage",
-                hemi=hemi,
-                density="164k",
-                desc="std",
-                suffix="sphere",
-                extension=".surf.gii",
-            )
-        )
-        for hemi in "LR"
-    ] * 3
-    resample.inputs.current_area = [
-        str(
-            tf.get(
-                "fsaverage",
-                hemi=hemi,
-                density="164k",
-                desc="vaavg",
-                suffix="midthickness",
-                extension=".shape.gii",
-            )
-        )
-        for hemi in "LR"
-    ] * 3
-    resample.inputs.new_sphere = [
-        str(
-            tf.get(
-                "fsLR",
-                space="fsaverage",
-                hemi=hemi,
+                template='fsLR',
                 density=fslr_density,
-                suffix="sphere",
-                extension=".surf.gii",
-            )
-        )
-        for hemi in "LR"
-    ] * 3
-    resample.inputs.new_area = [
-        str(
-            tf.get(
-                "fsLR",
+                suffix='sphere',
                 hemi=hemi,
-                density=fslr_density,
-                desc="vaavg",
-                suffix="midthickness",
-                extension=".shape.gii",
+                space=None,
+                extension='.surf.gii',
             )
         )
-        for hemi in "LR"
-    ] * 3
-    resample.inputs.out_file = [
-        f"space-fsLR_hemi-{h}_den-{grayord_density}_{morph}.shape.gii"
-        # Order: curv-L, curv-R, sulc-L, sulc-R, thickness-L, thickness-R
-        for morph in ('curv', 'sulc', 'thickness')
-        for h in "LR"
+        for hemi in ['L', 'R']
+    ]
+    select_surfaces.inputs.template_roi = [
+        str(atlases / f'L.atlasroi.{fslr_density}_fs_LR.shape.gii'),
+        str(atlases / f'R.atlasroi.{fslr_density}_fs_LR.shape.gii'),
     ]
 
-    gen_cifti = pe.MapNode(
-        GenerateDScalar(
-            grayordinates=grayord_density,
-        ),
-        iterfield=['scalar_name', 'scalar_surfs'],
-        name="gen_cifti",
+    downsampled_midthickness = pe.Node(
+        SurfaceResample(method='BARYCENTRIC'),
+        name="downsampled_midthickness",
     )
-    gen_cifti.inputs.scalar_name = ['curv', 'sulc', 'thickness']
 
-    # fmt: off
     workflow.connect([
-        (inputnode, get_surfaces, [
-            ('subject_id', 'subject_id'),
-            ('subjects_dir', 'subjects_dir'),
+        (inputnode, select_surfaces, [
+            ('curv', 'curv'),
+            ('sulc', 'sulc'),
+            ('thickness', 'thickness'),
+            ('roi', 'roi'),
+            ('midthickness', 'midthickness'),
+            ('sphere_reg_fsLR', 'sphere_reg'),
         ]),
-        (inputnode, surf2surf, [
-            ('subject_id', 'source_subject'),
-            ('subjects_dir', 'subjects_dir'),
+        (hemisource, select_surfaces, [('hemi', 'key')]),
+        (select_surfaces, downsampled_midthickness, [
+            ('midthickness', 'surface_in'),
+            ('sphere_reg', 'current_sphere'),
+            ('template_sphere', 'new_sphere'),
         ]),
-        (get_surfaces, surfmorph_list, [
-            (('curv', _sorted_by_basename), 'in1'),
-            (('sulc', _sorted_by_basename), 'in2'),
-            (('thickness', _sorted_by_basename), 'in3'),
-        ]),
-        (surfmorph_list, surf2surf, [('out', 'source_file')]),
-        (surf2surf, resample, [('out_file', 'in_file')]),
-        (resample, gen_cifti, [
-            (("out_file", _collate), "scalar_surfs")]),
-        (gen_cifti, outputnode, [("out_file", "cifti_morph"),
-                                 ("out_metadata", "cifti_metadata")]),
-    ])
-    # fmt: on
+    ])  # fmt:skip
+
+    for metric in ('curv', 'sulc', 'thickness'):
+        resampler = pe.Node(
+            MetricResample(method='ADAP_BARY_AREA', area_surfs=True),
+            name=f"resample_{metric}",
+            n_procs=omp_nthreads,
+        )
+        mask_fsLR = pe.Node(
+            MetricMask(),
+            name=f"mask_{metric}",
+            n_procs=omp_nthreads,
+        )
+        cifti_metric = pe.JoinNode(
+            GenerateDScalar(grayordinates=grayord_density, scalar_name=metric),
+            name=f"cifti_{metric}",
+            joinfield=['scalar_surfs'],
+            joinsource="hemisource",
+        )
+
+        workflow.connect([
+            (select_surfaces, resampler, [
+                (metric, 'in_file'),
+                ('sphere_reg', 'current_sphere'),
+                ('template_sphere', 'new_sphere'),
+                ('midthickness', 'current_area'),
+                ('roi', 'roi_metric'),
+            ]),
+            (downsampled_midthickness, resampler, [('surface_out', 'new_area')]),
+            (select_surfaces, mask_fsLR, [('template_roi', 'mask')]),
+            (resampler, mask_fsLR, [('out_file', 'in_file')]),
+            (mask_fsLR, cifti_metric, [('out_file', 'scalar_surfs')]),
+            (cifti_metric, outputnode, [
+                ('out_file', f'{metric}_fsLR'),
+                ('out_metadata', f'{metric}_metadata'),
+            ]),
+        ])  # fmt:skip
 
     return workflow
 
