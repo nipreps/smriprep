@@ -55,6 +55,7 @@ from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRun
 from .fit.registration import init_register_template_wf
 from .outputs import (
     init_anat_reports_wf,
+    init_ds_anat_volumes_wf,
     init_ds_surface_metrics_wf,
     init_ds_surfaces_wf,
     init_ds_template_wf,
@@ -64,6 +65,7 @@ from .outputs import (
     init_ds_template_registration_wf,
     init_ds_fs_registration_wf,
     init_anat_second_derivatives_wf,
+    init_template_iterator_wf,
 )
 from .surfaces import (
     init_anat_ribbon_wf,
@@ -261,14 +263,13 @@ def init_anat_preproc_wf(
         omp_nthreads=omp_nthreads,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
     )
-    anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+    template_iterator_wf = init_template_iterator_wf(spaces=spaces)
+    ds_std_volumes_wf = init_ds_anat_volumes_wf(
         bids_root=bids_root,
-        freesurfer=freesurfer,
         output_dir=output_dir,
-        spaces=spaces,
-        cifti_output=cifti_output,
+        name="ds_std_volumes_wf",
     )
-    # fmt:off
+
     workflow.connect([
         (inputnode, anat_fit_wf, [
             ("t1w", "inputnode.t1w"),
@@ -293,19 +294,32 @@ def init_anat_preproc_wf(
             (f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}", "sphere_reg_fsLR"),
             ("outputnode.anat_ribbon", "anat_ribbon"),
         ]),
-        (anat_fit_wf, anat_second_derivatives_wf, [
-            ('outputnode.template', 'inputnode.template'),
+        (anat_fit_wf, template_iterator_wf, [
+            ("outputnode.template", "inputnode.template"),
+            ("outputnode.anat2std_xfm", "inputnode.anat2std_xfm"),
+        ]),
+        (anat_fit_wf, ds_std_volumes_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files'),
             ("outputnode.t1w_preproc", "inputnode.t1w_preproc"),
             ("outputnode.t1w_mask", "inputnode.t1w_mask"),
             ("outputnode.t1w_dseg", "inputnode.t1w_dseg"),
             ("outputnode.t1w_tpms", "inputnode.t1w_tpms"),
-            ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
         ]),
-    ])
-    # fmt:on
-    if freesurfer:
+        (template_iterator_wf, ds_std_volumes_wf, [
+            ("outputnode.std_t1w", "inputnode.ref_file"),
+            ("outputnode.std2anat_xfm", "inputnode.std2anat_xfm"),
+            ("outputnode.space", "inputnode.space"),
+            ("outputnode.cohort", "inputnode.cohort"),
+            ("outputnode.resolution", "inputnode.resolution"),
+        ]),
+    ])  # fmt:skip
 
+    if freesurfer:
+        anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+            bids_root=bids_root,
+            output_dir=output_dir,
+            cifti_output=cifti_output,
+        )
         surface_derivatives_wf = init_surface_derivatives_wf(
             cifti_output=cifti_output,
         )
@@ -316,7 +330,6 @@ def init_anat_preproc_wf(
             bids_root=bids_root, output_dir=output_dir, metrics=["curv"], name="ds_curv_wf"
         )
 
-        # fmt:off
         workflow.connect([
             (anat_fit_wf, surface_derivatives_wf, [
                 ('outputnode.t1w_preproc', 'inputnode.reference'),
@@ -336,6 +349,9 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, ds_curv_wf, [
                 ('outputnode.curv', 'inputnode.curv'),
             ]),
+            (anat_fit_wf, anat_second_derivatives_wf, [
+                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+            ]),
             (surface_derivatives_wf, anat_second_derivatives_wf, [
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
@@ -346,8 +362,7 @@ def init_anat_preproc_wf(
                 ('outputnode.out_aseg', 't1w_aseg'),
                 ('outputnode.out_aparc', 't1w_aparc'),
             ]),
-        ])
-        # fmt:on
+        ])  # fmt:skip
 
     return workflow
 

@@ -26,7 +26,7 @@ import typing as ty
 from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
-from niworkflows.interfaces.nibabel import ApplyMask
+from niworkflows.interfaces.nibabel import ApplyMask, GenerateSamplingReference
 from niworkflows.interfaces.space import SpaceDataSource
 from niworkflows.interfaces.utility import KeySelect
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
@@ -804,12 +804,150 @@ def init_ds_surface_metrics_wf(
     return workflow
 
 
+def init_ds_anat_volumes_wf(
+    *,
+    bids_root: str,
+    output_dir: str,
+    name="ds_anat_volumes_wf",
+    tpm_labels=BIDS_TISSUE_ORDER,
+) -> pe.Workflow:
+
+    workflow = pe.Workflow(name=name)
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                # Original T1w image
+                'source_files',
+                # T1w-space images
+                't1w_preproc',
+                't1w_mask',
+                't1w_dseg',
+                't1w_tpms',
+                # Template
+                'ref_file',
+                'anat2std_xfm',
+                # Entities
+                'space',
+                'cohort',
+                'resolution',
+            ]
+        ),
+        name='inputnode',
+    )
+
+    raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
+    raw_sources.inputs.bids_root = bids_root
+
+    gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
+
+    # Mask T1w preproc images
+    mask_t1w = pe.Node(ApplyMask(), name='mask_t1w')
+
+    # Resample T1w-space inputs
+    anat2std_t1w = pe.Node(
+        ApplyTransforms(
+            dimension=3,
+            default_value=0,
+            float=True,
+            interpolation="LanczosWindowedSinc",
+        ),
+        name="anat2std_t1w",
+    )
+
+    anat2std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_mask")
+    anat2std_dseg = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_dseg")
+    anat2std_tpms = pe.MapNode(
+        ApplyTransforms(dimension=3, default_value=0, float=True, interpolation="Gaussian"),
+        iterfield=["input_image"],
+        name="anat2std_tpms",
+    )
+
+    ds_std_t1w = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc="preproc",
+            compress=True,
+        ),
+        name="ds_std_t1w",
+        run_without_submitting=True,
+    )
+    ds_std_t1w.inputs.SkullStripped = True
+
+    ds_std_mask = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir, desc="brain", suffix="mask", compress=True
+        ),
+        name="ds_std_mask",
+        run_without_submitting=True,
+    )
+    ds_std_mask.inputs.Type = "Brain"
+
+    ds_std_dseg = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, suffix="dseg", compress=True),
+        name="ds_std_dseg",
+        run_without_submitting=True,
+    )
+
+    ds_std_tpms = pe.Node(
+        DerivativesDataSink(base_directory=output_dir, suffix="probseg", compress=True),
+        name="ds_std_tpms",
+        run_without_submitting=True,
+    )
+
+    # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
+    #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
+    #           output in the data/io_spec.json file.
+    ds_std_tpms.inputs.label = tpm_labels
+
+    workflow.connect([
+        (inputnode, gen_ref, [
+            ("ref_file", "fixed_image"),
+            (("resolution", _is_native), "keep_native"),
+        ]),
+        (inputnode, mask_t1w, [
+            ("t1w_preproc", "in_file"),
+            ("t1w_mask", "in_mask"),
+        ]),
+        (mask_t1w, anat2std_t1w, [("out_file", "input_image")]),
+        (inputnode, anat2std_mask, [("t1w_mask", "input_image")]),
+        (inputnode, anat2std_dseg, [("t1w_dseg", "input_image")]),
+        (inputnode, anat2std_tpms, [("t1w_tpms", "input_image")]),
+        (inputnode, gen_ref, [("t1w_preproc", "moving_image")]),
+        (anat2std_t1w, ds_std_t1w, [("output_image", "in_file")]),
+        (anat2std_mask, ds_std_mask, [("output_image", "in_file")]),
+        (anat2std_dseg, ds_std_dseg, [("output_image", "in_file")]),
+        (anat2std_tpms, ds_std_tpms, [("output_image", "in_file")]),
+    ])  # fmt:skip
+
+    workflow.connect(
+        # Connect apply transforms nodes
+        [
+            (gen_ref, n, [('out_file', 'reference_image')])
+            for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
+        ]
+        + [
+            (inputnode, n, [('anat2std_xfm', 'transforms')])
+            for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
+        ]
+        + [
+            (inputnode, n, [
+                ('source_files', 'source_file'),
+                ('space', 'space'),
+                ('cohort', 'cohort'),
+                ('resolution', 'resolution'),
+            ])
+            for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
+        ]
+    )  # fmt:skip
+
+    return workflow
+
+
 def init_anat_second_derivatives_wf(
     *,
     bids_root: str,
     output_dir: str,
     freesurfer: bool,
-    spaces: SpatialReferences,
     cifti_output: ty.Literal["91k", "170k", False],
     name="anat_second_derivatives_wf",
     tpm_labels=BIDS_TISSUE_ORDER,
@@ -869,13 +1007,6 @@ def init_anat_second_derivatives_wf(
             fields=[
                 "template",
                 "source_files",
-                "t1w_preproc",
-                "t1w_mask",
-                "t1w_dseg",
-                "t1w_tpms",
-                "anat2std_xfm",
-                "sphere_reg",
-                "sphere_reg_fsLR",
                 "t1w_fs_aseg",
                 "t1w_fs_aparc",
                 "cifti_morph",
@@ -887,128 +1018,6 @@ def init_anat_second_derivatives_wf(
 
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name="raw_sources")
     raw_sources.inputs.bids_root = bids_root
-
-    # Write derivatives in standard spaces specified by --output-spaces
-    if getattr(spaces, "_cached") is not None and spaces.cached.references:
-        from niworkflows.interfaces.nibabel import GenerateSamplingReference
-
-        template_iterator_wf = init_template_iterator_wf(spaces=spaces)
-
-        gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
-
-        # Mask T1w preproc images
-        mask_t1w = pe.Node(ApplyMask(), name='mask_t1w')
-
-        # Resample T1w-space inputs
-        anat2std_t1w = pe.Node(
-            ApplyTransforms(
-                dimension=3,
-                default_value=0,
-                float=True,
-                interpolation="LanczosWindowedSinc",
-            ),
-            name="anat2std_t1w",
-        )
-
-        anat2std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_mask")
-        anat2std_dseg = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_dseg")
-        anat2std_tpms = pe.MapNode(
-            ApplyTransforms(dimension=3, default_value=0, float=True, interpolation="Gaussian"),
-            iterfield=["input_image"],
-            name="anat2std_tpms",
-        )
-
-        ds_std_t1w = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir,
-                desc="preproc",
-                compress=True,
-            ),
-            name="ds_std_t1w",
-            run_without_submitting=True,
-        )
-        ds_std_t1w.inputs.SkullStripped = True
-
-        ds_std_mask = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, desc="brain", suffix="mask", compress=True
-            ),
-            name="ds_std_mask",
-            run_without_submitting=True,
-        )
-        ds_std_mask.inputs.Type = "Brain"
-
-        ds_std_dseg = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, suffix="dseg", compress=True),
-            name="ds_std_dseg",
-            run_without_submitting=True,
-        )
-
-        ds_std_tpms = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, suffix="probseg", compress=True),
-            name="ds_std_tpms",
-            run_without_submitting=True,
-        )
-
-        # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
-        #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
-        #           output in the data/io_spec.json file.
-        ds_std_tpms.inputs.label = tpm_labels
-        # fmt:off
-        workflow.connect([
-            (inputnode, template_iterator_wf, [
-                ("anat2std_xfm", "inputnode.anat2std_xfm"),
-                ("template", "inputnode.template"),
-            ]),
-            (inputnode, mask_t1w, [("t1w_preproc", "in_file"),
-                                   ("t1w_mask", "in_mask")]),
-            (mask_t1w, anat2std_t1w, [("out_file", "input_image")]),
-            (inputnode, anat2std_mask, [("t1w_mask", "input_image")]),
-            (inputnode, anat2std_dseg, [("t1w_dseg", "input_image")]),
-            (inputnode, anat2std_tpms, [("t1w_tpms", "input_image")]),
-            (inputnode, gen_ref, [("t1w_preproc", "moving_image")]),
-            (template_iterator_wf, gen_ref, [
-                ("outputnode.std_t1w", "fixed_image"),
-                (("outputnode.resolution", _is_native), "keep_native"),
-            ]),
-            (anat2std_t1w, ds_std_t1w, [("output_image", "in_file")]),
-            (anat2std_mask, ds_std_mask, [("output_image", "in_file")]),
-            (anat2std_dseg, ds_std_dseg, [("output_image", "in_file")]),
-            (anat2std_tpms, ds_std_tpms, [("output_image", "in_file")]),
-            (template_iterator_wf, ds_std_mask, [
-                (("outputnode.std_mask", _drop_path), "RawSources"),
-            ]),
-        ])
-
-        workflow.connect(
-            # Connect apply transforms nodes
-            [
-                (gen_ref, n, [('out_file', 'reference_image')])
-                for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
-            ]
-            + [
-                (template_iterator_wf, n, [('outputnode.anat2std_xfm', 'transforms')])
-                for n in (anat2std_t1w, anat2std_mask, anat2std_dseg, anat2std_tpms)
-            ]
-            # Connect the source_file input of these datasinks
-            + [
-                (inputnode, n, [('source_files', 'source_file')])
-                for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
-            ]
-            # Connect the space input of these datasinks
-            + [
-                (template_iterator_wf, n, [
-                    ('outputnode.space', 'space'),
-                    ('outputnode.cohort', 'cohort'),
-                    ('outputnode.resolution', 'resolution'),
-                ])
-                for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
-            ]
-        )
-        # fmt:on
-
-    if not freesurfer:
-        return workflow
 
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
