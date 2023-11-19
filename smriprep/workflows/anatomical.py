@@ -1343,7 +1343,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         # fmt:on
     elif msm_sulc:
         LOGGER.info("ANAT Stage 10: Found pre-computed MSM-Sulc registration sphere")
-        fsLR_buffer.inputs.sphere_reg_msm = sorted(precomputed["sphere_reg_msm"])
+        msm_buffer.inputs.sphere_reg_msm = sorted(precomputed["sphere_reg_msm"])
     else:
         LOGGER.info("ANAT Stage 10: MSM-Sulc disabled")
 
