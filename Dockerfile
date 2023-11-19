@@ -96,7 +96,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 
 # Some baseline tools
 # bc is needed for FreeSurfer
-# libglu1-mesa-dev is needed for Connectome Workbench
+# libglu1-mesa is needed for Connectome Workbench
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
                     bc \
@@ -104,7 +104,7 @@ RUN apt-get update && \
                     curl \
                     git \
                     gnupg \
-                    libglu1-mesa-dev \
+                    libglu1-mesa \
                     lsb-release \
                     netbase \
                     xvfb && \
