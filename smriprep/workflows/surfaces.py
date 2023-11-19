@@ -1309,6 +1309,84 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
     return workflow
 
 
+def init_resample_midthickness_wf(
+    grayord_density: ty.Literal['91k', '170k'],
+    name: str = "resample_midthickness_wf",
+):
+    """
+    Resample subject midthickness surface to specified density.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: colored
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_resample_midthickness_wf
+            wf = init_resample_midthickness_wf(grayord_density="91k")
+
+    Parameters
+    ----------
+    grayord_density : :obj:`str`
+        Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
+    name : :obj:`str`
+        Unique name for the subworkflow (default: ``"resample_midthickness_wf"``)
+
+    Inputs
+    ------
+    midthickness
+        GIFTI surface mesh corresponding to the midthickness surface
+    sphere_reg_fsLR
+        GIFTI surface mesh corresponding to the subject's fsLR registration sphere
+
+    Outputs
+    -------
+    midthickness
+        GIFTI surface mesh corresponding to the midthickness surface, resampled to fsLR
+    """
+    import templateflow.api as tf
+    from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+
+    workflow = Workflow(name=name)
+
+    fslr_density = "32k" if grayord_density == "91k" else "59k"
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=["midthickness", "sphere_reg_fsLR"]),
+        name="inputnode",
+    )
+
+    outputnode = pe.Node(niu.IdentityInterface(fields=["midthickness_fsLR"]), name="outputnode")
+
+    resampler = pe.MapNode(
+        SurfaceResample(method='BARYCENTRIC'),
+        iterfield=['surface_in', 'current_sphere', 'new_sphere'],
+        name="resampler",
+    )
+    resampler.inputs.new_sphere = [
+        str(
+            tf.get(
+                template='fsLR',
+                density=fslr_density,
+                suffix='sphere',
+                hemi=hemi,
+                space=None,
+                extension='.surf.gii',
+            )
+        )
+        for hemi in ['L', 'R']
+    ]
+
+    workflow.connect([
+        (inputnode, resampler, [
+            ('midthickness', 'surface_in'),
+            ('sphere_reg_fsLR', 'current_sphere'),
+        ]),
+        (resampler, outputnode, [('surface_out', 'midthickness_fsLR')]),
+    ])  # fmt:skip
+
+    return workflow
+
+
 def init_morph_grayords_wf(
     grayord_density: ty.Literal['91k', '170k'],
     omp_nthreads: int,
@@ -1383,6 +1461,7 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
                 "thickness",
                 "roi",
                 "midthickness",
+                "midthickness_fsLR",
                 "sphere_reg_fsLR",
             ]
         ),
@@ -1421,7 +1500,8 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
                 "thickness",
                 "roi",
                 "midthickness",
-                "sphere_reg",
+                "midthickness_fsLR",
+                "sphere_reg_fsLR",
                 "template_sphere",
                 "template_roi",
             ],
@@ -1448,11 +1528,6 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
         str(atlases / f'R.atlasroi.{fslr_density}_fs_LR.shape.gii'),
     ]
 
-    downsampled_midthickness = pe.Node(
-        SurfaceResample(method='BARYCENTRIC'),
-        name="downsampled_midthickness",
-    )
-
     workflow.connect([
         (inputnode, select_surfaces, [
             ('curv', 'curv'),
@@ -1460,14 +1535,10 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
             ('thickness', 'thickness'),
             ('roi', 'roi'),
             ('midthickness', 'midthickness'),
-            ('sphere_reg_fsLR', 'sphere_reg'),
+            ('midthickness_fsLR', 'midthickness_fsLR'),
+            ('sphere_reg_fsLR', 'sphere_reg_fsLR'),
         ]),
         (hemisource, select_surfaces, [('hemi', 'key')]),
-        (select_surfaces, downsampled_midthickness, [
-            ('midthickness', 'surface_in'),
-            ('sphere_reg', 'current_sphere'),
-            ('template_sphere', 'new_sphere'),
-        ]),
     ])  # fmt:skip
 
     for metric in ('curv', 'sulc', 'thickness'):
@@ -1491,12 +1562,12 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
         workflow.connect([
             (select_surfaces, resampler, [
                 (metric, 'in_file'),
-                ('sphere_reg', 'current_sphere'),
+                ('sphere_reg_fsLR', 'current_sphere'),
                 ('template_sphere', 'new_sphere'),
                 ('midthickness', 'current_area'),
+                ('midthickness_fsLR', 'new_area'),
                 ('roi', 'roi_metric'),
             ]),
-            (downsampled_midthickness, resampler, [('surface_out', 'new_area')]),
             (select_surfaces, mask_fsLR, [('template_roi', 'mask')]),
             (resampler, mask_fsLR, [('out_file', 'in_file')]),
             (mask_fsLR, cifti_metric, [('out_file', 'scalar_surfs')]),

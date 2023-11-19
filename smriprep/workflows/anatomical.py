@@ -78,6 +78,7 @@ from .surfaces import (
     init_surface_derivatives_wf,
     init_surface_recon_wf,
     init_refinement_wf,
+    init_resample_midthickness_wf,
 )
 
 LOGGER = logging.getLogger("nipype.workflow")
@@ -368,6 +369,7 @@ def init_anat_preproc_wf(
 
         if cifti_output:
             hcp_morphometrics_wf = init_hcp_morphometrics_wf(omp_nthreads=omp_nthreads)
+            resample_midthickness_wf = init_resample_midthickness_wf(grayord_density=cifti_output)
             morph_grayords_wf = init_morph_grayords_wf(
                 grayord_density=cifti_output, omp_nthreads=omp_nthreads
             )
@@ -382,6 +384,13 @@ def init_anat_preproc_wf(
                 (surface_derivatives_wf, hcp_morphometrics_wf, [
                     ('outputnode.curv', 'inputnode.curv'),
                 ]),
+                (anat_fit_wf, resample_midthickness_wf, [
+                    ('outputnode.midthickness', 'inputnode.midthickness'),
+                    (
+                        f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
+                        "inputnode.sphere_reg_fsLR",
+                    ),
+                ]),
                 (anat_fit_wf, morph_grayords_wf, [
                     ('outputnode.midthickness', 'inputnode.midthickness'),
                     (
@@ -394,6 +403,9 @@ def init_anat_preproc_wf(
                     ('outputnode.sulc', 'inputnode.sulc'),
                     ('outputnode.thickness', 'inputnode.thickness'),
                     ('outputnode.roi', 'inputnode.roi'),
+                ]),
+                (resample_midthickness_wf, morph_grayords_wf, [
+                    ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
                 ]),
             ])  # fmt:skip
 
