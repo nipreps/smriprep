@@ -56,6 +56,7 @@ from .fit.registration import init_register_template_wf
 from .outputs import (
     init_anat_reports_wf,
     init_ds_anat_volumes_wf,
+    init_ds_grayord_metrics_wf,
     init_ds_surface_metrics_wf,
     init_ds_surfaces_wf,
     init_ds_template_wf,
@@ -374,6 +375,13 @@ def init_anat_preproc_wf(
                 grayord_density=cifti_output, omp_nthreads=omp_nthreads
             )
 
+            ds_grayord_metrics_wf = init_ds_grayord_metrics_wf(
+                bids_root=bids_root,
+                output_dir=output_dir,
+                metrics=['curv', 'thickness', 'sulc'],
+                cifti_output=cifti_output,
+            )
+
             workflow.connect([
                 (anat_fit_wf, hcp_morphometrics_wf, [
                     ('outputnode.subject_id', 'inputnode.subject_id'),
@@ -406,6 +414,17 @@ def init_anat_preproc_wf(
                 ]),
                 (resample_midthickness_wf, morph_grayords_wf, [
                     ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
+                ]),
+                (anat_fit_wf, ds_grayord_metrics_wf, [
+                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ]),
+                (morph_grayords_wf, ds_grayord_metrics_wf, [
+                    ('outputnode.curv_fsLR', 'inputnode.curv'),
+                    ('outputnode.curv_metadata', 'inputnode.curv_metadata'),
+                    ('outputnode.thickness_fsLR', 'inputnode.thickness'),
+                    ('outputnode.thickness_metadata', 'inputnode.thickness_metadata'),
+                    ('outputnode.sulc_fsLR', 'inputnode.sulc'),
+                    ('outputnode.sulc_metadata', 'inputnode.sulc_metadata'),
                 ]),
             ])  # fmt:skip
 
