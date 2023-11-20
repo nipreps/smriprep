@@ -100,6 +100,7 @@ def init_anat_preproc_wf(
     spaces: SpatialReferences,
     precomputed: dict,
     omp_nthreads: int,
+    flair: list = (),  # Remove default after callers start passing it
     debug: bool = False,
     sloppy: bool = False,
     cifti_output: ty.Literal["91k", "170k", False] = False,
@@ -263,6 +264,7 @@ def init_anat_preproc_wf(
         spaces=spaces,
         t1w=t1w,
         t2w=t2w,
+        flair=flair,
         precomputed=precomputed,
         debug=debug,
         sloppy=sloppy,
@@ -446,6 +448,7 @@ def init_anat_fit_wf(
     spaces: SpatialReferences,
     precomputed: dict,
     omp_nthreads: int,
+    flair: list = (),  # Remove default after callers start passing it
     debug: bool = False,
     sloppy: bool = False,
     name="anat_fit_wf",
@@ -480,6 +483,7 @@ def init_anat_fit_wf(
                 msm_sulc=True,
                 t1w=['t1w.nii.gz'],
                 t2w=['t2w.nii.gz'],
+                flair=[],
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
@@ -1033,6 +1037,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         hires=hires,
         precomputed=precomputed,
     )
+    if t2w or flair:
+        t2w_or_flair = "T2-weighted" if t2w else "FLAIR"
+        surface_recon_wf.__desc__ += f"""\
+A {t2w_or_flair} image was used to improve pial surface refinement.
+"""
 
     # fmt:off
     workflow.connect([
