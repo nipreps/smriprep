@@ -794,7 +794,7 @@ and used as T1w-reference throughout the workflow.
         if skull_strip_mode == "auto":
             run_skull_strip = all(_is_skull_stripped(img) for img in t1w)
         else:
-            run_skull_strip = {"force": True, "skip": False}
+            run_skull_strip = {"force": True, "skip": False}[skull_strip_mode]
 
         # Brain extraction
         if run_skull_strip:
@@ -1155,9 +1155,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
             (coreg_xfms, t2wtot1w_xfm, [('out', 'in_xfms')]),
             (t2w_template_wf, t2w_resample, [('outputnode.anat_ref', 'input_image')]),
-            (brain_extraction_wf, t2w_resample, [
-                (('outputnode.bias_corrected', _pop), 'reference_image'),
-            ]),
+            (t1w_buffer, t2w_resample, [('T1w_preproc', 'reference_image')]),
             (t2wtot1w_xfm, t2w_resample, [('out_xfm', 'transforms')]),
             (inputnode, ds_t2w_preproc, [('t2w', 'source_file')]),
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
