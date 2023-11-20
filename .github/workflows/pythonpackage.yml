@@ -27,7 +27,7 @@ jobs:
       commit_message: ${{ steps.get_commit_message.outputs.commit_message }}
     steps:
       - name: Get repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Print head git commit message
@@ -46,7 +46,7 @@ jobs:
     if: "!contains(needs.check_if_skip.outputs.commit_message, '[skip ci]')"
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Display Python version
@@ -79,7 +79,7 @@ jobs:
       INSTALL_TYPE: ${{ matrix.install }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       if: matrix.install == 'repo' || matrix.install == 'editable'
     - name: Fetch packages
       uses: actions/download-artifact@v3
@@ -116,5 +116,5 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: pipx run flake8 smriprep
