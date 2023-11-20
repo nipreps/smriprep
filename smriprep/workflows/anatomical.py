@@ -23,8 +23,6 @@
 """Anatomical reference preprocessing workflows."""
 import typing as ty
 
-from pkg_resources import resource_filename as pkgr
-
 from nipype import logging
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
@@ -50,6 +48,7 @@ from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.utils.spaces import SpatialReferences, Reference
 from niworkflows.utils.misc import add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
+from ..data import load_resource
 from ..interfaces import DerivativesDataSink
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
@@ -1454,7 +1453,7 @@ An anatomical {contrast}-reference map was computed after registration of
 
     if num_files == 1:
         get1st = pe.Node(niu.Select(index=[0]), name="get1st")
-        outputnode.inputs.anat_realign_xfm = [pkgr("smriprep", "data/itkIdentityTransform.txt")]
+        outputnode.inputs.anat_realign_xfm = [str(load_resource("itkIdentityTransform.txt"))]
 
         # fmt:off
         workflow.connect([
