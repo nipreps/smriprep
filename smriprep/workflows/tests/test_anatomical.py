@@ -11,7 +11,11 @@ from ..anatomical import init_anat_preproc_wf, init_anat_fit_wf
 
 BASE_LAYOUT = {
     "01": {
-        "anat": [{"suffix": "T1w"}, {"suffix": "T2w"}],
+        "anat": [
+            {"run": 1, "suffix": "T1w"},
+            {"run": 2, "suffix": "T1w"},
+            {"suffix": "T2w"},
+        ],
         "func": [
             {
                 "task": "rest",
@@ -37,6 +41,17 @@ BASE_LAYOUT = {
         ],
     },
 }
+
+
+@pytest.fixture(scope="module", autouse=True)
+def quiet_logger():
+    import logging
+
+    logger = logging.getLogger("nipype.workflow")
+    old_level = logger.getEffectiveLevel()
+    logger.setLevel(logging.ERROR)
+    yield
+    logger.setLevel(old_level)
 
 
 @pytest.fixture(scope="module")
@@ -115,6 +130,8 @@ def test_anat_fit_wf(
 @pytest.mark.parametrize("t1w_mask", [False, True])
 @pytest.mark.parametrize("t1w_dseg", [False, True])
 @pytest.mark.parametrize("t1w_tpms", [False, True])
+@pytest.mark.parametrize("t1w", [1, 2])
+@pytest.mark.parametrize("t2w", [0, 1])
 def test_anat_fit_precomputes(
     bids_root: Path,
     tmp_path: Path,
@@ -123,9 +140,17 @@ def test_anat_fit_precomputes(
     t1w_mask: bool,
     t1w_dseg: bool,
     t1w_tpms: bool,
+    t1w: int,
+    t2w: int,
 ):
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
+
+    t1w_list = [
+        str(bids_root / "sub-01" / "anat" / "sub-01_run-1_T1w.nii.gz"),
+        str(bids_root / "sub-01" / "anat" / "sub-01_run-2_T1w.nii.gz"),
+    ][:t1w]
+    t2w_list = [str(bids_root / "sub-01" / "anat" / "sub-01_T2w.nii.gz")][:t2w]
 
     empty_img = nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4))
     precomputed = {}
@@ -146,12 +171,12 @@ def test_anat_fit_precomputes(
     init_anat_fit_wf(
         bids_root=str(bids_root),
         output_dir=str(output_dir),
-        freesurfer=False,
+        freesurfer=True,
         hires=False,
         longitudinal=False,
         msm_sulc=True,
-        t1w=[str(bids_root / "sub-01" / "anat" / "sub-01_T1w.nii.gz")],
-        t2w=[str(bids_root / "sub-01" / "anat" / "sub-01_T2w.nii.gz")],
+        t1w=t1w_list,
+        t2w=t2w_list,
         skull_strip_mode='force',
         skull_strip_template=Reference("OASIS30ANTs"),
         spaces=SpatialReferences(
