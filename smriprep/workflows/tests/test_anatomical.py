@@ -67,7 +67,7 @@ def test_init_anat_preproc_wf(
         msm_sulc=False,
         t1w=[str(bids_root / "sub-01" / "anat" / "sub-01_T1w.nii.gz")],
         t2w=[str(bids_root / "sub-01" / "anat" / "sub-01_T2w.nii.gz")],
-        skull_strip_mode=False,
+        skull_strip_mode='force',
         skull_strip_template=Reference("OASIS30ANTs"),
         spaces=SpatialReferences(
             spaces=["MNI152NLin2009cAsym", "fsaverage5"],
@@ -152,7 +152,7 @@ def test_anat_fit_precomputes(
         msm_sulc=True,
         t1w=[str(bids_root / "sub-01" / "anat" / "sub-01_T1w.nii.gz")],
         t2w=[str(bids_root / "sub-01" / "anat" / "sub-01_T2w.nii.gz")],
-        skull_strip_mode=False,
+        skull_strip_mode='force',
         skull_strip_template=Reference("OASIS30ANTs"),
         spaces=SpatialReferences(
             spaces=["MNI152NLin2009cAsym", "fsaverage5"],
