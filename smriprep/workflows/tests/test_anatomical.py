@@ -125,33 +125,43 @@ def test_anat_fit_wf(
     )
 
 
+@pytest.mark.parametrize("t1w", [1, 2])
+@pytest.mark.parametrize("t2w", [0, 1])
+@pytest.mark.parametrize("skull_strip_mode", ['skip', 'force'])
 @pytest.mark.parametrize("t1w_preproc", [False, True])
 @pytest.mark.parametrize("t2w_preproc", [False, True])
 @pytest.mark.parametrize("t1w_mask", [False, True])
 @pytest.mark.parametrize("t1w_dseg", [False, True])
 @pytest.mark.parametrize("t1w_tpms", [False, True])
-@pytest.mark.parametrize("t1w", [1, 2])
-@pytest.mark.parametrize("t2w", [0, 1])
+@pytest.mark.parametrize("xfms", [False, True])
+@pytest.mark.parametrize("sphere_reg_msm", [0, 1, 2])
 def test_anat_fit_precomputes(
     bids_root: Path,
     tmp_path: Path,
+    t1w: int,
+    t2w: int,
+    skull_strip_mode: str,
     t1w_preproc: bool,
     t2w_preproc: bool,
     t1w_mask: bool,
     t1w_dseg: bool,
     t1w_tpms: bool,
-    t1w: int,
-    t2w: int,
+    xfms: bool,
+    sphere_reg_msm: int,
 ):
+    """Test as many combinations of precomputed files and input
+    configurations as possible."""
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
 
+    # Construct inputs
     t1w_list = [
         str(bids_root / "sub-01" / "anat" / "sub-01_run-1_T1w.nii.gz"),
         str(bids_root / "sub-01" / "anat" / "sub-01_run-2_T1w.nii.gz"),
     ][:t1w]
     t2w_list = [str(bids_root / "sub-01" / "anat" / "sub-01_T2w.nii.gz")][:t2w]
 
+    # Construct precomputed files
     empty_img = nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4))
     precomputed = {}
     if t1w_preproc:
@@ -168,6 +178,30 @@ def test_anat_fit_precomputes(
     for path in precomputed.values():
         empty_img.to_filename(path)
 
+    precomputed["sphere_reg_msm"] = [
+        str(tmp_path / f"sub-01_hemi-{hemi}_desc-msm_sphere.surf.gii")
+        for hemi in ["L", "R"]
+    ][:sphere_reg_msm]
+    for path in precomputed["sphere_reg_msm"]:
+        Path(path).touch()
+
+    if xfms:
+        transforms = precomputed["transforms"] = {}
+        transforms["MNI152NLin2009cAsym"] = {
+            "forward": str(tmp_path / "MNI152NLin2009cAsym_forward_xfm.txt"),
+            "reverse": str(tmp_path / "MNI152NLin2009cAsym_reverse_xfm.txt"),
+        }
+        transforms["fsnative"] = {
+            "forward": str(tmp_path / "fsnative_forward_xfm.txt"),
+            "reverse": str(tmp_path / "fsnative_reverse_xfm.txt"),
+        }
+
+        # Write dummy transforms
+        for xfm in transforms.values():
+            for path in xfm.values():
+                Path(path).touch()
+
+    # Create workflow
     init_anat_fit_wf(
         bids_root=str(bids_root),
         output_dir=str(output_dir),
@@ -177,7 +211,7 @@ def test_anat_fit_precomputes(
         msm_sulc=True,
         t1w=t1w_list,
         t2w=t2w_list,
-        skull_strip_mode='force',
+        skull_strip_mode=skull_strip_mode,
         skull_strip_template=Reference("OASIS30ANTs"),
         spaces=SpatialReferences(
             spaces=["MNI152NLin2009cAsym", "fsaverage5"],
