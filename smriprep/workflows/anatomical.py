@@ -794,7 +794,7 @@ and used as T1w-reference throughout the workflow.
         if skull_strip_mode == "auto":
             run_skull_strip = all(_is_skull_stripped(img) for img in t1w)
         else:
-            run_skull_strip = {"force": True, "skip": False}
+            run_skull_strip = {"force": True, "skip": False}[skull_strip_mode]
 
         # Brain extraction
         if run_skull_strip:
