@@ -44,7 +44,7 @@ BASE_LAYOUT = {
 
 
 @pytest.fixture(scope='module', autouse=True)
-def quiet_logger():
+def _quiet_logger():
     import logging
 
     logger = logging.getLogger('nipype.workflow')
@@ -59,7 +59,7 @@ def bids_root(tmp_path_factory):
     base = tmp_path_factory.mktemp('base')
     bids_dir = base / 'bids'
     generate_bids_skeleton(bids_dir, BASE_LAYOUT)
-    yield bids_dir
+    return bids_dir
 
 
 @pytest.mark.parametrize('freesurfer', [True, False])

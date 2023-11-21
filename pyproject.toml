@@ -157,6 +157,8 @@ extend-select = [
   "EXE",
   "FA",
   "ISC",
+  "ICN",
+  "PT",
 ]
 
 [tool.ruff.flake8-quotes]

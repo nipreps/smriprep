@@ -36,7 +36,7 @@ def _gen_fsdir(tmp_path, isrunning):
 
 
 @pytest.mark.parametrize(
-    'isrunning,mtime_tol,error',
+    ('isrunning', 'mtime_tol', 'error'),
     [
         (False, 86400, None),
         (True, 86400, RuntimeError),
