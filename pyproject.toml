@@ -136,3 +136,21 @@ source = [
     "smriprep/",
     "*/site-packages/smriprep",
 ]
+
+[tool.ruff]
+line-length = 99
+extend-select = [
+  "F",
+  "E",
+  "W",
+  "A",
+  "I",
+  "UP",
+  "B",
+]
+
+[tool.ruff.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.format]
+quote-style = "single"

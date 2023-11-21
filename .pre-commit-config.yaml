@@ -10,17 +10,8 @@ repos:
       - id: check-added-large-files
       - id: check-toml
       - id: check-json
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
     hooks:
-      - id: flake8
-  # - repo: https://github.com/psf/black
-  #   rev: 23.1.0
-  #   hooks:
-  #     - id: black
-  #       files: ^smriprep/|^wrapper/
-  # - repo: https://github.com/pycqa/isort
-  #   rev: 5.12.0
-  #   hooks:
-  #     - id: isort
-  #       files: ^smriprep/|^wrapper/
+      - id: ruff
+      - id: ruff-format
