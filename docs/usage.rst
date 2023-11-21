@@ -14,7 +14,7 @@ The input dataset is required to be in valid :abbr:`BIDS (Brain Imaging Data
 Structure)` format, and it must include at least one T1w structural image and
 (unless disabled with a flag) a BOLD series.
 We highly recommend that you validate your dataset with the free, online
-`BIDS Validator <http://bids-standard.github.io/bids-validator/>`_.
+`BIDS Validator <https://bids-standard.github.io/bids-validator/>`_.
 
 The exact command to run *sMRIPrep* depends on the Installation_ method.
 The common parts of the command follow the `BIDS-Apps
@@ -94,4 +94,3 @@ would be equivalent to the latest example: ::
         -v /path/to_output/dir:/out nipreps/smriprep:1.0.0 \
         /data /out participant
     ...
-

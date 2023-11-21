@@ -452,13 +452,13 @@ def build_workflow(opts, retval):
     import warnings
     from time import strftime
     from subprocess import check_call, CalledProcessError, TimeoutExpired
-    from pkg_resources import resource_filename as pkgrf
 
     import json
     from bids import BIDSLayout
     from nipype import logging, config as ncfg
     from niworkflows.utils.bids import collect_participants
     from ..__about__ import __version__
+    from ..data import load_resource
     from ..workflows.base import init_smriprep_wf
 
     logger = logging.getLogger("nipype.workflow")
@@ -540,11 +540,9 @@ def build_workflow(opts, retval):
             "logging": {"log_directory": str(log_dir), "log_to_file": True},
             "execution": {
                 "crashdump_dir": str(log_dir),
-                "crashfile_format": "pklz",
+                "crashfile_format": "txt",
                 "get_linked_libs": False,
                 "stop_on_first_crash": opts.stop_on_first_crash,
-                "poll_sleep_duration": 0.1,
-                "keep_unnecessary_outputs": True,
             },
             "monitoring": {
                 "enabled": opts.resource_monitor,
@@ -638,12 +636,14 @@ def build_workflow(opts, retval):
         boilerplate,
     )
 
+    boilerplate_bib = load_resource("boilerplate.bib")
+
     # Generate HTML file resolving citations
     cmd = [
         "pandoc",
         "-s",
         "--bibliography",
-        pkgrf("smriprep", "data/boilerplate.bib"),
+        str(boilerplate_bib),
         "--citeproc",
         "--metadata",
         'pagetitle="sMRIPrep citation boilerplate"',
@@ -661,7 +661,7 @@ def build_workflow(opts, retval):
         "pandoc",
         "-s",
         "--bibliography",
-        pkgrf("smriprep", "data/boilerplate.bib"),
+        str(boilerplate_bib),
         "--natbib",
         str(log_dir / "CITATION.md"),
         "-o",
@@ -672,7 +672,7 @@ def build_workflow(opts, retval):
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning("Could not generate CITATION.tex file:\n%s", " ".join(cmd))
     else:
-        copyfile(pkgrf("smriprep", "data/boilerplate.bib"), str(log_dir / "CITATION.bib"))
+        copyfile(str(boilerplate_bib), str(log_dir / "CITATION.bib"))
     return retval
 
 

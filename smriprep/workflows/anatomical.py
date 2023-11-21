@@ -23,8 +23,6 @@
 """Anatomical reference preprocessing workflows."""
 import typing as ty
 
-from pkg_resources import resource_filename as pkgr
-
 from nipype import logging
 from nipype.pipeline import engine as pe
 from nipype.interfaces import (
@@ -50,11 +48,14 @@ from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.utils.spaces import SpatialReferences, Reference
 from niworkflows.utils.misc import add_suffix
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
+from ..data import load_resource
 from ..interfaces import DerivativesDataSink
 from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
 from .outputs import (
     init_anat_reports_wf,
+    init_ds_anat_volumes_wf,
+    init_ds_grayord_metrics_wf,
     init_ds_surface_metrics_wf,
     init_ds_surfaces_wf,
     init_ds_template_wf,
@@ -64,16 +65,20 @@ from .outputs import (
     init_ds_template_registration_wf,
     init_ds_fs_registration_wf,
     init_anat_second_derivatives_wf,
+    init_template_iterator_wf,
 )
 from .surfaces import (
     init_anat_ribbon_wf,
     init_fsLR_reg_wf,
     init_gifti_morphometrics_wf,
+    init_hcp_morphometrics_wf,
     init_gifti_surfaces_wf,
+    init_morph_grayords_wf,
     init_msm_sulc_wf,
     init_surface_derivatives_wf,
     init_surface_recon_wf,
     init_refinement_wf,
+    init_resample_midthickness_wf,
 )
 
 LOGGER = logging.getLogger("nipype.workflow")
@@ -94,6 +99,7 @@ def init_anat_preproc_wf(
     spaces: SpatialReferences,
     precomputed: dict,
     omp_nthreads: int,
+    flair: list = (),  # Remove default after callers start passing it
     debug: bool = False,
     sloppy: bool = False,
     cifti_output: ty.Literal["91k", "170k", False] = False,
@@ -114,6 +120,8 @@ def init_anat_preproc_wf(
 
             from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.anatomical import init_anat_preproc_wf
+            spaces = SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5'])
+            spaces.checkpoint()
             wf = init_anat_preproc_wf(
                 bids_root='.',
                 output_dir='.',
@@ -125,7 +133,7 @@ def init_anat_preproc_wf(
                 t2w=[],
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
-                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
+                spaces=spaces,
                 precomputed={},
                 omp_nthreads=1,
             )
@@ -260,6 +268,7 @@ def init_anat_preproc_wf(
         spaces=spaces,
         t1w=t1w,
         t2w=t2w,
+        flair=flair,
         precomputed=precomputed,
         debug=debug,
         sloppy=sloppy,
@@ -267,14 +276,13 @@ def init_anat_preproc_wf(
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         fs_reuse_base=fs_reuse_base,
     )
-    anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+    template_iterator_wf = init_template_iterator_wf(spaces=spaces)
+    ds_std_volumes_wf = init_ds_anat_volumes_wf(
         bids_root=bids_root,
-        freesurfer=freesurfer,
         output_dir=output_dir,
-        spaces=spaces,
-        cifti_output=cifti_output,
+        name="ds_std_volumes_wf",
     )
-    # fmt:off
+
     workflow.connect([
         (inputnode, anat_fit_wf, [
             ("t1w", "inputnode.t1w"),
@@ -299,19 +307,32 @@ def init_anat_preproc_wf(
             (f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}", "sphere_reg_fsLR"),
             ("outputnode.anat_ribbon", "anat_ribbon"),
         ]),
-        (anat_fit_wf, anat_second_derivatives_wf, [
-            ('outputnode.template', 'inputnode.template'),
+        (anat_fit_wf, template_iterator_wf, [
+            ("outputnode.template", "inputnode.template"),
+            ("outputnode.anat2std_xfm", "inputnode.anat2std_xfm"),
+        ]),
+        (anat_fit_wf, ds_std_volumes_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files'),
             ("outputnode.t1w_preproc", "inputnode.t1w_preproc"),
             ("outputnode.t1w_mask", "inputnode.t1w_mask"),
             ("outputnode.t1w_dseg", "inputnode.t1w_dseg"),
             ("outputnode.t1w_tpms", "inputnode.t1w_tpms"),
-            ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
         ]),
-    ])
-    # fmt:on
-    if freesurfer:
+        (template_iterator_wf, ds_std_volumes_wf, [
+            ("outputnode.std_t1w", "inputnode.ref_file"),
+            ("outputnode.anat2std_xfm", "inputnode.anat2std_xfm"),
+            ("outputnode.space", "inputnode.space"),
+            ("outputnode.cohort", "inputnode.cohort"),
+            ("outputnode.resolution", "inputnode.resolution"),
+        ]),
+    ])  # fmt:skip
 
+    if freesurfer:
+        anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+            bids_root=bids_root,
+            output_dir=output_dir,
+            cifti_output=cifti_output,
+        )
         surface_derivatives_wf = init_surface_derivatives_wf(
             cifti_output=cifti_output,
         )
@@ -322,7 +343,6 @@ def init_anat_preproc_wf(
             bids_root=bids_root, output_dir=output_dir, metrics=["curv"], name="ds_curv_wf"
         )
 
-        # fmt:off
         workflow.connect([
             (anat_fit_wf, surface_derivatives_wf, [
                 ('outputnode.t1w_preproc', 'inputnode.reference'),
@@ -342,18 +362,78 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, ds_curv_wf, [
                 ('outputnode.curv', 'inputnode.curv'),
             ]),
+            (anat_fit_wf, anat_second_derivatives_wf, [
+                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+            ]),
             (surface_derivatives_wf, anat_second_derivatives_wf, [
                 ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
-                ('outputnode.cifti_morph', 'inputnode.cifti_morph'),
-                ('outputnode.cifti_metadata', 'inputnode.cifti_metadata'),
             ]),
             (surface_derivatives_wf, outputnode, [
                 ('outputnode.out_aseg', 't1w_aseg'),
                 ('outputnode.out_aparc', 't1w_aparc'),
             ]),
-        ])
-        # fmt:on
+        ])  # fmt:skip
+
+        if cifti_output:
+            hcp_morphometrics_wf = init_hcp_morphometrics_wf(omp_nthreads=omp_nthreads)
+            resample_midthickness_wf = init_resample_midthickness_wf(grayord_density=cifti_output)
+            morph_grayords_wf = init_morph_grayords_wf(
+                grayord_density=cifti_output, omp_nthreads=omp_nthreads
+            )
+
+            ds_grayord_metrics_wf = init_ds_grayord_metrics_wf(
+                bids_root=bids_root,
+                output_dir=output_dir,
+                metrics=['curv', 'thickness', 'sulc'],
+                cifti_output=cifti_output,
+            )
+
+            workflow.connect([
+                (anat_fit_wf, hcp_morphometrics_wf, [
+                    ('outputnode.subject_id', 'inputnode.subject_id'),
+                    ('outputnode.sulc', 'inputnode.sulc'),
+                    ('outputnode.thickness', 'inputnode.thickness'),
+                    ('outputnode.midthickness', 'inputnode.midthickness'),
+                ]),
+                (surface_derivatives_wf, hcp_morphometrics_wf, [
+                    ('outputnode.curv', 'inputnode.curv'),
+                ]),
+                (anat_fit_wf, resample_midthickness_wf, [
+                    ('outputnode.midthickness', 'inputnode.midthickness'),
+                    (
+                        f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
+                        "inputnode.sphere_reg_fsLR",
+                    ),
+                ]),
+                (anat_fit_wf, morph_grayords_wf, [
+                    ('outputnode.midthickness', 'inputnode.midthickness'),
+                    (
+                        f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
+                        "inputnode.sphere_reg_fsLR",
+                    ),
+                ]),
+                (hcp_morphometrics_wf, morph_grayords_wf, [
+                    ('outputnode.curv', 'inputnode.curv'),
+                    ('outputnode.sulc', 'inputnode.sulc'),
+                    ('outputnode.thickness', 'inputnode.thickness'),
+                    ('outputnode.roi', 'inputnode.roi'),
+                ]),
+                (resample_midthickness_wf, morph_grayords_wf, [
+                    ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
+                ]),
+                (anat_fit_wf, ds_grayord_metrics_wf, [
+                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ]),
+                (morph_grayords_wf, ds_grayord_metrics_wf, [
+                    ('outputnode.curv_fsLR', 'inputnode.curv'),
+                    ('outputnode.curv_metadata', 'inputnode.curv_metadata'),
+                    ('outputnode.thickness_fsLR', 'inputnode.thickness'),
+                    ('outputnode.thickness_metadata', 'inputnode.thickness_metadata'),
+                    ('outputnode.sulc_fsLR', 'inputnode.sulc'),
+                    ('outputnode.sulc_metadata', 'inputnode.sulc_metadata'),
+                ]),
+            ])  # fmt:skip
 
     return workflow
 
@@ -373,6 +453,7 @@ def init_anat_fit_wf(
     spaces: SpatialReferences,
     precomputed: dict,
     omp_nthreads: int,
+    flair: list = (),  # Remove default after callers start passing it
     debug: bool = False,
     sloppy: bool = False,
     name="anat_fit_wf",
@@ -408,6 +489,7 @@ def init_anat_fit_wf(
                 msm_sulc=True,
                 t1w=['t1w.nii.gz'],
                 t2w=['t2w.nii.gz'],
+                flair=[],
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
@@ -722,7 +804,7 @@ and used as T1w-reference throughout the workflow.
         if skull_strip_mode == "auto":
             run_skull_strip = all(_is_skull_stripped(img) for img in t1w)
         else:
-            run_skull_strip = {"force": True, "skip": False}
+            run_skull_strip = {"force": True, "skip": False}[skull_strip_mode]
 
         # Brain extraction
         if run_skull_strip:
@@ -962,6 +1044,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         fs_reuse_base=fs_reuse_base,
         precomputed=precomputed,
     )
+    if t2w or flair:
+        t2w_or_flair = "T2-weighted" if t2w else "FLAIR"
+        surface_recon_wf.__desc__ += f"""\
+A {t2w_or_flair} image was used to improve pial surface refinement.
+"""
 
     # fmt:off
     workflow.connect([
@@ -1084,9 +1171,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
             (coreg_xfms, t2wtot1w_xfm, [('out', 'in_xfms')]),
             (t2w_template_wf, t2w_resample, [('outputnode.anat_ref', 'input_image')]),
-            (brain_extraction_wf, t2w_resample, [
-                (('outputnode.bias_corrected', _pop), 'reference_image'),
-            ]),
+            (t1w_buffer, t2w_resample, [('T1w_preproc', 'reference_image')]),
             (t2wtot1w_xfm, t2w_resample, [('out_xfm', 'transforms')]),
             (inputnode, ds_t2w_preproc, [('t2w', 'source_file')]),
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
@@ -1272,7 +1357,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         # fmt:on
     elif msm_sulc:
         LOGGER.info("ANAT Stage 10: Found pre-computed MSM-Sulc registration sphere")
-        fsLR_buffer.inputs.sphere_reg_msm = sorted(precomputed["sphere_reg_msm"])
+        msm_buffer.inputs.sphere_reg_msm = sorted(precomputed["sphere_reg_msm"])
     else:
         LOGGER.info("ANAT Stage 10: MSM-Sulc disabled")
 
@@ -1376,7 +1461,7 @@ An anatomical {contrast}-reference map was computed after registration of
 
     if num_files == 1:
         get1st = pe.Node(niu.Select(index=[0]), name="get1st")
-        outputnode.inputs.anat_realign_xfm = [pkgr("smriprep", "data/itkIdentityTransform.txt")]
+        outputnode.inputs.anat_realign_xfm = [str(load_resource("itkIdentityTransform.txt"))]
 
         # fmt:off
         workflow.connect([

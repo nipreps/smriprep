@@ -1,11 +1,11 @@
-exclude: ".*/data/.*"
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
-        exclude: .gitignore
+        exclude: '.gitignore|.*\.gii$'
       - id: end-of-file-fixer
+        exclude: 'data/itkIdentityTransform.txt|\.svg$'
       - id: check-yaml
       - id: check-added-large-files
       - id: check-toml

@@ -28,29 +28,32 @@ structural images.
 
 """
 import typing as ty
-from nipype.pipeline import engine as pe
+
+from nipype.interfaces import freesurfer as fs
+from nipype.interfaces import io as nio
+from nipype.interfaces import utility as niu
 from nipype.interfaces.base import Undefined
-from nipype.interfaces import (
-    io as nio,
-    utility as niu,
-    freesurfer as fs,
-    workbench as wb,
+from nipype.pipeline import engine as pe
+from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.interfaces.freesurfer import FSDetectInputs, FSInjectBrainExtracted
+from niworkflows.interfaces.freesurfer import PatchedRobustRegister as RobustRegister
+from niworkflows.interfaces.freesurfer import RefineBrainMask
+from niworkflows.interfaces.nitransforms import ConcatenateXFMs
+from niworkflows.interfaces.utility import KeySelect
+from niworkflows.interfaces.workbench import (
+    MetricDilate,
+    MetricFillHoles,
+    MetricMask,
+    MetricRemoveIslands,
+    MetricResample,
 )
 
 from smriprep.interfaces.surf import MakeRibbon
+from smriprep.interfaces.workbench import SurfaceResample
 
 from ..data import load_resource
-from ..interfaces.freesurfer import ReconAll, MakeMidthickness
-
-from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.freesurfer import (
-    FSDetectInputs,
-    FSInjectBrainExtracted,
-    PatchedRobustRegister as RobustRegister,
-    RefineBrainMask,
-)
-from niworkflows.interfaces.nitransforms import ConcatenateXFMs
-import templateflow.api as tf
+from ..interfaces.freesurfer import MakeMidthickness, ReconAll
+from ..interfaces.gifti import MetricMath
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
@@ -229,6 +232,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         MakeMidthickness(thickness=True, distance=0.5, out_name="midthickness"),
         iterfield="in_file",
         name="midthickness",
+        n_procs=min(omp_nthreads, 12),
     )
 
     save_midthickness = pe.Node(nio.DataSink(parameterization=False), name="save_midthickness")
@@ -330,21 +334,18 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         (save_midthickness, sync, [('out_file', 'filenames')]),
         (sync, outputnode, [('subjects_dir', 'subjects_dir'),
                             ('subject_id', 'subject_id')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
 
     if "fsnative" not in precomputed.get("transforms", {}):
         fsnative2t1w_xfm = pe.Node(
             RobustRegister(auto_sens=True, est_int_scale=True), name="fsnative2t1w_xfm"
         )
 
-        # fmt:off
         workflow.connect([
             (inputnode, fsnative2t1w_xfm, [('t1w', 'target_file')]),
             (autorecon1, fsnative2t1w_xfm, [('T1', 'source_file')]),
             (fsnative2t1w_xfm, outputnode, [('out_reg_file', 'fsnative2t1w_xfm')]),
-        ])
-        # fmt:on
+        ])  # fmt:skip
 
     return workflow
 
@@ -695,8 +696,6 @@ def init_surface_derivatives_wf(
                 "curv",
                 "out_aseg",
                 "out_aparc",
-                "cifti_morph",
-                "cifti_metadata",
             ]
         ),
         name="outputnode",
@@ -739,21 +738,6 @@ def init_surface_derivatives_wf(
         (gifti_morph_wf, outputnode, [('outputnode.curv', 'curv')]),
     ])
     # fmt:on
-
-    if cifti_output:
-        morph_grayords_wf = init_morph_grayords_wf(grayord_density=cifti_output)
-        # fmt:off
-        workflow.connect([
-            (inputnode, morph_grayords_wf, [
-                ('subject_id', 'inputnode.subject_id'),
-                ('subjects_dir', 'inputnode.subjects_dir'),
-            ]),
-            (morph_grayords_wf, outputnode, [
-                ("outputnode.cifti_morph", "cifti_morph"),
-                ("outputnode.cifti_metadata", "cifti_metadata"),
-            ]),
-        ])
-        # fmt:on
 
     return workflow
 
@@ -843,13 +827,23 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
         name='modify_sphere',
     )
 
-    # 2) Run MSMSulc
+    # 2) Invert sulc
+    # wb_command -metric-math "-1 * var" ...
+    invert_sulc = pe.MapNode(
+        MetricMath(metric='sulc', operation='invert'),
+        iterfield=['metric_file', 'hemisphere'],
+        name='invert_sulc',
+    )
+    invert_sulc.inputs.hemisphere = ['L', 'R']
+
+    # 3) Run MSMSulc
     # ./msm_centos_v3 --conf=MSMSulcStrainFinalconf \
     # --inmesh=${SUB}.${HEMI}.sphere_rot.native.surf.gii
     # --refmesh=fsaverage.${HEMI}_LR.spherical_std.164k_fs_LR.surf.gii
     # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
     # --out=${HEMI}. --verbose
+    atlases = load_resource('atlases')
     msm_conf = load_resource(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
     msmsulc = pe.MapNode(
         MSM(verbose=True, config_file=msm_conf),
@@ -859,42 +853,24 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     )
     msmsulc.inputs.out_base = ['lh.', 'rh.']  # To placate Path2BIDS
     msmsulc.inputs.reference_mesh = [
-        str(
-            tf.get(
-                'fsaverage',
-                hemi=hemi,
-                density='164k',
-                desc='std',
-                suffix='sphere',
-                extension='.surf.gii',
-            )
-        )
-        for hemi in 'LR'
+        str(atlases / f'fsaverage.{hemi}_LR.spherical_std.164k_fs_LR.surf.gii') for hemi in 'LR'
     ]
     msmsulc.inputs.reference_data = [
-        str(
-            tf.get(
-                'fsaverage',
-                hemi=hemi,
-                density='164k',
-                suffix='sulc',
-                extension='.shape.gii',
-            )
-        )
-        for hemi in 'LR'
+        str(atlases / f'{hemi}.refsulc.164k_fs_LR.shape.gii') for hemi in 'LR'
     ]
-    # fmt:off
     workflow.connect([
-        (inputnode, regress_affine, [('sphere', 'in_surface'),
-                                     ('sphere_reg_fsLR', 'target_surface')]),
+        (inputnode, regress_affine, [
+            ('sphere', 'in_surface'),
+            ('sphere_reg_fsLR', 'target_surface'),
+        ]),
         (inputnode, apply_surface_affine, [('sphere', 'in_surface')]),
+        (inputnode, invert_sulc, [('sulc', 'metric_file')]),
         (regress_affine, apply_surface_affine, [('out_affine', 'in_affine')]),
         (apply_surface_affine, modify_sphere, [('out_surface', 'in_surface')]),
-        (inputnode, msmsulc, [('sulc', 'in_data')]),
         (modify_sphere, msmsulc, [('out_surface', 'in_mesh')]),
+        (invert_sulc, msmsulc, [('metric_file', 'in_data')]),
         (msmsulc, outputnode, [('warped_mesh', 'sphere_reg_fsLR')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
     return workflow
 
 
@@ -973,10 +949,14 @@ def init_gifti_surfaces_wf(
         run_without_submitting=True,
     )
 
-    # fmt:off
     workflow.connect([
-        (inputnode, get_surfaces, [('subjects_dir', 'subjects_dir'),
-                                   ('subject_id', 'subject_id')]),
+        (inputnode, get_surfaces, [
+            ('subjects_dir', 'subjects_dir'),
+            ('subject_id', 'subject_id'),
+        ]),
+        (inputnode, fix_surfs, [
+            ('fsnative2t1w_xfm', 'transform_file'),
+        ]),
         (get_surfaces, surface_list, [
             (surf, f'in{i}') for i, surf in enumerate(surfaces, start=1)
         ]),
@@ -987,8 +967,7 @@ def init_gifti_surfaces_wf(
         (surface_groups, outputnode, [
             (f'out{i}', surf) for i, surf in enumerate(surfaces, start=1)
         ]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
     return workflow
 
 
@@ -1083,6 +1062,149 @@ def init_gifti_morphometrics_wf(
         ]),
     ])
     # fmt:on
+    return workflow
+
+
+def init_hcp_morphometrics_wf(
+    *,
+    omp_nthreads: int,
+    name: str = "hcp_morphometrics_wf",
+) -> Workflow:
+    """Convert FreeSurfer-style morphometrics to HCP-style.
+
+    The HCP uses different conventions for curvature and sulcal depth from FreeSurfer,
+    and performs some geometric preprocessing steps to get final metrics and a
+    subject-specific cortical ROI.
+
+    Workflow Graph
+
+    .. workflow::
+
+        from smriprep.workflows.surfaces import init_hcp_morphometrics_wf
+        wf = init_hcp_morphometrics_wf(omp_nthreads=1)
+
+    Parameters
+    ----------
+    omp_nthreads
+        Maximum number of threads an individual process may use
+
+    Inputs
+    ------
+    subject_id
+        FreeSurfer subject ID
+    thickness
+        FreeSurfer thickness file in GIFTI format
+    curv
+        FreeSurfer curvature file in GIFTI format
+    sulc
+        FreeSurfer sulcal depth file in GIFTI format
+
+    Outputs
+    -------
+    thickness
+        HCP-style thickness file in GIFTI format
+    curv
+        HCP-style curvature file in GIFTI format
+    sulc
+        HCP-style sulcal depth file in GIFTI format
+    roi
+        HCP-style cortical ROI file in GIFTI format
+    """
+    DEFAULT_MEMORY_MIN_GB = 0.01
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['subject_id', 'thickness', 'curv', 'sulc', 'midthickness']),
+        name='inputnode',
+    )
+
+    itersource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='itersource',
+        iterables=[('hemi', ['L', 'R'])],
+    )
+
+    outputnode = pe.JoinNode(
+        niu.IdentityInterface(fields=["thickness", "curv", "sulc", "roi"]),
+        name="outputnode",
+        joinsource="itersource",
+    )
+
+    select_surfaces = pe.Node(
+        KeySelect(
+            fields=[
+                "thickness",
+                "curv",
+                "sulc",
+                "midthickness",
+            ],
+            keys=["L", "R"],
+        ),
+        name="select_surfaces",
+        run_without_submitting=True,
+    )
+
+    # HCP inverts curvature and sulcal depth relative to FreeSurfer
+    invert_curv = pe.Node(MetricMath(metric='curv', operation='invert'), name='invert_curv')
+    invert_sulc = pe.Node(MetricMath(metric='sulc', operation='invert'), name='invert_sulc')
+    # Thickness is presumably already positive, but HCP uses abs(-thickness)
+    abs_thickness = pe.Node(MetricMath(metric='thickness', operation='abs'), name='abs_thickness')
+
+    # Native ROI is thickness > 0, with holes and islands filled
+    initial_roi = pe.Node(MetricMath(metric='roi', operation='bin'), name='initial_roi')
+    fill_holes = pe.Node(MetricFillHoles(), name="fill_holes", mem_gb=DEFAULT_MEMORY_MIN_GB)
+    native_roi = pe.Node(MetricRemoveIslands(), name="native_roi", mem_gb=DEFAULT_MEMORY_MIN_GB)
+
+    # Dilation happens separately from ROI creation
+    dilate_curv = pe.Node(
+        MetricDilate(distance=10, nearest=True),
+        name="dilate_curv",
+        n_procs=omp_nthreads,
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+    dilate_thickness = pe.Node(
+        MetricDilate(distance=10, nearest=True),
+        name="dilate_thickness",
+        n_procs=omp_nthreads,
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+
+    workflow.connect([
+        (inputnode, select_surfaces, [
+            ('thickness', 'thickness'),
+            ('curv', 'curv'),
+            ('sulc', 'sulc'),
+            ('midthickness', 'midthickness'),
+        ]),
+        (inputnode, invert_curv, [('subject_id', 'subject_id')]),
+        (inputnode, invert_sulc, [('subject_id', 'subject_id')]),
+        (inputnode, abs_thickness, [('subject_id', 'subject_id')]),
+        (itersource, select_surfaces, [('hemi', 'key')]),
+        (itersource, invert_curv, [('hemi', 'hemisphere')]),
+        (itersource, invert_sulc, [('hemi', 'hemisphere')]),
+        (itersource, abs_thickness, [('hemi', 'hemisphere')]),
+        (select_surfaces, invert_curv, [('curv', 'metric_file')]),
+        (select_surfaces, invert_sulc, [('sulc', 'metric_file')]),
+        (select_surfaces, abs_thickness, [('thickness', 'metric_file')]),
+        (select_surfaces, dilate_curv, [('midthickness', 'surf_file')]),
+        (select_surfaces, dilate_thickness, [('midthickness', 'surf_file')]),
+        (invert_curv, dilate_curv, [('metric_file', 'in_file')]),
+        (abs_thickness, dilate_thickness, [('metric_file', 'in_file')]),
+        (dilate_curv, outputnode, [('out_file', 'curv')]),
+        (dilate_thickness, outputnode, [('out_file', 'thickness')]),
+        (invert_sulc, outputnode, [('metric_file', 'sulc')]),
+        # Native ROI file from thickness
+        (inputnode, initial_roi, [('subject_id', 'subject_id')]),
+        (itersource, initial_roi, [('hemi', 'hemisphere')]),
+        (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
+        (select_surfaces, fill_holes, [('midthickness', 'surface_file')]),
+        (select_surfaces, native_roi, [('midthickness', 'surface_file')]),
+        (initial_roi, fill_holes, [('metric_file', 'metric_file')]),
+        (fill_holes, native_roi, [('out_file', 'metric_file')]),
+        (native_roi, outputnode, [('out_file', 'roi')]),
+    ])  # fmt:skip
+
     return workflow
 
 
@@ -1242,8 +1364,87 @@ def init_anat_ribbon_wf(name="anat_ribbon_wf"):
     return workflow
 
 
+def init_resample_midthickness_wf(
+    grayord_density: ty.Literal['91k', '170k'],
+    name: str = "resample_midthickness_wf",
+):
+    """
+    Resample subject midthickness surface to specified density.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: colored
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_resample_midthickness_wf
+            wf = init_resample_midthickness_wf(grayord_density="91k")
+
+    Parameters
+    ----------
+    grayord_density : :obj:`str`
+        Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
+    name : :obj:`str`
+        Unique name for the subworkflow (default: ``"resample_midthickness_wf"``)
+
+    Inputs
+    ------
+    midthickness
+        GIFTI surface mesh corresponding to the midthickness surface
+    sphere_reg_fsLR
+        GIFTI surface mesh corresponding to the subject's fsLR registration sphere
+
+    Outputs
+    -------
+    midthickness
+        GIFTI surface mesh corresponding to the midthickness surface, resampled to fsLR
+    """
+    import templateflow.api as tf
+    from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+
+    workflow = Workflow(name=name)
+
+    fslr_density = "32k" if grayord_density == "91k" else "59k"
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=["midthickness", "sphere_reg_fsLR"]),
+        name="inputnode",
+    )
+
+    outputnode = pe.Node(niu.IdentityInterface(fields=["midthickness_fsLR"]), name="outputnode")
+
+    resampler = pe.MapNode(
+        SurfaceResample(method='BARYCENTRIC'),
+        iterfield=['surface_in', 'current_sphere', 'new_sphere'],
+        name="resampler",
+    )
+    resampler.inputs.new_sphere = [
+        str(
+            tf.get(
+                template='fsLR',
+                density=fslr_density,
+                suffix='sphere',
+                hemi=hemi,
+                space=None,
+                extension='.surf.gii',
+            )
+        )
+        for hemi in ['L', 'R']
+    ]
+
+    workflow.connect([
+        (inputnode, resampler, [
+            ('midthickness', 'surface_in'),
+            ('sphere_reg_fsLR', 'current_sphere'),
+        ]),
+        (resampler, outputnode, [('surface_out', 'midthickness_fsLR')]),
+    ])  # fmt:skip
+
+    return workflow
+
+
 def init_morph_grayords_wf(
     grayord_density: ty.Literal['91k', '170k'],
+    omp_nthreads: int,
     name: str = "morph_grayords_wf",
 ):
     """
@@ -1257,7 +1458,7 @@ def init_morph_grayords_wf(
             :simple_form: yes
 
             from smriprep.workflows.surfaces import init_morph_grayords_wf
-            wf = init_morph_grayords_wf(grayord_density="91k")
+            wf = init_morph_grayords_wf(grayord_density="91k", omp_nthreads=1)
 
     Parameters
     ----------
@@ -1268,163 +1469,168 @@ def init_morph_grayords_wf(
 
     Inputs
     ------
-    subject_id : :obj:`str`
-        FreeSurfer subject ID
-    subjects_dir : :obj:`str`
-        FreeSurfer SUBJECTS_DIR
+    curv
+        HCP-style curvature file in GIFTI format
+    sulc
+        HCP-style sulcal depth file in GIFTI format
+    thickness
+        HCP-style thickness file in GIFTI format
+    roi
+        HCP-style cortical ROI file in GIFTI format
+    midthickness
+        GIFTI surface mesh corresponding to the midthickness surface
+    sphere_reg_fsLR
+        GIFTI surface mesh corresponding to the subject's fsLR registration sphere
 
     Outputs
     -------
-    cifti_morph : :obj:`list` of :obj:`str`
-        Paths of CIFTI dscalar files
-    cifti_metadata : :obj:`list` of :obj:`str`
-        Paths to JSON files containing metadata corresponding to ``cifti_morph``
-
+    curv_fsLR
+        HCP-style curvature file in CIFTI-2 format, resampled to fsLR
+    curv_metadata
+        Path to JSON file containing metadata corresponding to ``curv_fsLR``
+    sulc_fsLR
+        HCP-style sulcal depth file in CIFTI-2 format, resampled to fsLR
+    sulc_metadata
+        Path to JSON file containing metadata corresponding to ``sulc_fsLR``
+    thickness_fsLR
+        HCP-style thickness file in CIFTI-2 format, resampled to fsLR
     """
     import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+
     from smriprep.interfaces.cifti import GenerateDScalar
 
     workflow = Workflow(name=name)
     workflow.__desc__ = f"""\
-*Grayordinate* "dscalar" files [@hcppipelines] containing {grayord_density} samples were
-also generated using the highest-resolution ``fsaverage`` as an intermediate standardized
-surface space.
+*Grayordinate* "dscalar" files containing {grayord_density} samples were
+resampled onto fsLR using the Connectome Workbench [@hcppipelines].
 """
 
     fslr_density = "32k" if grayord_density == "91k" else "59k"
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["subject_id", "subjects_dir"]),
+        niu.IdentityInterface(
+            fields=[
+                "curv",
+                "sulc",
+                "thickness",
+                "roi",
+                "midthickness",
+                "midthickness_fsLR",
+                "sphere_reg_fsLR",
+            ]
+        ),
         name="inputnode",
     )
 
+    # Note we have to use a different name than itersource to
+    # avoid duplicates in the workflow graph, even though the
+    # previous was already Joined
+    hemisource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='hemisource',
+        iterables=[('hemi', ['L', 'R'])],
+    )
+
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=["cifti_morph", "cifti_metadata"]),
+        niu.IdentityInterface(
+            fields=[
+                "curv_fsLR",
+                "curv_metadata",
+                "sulc_fsLR",
+                "sulc_metadata",
+                "thickness_fsLR",
+                "thickness_metadata",
+            ]
+        ),
         name="outputnode",
     )
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name="get_surfaces")
-
-    surfmorph_list = pe.Node(
-        niu.Merge(3, ravel_inputs=True),
-        name="surfmorph_list",
+    atlases = load_resource('atlases')
+    select_surfaces = pe.Node(
+        KeySelect(
+            fields=[
+                "curv",
+                "sulc",
+                "thickness",
+                "roi",
+                "midthickness",
+                "midthickness_fsLR",
+                "sphere_reg_fsLR",
+                "template_sphere",
+                "template_roi",
+            ],
+            keys=["L", "R"],
+        ),
+        name="select_surfaces",
         run_without_submitting=True,
     )
-
-    surf2surf = pe.MapNode(
-        fs.SurfaceTransform(target_subject="fsaverage", target_type="gii"),
-        iterfield=["source_file", "hemi"],
-        name="surf2surf",
-        mem_gb=0.01,
-    )
-    surf2surf.inputs.hemi = ["lh", "rh"] * 3
-
-    # Setup Workbench command. LR ordering for hemi can be assumed, as it is imposed
-    # by the iterfield of the MapNode in the surface sampling workflow above.
-    resample = pe.MapNode(
-        wb.MetricResample(method="ADAP_BARY_AREA", area_metrics=True),
-        name="resample",
-        iterfield=[
-            "in_file",
-            "out_file",
-            "new_sphere",
-            "new_area",
-            "current_sphere",
-            "current_area",
-        ],
-    )
-    resample.inputs.current_sphere = [
+    select_surfaces.inputs.template_sphere = [
         str(
             tf.get(
-                "fsaverage",
-                hemi=hemi,
-                density="164k",
-                desc="std",
-                suffix="sphere",
-                extension=".surf.gii",
-            )
-        )
-        for hemi in "LR"
-    ] * 3
-    resample.inputs.current_area = [
-        str(
-            tf.get(
-                "fsaverage",
-                hemi=hemi,
-                density="164k",
-                desc="vaavg",
-                suffix="midthickness",
-                extension=".shape.gii",
-            )
-        )
-        for hemi in "LR"
-    ] * 3
-    resample.inputs.new_sphere = [
-        str(
-            tf.get(
-                "fsLR",
-                space="fsaverage",
-                hemi=hemi,
+                template='fsLR',
                 density=fslr_density,
-                suffix="sphere",
-                extension=".surf.gii",
-            )
-        )
-        for hemi in "LR"
-    ] * 3
-    resample.inputs.new_area = [
-        str(
-            tf.get(
-                "fsLR",
+                suffix='sphere',
                 hemi=hemi,
-                density=fslr_density,
-                desc="vaavg",
-                suffix="midthickness",
-                extension=".shape.gii",
+                space=None,
+                extension='.surf.gii',
             )
         )
-        for hemi in "LR"
-    ] * 3
-    resample.inputs.out_file = [
-        f"space-fsLR_hemi-{h}_den-{grayord_density}_{morph}.shape.gii"
-        # Order: curv-L, curv-R, sulc-L, sulc-R, thickness-L, thickness-R
-        for morph in ('curv', 'sulc', 'thickness')
-        for h in "LR"
+        for hemi in ['L', 'R']
+    ]
+    select_surfaces.inputs.template_roi = [
+        str(atlases / f'L.atlasroi.{fslr_density}_fs_LR.shape.gii'),
+        str(atlases / f'R.atlasroi.{fslr_density}_fs_LR.shape.gii'),
     ]
 
-    gen_cifti = pe.MapNode(
-        GenerateDScalar(
-            grayordinates=grayord_density,
-        ),
-        iterfield=['scalar_name', 'scalar_surfs'],
-        name="gen_cifti",
-    )
-    gen_cifti.inputs.scalar_name = ['curv', 'sulc', 'thickness']
-
-    # fmt: off
     workflow.connect([
-        (inputnode, get_surfaces, [
-            ('subject_id', 'subject_id'),
-            ('subjects_dir', 'subjects_dir'),
+        (inputnode, select_surfaces, [
+            ('curv', 'curv'),
+            ('sulc', 'sulc'),
+            ('thickness', 'thickness'),
+            ('roi', 'roi'),
+            ('midthickness', 'midthickness'),
+            ('midthickness_fsLR', 'midthickness_fsLR'),
+            ('sphere_reg_fsLR', 'sphere_reg_fsLR'),
         ]),
-        (inputnode, surf2surf, [
-            ('subject_id', 'source_subject'),
-            ('subjects_dir', 'subjects_dir'),
-        ]),
-        (get_surfaces, surfmorph_list, [
-            (('curv', _sorted_by_basename), 'in1'),
-            (('sulc', _sorted_by_basename), 'in2'),
-            (('thickness', _sorted_by_basename), 'in3'),
-        ]),
-        (surfmorph_list, surf2surf, [('out', 'source_file')]),
-        (surf2surf, resample, [('out_file', 'in_file')]),
-        (resample, gen_cifti, [
-            (("out_file", _collate), "scalar_surfs")]),
-        (gen_cifti, outputnode, [("out_file", "cifti_morph"),
-                                 ("out_metadata", "cifti_metadata")]),
-    ])
-    # fmt: on
+        (hemisource, select_surfaces, [('hemi', 'key')]),
+    ])  # fmt:skip
+
+    for metric in ('curv', 'sulc', 'thickness'):
+        resampler = pe.Node(
+            MetricResample(method='ADAP_BARY_AREA', area_surfs=True),
+            name=f"resample_{metric}",
+            n_procs=omp_nthreads,
+        )
+        mask_fsLR = pe.Node(
+            MetricMask(),
+            name=f"mask_{metric}",
+            n_procs=omp_nthreads,
+        )
+        cifti_metric = pe.JoinNode(
+            GenerateDScalar(grayordinates=grayord_density, scalar_name=metric),
+            name=f"cifti_{metric}",
+            joinfield=['scalar_surfs'],
+            joinsource="hemisource",
+        )
+
+        workflow.connect([
+            (select_surfaces, resampler, [
+                (metric, 'in_file'),
+                ('sphere_reg_fsLR', 'current_sphere'),
+                ('template_sphere', 'new_sphere'),
+                ('midthickness', 'current_area'),
+                ('midthickness_fsLR', 'new_area'),
+                ('roi', 'roi_metric'),
+            ]),
+            (select_surfaces, mask_fsLR, [('template_roi', 'mask')]),
+            (resampler, mask_fsLR, [('out_file', 'in_file')]),
+            (mask_fsLR, cifti_metric, [('out_file', 'scalar_surfs')]),
+            (cifti_metric, outputnode, [
+                ('out_file', f'{metric}_fsLR'),
+                ('out_metadata', f'{metric}_metadata'),
+            ]),
+        ])  # fmt:skip
 
     return workflow
 

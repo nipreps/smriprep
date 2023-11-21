@@ -82,6 +82,8 @@ def init_smriprep_wf(
             os.environ['FREESURFER_HOME'] = os.getcwd()
             from smriprep.workflows.base import init_smriprep_wf
             from niworkflows.utils.spaces import SpatialReferences, Reference
+            spaces = SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5'])
+            spaces.checkpoint()
             wf = init_smriprep_wf(
                 sloppy=False,
                 debug=False,
@@ -100,7 +102,7 @@ def init_smriprep_wf(
                 skull_strip_fixed_seed=False,
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
-                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
+                spaces=spaces,
                 subject_list=['smripreptest'],
                 work_dir='.',
                 bids_filters=None,
@@ -254,6 +256,8 @@ def init_single_subject_wf(
             from niworkflows.utils.spaces import SpatialReferences, Reference
             from smriprep.workflows.base import init_single_subject_wf
             BIDSLayout = namedtuple('BIDSLayout', ['root'])
+            spaces = SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5'])
+            spaces.checkpoint()
             wf = init_single_subject_wf(
                 sloppy=False,
                 debug=False,
@@ -271,7 +275,7 @@ def init_single_subject_wf(
                 skull_strip_fixed_seed=False,
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
-                spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5']),
+                spaces=spaces,
                 subject_id='test',
                 bids_filters=None,
                 cifti_output=None,
@@ -335,6 +339,7 @@ def init_single_subject_wf(
         subject_data = {
             "t1w": ["/completely/made/up/path/sub-01_T1w.nii.gz"],
             "t2w": [],
+            "flair": [],
         }
     else:
         subject_data = collect_data(layout, subject_id, bids_filters=bids_filters)[0]
@@ -432,6 +437,7 @@ to workflows in *sMRIPrep*'s documentation]\
         name="anat_preproc_wf",
         t1w=subject_data["t1w"],
         t2w=subject_data["t2w"],
+        flair=subject_data["flair"],
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
         skull_strip_fixed_seed=skull_strip_fixed_seed,

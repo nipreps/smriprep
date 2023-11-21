@@ -23,16 +23,15 @@
 """Utilities to handle BIDS inputs."""
 from pathlib import Path
 from json import loads
-from pkg_resources import resource_filename as pkgrf
 from bids.layout import BIDSLayout
+
+from ..data import load_resource
 
 
 def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patterns=None):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:
-        _spec, _patterns = tuple(
-            loads(Path(pkgrf("smriprep", "data/io_spec.json")).read_text()).values()
-        )
+        _spec, _patterns = tuple(loads(load_resource("io_spec.json").read_text()).values())
 
         if spec is None:
             spec = _spec
@@ -92,11 +91,11 @@ def write_derivative_description(bids_dir, deriv_dir):
 
     .. testsetup::
 
-    >>> from pkg_resources import resource_filename
+    >>> from smriprep.data import load_resource
     >>> from pathlib import Path
     >>> from tempfile import TemporaryDirectory
     >>> tmpdir = TemporaryDirectory()
-    >>> bids_dir = resource_filename('smriprep', 'data/tests')
+    >>> bids_dir = load_resource('tests')
     >>> deriv_desc = Path(tmpdir.name) / 'dataset_description.json'
 
     .. doctest::

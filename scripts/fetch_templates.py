@@ -89,11 +89,28 @@ def fetch_fsaverage():
     tf.get(template, density='164k', suffix='sulc', extension='.shape.gii')
 
 
+def fetch_fsLR():
+    """
+    Expected templates:
+
+    tpl-fsLR/tpl-fsLR_hemi-L_den-32k_desc-nomedialwall_dparc.label.gii
+    tpl-fsLR/tpl-fsLR_hemi-L_den-32k_desc-vaavg_midthickness.shape.gii
+    tpl-fsLR/tpl-fsLR_hemi-L_den-32k_sphere.surf.gii
+    tpl-fsLR/tpl-fsLR_hemi-R_den-32k_desc-nomedialwall_dparc.label.gii
+    tpl-fsLR/tpl-fsLR_hemi-R_den-32k_desc-vaavg_midthickness.shape.gii
+    tpl-fsLR/tpl-fsLR_hemi-R_den-32k_sphere.surf.gii
+    tpl-fsLR/tpl-fsLR_space-fsaverage_hemi-L_den-32k_sphere.surf.gii
+    tpl-fsLR/tpl-fsLR_space-fsaverage_hemi-R_den-32k_sphere.surf.gii
+    """
+    tf.get("fsLR", density="32k")
+
+
 def fetch_all():
     fetch_MNI2009()
     fetch_MNI6()
     fetch_OASIS()
     fetch_fsaverage()
+    fetch_fsLR()
 
 
 if __name__ == "__main__":

@@ -56,27 +56,6 @@ COPY docker/files/freesurfer7.3.2-exclude.txt /usr/local/etc/freesurfer7.3.2-exc
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.3.2/freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz \
      | tar zxv --no-same-owner -C /opt --exclude-from=/usr/local/etc/freesurfer7.3.2-exclude.txt
 
-# AFNI
-FROM downloader as afni
-# Bump the date to current to update AFNI
-RUN echo "2023.04.04"
-RUN mkdir -p /opt/afni-latest \
-    && curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
-    | tar -xz -C /opt/afni-latest --strip-components 1 \
-    --exclude "linux_openmp_64/*.gz" \
-    --exclude "linux_openmp_64/funstuff" \
-    --exclude "linux_openmp_64/shiny" \
-    --exclude "linux_openmp_64/afnipy" \
-    --exclude "linux_openmp_64/lib/RetroTS" \
-    --exclude "linux_openmp_64/lib_RetroTS" \
-    --exclude "linux_openmp_64/meica.libs" \
-    # Keep only what we use
-    && find /opt/afni-latest -type f -not \( \
-        -name "3dTshift" -or \
-        -name "3dUnifize" -or \
-        -name "3dAutomask" -or \
-        -name "3dvolreg" \) -delete
-
 # Connectome Workbench 1.5.0
 FROM downloader as workbench
 RUN mkdir /opt/workbench && \
@@ -95,15 +74,13 @@ RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bi
 
 ENV MAMBA_ROOT_PREFIX="/opt/conda"
 COPY env.yml /tmp/env.yml
+COPY requirements.txt /tmp/requirements.txt
 RUN micromamba create -y -f /tmp/env.yml && \
     micromamba clean -y -a
 
 ENV PATH="/opt/conda/envs/smriprep/bin:$PATH"
-RUN /opt/conda/envs/smriprep/bin/npm install -g svgo@^2.8 bids-validator@1.11.0 && \
+RUN /opt/conda/envs/smriprep/bin/npm install -g svgo@^3.0 bids-validator@^1.13 && \
     rm -r ~/.npm
-
-COPY requirements.txt /tmp/requirements.txt
-RUN /opt/conda/envs/smriprep/bin/pip install --no-cache-dir -r /tmp/requirements.txt
 
 #
 # Main stage
@@ -115,7 +92,9 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     LANG="en_US.UTF-8" \
     LC_ALL="en_US.UTF-8"
 
-# Some baseline tools; bc is needed for FreeSurfer, so don't drop it
+# Some baseline tools
+# bc is needed for FreeSurfer
+# libglu1-mesa is needed for Connectome Workbench
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
                     bc \
@@ -123,48 +102,14 @@ RUN apt-get update && \
                     curl \
                     git \
                     gnupg \
+                    libglu1-mesa \
                     lsb-release \
                     netbase \
                     xvfb && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Configure PPAs for libpng12 and libxp6
-RUN GNUPGHOME=/tmp gpg --keyserver hkps://keyserver.ubuntu.com --no-default-keyring --keyring /usr/share/keyrings/linuxuprising.gpg --recv 0xEA8CACC073C3DB2A \
-    && GNUPGHOME=/tmp gpg --keyserver hkps://keyserver.ubuntu.com --no-default-keyring --keyring /usr/share/keyrings/zeehio.gpg --recv 0xA1301338A3A48C4A \
-    && echo "deb [signed-by=/usr/share/keyrings/linuxuprising.gpg] https://ppa.launchpadcontent.net/linuxuprising/libpng12/ubuntu jammy main" > /etc/apt/sources.list.d/linuxuprising.list \
-    && echo "deb [signed-by=/usr/share/keyrings/zeehio.gpg] https://ppa.launchpadcontent.net/zeehio/libxp/ubuntu jammy main" > /etc/apt/sources.list.d/zeehio.list
-
-# Dependencies for AFNI; requires a discontinued multiarch-support package from bionic (18.04)
-RUN apt-get update -qq \
-    && apt-get install -y -q --no-install-recommends \
-           ed \
-           gsl-bin \
-           libglib2.0-0 \
-           libglu1-mesa-dev \
-           libglw1-mesa \
-           libgomp1 \
-           libjpeg62 \
-           libpng12-0 \
-           libxm4 \
-           libxp6 \
-           netpbm \
-           tcsh \
-           xfonts-base \
-           xvfb \
-    && curl -sSL --retry 5 -o /tmp/multiarch.deb http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.5_amd64.deb \
-    && dpkg -i /tmp/multiarch.deb \
-    && rm /tmp/multiarch.deb \
-    && apt-get install -f \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && gsl2_path="$(find / -name 'libgsl.so.19' || printf '')" \
-    && if [ -n "$gsl2_path" ]; then \
-         ln -sfv "$gsl2_path" "$(dirname $gsl2_path)/libgsl.so.0"; \
-    fi \
-    && ldconfig
-
 # Install files from stages
 COPY --from=freesurfer /opt/freesurfer /opt/freesurfer
-COPY --from=afni /opt/afni-latest /opt/afni-latest
 COPY --from=workbench /opt/workbench /opt/workbench
 
 # Simulate SetUpFreeSurfer.sh
@@ -183,11 +128,6 @@ ENV SUBJECTS_DIR="$FREESURFER_HOME/subjects" \
 ENV PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
     MNI_PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
     PATH="$FREESURFER_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH"
-
-# AFNI config
-ENV PATH="/opt/afni-latest:$PATH" \
-    AFNI_IMSAVE_WARNINGS="NO" \
-    AFNI_PLUGINPATH="/opt/afni-latest"
 
 # Workbench config
 ENV PATH="/opt/workbench/bin_linux64:$PATH" \
@@ -258,7 +198,7 @@ ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="sMRIPrep" \
       org.label-schema.description="sMRIPrep - robust sMRI preprocessing tool" \
-      org.label-schema.url="http://nipreps.org/smriprep" \
+      org.label-schema.url="https://www.nipreps.org/smriprep" \
       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/nipreps/smriprep" \
       org.label-schema.version=$VERSION \

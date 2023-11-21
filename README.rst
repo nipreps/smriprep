@@ -7,7 +7,7 @@ sMRIPrep: Structural MRI PREProcessing pipeline
 
 .. image:: https://circleci.com/gh/nipreps/smriprep/tree/master.svg?style=shield
   :target: https://circleci.com/gh/nipreps/smriprep/tree/master
-  
+
 .. image:: https://codecov.io/gh/nipreps/smriprep/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/nipreps/smriprep
   :alt: Coverage report
@@ -15,7 +15,7 @@ sMRIPrep: Structural MRI PREProcessing pipeline
 .. image:: https://img.shields.io/pypi/v/smriprep.svg
   :target: https://pypi.python.org/pypi/smriprep/
   :alt: Latest Version
-  
+
 .. image:: https://img.shields.io/badge/doi-10.1038%2Fs41592--018--0235--4-blue.svg
   :target: https://doi.org/10.1038/s41592-018-0235-4
   :alt: Published in Nature Methods
@@ -39,7 +39,7 @@ a combination of tools from well-known software packages, including
 `FSL <https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/>`__,
 `ANTs <https://stnava.github.io/ANTs/>`__,
 `FreeSurfer <https://surfer.nmr.mgh.harvard.edu/>`__,
-and `AFNI <https://afni.nimh.nih.gov/>`__.
+and `Connectome Workbench <https://humanconnectome.org/software/connectome-workbench>`__.
 
 More information and documentation can be found at
 https://www.nipreps.org/smriprep/.
