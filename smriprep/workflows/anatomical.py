@@ -24,61 +24,67 @@
 import typing as ty
 
 from nipype import logging
-from nipype.pipeline import engine as pe
 from nipype.interfaces import (
-    utility as niu,
     freesurfer as fs,
+)
+from nipype.interfaces import (
     fsl,
     image,
 )
-
-from nipype.interfaces.ants.base import Info as ANTsInfo
+from nipype.interfaces import (
+    utility as niu,
+)
 from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
-
+from nipype.interfaces.ants.base import Info as ANTsInfo
+from nipype.pipeline import engine as pe
+from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.freesurfer import (
-    StructuralReference,
     PatchedLTAConvert as LTAConvert,
 )
+from niworkflows.interfaces.freesurfer import (
+    StructuralReference,
+)
 from niworkflows.interfaces.header import ValidateImage
-from niworkflows.interfaces.images import TemplateDimensions, Conform
+from niworkflows.interfaces.images import Conform, TemplateDimensions
 from niworkflows.interfaces.nibabel import ApplyMask, Binarize
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
-from niworkflows.utils.spaces import SpatialReferences, Reference
 from niworkflows.utils.misc import add_suffix
-from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
+from niworkflows.utils.spaces import Reference, SpatialReferences
+
 from ..data import load_resource
 from ..interfaces import DerivativesDataSink
-from ..utils.misc import apply_lut as _apply_bids_lut, fs_isRunning as _fs_isRunning
+from ..utils.misc import apply_lut as _apply_bids_lut
+from ..utils.misc import fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
 from .outputs import (
     init_anat_reports_wf,
+    init_anat_second_derivatives_wf,
     init_ds_anat_volumes_wf,
+    init_ds_dseg_wf,
+    init_ds_fs_registration_wf,
     init_ds_grayord_metrics_wf,
+    init_ds_mask_wf,
     init_ds_surface_metrics_wf,
     init_ds_surfaces_wf,
-    init_ds_template_wf,
-    init_ds_mask_wf,
-    init_ds_dseg_wf,
-    init_ds_tpms_wf,
     init_ds_template_registration_wf,
-    init_ds_fs_registration_wf,
-    init_anat_second_derivatives_wf,
+    init_ds_template_wf,
+    init_ds_tpms_wf,
     init_template_iterator_wf,
 )
 from .surfaces import (
     init_anat_ribbon_wf,
     init_fsLR_reg_wf,
     init_gifti_morphometrics_wf,
-    init_hcp_morphometrics_wf,
     init_gifti_surfaces_wf,
+    init_hcp_morphometrics_wf,
     init_morph_grayords_wf,
     init_msm_sulc_wf,
-    init_surface_derivatives_wf,
-    init_surface_recon_wf,
     init_refinement_wf,
     init_resample_midthickness_wf,
+    init_surface_derivatives_wf,
+    init_surface_recon_wf,
 )
 
 LOGGER = logging.getLogger('nipype.workflow')
@@ -1587,8 +1593,9 @@ def _aseg_to_three():
 
 def _split_segments(in_file):
     from pathlib import Path
-    import numpy as np
+
     import nibabel as nb
+    import numpy as np
 
     segimg = nb.load(in_file)
     data = np.int16(segimg.dataobj)

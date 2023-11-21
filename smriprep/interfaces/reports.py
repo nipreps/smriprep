@@ -22,25 +22,23 @@
 #
 """Interfaces to generate reportlets."""
 
-from pathlib import Path
 import time
+from pathlib import Path
 
-from nipype.interfaces.base import (
-    TraitedSpec,
-    BaseInterfaceInputSpec,
-    File,
-    Directory,
-    InputMultiObject,
-    Str,
-    isdefined,
-    SimpleInterface,
-)
 from nipype.interfaces import freesurfer as fs
+from nipype.interfaces.base import (
+    BaseInterfaceInputSpec,
+    Directory,
+    File,
+    InputMultiObject,
+    SimpleInterface,
+    Str,
+    TraitedSpec,
+    isdefined,
+)
 from nipype.interfaces.io import FSSourceInputSpec as _FSSourceInputSpec
 from nipype.interfaces.mixins import reporting
-
 from niworkflows.interfaces.reportlets.base import _SVGReportCapableInputSpec
-
 
 SUBJECT_TEMPLATE = """\
 \t<ul class="elem-desc">
@@ -173,12 +171,12 @@ class FSSurfaceReport(SimpleInterface):
     output_spec = _FSSurfaceReportOutputSpec
 
     def _run_interface(self, runtime):
-        from niworkflows.viz.utils import (
-            plot_registration,
-            cuts_from_bbox,
-            compose_view,
-        )
         from nibabel import load
+        from niworkflows.viz.utils import (
+            compose_view,
+            cuts_from_bbox,
+            plot_registration,
+        )
 
         rootdir = Path(self.inputs.subjects_dir) / self.inputs.subject_id
         _anat_file = str(rootdir / 'mri' / 'brain.mgz')

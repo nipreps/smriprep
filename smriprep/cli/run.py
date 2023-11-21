@@ -43,14 +43,15 @@ def check_deps(workflow):
 
 def get_parser():
     """Build parser object."""
+    from argparse import ArgumentParser, RawTextHelpFormatter
     from pathlib import Path
-    from argparse import ArgumentParser
-    from argparse import RawTextHelpFormatter
+
     from niworkflows.utils.spaces import (
+        OutputReferencesAction,
         Reference,
         SpatialReferences,
-        OutputReferencesAction,
     )
+
     from ..__about__ import __version__
 
     parser = ArgumentParser(
@@ -318,13 +319,14 @@ def get_parser():
 
 def build_opts(opts):
     """Trigger a new process that builds the workflow graph, based on the input options."""
-    import os
-    from pathlib import Path
-    import logging
-    import sys
     import gc
+    import logging
+    import os
+    import sys
     import warnings
-    from multiprocessing import set_start_method, Process, Manager
+    from multiprocessing import Manager, Process, set_start_method
+    from pathlib import Path
+
     from nipype import logging as nlogging
     from niworkflows.utils.misc import check_valid_fs_license
 
@@ -409,8 +411,8 @@ def build_opts(opts):
         errno = 1
     else:
         if opts.run_reconall:
-            from templateflow import api
             from niworkflows.utils.misc import _copy_any
+            from templateflow import api
 
             dseg_tsv = str(api.get('fsaverage', suffix='dseg', extension=['.tsv']))
             _copy_any(dseg_tsv, str(Path(output_dir) / 'smriprep' / 'desc-aseg_dseg.tsv'))
@@ -418,7 +420,8 @@ def build_opts(opts):
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
         from niworkflows.reports import generate_reports
-        from ..utils.bids import write_derivative_description, write_bidsignore
+
+        from ..utils.bids import write_bidsignore, write_derivative_description
 
         logger.log(25, 'Writing reports for participants: %s', ', '.join(subject_list))
         # Generate reports phase
@@ -439,17 +442,19 @@ def build_workflow(opts, retval):
     a hard-limited memory-scope.
 
     """
-    from shutil import copyfile
-    from os import cpu_count
+    import json
     import uuid
     import warnings
+    from os import cpu_count
+    from shutil import copyfile
+    from subprocess import CalledProcessError, TimeoutExpired, check_call
     from time import strftime
-    from subprocess import check_call, CalledProcessError, TimeoutExpired
 
-    import json
     from bids import BIDSLayout
-    from nipype import logging, config as ncfg
+    from nipype import config as ncfg
+    from nipype import logging
     from niworkflows.utils.bids import collect_participants
+
     from ..__about__ import __version__
     from ..data import load_resource
     from ..workflows.base import init_smriprep_wf

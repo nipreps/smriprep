@@ -25,17 +25,16 @@ import os
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 import nibabel as nb
 import nitransforms as nt
-
+import numpy as np
 from nipype.interfaces.base import (
     BaseInterfaceInputSpec,
-    TraitedSpec,
-    SimpleInterface,
     File,
-    isdefined,
     InputMultiObject,
+    SimpleInterface,
+    TraitedSpec,
+    isdefined,
     traits,
 )
 
@@ -140,9 +139,9 @@ class AggregateSurfaces(SimpleInterface):
     output_spec = AggregateSurfacesOutputSpec
 
     def _run_interface(self, runtime):
-        from collections import defaultdict
         import os
         import re
+        from collections import defaultdict
 
         container = defaultdict(list)
         inputs = (self.inputs.surfaces or []) + (self.inputs.morphometrics or [])

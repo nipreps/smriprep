@@ -7,8 +7,8 @@ import numpy as np
 import pytest
 from nipype.pipeline import engine as pe
 
-from ..surfaces import init_anat_ribbon_wf, init_gifti_surfaces_wf
 from ...data import load_resource
+from ..surfaces import init_anat_ribbon_wf, init_gifti_surfaces_wf
 
 
 def test_ribbon_workflow(tmp_path: Path):

@@ -1,14 +1,13 @@
 from pathlib import Path
 
-from nipype.pipeline.engine.utils import generate_expanded_graph
 import nibabel as nb
 import numpy as np
 import pytest
-
-from niworkflows.utils.spaces import SpatialReferences, Reference
+from nipype.pipeline.engine.utils import generate_expanded_graph
+from niworkflows.utils.spaces import Reference, SpatialReferences
 from niworkflows.utils.testing import generate_bids_skeleton
 
-from ..anatomical import init_anat_preproc_wf, init_anat_fit_wf
+from ..anatomical import init_anat_fit_wf, init_anat_preproc_wf
 
 BASE_LAYOUT = {
     '01': {

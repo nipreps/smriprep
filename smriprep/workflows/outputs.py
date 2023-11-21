@@ -23,13 +23,13 @@
 """Writing outputs."""
 import typing as ty
 
-from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
+from nipype.pipeline import engine as pe
+from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.nibabel import ApplyMask, GenerateSamplingReference
 from niworkflows.interfaces.space import SpaceDataSource
 from niworkflows.interfaces.utility import KeySelect
-from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
 from ..interfaces import DerivativesDataSink
 from ..interfaces.templateflow import TemplateFlowSelect
@@ -75,10 +75,10 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name='anat_reports_w
         Template space and specifications
 
     """
+    from niworkflows.interfaces.reportlets.masks import ROIsPlot
     from niworkflows.interfaces.reportlets.registration import (
         SimpleBeforeAfterRPT as SimpleBeforeAfter,
     )
-    from niworkflows.interfaces.reportlets.masks import ROIsPlot
 
     workflow = Workflow(name=name)
 
@@ -129,7 +129,7 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name='anat_reports_w
     ])
     # fmt:on
 
-    if getattr(spaces, '_cached') is not None and spaces.cached.references:
+    if spaces._cached is not None and spaces.cached.references:
         template_iterator_wf = init_template_iterator_wf(spaces=spaces)
         t1w_std = pe.Node(
             ApplyTransforms(
@@ -1212,6 +1212,7 @@ def _bids_relative(in_files, bids_root):
 
 def _rpt_masks(mask_file, before, after, after_mask=None):
     from os.path import abspath
+
     import nibabel as nb
 
     msk = nb.load(mask_file).get_fdata() > 0
@@ -1247,6 +1248,7 @@ def _fmt(in_template):
 
 def _empty_report(in_file=None):
     from pathlib import Path
+
     from nipype.interfaces.base import isdefined
 
     if in_file is not None and isdefined(in_file):
@@ -1274,6 +1276,7 @@ def _no_native(value):
 
 def _drop_path(in_path):
     from pathlib import Path
+
     from templateflow.conf import TF_HOME
 
     return str(Path(in_path).relative_to(TF_HOME))

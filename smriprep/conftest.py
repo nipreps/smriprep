@@ -1,7 +1,7 @@
 import os
 
-import pytest
 import numpy
+import pytest
 
 from smriprep.data import load_resource
 

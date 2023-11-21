@@ -38,6 +38,4 @@ __credits__ = [
 ]
 __url__ = 'https://github.com/nipreps/smriprep'
 
-DOWNLOAD_URL = 'https://github.com/nipreps/{name}/archive/{ver}.tar.gz'.format(
-    name=__package__, ver=__version__
-)
+DOWNLOAD_URL = f'https://github.com/nipreps/{__package__}/archive/{__version__}.tar.gz'

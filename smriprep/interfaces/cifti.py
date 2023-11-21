@@ -1,12 +1,11 @@
 import json
-from pathlib import Path
 import typing as ty
+from pathlib import Path
 
 import nibabel as nb
 import numpy as np
-
 from nibabel import cifti2 as ci
-from nipype.interfaces.base import TraitedSpec, traits, File, SimpleInterface
+from nipype.interfaces.base import File, SimpleInterface, TraitedSpec, traits
 from templateflow import api as tf
 
 
@@ -52,7 +51,7 @@ class GenerateDScalar(SimpleInterface):
         return runtime
 
 
-def _prepare_cifti(grayordinates: str) -> ty.Tuple[list, dict]:
+def _prepare_cifti(grayordinates: str) -> tuple[list, dict]:
     """
     Fetch the required templates needed for CIFTI-2 generation, based on input surface density.
 
@@ -133,8 +132,8 @@ def _prepare_cifti(grayordinates: str) -> ty.Tuple[list, dict]:
 
 
 def _create_cifti_image(
-    scalar_surfs: ty.Tuple[str, str],
-    surface_labels: ty.Tuple[str, str],
+    scalar_surfs: tuple[str, str],
+    surface_labels: tuple[str, str],
     scalar_name: str,
     metadata: ty.Optional[dict] = None,
 ):

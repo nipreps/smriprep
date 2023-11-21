@@ -22,11 +22,12 @@
 #
 """Nipype's recon-all replacement."""
 import os
+
 from looseversion import LooseVersion
 from nipype import logging
-from nipype.utils.filemanip import check_depends
-from nipype.interfaces.base import traits, InputMultiObject, isdefined, File
 from nipype.interfaces import freesurfer as fs
+from nipype.interfaces.base import File, InputMultiObject, isdefined, traits
+from nipype.utils.filemanip import check_depends
 from niworkflows.interfaces import freesurfer as nwfs
 
 iflogger = logging.getLogger('nipype.interface')

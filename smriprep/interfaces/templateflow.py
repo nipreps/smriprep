@@ -22,16 +22,17 @@
 #
 """Interfaces to get templates from TemplateFlow."""
 import logging
-from templateflow import api as tf
+
 from nipype.interfaces.base import (
-    SimpleInterface,
     BaseInterfaceInputSpec,
+    File,
+    InputMultiObject,
+    SimpleInterface,
     TraitedSpec,
     isdefined,
     traits,
-    File,
-    InputMultiObject,
 )
+from templateflow import api as tf
 
 LOGGER = logging.getLogger('nipype.interface')
 

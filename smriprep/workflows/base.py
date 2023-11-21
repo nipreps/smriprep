@@ -21,22 +21,20 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """*sMRIPrep* base processing workflows."""
-import sys
 import os
+import sys
 from copy import deepcopy
 
 from nipype import __version__ as nipype_ver
-from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
-
+from nipype.pipeline import engine as pe
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.bids import BIDSInfo, BIDSDataGrabber, BIDSFreeSurferDir
+from niworkflows.interfaces.bids import BIDSDataGrabber, BIDSFreeSurferDir, BIDSInfo
 from niworkflows.utils.bids import collect_data
 from niworkflows.utils.misc import fix_multi_T1w_source_name
 
-from ..interfaces import DerivativesDataSink
 from ..__about__ import __version__
-
+from ..interfaces import DerivativesDataSink
 from .anatomical import init_anat_preproc_wf
 
 
@@ -344,14 +342,14 @@ def init_single_subject_wf(
         )
 
     workflow = Workflow(name=name)
-    workflow.__desc__ = """
+    workflow.__desc__ = f"""
 Results included in this manuscript come from preprocessing
-performed using *sMRIPprep* {smriprep_ver}
+performed using *sMRIPprep* {__version__}
 (@fmriprep1; @fmriprep2; RRID:SCR_016216),
 which is based on *Nipype* {nipype_ver}
 (@nipype1; @nipype2; RRID:SCR_002502).
 
-""".format(smriprep_ver=__version__, nipype_ver=nipype_ver)
+"""
     workflow.__postdesc__ = """
 
 For more details of the pipeline, see [the section corresponding

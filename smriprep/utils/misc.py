@@ -25,8 +25,8 @@
 
 def apply_lut(in_dseg, lut, newpath=None):
     """Map the input discrete segmentation to a new label set (lookup table, LUT)."""
-    import numpy as np
     import nibabel as nb
+    import numpy as np
     from nipype.utils.filemanip import fname_presuffix
 
     if newpath is None:
@@ -66,8 +66,8 @@ def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400, logger=None):
     subjects_dir : os.PathLike or None
 
     """
-    from pathlib import Path
     import time
+    from pathlib import Path
 
     if subjects_dir is None:
         return subjects_dir

@@ -21,8 +21,9 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Utilities to handle BIDS inputs."""
-from pathlib import Path
 from json import loads
+from pathlib import Path
+
 from bids.layout import BIDSLayout
 
 from ..data import load_resource
@@ -110,10 +111,11 @@ def write_derivative_description(bids_dir, deriv_dir):
 
 
     """
+    import json
     import os
     from pathlib import Path
-    import json
-    from ..__about__ import __version__, DOWNLOAD_URL
+
+    from ..__about__ import DOWNLOAD_URL, __version__
 
     bids_dir = Path(bids_dir)
     deriv_dir = Path(deriv_dir)

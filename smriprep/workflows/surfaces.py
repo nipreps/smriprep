@@ -35,9 +35,12 @@ from nipype.interfaces import utility as niu
 from nipype.interfaces.base import Undefined
 from nipype.pipeline import engine as pe
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-from niworkflows.interfaces.freesurfer import FSDetectInputs, FSInjectBrainExtracted
+from niworkflows.interfaces.freesurfer import (
+    FSDetectInputs,
+    FSInjectBrainExtracted,
+    RefineBrainMask,
+)
 from niworkflows.interfaces.freesurfer import PatchedRobustRegister as RobustRegister
-from niworkflows.interfaces.freesurfer import RefineBrainMask
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.interfaces.utility import KeySelect
 from niworkflows.interfaces.workbench import (
@@ -817,7 +820,7 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
 
 def init_gifti_surfaces_wf(
     *,
-    surfaces: ty.List[str] = ['pial', 'midthickness', 'inflated', 'white'],
+    surfaces: list[str] = ['pial', 'midthickness', 'inflated', 'white'],
     to_scanner: bool = True,
     name: str = 'gifti_surface_wf',
 ):
@@ -914,7 +917,7 @@ def init_gifti_surfaces_wf(
 
 def init_gifti_morphometrics_wf(
     *,
-    morphometrics: ty.List[str] = ['thickness', 'curv', 'sulc'],
+    morphometrics: list[str] = ['thickness', 'curv', 'sulc'],
     name: str = 'gifti_morphometrics_wf',
 ):
     r"""
