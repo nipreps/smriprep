@@ -336,9 +336,7 @@ def init_single_subject_wf(
 
     if not subject_data['t1w']:
         raise Exception(
-            'No T1w images found for participant {}. ' 'All workflows require T1w images.'.format(
-                subject_id
-            )
+            f'No T1w images found for participant {subject_id}. All workflows require T1w images.'
         )
 
     workflow = Workflow(name=name)

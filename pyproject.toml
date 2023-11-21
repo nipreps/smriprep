@@ -142,13 +142,21 @@ extend-select = [
   "F",
   "E",
   "W",
-  "A",
   "I",
   "UP",
   "YTT",
   "S",
   "BLE",
   "B",
+  "A",
+  # "CPY",
+  "C4",
+  "DTZ",
+  "T10",
+  # "EM",
+  "EXE",
+  "FA",
+  "ISC",
 ]
 
 [tool.ruff.flake8-quotes]
