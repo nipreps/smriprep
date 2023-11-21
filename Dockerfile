@@ -74,15 +74,13 @@ RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bi
 
 ENV MAMBA_ROOT_PREFIX="/opt/conda"
 COPY env.yml /tmp/env.yml
+COPY requirements.txt /tmp/requirements.txt
 RUN micromamba create -y -f /tmp/env.yml && \
     micromamba clean -y -a
 
 ENV PATH="/opt/conda/envs/smriprep/bin:$PATH"
-RUN /opt/conda/envs/smriprep/bin/npm install -g svgo@^2.8 bids-validator@1.11.0 && \
+RUN /opt/conda/envs/smriprep/bin/npm install -g svgo@^3.0 bids-validator@^1.13 && \
     rm -r ~/.npm
-
-COPY requirements.txt /tmp/requirements.txt
-RUN /opt/conda/envs/smriprep/bin/pip install --no-cache-dir -r /tmp/requirements.txt
 
 #
 # Main stage

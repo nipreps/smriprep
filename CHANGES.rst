@@ -1,3 +1,53 @@
+0.13.0 (November 20, 2023)
+==========================
+New feature release in the 0.13.x series.
+
+This release adds support for MSM-Sulc, improving the alignment of subject
+surfaces to the fsLR template. This process is enabled by default, but may
+be disabled with the ``--no-msm`` flag.
+
+The ``--fast-track`` flag has been deprecated in favor of a more flexible
+``--derivatives`` flag. This flag can be used to specify one or more
+directories to search for derivatives. Derivatives found in these
+directories can be used to skip corresponding workflows. For derivatives
+that can be deterministically generated from other derivatives, sMRIPrep
+will regenerate the derivatives to avoid inconsistencies.
+
+This supports the 23.2.x series of fMRIPrep, which introduces a ``--level``
+flag to control the level of processing. This feature is not currently
+available in sMRIPrep, but will be in a future release. To preview this
+functionality, use fMRIPrep's ``--anat-only`` flag to run only structural
+workflows.
+
+* FIX: Add missing fsLR reg sphere to io_spec (#382)
+* FIX: Invert sulcal depth metric before passing to MSM, use HCP atlas files (#383)
+* FIX: Update surfaces with fsnative2t1w_xfm (#384)
+* FIX: Add surface-modify-sphere call to catch potential sphere elongation (#375)
+* ENH: Add T2w/FLAIR usage to boilerplate (#392)
+* ENH: Annotate mris_expand with thread usage (#386)
+* ENH: Add sphere registration to fit workflow, check for precomputed (#370)
+* ENH: Save msm registration sphere as desc-msm_sphere.surf.gii (#365)
+* ENH: Add Multimodal Surface Matching (#358)
+* ENH: Run pytest on CircleCI (#364)
+* ENH: Separate surfaces and morphometrics into standalone outputs (#359)
+* RF: Split template and fsLR resampling and sinking into isolated workflows (#388)
+* RF: Replace most of anat_ribbon_wf with a Python function (#363)
+* RF: Break up surface workflows for easier mix-and-match in fMRIPrep (#360)
+* TEST: Add smoke tests for main anatomical workflows (#390)
+* TEST: Add sloppy MSM configuration for use in debugging/CI (#366)
+* DOC: http:// → https:// (#377)
+* DOC: Fix misspelling found by codespell (#378)
+* MNT: Remove AFNI from smriprep docker container (#387)
+* MNT: Use a set literal, not a list literal (#379)
+* MNT: Update installation environment (#361)
+* MNT: Include 3T18yoSchwartzReactN32 FreeSurfer atlas in image (#357)
+* MNT: Infrastructure updates (#351)
+* MNT: fix flake8 warning (#349)
+* MNT: apply pyupgrade suggestions (#348)
+* MNT: fix typos found by codespell (#346)
+* MNT: Python 3.11 should be supported (#347)
+
+
 0.12.2 (August 16, 2023)
 ========================
 Bug-fix release in the 0.12.x series.

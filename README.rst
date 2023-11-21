@@ -39,7 +39,7 @@ a combination of tools from well-known software packages, including
 `FSL <https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/>`__,
 `ANTs <https://stnava.github.io/ANTs/>`__,
 `FreeSurfer <https://surfer.nmr.mgh.harvard.edu/>`__,
-and `AFNI <https://afni.nimh.nih.gov/>`__.
+and `Connectome Workbench <https://humanconnectome.org/software/connectome-workbench>`__.
 
 More information and documentation can be found at
 https://www.nipreps.org/smriprep/.
