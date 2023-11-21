@@ -482,7 +482,7 @@ def build_workflow(opts, retval):
 
     # Load base plugin_settings from file if --use-plugin
     if opts.use_plugin is not None:
-        from yaml import load as loadyml
+        from yaml import safe_load as loadyml
 
         with open(opts.use_plugin) as f:
             plugin_settings = loadyml(f)
@@ -651,7 +651,7 @@ def build_workflow(opts, retval):
         str(log_dir / 'CITATION.html'),
     ]
     try:
-        check_call(cmd, timeout=10)
+        check_call(cmd, timeout=10)  # noqa: S603
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning('Could not generate CITATION.html file:\n%s', ' '.join(cmd))
 
@@ -667,7 +667,7 @@ def build_workflow(opts, retval):
         str(log_dir / 'CITATION.tex'),
     ]
     try:
-        check_call(cmd, timeout=10)
+        check_call(cmd, timeout=10)  # noqa: S603
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning('Could not generate CITATION.tex file:\n%s', ' '.join(cmd))
     else:

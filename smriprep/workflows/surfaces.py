@@ -1611,7 +1611,8 @@ def _extract_fs_fields(filenames: str | list[str]) -> tuple[str, str]:
     paths = [Path(fn) for fn in filenames]
     sub_dir = paths[0].parent.parent
     subjects_dir, subject_id = sub_dir.parent, sub_dir.name
-    assert all(path == subjects_dir / subject_id / 'surf' / path.name for path in paths)
+    if not all(path.parent.parent == sub_dir for path in paths):
+        raise ValueError(f'Expected surface files from one subject.\nReceived: {filenames}')
     return str(subjects_dir), subject_id
 
 
