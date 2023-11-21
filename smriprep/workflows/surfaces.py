@@ -697,10 +697,10 @@ def init_fsLR_reg_wf(*, name='fsLR_reg_wf'):
 
     # Via
     # ${CARET7DIR}/wb_command -surface-sphere-project-unproject
-    #   "$AtlasSpaceFolder"/"$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.native.surf.gii
-    #   "$AtlasSpaceFolder"/fsaverage/"$Subject"."$Hemisphere".sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
-    #   "$AtlasSpaceFolder"/fsaverage/"$Subject"."$Hemisphere".def_sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
-    #   "$AtlasSpaceFolder"/"$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.reg_LR.native.surf.gii
+    #   "$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.native.surf.gii
+    #   fsaverage/"$Subject"."$Hemisphere".sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
+    #   fsaverage/"$Subject"."$Hemisphere".def_sphere."$HighResMesh"k_fs_"$Hemisphere".surf.gii
+    #   "$NativeFolder"/"$Subject"."$Hemisphere".sphere.reg.reg_LR.native.surf.gii
     project_unproject = pe.MapNode(
         SurfaceSphereProjectUnproject(),
         iterfield=['sphere_in', 'sphere_project_to', 'sphere_unproject_from'],
@@ -820,7 +820,7 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
 
 def init_gifti_surfaces_wf(
     *,
-    surfaces: list[str] = ['pial', 'midthickness', 'inflated', 'white'],
+    surfaces: list[str] = ('pial', 'midthickness', 'inflated', 'white'),
     to_scanner: bool = True,
     name: str = 'gifti_surface_wf',
 ):
@@ -917,7 +917,7 @@ def init_gifti_surfaces_wf(
 
 def init_gifti_morphometrics_wf(
     *,
-    morphometrics: list[str] = ['thickness', 'curv', 'sulc'],
+    morphometrics: list[str] = ('thickness', 'curv', 'sulc'),
     name: str = 'gifti_morphometrics_wf',
 ):
     r"""

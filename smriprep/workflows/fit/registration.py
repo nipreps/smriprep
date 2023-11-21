@@ -115,8 +115,7 @@ The following template{tpls} were selected for spatial normalization
 and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
 """.format(
             ants_ver=ANTsInfo.version() or '(version unknown)',
-            targets='%s standard space%s'
-            % (
+            targets='{} standard space{}'.format(
                 defaultdict('several'.format, {1: 'one', 2: 'two', 3: 'three', 4: 'four'})[ntpls],
                 's' * (ntpls != 1),
             ),

@@ -23,7 +23,6 @@
 """Handling surfaces."""
 import os
 from pathlib import Path
-from typing import Optional
 
 import nibabel as nb
 import nitransforms as nt
@@ -183,9 +182,7 @@ class MakeRibbon(SimpleInterface):
         return runtime
 
 
-def normalize_surfs(
-    in_file: str, transform_file: str | None, newpath: Optional[str] = None
-) -> str:
+def normalize_surfs(in_file: str, transform_file: str | None, newpath: str | None = None) -> str:
     """
     Update GIFTI metadata and apply rigid coordinate correction.
 
@@ -242,7 +239,7 @@ def normalize_surfs(
     return out_file
 
 
-def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
+def fix_gifti_metadata(in_file: str, newpath: str | None = None) -> str:
     """Fix known incompatible metadata in GIFTI files.
 
     Currently resolves:
@@ -269,7 +266,7 @@ def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
 def make_ribbon(
     white_distvols: list[str],
     pial_distvols: list[str],
-    newpath: Optional[str] = None,
+    newpath: str | None = None,
 ) -> str:
     base_img = nb.load(white_distvols[0])
     header = base_img.header
@@ -277,7 +274,7 @@ def make_ribbon(
 
     ribbons = [
         (np.array(nb.load(white).dataobj) > 0) & (np.array(nb.load(pial).dataobj) < 0)
-        for white, pial in zip(white_distvols, pial_distvols)
+        for white, pial in zip(white_distvols, pial_distvols, strict=True)
     ]
 
     if newpath is None:

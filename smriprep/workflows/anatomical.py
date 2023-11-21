@@ -1541,7 +1541,7 @@ An anatomical {contrast}-reference map was computed after registration of
 
 
 def _pop(inlist):
-    if isinstance(inlist, (list, tuple)):
+    if isinstance(inlist, list | tuple):
         return inlist[0]
     return inlist
 

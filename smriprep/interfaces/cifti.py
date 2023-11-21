@@ -1,5 +1,4 @@
 import json
-import typing as ty
 from pathlib import Path
 
 import nibabel as nb
@@ -135,7 +134,7 @@ def _create_cifti_image(
     scalar_surfs: tuple[str, str],
     surface_labels: tuple[str, str],
     scalar_name: str,
-    metadata: ty.Optional[dict] = None,
+    metadata: dict | None = None,
 ):
     """
     Generate CIFTI image in target space.

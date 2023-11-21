@@ -1199,7 +1199,7 @@ def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
 def _bids_relative(in_files, bids_root):
     from pathlib import Path
 
-    if not isinstance(in_files, (list, tuple)):
+    if not isinstance(in_files, list | tuple):
         in_files = [in_files]
     ret = []
     for file in in_files:
