@@ -1151,7 +1151,6 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         )
         ds_t2w_preproc.inputs.SkullStripped = False
 
-        # fmt:off
         workflow.connect([
             (inputnode, t2w_template_wf, [('t2w', 'inputnode.anat_files')]),
             (t2w_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
@@ -1163,13 +1162,12 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
             (coreg_xfms, t2wtot1w_xfm, [('out', 'in_xfms')]),
             (t2w_template_wf, t2w_resample, [('outputnode.anat_ref', 'input_image')]),
-            (t1w_buffer, t2w_resample, [('T1w_preproc', 'reference_image')]),
+            (t1w_buffer, t2w_resample, [('t1w_preproc', 'reference_image')]),
             (t2wtot1w_xfm, t2w_resample, [('out_xfm', 'transforms')]),
             (inputnode, ds_t2w_preproc, [('t2w', 'source_file')]),
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
             (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
-        ])
-        # fmt:on
+        ])  # fmt:skip
     elif not t2w:
         LOGGER.info("ANAT No T2w images provided - skipping Stage 7")
     else:
