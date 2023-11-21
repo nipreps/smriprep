@@ -159,6 +159,7 @@ extend-select = [
   "ISC",
   "ICN",
   "PT",
+  "Q",
 ]
 
 [tool.ruff.flake8-quotes]
