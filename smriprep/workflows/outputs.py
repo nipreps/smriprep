@@ -171,18 +171,18 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name='anat_reports_w
         # fmt:off
         workflow.connect([
             (inputnode, template_iterator_wf, [
-                ("template", "inputnode.template"),
-                ("anat2std_xfm", "inputnode.anat2std_xfm"),
+                ('template', 'inputnode.template'),
+                ('anat2std_xfm', 'inputnode.anat2std_xfm'),
             ]),
-            (inputnode, t1w_std, [("t1w_preproc", "input_image")]),
-            (inputnode, mask_std, [("t1w_mask", "input_image")]),
+            (inputnode, t1w_std, [('t1w_preproc', 'input_image')]),
+            (inputnode, mask_std, [('t1w_mask', 'input_image')]),
             (template_iterator_wf, t1w_std, [
-                ("outputnode.anat2std_xfm", "transforms"),
-                ("outputnode.std_t1w", "reference_image"),
+                ('outputnode.anat2std_xfm', 'transforms'),
+                ('outputnode.std_t1w', 'reference_image'),
             ]),
             (template_iterator_wf, mask_std, [
-                ("outputnode.anat2std_xfm", "transforms"),
-                ("outputnode.std_t1w", "reference_image"),
+                ('outputnode.anat2std_xfm', 'transforms'),
+                ('outputnode.std_t1w', 'reference_image'),
             ]),
             (template_iterator_wf, norm_rpt, [('outputnode.space', 'before_label')]),
             (t1w_std, norm_msk, [('output_image', 'after')]),
@@ -283,7 +283,7 @@ def init_ds_template_wf(
     workflow.connect([
         (inputnode, ds_t1w_preproc, [('t1w_preproc', 'in_file'),
                                      ('source_files', 'source_file')]),
-        (ds_t1w_preproc, outputnode, [("out_file", "t1w_preproc")]),
+        (ds_t1w_preproc, outputnode, [('out_file', 't1w_preproc')]),
     ])
     # fmt:on
 
@@ -488,7 +488,7 @@ def init_ds_tpms_wf(*, output_dir, name='ds_tpms_wf', tpm_labels=BIDS_TISSUE_ORD
     workflow.connect([
         (inputnode, ds_t1w_tpms, [('t1w_tpms', 'in_file'),
                                   ('source_files', 'source_file')]),
-        (ds_t1w_tpms, outputnode, [("out_file", "t1w_tpms")]),
+        (ds_t1w_tpms, outputnode, [('out_file', 't1w_tpms')]),
     ])
     # fmt:on
 
@@ -570,8 +570,8 @@ def init_ds_template_registration_wf(
             ('std2anat_xfm', 'in_file'),
             (('template', _combine_cohort), 'from'),
             ('source_files', 'source_file')]),
-        (ds_t1w2std_xfm, outputnode, [("out_file", "anat2std_xfm")]),
-        (ds_std2t1w_xfm, outputnode, [("out_file", "std2anat_xfm")]),
+        (ds_t1w2std_xfm, outputnode, [('out_file', 'anat2std_xfm')]),
+        (ds_std2t1w_xfm, outputnode, [('out_file', 'std2anat_xfm')]),
     ])
     # fmt:on
 
@@ -972,22 +972,22 @@ def init_ds_anat_volumes_wf(
 
     workflow.connect([
         (inputnode, gen_ref, [
-            ("ref_file", "fixed_image"),
-            (("resolution", _is_native), "keep_native"),
+            ('ref_file', 'fixed_image'),
+            (('resolution', _is_native), 'keep_native'),
         ]),
         (inputnode, mask_t1w, [
-            ("t1w_preproc", "in_file"),
-            ("t1w_mask", "in_mask"),
+            ('t1w_preproc', 'in_file'),
+            ('t1w_mask', 'in_mask'),
         ]),
-        (mask_t1w, anat2std_t1w, [("out_file", "input_image")]),
-        (inputnode, anat2std_mask, [("t1w_mask", "input_image")]),
-        (inputnode, anat2std_dseg, [("t1w_dseg", "input_image")]),
-        (inputnode, anat2std_tpms, [("t1w_tpms", "input_image")]),
-        (inputnode, gen_ref, [("t1w_preproc", "moving_image")]),
-        (anat2std_t1w, ds_std_t1w, [("output_image", "in_file")]),
-        (anat2std_mask, ds_std_mask, [("output_image", "in_file")]),
-        (anat2std_dseg, ds_std_dseg, [("output_image", "in_file")]),
-        (anat2std_tpms, ds_std_tpms, [("output_image", "in_file")]),
+        (mask_t1w, anat2std_t1w, [('out_file', 'input_image')]),
+        (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
+        (inputnode, anat2std_dseg, [('t1w_dseg', 'input_image')]),
+        (inputnode, anat2std_tpms, [('t1w_tpms', 'input_image')]),
+        (inputnode, gen_ref, [('t1w_preproc', 'moving_image')]),
+        (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
+        (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
+        (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
+        (anat2std_tpms, ds_std_tpms, [('output_image', 'in_file')]),
     ])  # fmt:skip
 
     workflow.connect(
@@ -1179,16 +1179,16 @@ def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
             (('resolution', _no_native), 'resolution'),
         ]),
         (spacesource, outputnode, [
-            ("space", "space"),
-            ("resolution", "resolution"),
-            ("cohort", "cohort"),
+            ('space', 'space'),
+            ('resolution', 'resolution'),
+            ('cohort', 'cohort'),
         ]),
         (select_xfm, outputnode, [
-            ("anat2std_xfm", "anat2std_xfm"),
+            ('anat2std_xfm', 'anat2std_xfm'),
         ]),
         (select_tpl, outputnode, [
-            ("t1w_file", "std_t1w"),
-            ("brain_mask", "std_mask"),
+            ('t1w_file', 'std_t1w'),
+            ('brain_mask', 'std_mask'),
         ]),
     ])
     # fmt:on

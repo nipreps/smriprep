@@ -285,45 +285,45 @@ def init_anat_preproc_wf(
 
     workflow.connect([
         (inputnode, anat_fit_wf, [
-            ("t1w", "inputnode.t1w"),
-            ("t2w", "inputnode.t2w"),
-            ("roi", "inputnode.roi"),
-            ("flair", "inputnode.flair"),
-            ("subjects_dir", "inputnode.subjects_dir"),
-            ("subject_id", "inputnode.subject_id"),
+            ('t1w', 'inputnode.t1w'),
+            ('t2w', 'inputnode.t2w'),
+            ('roi', 'inputnode.roi'),
+            ('flair', 'inputnode.flair'),
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
         ]),
         (anat_fit_wf, outputnode, [
-            ("outputnode.template", "template"),
-            ("outputnode.subjects_dir", "subjects_dir"),
-            ("outputnode.subject_id", "subject_id"),
-            ("outputnode.t1w_preproc", "t1w_preproc"),
-            ("outputnode.t1w_mask", "t1w_mask"),
-            ("outputnode.t1w_dseg", "t1w_dseg"),
-            ("outputnode.t1w_tpms", "t1w_tpms"),
-            ("outputnode.anat2std_xfm", "anat2std_xfm"),
-            ("outputnode.std2anat_xfm", "std2anat_xfm"),
-            ("outputnode.fsnative2t1w_xfm", "fsnative2t1w_xfm"),
-            ("outputnode.sphere_reg", "sphere_reg"),
-            (f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}", "sphere_reg_fsLR"),
-            ("outputnode.anat_ribbon", "anat_ribbon"),
+            ('outputnode.template', 'template'),
+            ('outputnode.subjects_dir', 'subjects_dir'),
+            ('outputnode.subject_id', 'subject_id'),
+            ('outputnode.t1w_preproc', 't1w_preproc'),
+            ('outputnode.t1w_mask', 't1w_mask'),
+            ('outputnode.t1w_dseg', 't1w_dseg'),
+            ('outputnode.t1w_tpms', 't1w_tpms'),
+            ('outputnode.anat2std_xfm', 'anat2std_xfm'),
+            ('outputnode.std2anat_xfm', 'std2anat_xfm'),
+            ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+            ('outputnode.sphere_reg', 'sphere_reg'),
+            (f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}", 'sphere_reg_fsLR'),
+            ('outputnode.anat_ribbon', 'anat_ribbon'),
         ]),
         (anat_fit_wf, template_iterator_wf, [
-            ("outputnode.template", "inputnode.template"),
-            ("outputnode.anat2std_xfm", "inputnode.anat2std_xfm"),
+            ('outputnode.template', 'inputnode.template'),
+            ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
         ]),
         (anat_fit_wf, ds_std_volumes_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files'),
-            ("outputnode.t1w_preproc", "inputnode.t1w_preproc"),
-            ("outputnode.t1w_mask", "inputnode.t1w_mask"),
-            ("outputnode.t1w_dseg", "inputnode.t1w_dseg"),
-            ("outputnode.t1w_tpms", "inputnode.t1w_tpms"),
+            ('outputnode.t1w_preproc', 'inputnode.t1w_preproc'),
+            ('outputnode.t1w_mask', 'inputnode.t1w_mask'),
+            ('outputnode.t1w_dseg', 'inputnode.t1w_dseg'),
+            ('outputnode.t1w_tpms', 'inputnode.t1w_tpms'),
         ]),
         (template_iterator_wf, ds_std_volumes_wf, [
-            ("outputnode.std_t1w", "inputnode.ref_file"),
-            ("outputnode.anat2std_xfm", "inputnode.anat2std_xfm"),
-            ("outputnode.space", "inputnode.space"),
-            ("outputnode.cohort", "inputnode.cohort"),
-            ("outputnode.resolution", "inputnode.resolution"),
+            ('outputnode.std_t1w', 'inputnode.ref_file'),
+            ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
+            ('outputnode.space', 'inputnode.space'),
+            ('outputnode.cohort', 'inputnode.cohort'),
+            ('outputnode.resolution', 'inputnode.resolution'),
         ]),
     ])  # fmt:skip
 
@@ -403,14 +403,14 @@ def init_anat_preproc_wf(
                     ('outputnode.midthickness', 'inputnode.midthickness'),
                     (
                         f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
-                        "inputnode.sphere_reg_fsLR",
+                        'inputnode.sphere_reg_fsLR',
                     ),
                 ]),
                 (anat_fit_wf, morph_grayords_wf, [
                     ('outputnode.midthickness', 'inputnode.midthickness'),
                     (
                         f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
-                        "inputnode.sphere_reg_fsLR",
+                        'inputnode.sphere_reg_fsLR',
                     ),
                 ]),
                 (hcp_morphometrics_wf, morph_grayords_wf, [
@@ -698,24 +698,24 @@ BIDS dataset."""
     # fmt:off
     workflow.connect([
         (seg_buffer, outputnode, [
-            ("t1w_dseg", "t1w_dseg"),
-            ("t1w_tpms", "t1w_tpms"),
+            ('t1w_dseg', 't1w_dseg'),
+            ('t1w_tpms', 't1w_tpms'),
         ]),
-        (anat2std_buffer, outputnode, [("out", "anat2std_xfm")]),
-        (std2anat_buffer, outputnode, [("out", "std2anat_xfm")]),
-        (template_buffer, outputnode, [("out", "template")]),
-        (sourcefile_buffer, outputnode, [("source_files", "t1w_valid_list")]),
+        (anat2std_buffer, outputnode, [('out', 'anat2std_xfm')]),
+        (std2anat_buffer, outputnode, [('out', 'std2anat_xfm')]),
+        (template_buffer, outputnode, [('out', 'template')]),
+        (sourcefile_buffer, outputnode, [('source_files', 't1w_valid_list')]),
         (surfaces_buffer, outputnode, [
-            ("white", "white"),
-            ("pial", "pial"),
-            ("midthickness", "midthickness"),
-            ("sphere", "sphere"),
-            ("sphere_reg", "sphere_reg"),
-            ("thickness", "thickness"),
-            ("sulc", "sulc"),
+            ('white', 'white'),
+            ('pial', 'pial'),
+            ('midthickness', 'midthickness'),
+            ('sphere', 'sphere'),
+            ('sphere_reg', 'sphere_reg'),
+            ('thickness', 'thickness'),
+            ('sulc', 'sulc'),
         ]),
-        (fsLR_buffer, outputnode, [("sphere_reg_fsLR", "sphere_reg_fsLR")]),
-        (msm_buffer, outputnode, [("sphere_reg_msm", "sphere_reg_msm")]),
+        (fsLR_buffer, outputnode, [('sphere_reg_fsLR', 'sphere_reg_fsLR')]),
+        (msm_buffer, outputnode, [('sphere_reg_msm', 'sphere_reg_msm')]),
     ])
     # fmt:on
 
@@ -728,14 +728,14 @@ BIDS dataset."""
     # fmt:off
     workflow.connect([
         (outputnode, anat_reports_wf, [
-            ("t1w_valid_list", "inputnode.source_file"),
-            ("t1w_preproc", "inputnode.t1w_preproc"),
-            ("t1w_mask", "inputnode.t1w_mask"),
-            ("t1w_dseg", "inputnode.t1w_dseg"),
-            ("template", "inputnode.template"),
-            ("anat2std_xfm", "inputnode.anat2std_xfm"),
-            ("subjects_dir", "inputnode.subjects_dir"),
-            ("subject_id", "inputnode.subject_id"),
+            ('t1w_valid_list', 'inputnode.source_file'),
+            ('t1w_preproc', 'inputnode.t1w_preproc'),
+            ('t1w_mask', 'inputnode.t1w_mask'),
+            ('t1w_dseg', 'inputnode.t1w_dseg'),
+            ('template', 'inputnode.template'),
+            ('anat2std_xfm', 'inputnode.anat2std_xfm'),
+            ('subjects_dir', 'inputnode.subjects_dir'),
+            ('subject_id', 'inputnode.subject_id'),
         ]),
     ])
     # fmt:on
@@ -763,20 +763,20 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
 
         # fmt:off
         workflow.connect([
-            (inputnode, anat_template_wf, [("t1w", "inputnode.anat_files")]),
-            (anat_template_wf, anat_validate, [("outputnode.anat_ref", "in_file")]),
+            (inputnode, anat_template_wf, [('t1w', 'inputnode.anat_files')]),
+            (anat_template_wf, anat_validate, [('outputnode.anat_ref', 'in_file')]),
             (anat_template_wf, sourcefile_buffer, [
-                ("outputnode.anat_valid_list", "source_files"),
+                ('outputnode.anat_valid_list', 'source_files'),
             ]),
             (anat_template_wf, anat_reports_wf, [
-                ("outputnode.out_report", "inputnode.t1w_conform_report"),
+                ('outputnode.out_report', 'inputnode.t1w_conform_report'),
             ]),
             (anat_template_wf, ds_template_wf, [
-                ("outputnode.anat_realign_xfm", "inputnode.t1w_ref_xfms"),
+                ('outputnode.anat_realign_xfm', 'inputnode.t1w_ref_xfms'),
             ]),
-            (sourcefile_buffer, ds_template_wf, [("source_files", "inputnode.source_files")]),
-            (t1w_buffer, ds_template_wf, [("t1w_preproc", "inputnode.t1w_preproc")]),
-            (ds_template_wf, outputnode, [("outputnode.t1w_preproc", "t1w_preproc")]),
+            (sourcefile_buffer, ds_template_wf, [('source_files', 'inputnode.source_files')]),
+            (t1w_buffer, ds_template_wf, [('t1w_preproc', 'inputnode.t1w_preproc')]),
+            (ds_template_wf, outputnode, [('outputnode.t1w_preproc', 't1w_preproc')]),
         ])
         # fmt:on
     else:
@@ -790,8 +790,8 @@ and used as T1w-reference throughout the workflow.
 
         # fmt:off
         workflow.connect([
-            (anat_validate, t1w_buffer, [("out_file", "t1w_preproc")]),
-            (t1w_buffer, outputnode, [("t1w_preproc", "t1w_preproc")]),
+            (anat_validate, t1w_buffer, [('out_file', 't1w_preproc')]),
+            (t1w_buffer, outputnode, [('t1w_preproc', 't1w_preproc')]),
         ])
         # fmt:on
 
@@ -821,17 +821,17 @@ as target template.
             )
             # fmt:off
             workflow.connect([
-                (anat_validate, brain_extraction_wf, [("out_file", "inputnode.in_files")]),
+                (anat_validate, brain_extraction_wf, [('out_file', 'inputnode.in_files')]),
                 (brain_extraction_wf, t1w_buffer, [
-                    ("outputnode.out_mask", "t1w_mask"),
-                    (("outputnode.out_file", _pop), "t1w_brain"),
-                    ("outputnode.out_segm", "ants_seg"),
+                    ('outputnode.out_mask', 't1w_mask'),
+                    (('outputnode.out_file', _pop), 't1w_brain'),
+                    ('outputnode.out_segm', 'ants_seg'),
                 ]),
             ])
             if not have_t1w:
                 workflow.connect([
                     (brain_extraction_wf, t1w_buffer, [
-                        (("outputnode.bias_corrected", _pop), "t1w_preproc"),
+                        (('outputnode.bias_corrected', _pop), 't1w_preproc'),
                     ]),
                 ])
             # fmt:on
@@ -848,12 +848,12 @@ derived from the input image.
             )
             # fmt:off
             workflow.connect([
-                (anat_validate, n4_only_wf, [("out_file", "inputnode.in_files")]),
+                (anat_validate, n4_only_wf, [('out_file', 'inputnode.in_files')]),
                 (n4_only_wf, t1w_buffer, [
-                    (("outputnode.bias_corrected", _pop), "t1w_preproc"),
-                    ("outputnode.out_mask", "t1w_mask"),
-                    (("outputnode.out_file", _pop), "t1w_brain"),
-                    ("outputnode.out_segm", "ants_seg"),
+                    (('outputnode.bias_corrected', _pop), 't1w_preproc'),
+                    ('outputnode.out_mask', 't1w_mask'),
+                    (('outputnode.out_file', _pop), 't1w_brain'),
+                    ('outputnode.out_segm', 'ants_seg'),
                 ]),
             ])
             # fmt:on
@@ -867,9 +867,9 @@ derived from the input image.
             binarize = pe.Node(Binarize(thresh_low=2), name='binarize')
             # fmt:off
             workflow.connect([
-                (anat_validate, binarize, [("out_file", "in_file")]),
-                (anat_validate, t1w_buffer, [("out_file", "t1w_brain")]),
-                (binarize, t1w_buffer, [("out_file", "t1w_mask")]),
+                (anat_validate, binarize, [('out_file', 'in_file')]),
+                (anat_validate, t1w_buffer, [('out_file', 't1w_brain')]),
+                (binarize, t1w_buffer, [('out_file', 't1w_mask')]),
             ])
             # fmt:on
 
@@ -881,9 +881,9 @@ derived from the input image.
         )
         # fmt:off
         workflow.connect([
-            (sourcefile_buffer, ds_t1w_mask_wf, [("source_files", "inputnode.source_files")]),
-            (refined_buffer, ds_t1w_mask_wf, [("t1w_mask", "inputnode.mask_file")]),
-            (ds_t1w_mask_wf, outputnode, [("outputnode.mask_file", "t1w_mask")]),
+            (sourcefile_buffer, ds_t1w_mask_wf, [('source_files', 'inputnode.source_files')]),
+            (refined_buffer, ds_t1w_mask_wf, [('t1w_mask', 'inputnode.mask_file')]),
+            (ds_t1w_mask_wf, outputnode, [('outputnode.mask_file', 't1w_mask')]),
         ])
         # fmt:on
     else:
@@ -904,10 +904,10 @@ A pre-computed brain mask was provided as input and used throughout the workflow
             )
             # fmt:off
             workflow.connect([
-                (apply_mask, n4_only_wf, [("out_file", "inputnode.in_files")]),
+                (apply_mask, n4_only_wf, [('out_file', 'inputnode.in_files')]),
                 (n4_only_wf, t1w_buffer, [
-                    (("outputnode.bias_corrected", _pop), "t1w_preproc"),
-                    (("outputnode.out_file", _pop), "t1w_brain"),
+                    (('outputnode.bias_corrected', _pop), 't1w_preproc'),
+                    (('outputnode.out_file', _pop), 't1w_brain'),
                 ]),
             ])
             # fmt:on
@@ -943,18 +943,18 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         if not have_dseg:
             ds_dseg_wf = init_ds_dseg_wf(output_dir=output_dir)
             workflow.connect([
-                (fast, lut_t1w_dseg, [("partial_volume_map", "in_dseg")]),
-                (sourcefile_buffer, ds_dseg_wf, [("source_files", "inputnode.source_files")]),
-                (lut_t1w_dseg, ds_dseg_wf, [("out", "inputnode.t1w_dseg")]),
-                (ds_dseg_wf, seg_buffer, [("outputnode.t1w_dseg", "t1w_dseg")]),
+                (fast, lut_t1w_dseg, [('partial_volume_map', 'in_dseg')]),
+                (sourcefile_buffer, ds_dseg_wf, [('source_files', 'inputnode.source_files')]),
+                (lut_t1w_dseg, ds_dseg_wf, [('out', 'inputnode.t1w_dseg')]),
+                (ds_dseg_wf, seg_buffer, [('outputnode.t1w_dseg', 't1w_dseg')]),
             ])
         if not have_tpms:
             ds_tpms_wf = init_ds_tpms_wf(output_dir=output_dir)
             workflow.connect([
-                (fast, fast2bids, [("partial_volume_files", "inlist")]),
-                (sourcefile_buffer, ds_tpms_wf, [("source_files", "inputnode.source_files")]),
-                (fast2bids, ds_tpms_wf, [("out", "inputnode.t1w_tpms")]),
-                (ds_tpms_wf, seg_buffer, [("outputnode.t1w_tpms", "t1w_tpms")]),
+                (fast, fast2bids, [('partial_volume_files', 'inlist')]),
+                (sourcefile_buffer, ds_tpms_wf, [('source_files', 'inputnode.source_files')]),
+                (fast2bids, ds_tpms_wf, [('out', 'inputnode.t1w_tpms')]),
+                (ds_tpms_wf, seg_buffer, [('outputnode.t1w_tpms', 't1w_tpms')]),
             ])
         # fmt:on
     else:
@@ -997,7 +997,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
             (refined_buffer, register_template_wf, [('t1w_mask', 'inputnode.moving_mask')]),
             (sourcefile_buffer, ds_template_registration_wf, [
-                ("source_files", "inputnode.source_files")
+                ('source_files', 'inputnode.source_files')
             ]),
             (register_template_wf, ds_template_registration_wf, [
                 ('outputnode.template', 'inputnode.template'),
@@ -1017,8 +1017,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         # fmt:off
         workflow.connect([
             (t1w_buffer, refined_buffer, [
-                ("t1w_mask", "t1w_mask"),
-                ("t1w_brain", "t1w_brain"),
+                ('t1w_mask', 't1w_mask'),
+                ('t1w_brain', 't1w_brain'),
             ]),
         ])
         # fmt:on
@@ -1075,7 +1075,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         # fmt:off
         workflow.connect([
             (sourcefile_buffer, ds_fs_registration_wf, [
-                ("source_files", "inputnode.source_files"),
+                ('source_files', 'inputnode.source_files'),
             ]),
             (surface_recon_wf, ds_fs_registration_wf, [
                 ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
@@ -1219,7 +1219,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (gifti_surfaces_wf, surfaces_buffer, [
                 (f'outputnode.{surf}', surf) for surf in surfs
             ]),
-            (sourcefile_buffer, ds_surfaces_wf, [("source_files", "inputnode.source_files")]),
+            (sourcefile_buffer, ds_surfaces_wf, [('source_files', 'inputnode.source_files')]),
             (gifti_surfaces_wf, ds_surfaces_wf, [
                 (f'outputnode.{surf}', f'inputnode.{surf}') for surf in surfs
             ]),
@@ -1242,7 +1242,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (gifti_spheres_wf, surfaces_buffer, [
                 (f'outputnode.{sphere}', sphere) for sphere in spheres
             ]),
-            (sourcefile_buffer, ds_spheres_wf, [("source_files", "inputnode.source_files")]),
+            (sourcefile_buffer, ds_spheres_wf, [('source_files', 'inputnode.source_files')]),
             (gifti_spheres_wf, ds_spheres_wf, [
                 (f'outputnode.{sphere}', f'inputnode.{sphere}') for sphere in spheres
             ]),
@@ -1265,7 +1265,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (gifti_morph_wf, surfaces_buffer, [
                 (f'outputnode.{metric}', metric) for metric in metrics
             ]),
-            (sourcefile_buffer, ds_morph_wf, [("source_files", "inputnode.source_files")]),
+            (sourcefile_buffer, ds_morph_wf, [('source_files', 'inputnode.source_files')]),
             (gifti_morph_wf, ds_morph_wf, [
                 (f'outputnode.{metric}', f'inputnode.{metric}') for metric in metrics
             ]),
@@ -1284,17 +1284,17 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         # fmt:off
         workflow.connect([
             (t1w_buffer, anat_ribbon_wf, [
-                ("t1w_preproc", "inputnode.ref_file"),
+                ('t1w_preproc', 'inputnode.ref_file'),
             ]),
             (surfaces_buffer, anat_ribbon_wf, [
-                ("white", "inputnode.white"),
-                ("pial", "inputnode.pial"),
+                ('white', 'inputnode.white'),
+                ('pial', 'inputnode.pial'),
             ]),
-            (sourcefile_buffer, ds_ribbon_mask_wf, [("source_files", "inputnode.source_files")]),
+            (sourcefile_buffer, ds_ribbon_mask_wf, [('source_files', 'inputnode.source_files')]),
             (anat_ribbon_wf, ds_ribbon_mask_wf, [
-                ("outputnode.anat_ribbon", "inputnode.mask_file"),
+                ('outputnode.anat_ribbon', 'inputnode.mask_file'),
             ]),
-            (ds_ribbon_mask_wf, outputnode, [("outputnode.mask_file", "anat_ribbon")]),
+            (ds_ribbon_mask_wf, outputnode, [('outputnode.mask_file', 'anat_ribbon')]),
         ])
         # fmt:on
     else:
@@ -1315,7 +1315,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         # fmt:off
         workflow.connect([
             (surfaces_buffer, fsLR_reg_wf, [('sphere_reg', 'inputnode.sphere_reg')]),
-            (sourcefile_buffer, ds_fsLR_reg_wf, [("source_files", "inputnode.source_files")]),
+            (sourcefile_buffer, ds_fsLR_reg_wf, [('source_files', 'inputnode.source_files')]),
             (fsLR_reg_wf, ds_fsLR_reg_wf, [
                 ('outputnode.sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR')
             ]),
@@ -1344,7 +1344,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
                 ('sphere', 'inputnode.sphere'),
             ]),
             (fsLR_buffer, msm_sulc_wf, [('sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR')]),
-            (sourcefile_buffer, ds_msmsulc_wf, [("source_files", "inputnode.source_files")]),
+            (sourcefile_buffer, ds_msmsulc_wf, [('source_files', 'inputnode.source_files')]),
             (msm_sulc_wf, ds_msmsulc_wf, [
                 ('outputnode.sphere_reg_fsLR', 'inputnode.sphere_reg_msm')
             ]),

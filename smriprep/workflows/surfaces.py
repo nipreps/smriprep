@@ -1292,16 +1292,16 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
     workflow.connect(
         [
             (inputnode, create_wm_distvol, [
-                ("white", "surf_file"),
-                ("ref_file", "ref_file"),
+                ('white', 'surf_file'),
+                ('ref_file', 'ref_file'),
             ]),
             (inputnode, create_pial_distvol, [
-                ("pial", "surf_file"),
-                ("ref_file", "ref_file"),
+                ('pial', 'surf_file'),
+                ('ref_file', 'ref_file'),
             ]),
-            (create_wm_distvol, make_ribbon, [("out_file", "white_distvols")]),
-            (create_pial_distvol, make_ribbon, [("out_file", "pial_distvols")]),
-            (make_ribbon, outputnode, [("ribbon", "anat_ribbon")]),
+            (create_wm_distvol, make_ribbon, [('out_file', 'white_distvols')]),
+            (create_pial_distvol, make_ribbon, [('out_file', 'pial_distvols')]),
+            (make_ribbon, outputnode, [('ribbon', 'anat_ribbon')]),
         ]
     )
     # fmt: on
