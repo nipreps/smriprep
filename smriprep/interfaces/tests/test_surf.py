@@ -8,7 +8,7 @@ from ..surf import MakeRibbon
 
 def test_MakeRibbon(tmp_path):
     res_template = "{path}/sub-fsaverage_res-4_hemi-{hemi}_desc-cropped_{surf}dist.nii.gz"
-    white, pial = [
+    white, pial = (
         [
             load_resource(
                 res_template.format(path="../interfaces/tests/data", hemi=hemi, surf=surf)
@@ -16,7 +16,7 @@ def test_MakeRibbon(tmp_path):
             for hemi in "LR"
         ]
         for surf in ("wm", "pial")
-    ]
+    )
 
     make_ribbon = pe.Node(
         MakeRibbon(white_distvols=white, pial_distvols=pial),
