@@ -11,60 +11,60 @@ from niworkflows.utils.testing import generate_bids_skeleton
 from ..anatomical import init_anat_preproc_wf, init_anat_fit_wf
 
 BASE_LAYOUT = {
-    "01": {
-        "anat": [
-            {"run": 1, "suffix": "T1w"},
-            {"run": 2, "suffix": "T1w"},
-            {"suffix": "T2w"},
+    '01': {
+        'anat': [
+            {'run': 1, 'suffix': 'T1w'},
+            {'run': 2, 'suffix': 'T1w'},
+            {'suffix': 'T2w'},
         ],
-        "func": [
+        'func': [
             {
-                "task": "rest",
-                "run": i,
-                "suffix": "bold",
-                "metadata": {"PhaseEncodingDirection": "j", "TotalReadoutTime": 0.6},
+                'task': 'rest',
+                'run': i,
+                'suffix': 'bold',
+                'metadata': {'PhaseEncodingDirection': 'j', 'TotalReadoutTime': 0.6},
             }
             for i in range(1, 3)
         ],
-        "fmap": [
-            {"suffix": "phasediff", "metadata": {"EchoTime1": 0.005, "EchoTime2": 0.007}},
-            {"suffix": "magnitude1", "metadata": {"EchoTime": 0.005}},
+        'fmap': [
+            {'suffix': 'phasediff', 'metadata': {'EchoTime1': 0.005, 'EchoTime2': 0.007}},
+            {'suffix': 'magnitude1', 'metadata': {'EchoTime': 0.005}},
             {
-                "suffix": "epi",
-                "direction": "PA",
-                "metadata": {"PhaseEncodingDirection": "j", "TotalReadoutTime": 0.6},
+                'suffix': 'epi',
+                'direction': 'PA',
+                'metadata': {'PhaseEncodingDirection': 'j', 'TotalReadoutTime': 0.6},
             },
             {
-                "suffix": "epi",
-                "direction": "AP",
-                "metadata": {"PhaseEncodingDirection": "j-", "TotalReadoutTime": 0.6},
+                'suffix': 'epi',
+                'direction': 'AP',
+                'metadata': {'PhaseEncodingDirection': 'j-', 'TotalReadoutTime': 0.6},
             },
         ],
     },
 }
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def quiet_logger():
     import logging
 
-    logger = logging.getLogger("nipype.workflow")
+    logger = logging.getLogger('nipype.workflow')
     old_level = logger.getEffectiveLevel()
     logger.setLevel(logging.ERROR)
     yield
     logger.setLevel(old_level)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def bids_root(tmp_path_factory):
-    base = tmp_path_factory.mktemp("base")
-    bids_dir = base / "bids"
+    base = tmp_path_factory.mktemp('base')
+    bids_dir = base / 'bids'
     generate_bids_skeleton(bids_dir, BASE_LAYOUT)
     yield bids_dir
 
 
-@pytest.mark.parametrize("freesurfer", [True, False])
-@pytest.mark.parametrize("cifti_output", [False, "91k"])
+@pytest.mark.parametrize('freesurfer', [True, False])
+@pytest.mark.parametrize('cifti_output', [False, '91k'])
 def test_init_anat_preproc_wf(
     bids_root: Path,
     tmp_path: Path,
@@ -81,12 +81,12 @@ def test_init_anat_preproc_wf(
         hires=False,
         longitudinal=False,
         msm_sulc=False,
-        t1w=[str(bids_root / "sub-01" / "anat" / "sub-01_T1w.nii.gz")],
-        t2w=[str(bids_root / "sub-01" / "anat" / "sub-01_T2w.nii.gz")],
+        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T1w.nii.gz')],
+        t2w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')],
         skull_strip_mode='force',
-        skull_strip_template=Reference("OASIS30ANTs"),
+        skull_strip_template=Reference('OASIS30ANTs'),
         spaces=SpatialReferences(
-            spaces=["MNI152NLin2009cAsym", "fsaverage5"],
+            spaces=['MNI152NLin2009cAsym', 'fsaverage5'],
             checkpoint=True,
         ),
         precomputed={},
@@ -95,8 +95,8 @@ def test_init_anat_preproc_wf(
     )
 
 
-@pytest.mark.parametrize("msm_sulc", [True, False])
-@pytest.mark.parametrize("skull_strip_mode", ['skip', 'force'])
+@pytest.mark.parametrize('msm_sulc', [True, False])
+@pytest.mark.parametrize('skull_strip_mode', ['skip', 'force'])
 def test_anat_fit_wf(
     bids_root: Path,
     tmp_path: Path,
@@ -113,12 +113,12 @@ def test_anat_fit_wf(
         hires=False,
         longitudinal=False,
         msm_sulc=msm_sulc,
-        t1w=[str(bids_root / "sub-01" / "anat" / "sub-01_T1w.nii.gz")],
-        t2w=[str(bids_root / "sub-01" / "anat" / "sub-01_T2w.nii.gz")],
+        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T1w.nii.gz')],
+        t2w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')],
         skull_strip_mode=skull_strip_mode,
-        skull_strip_template=Reference("OASIS30ANTs"),
+        skull_strip_template=Reference('OASIS30ANTs'),
         spaces=SpatialReferences(
-            spaces=["MNI152NLin2009cAsym", "fsaverage5"],
+            spaces=['MNI152NLin2009cAsym', 'fsaverage5'],
             checkpoint=True,
         ),
         precomputed={},
@@ -126,16 +126,16 @@ def test_anat_fit_wf(
     )
 
 
-@pytest.mark.parametrize("t1w", [1, 2])
-@pytest.mark.parametrize("t2w", [0, 1])
-@pytest.mark.parametrize("skull_strip_mode", ['skip', 'force'])
-@pytest.mark.parametrize("t1w_preproc", [False, True])
-@pytest.mark.parametrize("t2w_preproc", [False, True])
-@pytest.mark.parametrize("t1w_mask", [False, True])
-@pytest.mark.parametrize("t1w_dseg", [False, True])
-@pytest.mark.parametrize("t1w_tpms", [False, True])
-@pytest.mark.parametrize("xfms", [False, True])
-@pytest.mark.parametrize("sphere_reg_msm", [0, 1, 2])
+@pytest.mark.parametrize('t1w', [1, 2])
+@pytest.mark.parametrize('t2w', [0, 1])
+@pytest.mark.parametrize('skull_strip_mode', ['skip', 'force'])
+@pytest.mark.parametrize('t1w_preproc', [False, True])
+@pytest.mark.parametrize('t2w_preproc', [False, True])
+@pytest.mark.parametrize('t1w_mask', [False, True])
+@pytest.mark.parametrize('t1w_dseg', [False, True])
+@pytest.mark.parametrize('t1w_tpms', [False, True])
+@pytest.mark.parametrize('xfms', [False, True])
+@pytest.mark.parametrize('sphere_reg_msm', [0, 1, 2])
 def test_anat_fit_precomputes(
     bids_root: Path,
     tmp_path: Path,
@@ -157,44 +157,43 @@ def test_anat_fit_precomputes(
 
     # Construct inputs
     t1w_list = [
-        str(bids_root / "sub-01" / "anat" / "sub-01_run-1_T1w.nii.gz"),
-        str(bids_root / "sub-01" / "anat" / "sub-01_run-2_T1w.nii.gz"),
+        str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz'),
+        str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-2_T1w.nii.gz'),
     ][:t1w]
-    t2w_list = [str(bids_root / "sub-01" / "anat" / "sub-01_T2w.nii.gz")][:t2w]
+    t2w_list = [str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')][:t2w]
 
     # Construct precomputed files
     empty_img = nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4))
     precomputed = {}
     if t1w_preproc:
-        precomputed["t1w_preproc"] = str(tmp_path / "t1w_preproc.nii.gz")
+        precomputed['t1w_preproc'] = str(tmp_path / 't1w_preproc.nii.gz')
     if t2w_preproc:
-        precomputed["t2w_preproc"] = str(tmp_path / "t2w_preproc.nii.gz")
+        precomputed['t2w_preproc'] = str(tmp_path / 't2w_preproc.nii.gz')
     if t1w_mask:
-        precomputed["t1w_mask"] = str(tmp_path / "t1w_mask.nii.gz")
+        precomputed['t1w_mask'] = str(tmp_path / 't1w_mask.nii.gz')
     if t1w_dseg:
-        precomputed["t1w_dseg"] = str(tmp_path / "t1w_dseg.nii.gz")
+        precomputed['t1w_dseg'] = str(tmp_path / 't1w_dseg.nii.gz')
     if t1w_tpms:
-        precomputed["t1w_tpms"] = str(tmp_path / "t1w_tpms.nii.gz")
+        precomputed['t1w_tpms'] = str(tmp_path / 't1w_tpms.nii.gz')
 
     for path in precomputed.values():
         empty_img.to_filename(path)
 
-    precomputed["sphere_reg_msm"] = [
-        str(tmp_path / f"sub-01_hemi-{hemi}_desc-msm_sphere.surf.gii")
-        for hemi in ["L", "R"]
+    precomputed['sphere_reg_msm'] = [
+        str(tmp_path / f'sub-01_hemi-{hemi}_desc-msm_sphere.surf.gii') for hemi in ['L', 'R']
     ][:sphere_reg_msm]
-    for path in precomputed["sphere_reg_msm"]:
+    for path in precomputed['sphere_reg_msm']:
         Path(path).touch()
 
     if xfms:
-        transforms = precomputed["transforms"] = {}
-        transforms["MNI152NLin2009cAsym"] = {
-            "forward": str(tmp_path / "MNI152NLin2009cAsym_forward_xfm.txt"),
-            "reverse": str(tmp_path / "MNI152NLin2009cAsym_reverse_xfm.txt"),
+        transforms = precomputed['transforms'] = {}
+        transforms['MNI152NLin2009cAsym'] = {
+            'forward': str(tmp_path / 'MNI152NLin2009cAsym_forward_xfm.txt'),
+            'reverse': str(tmp_path / 'MNI152NLin2009cAsym_reverse_xfm.txt'),
         }
-        transforms["fsnative"] = {
-            "forward": str(tmp_path / "fsnative_forward_xfm.txt"),
-            "reverse": str(tmp_path / "fsnative_reverse_xfm.txt"),
+        transforms['fsnative'] = {
+            'forward': str(tmp_path / 'fsnative_forward_xfm.txt'),
+            'reverse': str(tmp_path / 'fsnative_reverse_xfm.txt'),
         }
 
         # Write dummy transforms
@@ -213,9 +212,9 @@ def test_anat_fit_precomputes(
         t1w=t1w_list,
         t2w=t2w_list,
         skull_strip_mode=skull_strip_mode,
-        skull_strip_template=Reference("OASIS30ANTs"),
+        skull_strip_template=Reference('OASIS30ANTs'),
         spaces=SpatialReferences(
-            spaces=["MNI152NLin2009cAsym", "fsaverage5"],
+            spaces=['MNI152NLin2009cAsym', 'fsaverage5'],
             checkpoint=True,
         ),
         precomputed=precomputed,

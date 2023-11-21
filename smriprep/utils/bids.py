@@ -31,38 +31,38 @@ from ..data import load_resource
 def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patterns=None):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:
-        _spec, _patterns = tuple(loads(load_resource("io_spec.json").read_text()).values())
+        _spec, _patterns = tuple(loads(load_resource('io_spec.json').read_text()).values())
 
         if spec is None:
             spec = _spec
         if patterns is None:
             patterns = _patterns
 
-    layout = BIDSLayout(derivatives_dir, config=["bids", "derivatives"], validate=False)
+    layout = BIDSLayout(derivatives_dir, config=['bids', 'derivatives'], validate=False)
 
     derivs_cache = {}
-    for k, q in spec["baseline"].items():
-        q["subject"] = subject_id
+    for k, q in spec['baseline'].items():
+        q['subject'] = subject_id
         item = layout.get(return_type='filename', **q)
         if not item:
             continue
 
-        derivs_cache["t1w_%s" % k] = item[0] if len(item) == 1 else item
+        derivs_cache['t1w_%s' % k] = item[0] if len(item) == 1 else item
 
     transforms = derivs_cache.setdefault('transforms', {})
     for space in std_spaces:
-        for k, q in spec["transforms"].items():
+        for k, q in spec['transforms'].items():
             q = q.copy()
-            q["subject"] = subject_id
-            q["from"] = q["from"] or space
-            q["to"] = q["to"] or space
+            q['subject'] = subject_id
+            q['from'] = q['from'] or space
+            q['to'] = q['to'] or space
             item = layout.get(return_type='filename', **q)
             if not item:
                 continue
             transforms.setdefault(space, {})[k] = item[0] if len(item) == 1 else item
 
-    for k, q in spec["surfaces"].items():
-        q["subject"] = subject_id
+    for k, q in spec['surfaces'].items():
+        q['subject'] = subject_id
         item = layout.get(return_type='filename', **q)
         if not item or len(item) != 2:
             continue
@@ -74,15 +74,15 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
 
 def write_bidsignore(deriv_dir):
     bids_ignore = [
-        "*.html",
-        "logs/",
-        "figures/",  # Reports
-        "*_xfm.*",  # Unspecified transform files
-        "*.surf.gii",  # Unspecified structural outputs
+        '*.html',
+        'logs/',
+        'figures/',  # Reports
+        '*_xfm.*',  # Unspecified transform files
+        '*.surf.gii',  # Unspecified structural outputs
     ]
-    ignore_file = Path(deriv_dir) / ".bidsignore"
+    ignore_file = Path(deriv_dir) / '.bidsignore'
 
-    ignore_file.write_text("\n".join(bids_ignore) + "\n")
+    ignore_file.write_text('\n'.join(bids_ignore) + '\n')
 
 
 def write_derivative_description(bids_dir, deriv_dir):
@@ -118,48 +118,48 @@ def write_derivative_description(bids_dir, deriv_dir):
     bids_dir = Path(bids_dir)
     deriv_dir = Path(deriv_dir)
     desc = {
-        "Name": "sMRIPrep - Structural MRI PREProcessing workflow",
-        "BIDSVersion": "1.4.0",
-        "DatasetType": "derivative",
-        "GeneratedBy": [
+        'Name': 'sMRIPrep - Structural MRI PREProcessing workflow',
+        'BIDSVersion': '1.4.0',
+        'DatasetType': 'derivative',
+        'GeneratedBy': [
             {
-                "Name": "sMRIPrep",
-                "Version": __version__,
-                "CodeURL": DOWNLOAD_URL,
+                'Name': 'sMRIPrep',
+                'Version': __version__,
+                'CodeURL': DOWNLOAD_URL,
             }
         ],
-        "HowToAcknowledge": "Please cite our paper (https://doi.org/10.1101/306951), and "
-        "include the generated citation boilerplate within the Methods "
-        "section of the text.",
+        'HowToAcknowledge': 'Please cite our paper (https://doi.org/10.1101/306951), and '
+        'include the generated citation boilerplate within the Methods '
+        'section of the text.',
     }
 
     # Keys that can only be set by environment
-    if "SMRIPREP_DOCKER_TAG" in os.environ:
-        desc["GeneratedBy"][0]["Container"] = {
-            "Type": "docker",
-            "Tag": f"poldracklab/smriprep:{os.environ['SMRIPREP_DOCKER_TAG']}",
+    if 'SMRIPREP_DOCKER_TAG' in os.environ:
+        desc['GeneratedBy'][0]['Container'] = {
+            'Type': 'docker',
+            'Tag': f"poldracklab/smriprep:{os.environ['SMRIPREP_DOCKER_TAG']}",
         }
-    if "SMRIPREP_SINGULARITY_URL" in os.environ:
-        desc["GeneratedBy"][0]["Container"] = {
-            "Type": "singularity",
-            "URI": os.environ["SMRIPREP_SINGULARITY_URL"],
+    if 'SMRIPREP_SINGULARITY_URL' in os.environ:
+        desc['GeneratedBy'][0]['Container'] = {
+            'Type': 'singularity',
+            'URI': os.environ['SMRIPREP_SINGULARITY_URL'],
         }
 
     # Keys deriving from source dataset
     orig_desc = {}
-    fname = bids_dir / "dataset_description.json"
+    fname = bids_dir / 'dataset_description.json'
     if fname.exists():
         orig_desc = json.loads(fname.read_text())
 
-    if "DatasetDOI" in orig_desc:
-        doi = orig_desc["DatasetDOI"]
-        desc["SourceDatasets"] = [
+    if 'DatasetDOI' in orig_desc:
+        doi = orig_desc['DatasetDOI']
+        desc['SourceDatasets'] = [
             {
-                "URL": f"https://doi.org/{doi}",
-                "DOI": doi,
+                'URL': f'https://doi.org/{doi}',
+                'DOI': doi,
             }
         ]
-    if "License" in orig_desc:
-        desc["License"] = orig_desc["License"]
+    if 'License' in orig_desc:
+        desc['License'] = orig_desc['License']
 
-    Path.write_text(deriv_dir / "dataset_description.json", json.dumps(desc, indent=4))
+    Path.write_text(deriv_dir / 'dataset_description.json', json.dumps(desc, indent=4))

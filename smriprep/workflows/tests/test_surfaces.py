@@ -14,17 +14,17 @@ from ...data import load_resource
 def test_ribbon_workflow(tmp_path: Path):
     """Create ribbon mask for fsaverage subject"""
 
-    for command in ("mris_convert", "wb_command"):
+    for command in ('mris_convert', 'wb_command'):
         if not which(command):
-            pytest.skip(f"Could not find {command} in PATH")
+            pytest.skip(f'Could not find {command} in PATH')
 
     if not os.path.exists(os.getenv('SUBJECTS_DIR')):
-        pytest.skip("Could not find $SUBJECTS_DIR")
+        pytest.skip('Could not find $SUBJECTS_DIR')
 
     # Low-res file that includes the fsaverage surfaces in its bounding box
     # We will use it both as a template and a comparison.
     test_ribbon = load_resource(
-        "../interfaces/tests/data/sub-fsaverage_res-4_desc-cropped_ribbon.nii.gz"
+        '../interfaces/tests/data/sub-fsaverage_res-4_desc-cropped_ribbon.nii.gz'
     )
 
     gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=['white', 'pial'])

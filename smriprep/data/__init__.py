@@ -12,7 +12,7 @@ try:  # Prefer backport to leave consistency to dependency spec
 except ImportError:
     from importlib.resources import files, as_file
 
-__all__ = ["load_resource"]
+__all__ = ['load_resource']
 
 exit_stack = ExitStack()
 atexit.register(exit_stack.close)
