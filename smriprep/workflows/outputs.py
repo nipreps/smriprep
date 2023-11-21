@@ -1270,7 +1270,7 @@ def _is_native(value):
 def _no_native(value):
     try:
         return int(value)
-    except Exception:
+    except (TypeError, ValueError):
         return 1
 
 
