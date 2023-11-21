@@ -99,7 +99,6 @@ version-file = "smriprep/_version.py"
 
 [tool.black]
 line-length = 99
-target-version = ['py39']
 skip-string-normalization = true
 
 [tool.isort]
