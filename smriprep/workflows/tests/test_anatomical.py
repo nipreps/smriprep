@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from nipype.pipeline.engine.utils import generate_expanded_graph
 import nibabel as nb
 import numpy as np
 import pytest
@@ -202,7 +203,7 @@ def test_anat_fit_precomputes(
                 Path(path).touch()
 
     # Create workflow
-    init_anat_fit_wf(
+    wf = init_anat_fit_wf(
         bids_root=str(bids_root),
         output_dir=str(output_dir),
         freesurfer=True,
@@ -220,3 +221,6 @@ def test_anat_fit_precomputes(
         precomputed=precomputed,
         omp_nthreads=1,
     )
+
+    flatgraph = wf._create_flat_graph()
+    generate_expanded_graph(flatgraph)
