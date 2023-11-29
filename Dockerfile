@@ -93,7 +93,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     LC_ALL="en_US.UTF-8"
 
 # Some baseline tools
-# bc is needed for FreeSurfer
+# bc, tcsh are needed for FreeSurfer
 # libglu1-mesa is needed for Connectome Workbench
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -105,6 +105,7 @@ RUN apt-get update && \
                     libglu1-mesa \
                     lsb-release \
                     netbase \
+                    tcsh \
                     xvfb && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
