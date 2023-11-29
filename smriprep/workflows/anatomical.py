@@ -795,7 +795,7 @@ and used as T1w-reference throughout the workflow.
     if not have_mask:
         LOGGER.info("ANAT Stage 2: Preparing brain extraction workflow")
         if skull_strip_mode == "auto":
-            run_skull_strip = all(_is_skull_stripped(img) for img in t1w)
+            run_skull_strip = not all(_is_skull_stripped(img) for img in t1w)
         else:
             run_skull_strip = {"force": True, "skip": False}[skull_strip_mode]
 
