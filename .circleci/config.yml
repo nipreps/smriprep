@@ -458,6 +458,9 @@ jobs:
           name: Run anatomical workflow on ds005
           no_output_timeout: 2h
           command: |
+            # Remove part of FreeSurfer output to ensure that at least
+            # some of recon-all is attempted
+            rm /tmp/ds005/freesurfer/sub-01/stats/wmparc.stats
             bash /tmp/src/smriprep/.circleci/ds005_run.sh --write-graph
       - run:
           name: Combine coverage
