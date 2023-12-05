@@ -1,4 +1,4 @@
-.PHONY: help docker
+.PHONY: help docker .git-blame-ignore-revs
 .DEFAULT: help
 
 tag="latest"
@@ -15,3 +15,9 @@ docker:
 	--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 	--build-arg VCS_REF=`git rev-parse --short HEAD` \
 	--build-arg VERSION=`python setup.py --version` .
+
+
+.git-blame-ignore-revs:
+	git log --grep "\[git-blame-ignore-rev\]" --pretty=format:"# %ad - %ae - %s%n%H" --date short \
+		> .git-blame-ignore-revs
+	echo >> .git-blame-ignore-revs

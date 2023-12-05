@@ -23,21 +23,21 @@
 """Writing outputs."""
 import typing as ty
 
-from nipype.pipeline import engine as pe
 from nipype.interfaces import utility as niu
+from nipype.pipeline import engine as pe
+from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.nibabel import ApplyMask, GenerateSamplingReference
 from niworkflows.interfaces.space import SpaceDataSource
 from niworkflows.interfaces.utility import KeySelect
-from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
 from ..interfaces import DerivativesDataSink
 from ..interfaces.templateflow import TemplateFlowSelect
 
-BIDS_TISSUE_ORDER = ("GM", "WM", "CSF")
+BIDS_TISSUE_ORDER = ('GM', 'WM', 'CSF')
 
 
-def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_wf"):
+def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name='anat_reports_wf'):
     """
     Set up a battery of datasinks to store reports in the right location.
 
@@ -75,44 +75,44 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
         Template space and specifications
 
     """
+    from niworkflows.interfaces.reportlets.masks import ROIsPlot
     from niworkflows.interfaces.reportlets.registration import (
         SimpleBeforeAfterRPT as SimpleBeforeAfter,
     )
-    from niworkflows.interfaces.reportlets.masks import ROIsPlot
 
     workflow = Workflow(name=name)
 
     inputfields = [
-        "source_file",
-        "t1w_preproc",
-        "t1w_mask",
-        "t1w_dseg",
-        "template",
-        "anat2std_xfm",
+        'source_file',
+        't1w_preproc',
+        't1w_mask',
+        't1w_dseg',
+        'template',
+        'anat2std_xfm',
         # May be missing
-        "t1w_conform_report",
-        "subject_id",
-        "subjects_dir",
+        't1w_conform_report',
+        'subject_id',
+        'subjects_dir',
     ]
-    inputnode = pe.Node(niu.IdentityInterface(fields=inputfields), name="inputnode")
+    inputnode = pe.Node(niu.IdentityInterface(fields=inputfields), name='inputnode')
 
-    seg_rpt = pe.Node(ROIsPlot(colors=["b", "magenta"], levels=[1.5, 2.5]), name="seg_rpt")
+    seg_rpt = pe.Node(ROIsPlot(colors=['b', 'magenta'], levels=[1.5, 2.5]), name='seg_rpt')
 
     t1w_conform_check = pe.Node(
         niu.Function(function=_empty_report),
-        name="t1w_conform_check",
+        name='t1w_conform_check',
         run_without_submitting=True,
     )
 
     ds_t1w_conform_report = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc="conform", datatype="figures"),
-        name="ds_t1w_conform_report",
+        DerivativesDataSink(base_directory=output_dir, desc='conform', datatype='figures'),
+        name='ds_t1w_conform_report',
         run_without_submitting=True,
     )
 
     ds_t1w_dseg_mask_report = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix="dseg", datatype="figures"),
-        name="ds_t1w_dseg_mask_report",
+        DerivativesDataSink(base_directory=output_dir, suffix='dseg', datatype='figures'),
+        name='ds_t1w_dseg_mask_report',
         run_without_submitting=True,
     )
 
@@ -129,60 +129,60 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
     ])
     # fmt:on
 
-    if getattr(spaces, "_cached") is not None and spaces.cached.references:
+    if spaces._cached is not None and spaces.cached.references:
         template_iterator_wf = init_template_iterator_wf(spaces=spaces)
         t1w_std = pe.Node(
             ApplyTransforms(
                 dimension=3,
                 default_value=0,
                 float=True,
-                interpolation="LanczosWindowedSinc",
+                interpolation='LanczosWindowedSinc',
             ),
-            name="t1w_std",
+            name='t1w_std',
         )
         mask_std = pe.Node(
             ApplyTransforms(
                 dimension=3,
                 default_value=0,
                 float=True,
-                interpolation="MultiLabel",
+                interpolation='MultiLabel',
             ),
-            name="mask_std",
+            name='mask_std',
         )
 
         # Generate reportlets showing spatial normalization
         norm_msk = pe.Node(
             niu.Function(
                 function=_rpt_masks,
-                output_names=["before", "after"],
-                input_names=["mask_file", "before", "after", "after_mask"],
+                output_names=['before', 'after'],
+                input_names=['mask_file', 'before', 'after', 'after_mask'],
             ),
-            name="norm_msk",
+            name='norm_msk',
         )
-        norm_rpt = pe.Node(SimpleBeforeAfter(), name="norm_rpt", mem_gb=0.1)
-        norm_rpt.inputs.after_label = "Participant"  # after
+        norm_rpt = pe.Node(SimpleBeforeAfter(), name='norm_rpt', mem_gb=0.1)
+        norm_rpt.inputs.after_label = 'Participant'  # after
 
         ds_std_t1w_report = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, suffix="T1w", datatype="figures"),
-            name="ds_std_t1w_report",
+            DerivativesDataSink(base_directory=output_dir, suffix='T1w', datatype='figures'),
+            name='ds_std_t1w_report',
             run_without_submitting=True,
         )
 
         # fmt:off
         workflow.connect([
             (inputnode, template_iterator_wf, [
-                ("template", "inputnode.template"),
-                ("anat2std_xfm", "inputnode.anat2std_xfm"),
+                ('template', 'inputnode.template'),
+                ('anat2std_xfm', 'inputnode.anat2std_xfm'),
             ]),
-            (inputnode, t1w_std, [("t1w_preproc", "input_image")]),
-            (inputnode, mask_std, [("t1w_mask", "input_image")]),
+            (inputnode, t1w_std, [('t1w_preproc', 'input_image')]),
+            (inputnode, mask_std, [('t1w_mask', 'input_image')]),
             (template_iterator_wf, t1w_std, [
-                ("outputnode.anat2std_xfm", "transforms"),
-                ("outputnode.std_t1w", "reference_image"),
+                ('outputnode.anat2std_xfm', 'transforms'),
+                ('outputnode.std_t1w', 'reference_image'),
             ]),
             (template_iterator_wf, mask_std, [
-                ("outputnode.anat2std_xfm", "transforms"),
-                ("outputnode.std_t1w", "reference_image"),
+                ('outputnode.anat2std_xfm', 'transforms'),
+                ('outputnode.std_t1w', 'reference_image'),
             ]),
             (template_iterator_wf, norm_rpt, [('outputnode.space', 'before_label')]),
             (t1w_std, norm_msk, [('output_image', 'after')]),
@@ -204,12 +204,12 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name="anat_reports_w
     if freesurfer:
         from ..interfaces.reports import FSSurfaceReport
 
-        recon_report = pe.Node(FSSurfaceReport(), name="recon_report")
+        recon_report = pe.Node(FSSurfaceReport(), name='recon_report')
         recon_report.interface._always_run = True
 
         ds_recon_report = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, desc="reconall", datatype="figures"),
-            name="ds_recon_report",
+            DerivativesDataSink(base_directory=output_dir, desc='reconall', datatype='figures'),
+            name='ds_recon_report',
             run_without_submitting=True,
         )
         # fmt:off
@@ -228,7 +228,7 @@ def init_ds_template_wf(
     *,
     num_t1w,
     output_dir,
-    name="ds_template_wf",
+    name='ds_template_wf',
 ):
     """
     Save the subject-specific template
@@ -263,18 +263,18 @@ def init_ds_template_wf(
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "source_files",
-                "t1w_ref_xfms",
-                "t1w_preproc",
+                'source_files',
+                't1w_ref_xfms',
+                't1w_preproc',
             ]
         ),
-        name="inputnode",
+        name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=["t1w_preproc"]), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=['t1w_preproc']), name='outputnode')
 
     ds_t1w_preproc = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc="preproc", compress=True),
-        name="ds_t1w_preproc",
+        DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True),
+        name='ds_t1w_preproc',
         run_without_submitting=True,
     )
     ds_t1w_preproc.inputs.SkullStripped = False
@@ -283,7 +283,7 @@ def init_ds_template_wf(
     workflow.connect([
         (inputnode, ds_t1w_preproc, [('t1w_preproc', 'in_file'),
                                      ('source_files', 'source_file')]),
-        (ds_t1w_preproc, outputnode, [("out_file", "t1w_preproc")]),
+        (ds_t1w_preproc, outputnode, [('out_file', 't1w_preproc')]),
     ])
     # fmt:on
 
@@ -293,14 +293,14 @@ def init_ds_template_wf(
         ds_t1w_ref_xfms = pe.MapNode(
             DerivativesDataSink(
                 base_directory=output_dir,
-                to="T1w",
-                mode="image",
-                suffix="xfm",
-                extension="txt",
-                **{"from": "orig"},
+                to='T1w',
+                mode='image',
+                suffix='xfm',
+                extension='txt',
+                **{'from': 'orig'},
             ),
-            iterfield=["source_file", "in_file"],
-            name="ds_t1w_ref_xfms",
+            iterfield=['source_file', 'in_file'],
+            name='ds_t1w_ref_xfms',
             run_without_submitting=True,
         )
         # fmt:off
@@ -318,7 +318,7 @@ def init_ds_mask_wf(
     bids_root: str,
     output_dir: str,
     mask_type: str,
-    name="ds_mask_wf",
+    name='ds_mask_wf',
 ):
     """
     Save the subject brain mask
@@ -348,28 +348,28 @@ def init_ds_mask_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["source_files", "mask_file"]),
-        name="inputnode",
+        niu.IdentityInterface(fields=['source_files', 'mask_file']),
+        name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=["mask_file"]), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=['mask_file']), name='outputnode')
 
-    raw_sources = pe.Node(niu.Function(function=_bids_relative), name="raw_sources")
+    raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
     ds_mask = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             desc=mask_type,
-            suffix="mask",
+            suffix='mask',
             compress=True,
         ),
-        name="ds_t1w_mask",
+        name='ds_t1w_mask',
         run_without_submitting=True,
     )
-    if mask_type == "brain":
-        ds_mask.inputs.Type = "Brain"
+    if mask_type == 'brain':
+        ds_mask.inputs.Type = 'Brain'
     else:
-        ds_mask.inputs.Type = "ROI"
+        ds_mask.inputs.Type = 'ROI'
 
     # fmt:off
     workflow.connect([
@@ -384,7 +384,7 @@ def init_ds_mask_wf(
     return workflow
 
 
-def init_ds_dseg_wf(*, output_dir, name="ds_dseg_wf"):
+def init_ds_dseg_wf(*, output_dir, name='ds_dseg_wf'):
     """
     Save discrete segmentations
 
@@ -411,19 +411,19 @@ def init_ds_dseg_wf(*, output_dir, name="ds_dseg_wf"):
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["source_files", "t1w_dseg"]),
-        name="inputnode",
+        niu.IdentityInterface(fields=['source_files', 't1w_dseg']),
+        name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=["t1w_dseg"]), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=['t1w_dseg']), name='outputnode')
 
     ds_t1w_dseg = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
-            suffix="dseg",
+            suffix='dseg',
             compress=True,
-            dismiss_entities=["desc"],
+            dismiss_entities=['desc'],
         ),
-        name="ds_t1w_dseg",
+        name='ds_t1w_dseg',
         run_without_submitting=True,
     )
 
@@ -438,7 +438,7 @@ def init_ds_dseg_wf(*, output_dir, name="ds_dseg_wf"):
     return workflow
 
 
-def init_ds_tpms_wf(*, output_dir, name="ds_tpms_wf", tpm_labels=BIDS_TISSUE_ORDER):
+def init_ds_tpms_wf(*, output_dir, name='ds_tpms_wf', tpm_labels=BIDS_TISSUE_ORDER):
     """
     Save tissue probability maps
 
@@ -467,19 +467,19 @@ def init_ds_tpms_wf(*, output_dir, name="ds_tpms_wf", tpm_labels=BIDS_TISSUE_ORD
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["source_files", "t1w_tpms"]),
-        name="inputnode",
+        niu.IdentityInterface(fields=['source_files', 't1w_tpms']),
+        name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=["t1w_tpms"]), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=['t1w_tpms']), name='outputnode')
 
     ds_t1w_tpms = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
-            suffix="probseg",
+            suffix='probseg',
             compress=True,
-            dismiss_entities=["desc"],
+            dismiss_entities=['desc'],
         ),
-        name="ds_t1w_tpms",
+        name='ds_t1w_tpms',
         run_without_submitting=True,
     )
     ds_t1w_tpms.inputs.label = tpm_labels
@@ -488,7 +488,7 @@ def init_ds_tpms_wf(*, output_dir, name="ds_tpms_wf", tpm_labels=BIDS_TISSUE_ORD
     workflow.connect([
         (inputnode, ds_t1w_tpms, [('t1w_tpms', 'in_file'),
                                   ('source_files', 'source_file')]),
-        (ds_t1w_tpms, outputnode, [("out_file", "t1w_tpms")]),
+        (ds_t1w_tpms, outputnode, [('out_file', 't1w_tpms')]),
     ])
     # fmt:on
 
@@ -498,7 +498,7 @@ def init_ds_tpms_wf(*, output_dir, name="ds_tpms_wf", tpm_labels=BIDS_TISSUE_ORD
 def init_ds_template_registration_wf(
     *,
     output_dir,
-    name="ds_template_registration_wf",
+    name='ds_template_registration_wf',
 ):
     """
     Save template registration transforms
@@ -526,37 +526,37 @@ def init_ds_template_registration_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["template", "source_files", "anat2std_xfm", "std2anat_xfm"]),
-        name="inputnode",
+        niu.IdentityInterface(fields=['template', 'source_files', 'anat2std_xfm', 'std2anat_xfm']),
+        name='inputnode',
     )
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=["anat2std_xfm", "std2anat_xfm"]),
-        name="outputnode",
+        niu.IdentityInterface(fields=['anat2std_xfm', 'std2anat_xfm']),
+        name='outputnode',
     )
 
     ds_std2t1w_xfm = pe.MapNode(
         DerivativesDataSink(
             base_directory=output_dir,
-            to="T1w",
-            mode="image",
-            suffix="xfm",
-            dismiss_entities=["desc"],
+            to='T1w',
+            mode='image',
+            suffix='xfm',
+            dismiss_entities=['desc'],
         ),
-        iterfield=("in_file", "from"),
-        name="ds_std2t1w_xfm",
+        iterfield=('in_file', 'from'),
+        name='ds_std2t1w_xfm',
         run_without_submitting=True,
     )
 
     ds_t1w2std_xfm = pe.MapNode(
         DerivativesDataSink(
             base_directory=output_dir,
-            mode="image",
-            suffix="xfm",
-            dismiss_entities=["desc"],
-            **{"from": "T1w"},
+            mode='image',
+            suffix='xfm',
+            dismiss_entities=['desc'],
+            **{'from': 'T1w'},
         ),
-        iterfield=("in_file", "to"),
-        name="ds_t1w2std_xfm",
+        iterfield=('in_file', 'to'),
+        name='ds_t1w2std_xfm',
         run_without_submitting=True,
     )
 
@@ -570,8 +570,8 @@ def init_ds_template_registration_wf(
             ('std2anat_xfm', 'in_file'),
             (('template', _combine_cohort), 'from'),
             ('source_files', 'source_file')]),
-        (ds_t1w2std_xfm, outputnode, [("out_file", "anat2std_xfm")]),
-        (ds_std2t1w_xfm, outputnode, [("out_file", "std2anat_xfm")]),
+        (ds_t1w2std_xfm, outputnode, [('out_file', 'anat2std_xfm')]),
+        (ds_std2t1w_xfm, outputnode, [('out_file', 'std2anat_xfm')]),
     ])
     # fmt:on
 
@@ -581,7 +581,7 @@ def init_ds_template_registration_wf(
 def init_ds_fs_registration_wf(
     *,
     output_dir,
-    name="ds_fs_registration_wf",
+    name='ds_fs_registration_wf',
 ):
     """
     Save rigid registration between subject anatomical template and FreeSurfer T1.mgz
@@ -614,40 +614,40 @@ def init_ds_fs_registration_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["source_files", "fsnative2t1w_xfm"]),
-        name="inputnode",
+        niu.IdentityInterface(fields=['source_files', 'fsnative2t1w_xfm']),
+        name='inputnode',
     )
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=["fsnative2t1w_xfm", "t1w2fsnative_xfm"]),
-        name="outputnode",
+        niu.IdentityInterface(fields=['fsnative2t1w_xfm', 't1w2fsnative_xfm']),
+        name='outputnode',
     )
 
     from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 
     # FS native space transforms
-    lta2itk = pe.Node(ConcatenateXFMs(inverse=True), name="lta2itk", run_without_submitting=True)
+    lta2itk = pe.Node(ConcatenateXFMs(inverse=True), name='lta2itk', run_without_submitting=True)
     ds_t1w_fsnative = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
-            mode="image",
-            to="fsnative",
-            suffix="xfm",
-            extension="txt",
-            **{"from": "T1w"},
+            mode='image',
+            to='fsnative',
+            suffix='xfm',
+            extension='txt',
+            **{'from': 'T1w'},
         ),
-        name="ds_t1w_fsnative",
+        name='ds_t1w_fsnative',
         run_without_submitting=True,
     )
     ds_fsnative_t1w = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
-            mode="image",
-            to="T1w",
-            suffix="xfm",
-            extension="txt",
-            **{"from": "fsnative"},
+            mode='image',
+            to='T1w',
+            suffix='xfm',
+            extension='txt',
+            **{'from': 'fsnative'},
         ),
-        name="ds_fsnative_t1w",
+        name='ds_fsnative_t1w',
         run_without_submitting=True,
     )
 
@@ -670,7 +670,7 @@ def init_ds_surfaces_wf(
     bids_root: str,
     output_dir: str,
     surfaces: list[str],
-    name="ds_surfaces_wf",
+    name='ds_surfaces_wf',
 ) -> Workflow:
     """
     Save GIFTI surfaces
@@ -702,31 +702,31 @@ def init_ds_surfaces_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["source_files"] + surfaces),
-        name="inputnode",
+        niu.IdentityInterface(fields=['source_files'] + surfaces),
+        name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=surfaces), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=surfaces), name='outputnode')
 
     for surf in surfaces:
         ds_surf = pe.MapNode(
             DerivativesDataSink(
                 base_directory=output_dir,
-                hemi=["L", "R"],
-                suffix=surf.split("_")[0],  # Split for sphere_reg and sphere_reg_fsLR
-                extension=".surf.gii",
+                hemi=['L', 'R'],
+                suffix=surf.split('_')[0],  # Split for sphere_reg and sphere_reg_fsLR
+                extension='.surf.gii',
             ),
-            iterfield=("in_file", "hemi"),
-            name=f"ds_{surf}",
+            iterfield=('in_file', 'hemi'),
+            name=f'ds_{surf}',
             run_without_submitting=True,
         )
-        if surf.startswith("sphere_reg"):
-            if surf == "sphere_reg_msm":
-                ds_surf.inputs.desc = "msmsulc"
-                ds_surf.inputs.space = "fsLR"
+        if surf.startswith('sphere_reg'):
+            if surf == 'sphere_reg_msm':
+                ds_surf.inputs.desc = 'msmsulc'
+                ds_surf.inputs.space = 'fsLR'
             else:
-                ds_surf.inputs.desc = "reg"
-                if surf == "sphere_reg_fsLR":
-                    ds_surf.inputs.space = "fsLR"
+                ds_surf.inputs.desc = 'reg'
+                if surf == 'sphere_reg_fsLR':
+                    ds_surf.inputs.space = 'fsLR'
 
         # fmt:off
         workflow.connect([
@@ -743,7 +743,7 @@ def init_ds_surface_metrics_wf(
     bids_root: str,
     output_dir: str,
     metrics: list[str],
-    name="ds_surface_metrics_wf",
+    name='ds_surface_metrics_wf',
 ) -> Workflow:
     """
     Save GIFTI surface metrics
@@ -775,21 +775,21 @@ def init_ds_surface_metrics_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["source_files"] + metrics),
-        name="inputnode",
+        niu.IdentityInterface(fields=['source_files'] + metrics),
+        name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=metrics), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=metrics), name='outputnode')
 
     for metric in metrics:
         ds_surf = pe.MapNode(
             DerivativesDataSink(
                 base_directory=output_dir,
-                hemi=["L", "R"],
+                hemi=['L', 'R'],
                 suffix=metric,
-                extension=".shape.gii",
+                extension='.shape.gii',
             ),
-            iterfield=("in_file", "hemi"),
-            name=f"ds_{metric}",
+            iterfield=('in_file', 'hemi'),
+            name=f'ds_{metric}',
             run_without_submitting=True,
         )
 
@@ -808,8 +808,8 @@ def init_ds_grayord_metrics_wf(
     bids_root: str,
     output_dir: str,
     metrics: list[str],
-    cifti_output: ty.Literal["91k", "170k"],
-    name="ds_grayord_metrics_wf",
+    cifti_output: ty.Literal['91k', '170k'],
+    name='ds_grayord_metrics_wf',
 ) -> Workflow:
     """
     Save CIFTI-2 surface metrics
@@ -846,11 +846,11 @@ def init_ds_grayord_metrics_wf(
 
     inputnode = pe.Node(
         niu.IdentityInterface(
-            fields=["source_files"] + metrics + [f"{m}_metadata" for m in metrics]
+            fields=['source_files'] + metrics + [f'{m}_metadata' for m in metrics]
         ),
-        name="inputnode",
+        name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=metrics), name="outputnode")
+    outputnode = pe.Node(niu.IdentityInterface(fields=metrics), name='outputnode')
 
     for metric in metrics:
         ds_metric = pe.Node(
@@ -860,9 +860,9 @@ def init_ds_grayord_metrics_wf(
                 density=cifti_output,
                 suffix=metric,
                 compress=False,
-                extension=".dscalar.nii",
+                extension='.dscalar.nii',
             ),
-            name=f"ds_{metric}",
+            name=f'ds_{metric}',
             run_without_submitting=True,
         )
 
@@ -882,10 +882,9 @@ def init_ds_anat_volumes_wf(
     *,
     bids_root: str,
     output_dir: str,
-    name="ds_anat_volumes_wf",
+    name='ds_anat_volumes_wf',
     tpm_labels=BIDS_TISSUE_ORDER,
 ) -> pe.Workflow:
-
     workflow = pe.Workflow(name=name)
     inputnode = pe.Node(
         niu.IdentityInterface(
@@ -912,7 +911,7 @@ def init_ds_anat_volumes_wf(
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
-    gen_ref = pe.Node(GenerateSamplingReference(), name="gen_ref", mem_gb=0.01)
+    gen_ref = pe.Node(GenerateSamplingReference(), name='gen_ref', mem_gb=0.01)
 
     # Mask T1w preproc images
     mask_t1w = pe.Node(ApplyMask(), name='mask_t1w')
@@ -923,48 +922,46 @@ def init_ds_anat_volumes_wf(
             dimension=3,
             default_value=0,
             float=True,
-            interpolation="LanczosWindowedSinc",
+            interpolation='LanczosWindowedSinc',
         ),
-        name="anat2std_t1w",
+        name='anat2std_t1w',
     )
 
-    anat2std_mask = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_mask")
-    anat2std_dseg = pe.Node(ApplyTransforms(interpolation="MultiLabel"), name="anat2std_dseg")
+    anat2std_mask = pe.Node(ApplyTransforms(interpolation='MultiLabel'), name='anat2std_mask')
+    anat2std_dseg = pe.Node(ApplyTransforms(interpolation='MultiLabel'), name='anat2std_dseg')
     anat2std_tpms = pe.MapNode(
-        ApplyTransforms(dimension=3, default_value=0, float=True, interpolation="Gaussian"),
-        iterfield=["input_image"],
-        name="anat2std_tpms",
+        ApplyTransforms(dimension=3, default_value=0, float=True, interpolation='Gaussian'),
+        iterfield=['input_image'],
+        name='anat2std_tpms',
     )
 
     ds_std_t1w = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
-            desc="preproc",
+            desc='preproc',
             compress=True,
         ),
-        name="ds_std_t1w",
+        name='ds_std_t1w',
         run_without_submitting=True,
     )
     ds_std_t1w.inputs.SkullStripped = True
 
     ds_std_mask = pe.Node(
-        DerivativesDataSink(
-            base_directory=output_dir, desc="brain", suffix="mask", compress=True
-        ),
-        name="ds_std_mask",
+        DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask', compress=True),
+        name='ds_std_mask',
         run_without_submitting=True,
     )
-    ds_std_mask.inputs.Type = "Brain"
+    ds_std_mask.inputs.Type = 'Brain'
 
     ds_std_dseg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix="dseg", compress=True),
-        name="ds_std_dseg",
+        DerivativesDataSink(base_directory=output_dir, suffix='dseg', compress=True),
+        name='ds_std_dseg',
         run_without_submitting=True,
     )
 
     ds_std_tpms = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, suffix="probseg", compress=True),
-        name="ds_std_tpms",
+        DerivativesDataSink(base_directory=output_dir, suffix='probseg', compress=True),
+        name='ds_std_tpms',
         run_without_submitting=True,
     )
 
@@ -975,22 +972,22 @@ def init_ds_anat_volumes_wf(
 
     workflow.connect([
         (inputnode, gen_ref, [
-            ("ref_file", "fixed_image"),
-            (("resolution", _is_native), "keep_native"),
+            ('ref_file', 'fixed_image'),
+            (('resolution', _is_native), 'keep_native'),
         ]),
         (inputnode, mask_t1w, [
-            ("t1w_preproc", "in_file"),
-            ("t1w_mask", "in_mask"),
+            ('t1w_preproc', 'in_file'),
+            ('t1w_mask', 'in_mask'),
         ]),
-        (mask_t1w, anat2std_t1w, [("out_file", "input_image")]),
-        (inputnode, anat2std_mask, [("t1w_mask", "input_image")]),
-        (inputnode, anat2std_dseg, [("t1w_dseg", "input_image")]),
-        (inputnode, anat2std_tpms, [("t1w_tpms", "input_image")]),
-        (inputnode, gen_ref, [("t1w_preproc", "moving_image")]),
-        (anat2std_t1w, ds_std_t1w, [("output_image", "in_file")]),
-        (anat2std_mask, ds_std_mask, [("output_image", "in_file")]),
-        (anat2std_dseg, ds_std_dseg, [("output_image", "in_file")]),
-        (anat2std_tpms, ds_std_tpms, [("output_image", "in_file")]),
+        (mask_t1w, anat2std_t1w, [('out_file', 'input_image')]),
+        (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
+        (inputnode, anat2std_dseg, [('t1w_dseg', 'input_image')]),
+        (inputnode, anat2std_tpms, [('t1w_tpms', 'input_image')]),
+        (inputnode, gen_ref, [('t1w_preproc', 'moving_image')]),
+        (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
+        (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
+        (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
+        (anat2std_tpms, ds_std_tpms, [('output_image', 'in_file')]),
     ])  # fmt:skip
 
     workflow.connect(
@@ -1021,8 +1018,8 @@ def init_anat_second_derivatives_wf(
     *,
     bids_root: str,
     output_dir: str,
-    cifti_output: ty.Literal["91k", "170k", False],
-    name="anat_second_derivatives_wf",
+    cifti_output: ty.Literal['91k', '170k', False],
+    name='anat_second_derivatives_wf',
     tpm_labels=BIDS_TISSUE_ORDER,
 ):
     """
@@ -1076,29 +1073,29 @@ def init_anat_second_derivatives_wf(
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "template",
-                "source_files",
-                "t1w_fs_aseg",
-                "t1w_fs_aparc",
+                'template',
+                'source_files',
+                't1w_fs_aseg',
+                't1w_fs_aparc',
             ]
         ),
-        name="inputnode",
+        name='inputnode',
     )
 
-    raw_sources = pe.Node(niu.Function(function=_bids_relative), name="raw_sources")
+    raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
     # Parcellations
     ds_t1w_fsaseg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc="aseg", suffix="dseg", compress=True),
-        name="ds_t1w_fsaseg",
+        DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg', compress=True),
+        name='ds_t1w_fsaseg',
         run_without_submitting=True,
     )
     ds_t1w_fsparc = pe.Node(
         DerivativesDataSink(
-            base_directory=output_dir, desc="aparcaseg", suffix="dseg", compress=True
+            base_directory=output_dir, desc='aparcaseg', suffix='dseg', compress=True
         ),
-        name="ds_t1w_fsparc",
+        name='ds_t1w_fsparc',
         run_without_submitting=True,
     )
 
@@ -1114,7 +1111,7 @@ def init_anat_second_derivatives_wf(
     return workflow
 
 
-def init_template_iterator_wf(*, spaces, name="template_iterator_wf"):
+def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
     """Prepare the necessary components to resample an image to a template space
 
     This produces a workflow with an unjoined iterable named "spacesource".
@@ -1127,42 +1124,42 @@ def init_template_iterator_wf(*, spaces, name="template_iterator_wf"):
     workflow = pe.Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=["template", "anat2std_xfm"]),
-        name="inputnode",
+        niu.IdentityInterface(fields=['template', 'anat2std_xfm']),
+        name='inputnode',
     )
     outputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "space",
-                "resolution",
-                "cohort",
-                "anat2std_xfm",
-                "std_t1w",
-                "std_mask",
+                'space',
+                'resolution',
+                'cohort',
+                'anat2std_xfm',
+                'std_t1w',
+                'std_mask',
             ],
         ),
-        name="outputnode",
+        name='outputnode',
     )
 
-    spacesource = pe.Node(SpaceDataSource(), name="spacesource", run_without_submitting=True)
+    spacesource = pe.Node(SpaceDataSource(), name='spacesource', run_without_submitting=True)
     spacesource.iterables = (
-        "in_tuple",
+        'in_tuple',
         [(s.fullname, s.spec) for s in spaces.cached.get_standard(dim=(3,))],
     )
 
     gen_tplid = pe.Node(
         niu.Function(function=_fmt_cohort),
-        name="gen_tplid",
+        name='gen_tplid',
         run_without_submitting=True,
     )
 
     select_xfm = pe.Node(
-        KeySelect(fields=["anat2std_xfm"]),
-        name="select_xfm",
+        KeySelect(fields=['anat2std_xfm']),
+        name='select_xfm',
         run_without_submitting=True,
     )
     select_tpl = pe.Node(
-        TemplateFlowSelect(resolution=1), name="select_tpl", run_without_submitting=True
+        TemplateFlowSelect(resolution=1), name='select_tpl', run_without_submitting=True
     )
 
     # fmt:off
@@ -1182,16 +1179,16 @@ def init_template_iterator_wf(*, spaces, name="template_iterator_wf"):
             (('resolution', _no_native), 'resolution'),
         ]),
         (spacesource, outputnode, [
-            ("space", "space"),
-            ("resolution", "resolution"),
-            ("cohort", "cohort"),
+            ('space', 'space'),
+            ('resolution', 'resolution'),
+            ('cohort', 'cohort'),
         ]),
         (select_xfm, outputnode, [
-            ("anat2std_xfm", "anat2std_xfm"),
+            ('anat2std_xfm', 'anat2std_xfm'),
         ]),
         (select_tpl, outputnode, [
-            ("t1w_file", "std_t1w"),
-            ("brain_mask", "std_mask"),
+            ('t1w_file', 'std_t1w'),
+            ('brain_mask', 'std_mask'),
         ]),
     ])
     # fmt:on
@@ -1202,7 +1199,7 @@ def init_template_iterator_wf(*, spaces, name="template_iterator_wf"):
 def _bids_relative(in_files, bids_root):
     from pathlib import Path
 
-    if not isinstance(in_files, (list, tuple)):
+    if not isinstance(in_files, list | tuple):
         in_files = [in_files]
     ret = []
     for file in in_files:
@@ -1215,47 +1212,49 @@ def _bids_relative(in_files, bids_root):
 
 def _rpt_masks(mask_file, before, after, after_mask=None):
     from os.path import abspath
+
     import nibabel as nb
 
     msk = nb.load(mask_file).get_fdata() > 0
     bnii = nb.load(before)
-    nb.Nifti1Image(bnii.get_fdata() * msk, bnii.affine, bnii.header).to_filename("before.nii.gz")
+    nb.Nifti1Image(bnii.get_fdata() * msk, bnii.affine, bnii.header).to_filename('before.nii.gz')
     if after_mask is not None:
         msk = nb.load(after_mask).get_fdata() > 0
 
     anii = nb.load(after)
-    nb.Nifti1Image(anii.get_fdata() * msk, anii.affine, anii.header).to_filename("after.nii.gz")
-    return abspath("before.nii.gz"), abspath("after.nii.gz")
+    nb.Nifti1Image(anii.get_fdata() * msk, anii.affine, anii.header).to_filename('after.nii.gz')
+    return abspath('before.nii.gz'), abspath('after.nii.gz')
 
 
 def _drop_cohort(in_template):
     if isinstance(in_template, str):
-        return in_template.split(":")[0]
+        return in_template.split(':')[0]
     return [_drop_cohort(v) for v in in_template]
 
 
 def _pick_cohort(in_template):
     if isinstance(in_template, str):
-        if "cohort-" not in in_template:
+        if 'cohort-' not in in_template:
             from nipype.interfaces.base import Undefined
 
             return Undefined
-        return in_template.split("cohort-")[-1].split(":")[0]
+        return in_template.split('cohort-')[-1].split(':')[0]
     return [_pick_cohort(v) for v in in_template]
 
 
 def _fmt(in_template):
-    return in_template.replace(":", "_")
+    return in_template.replace(':', '_')
 
 
 def _empty_report(in_file=None):
     from pathlib import Path
+
     from nipype.interfaces.base import isdefined
 
     if in_file is not None and isdefined(in_file):
         return in_file
 
-    out_file = Path("tmp-report.html").absolute()
+    out_file = Path('tmp-report.html').absolute()
     out_file.write_text(
         """\
                 <h4 class="elem-title">A previously computed T1w template was provided.</h4>
@@ -1265,18 +1264,19 @@ def _empty_report(in_file=None):
 
 
 def _is_native(value):
-    return value == "native"
+    return value == 'native'
 
 
 def _no_native(value):
     try:
         return int(value)
-    except Exception:
+    except (TypeError, ValueError):
         return 1
 
 
 def _drop_path(in_path):
     from pathlib import Path
+
     from templateflow.conf import TF_HOME
 
     return str(Path(in_path).relative_to(TF_HOME))
@@ -1286,14 +1286,14 @@ def _fmt_cohort(template, cohort=None):
     from nipype.interfaces.base import isdefined
 
     if cohort and isdefined(cohort):
-        return f"{template}:cohort-{cohort}"
+        return f'{template}:cohort-{cohort}'
     return template
 
 
 def _combine_cohort(in_template):
     if isinstance(in_template, str):
-        template = in_template.split(":")[0]
-        if "cohort-" not in in_template:
+        template = in_template.split(':')[0]
+        if 'cohort-' not in in_template:
             return template
         return f"{template}+{in_template.split('cohort-')[-1].split(':')[0]}"
     return [_combine_cohort(v) for v in in_template]

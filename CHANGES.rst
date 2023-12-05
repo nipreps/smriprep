@@ -1,3 +1,13 @@
+0.13.1 (November 21, 2023)
+==========================
+Bug fix release in the 0.13.x series.
+
+This release fixes a bug with a workflow connection that was not properly
+named, and which would cause an error when T2-weighted images were provided.
+
+* FIX: T1w_preproc -> t1w_preproc (#399)
+
+
 0.13.0 (November 20, 2023)
 ==========================
 New feature release in the 0.13.x series.
