@@ -6,7 +6,7 @@ from niworkflows.interfaces.bids import DerivativesDataSink as DDS
 
 
 class DerivativesDataSink(DDS):
-    out_path_base = "smriprep"
+    out_path_base = 'smriprep'
 
 
 del DDS

@@ -8,11 +8,11 @@ except ImportError:  # PY38
     from functools import lru_cache as cache
 
 try:  # Prefer backport to leave consistency to dependency spec
-    from importlib_resources import files, as_file
+    from importlib_resources import as_file, files
 except ImportError:
-    from importlib.resources import files, as_file
+    from importlib.resources import as_file, files
 
-__all__ = ["load_resource"]
+__all__ = ['load_resource']
 
 exit_stack = ExitStack()
 atexit.register(exit_stack.close)

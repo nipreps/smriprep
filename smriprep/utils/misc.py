@@ -25,8 +25,8 @@
 
 def apply_lut(in_dseg, lut, newpath=None):
     """Map the input discrete segmentation to a new label set (lookup table, LUT)."""
-    import numpy as np
     import nibabel as nb
+    import numpy as np
     from nipype.utils.filemanip import fname_presuffix
 
     if newpath is None:
@@ -34,14 +34,14 @@ def apply_lut(in_dseg, lut, newpath=None):
 
         newpath = getcwd()
 
-    out_file = fname_presuffix(in_dseg, suffix="_dseg", newpath=newpath)
-    lut = np.array(lut, dtype="int16")
+    out_file = fname_presuffix(in_dseg, suffix='_dseg', newpath=newpath)
+    lut = np.array(lut, dtype='int16')
 
     segm = nb.load(in_dseg)
     hdr = segm.header.copy()
-    hdr.set_data_dtype("int16")
+    hdr.set_data_dtype('int16')
     segm.__class__(
-        lut[np.asanyarray(segm.dataobj, dtype=int)].astype("int16"), segm.affine, hdr
+        lut[np.asanyarray(segm.dataobj, dtype=int)].astype('int16'), segm.affine, hdr
     ).to_filename(out_file)
 
     return out_file
@@ -66,8 +66,8 @@ def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400, logger=None):
     subjects_dir : os.PathLike or None
 
     """
-    from pathlib import Path
     import time
+    from pathlib import Path
 
     if subjects_dir is None:
         return subjects_dir
@@ -75,10 +75,10 @@ def fs_isRunning(subjects_dir, subject_id, mtime_tol=86400, logger=None):
     if not subj_dir.exists():
         return subjects_dir
 
-    isrunning = tuple(subj_dir.glob("scripts/IsRunning*"))
+    isrunning = tuple(subj_dir.glob('scripts/IsRunning*'))
     if not isrunning:
         return subjects_dir
-    reconlog = subj_dir / "scripts" / "recon-all.log"
+    reconlog = subj_dir / 'scripts' / 'recon-all.log'
     # if recon log doesn't exist, just clear IsRunning
     mtime = reconlog.stat().st_mtime if reconlog.exists() else 0
     if (time.time() - mtime) < mtime_tol:
