@@ -1,3 +1,19 @@
+0.13.2 (December 08, 2023)
+==========================
+Bug fix release in the 0.13.x series.
+
+This release fixes a check for skull-stripping in auto mode, and adds
+missing fsLR atlases to the Python package resources.
+The Docker image has also been updated to ensure FreeSurfer can be run
+from the sMRIPrep container.
+
+With thanks to Patrick Sadil for reports and fixes.
+
+* ENH: Add 59k atlases (#405)
+* FIX: Repair FreeSurfer dependency in Dockerfile (tcsh) (#404)
+* FIX: Invert result of skull-strip check in auto mode (#402)
+
+
 0.13.1 (November 21, 2023)
 ==========================
 Bug fix release in the 0.13.x series.
