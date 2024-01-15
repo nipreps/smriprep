@@ -215,11 +215,10 @@ def get_parser():
         '(default: OUTPUT_DIR/freesurfer)',
     )
     g_fs.add_argument(
-        "--fs-reuse-base",
+        '--fs-reuse-base',
         action='store_true',
         dest='fs_reuse_base',
-        help='Reuse freesurfer base template'
-        '(from longitudinal preprocessing)',
+        help='Reuse freesurfer base template (from longitudinal preprocessing)',
     )
     g_fs.add_argument(
         '--cifti-output',

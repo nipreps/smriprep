@@ -247,22 +247,21 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     )
 
     if not fs_reuse_base:
+        recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
 
-        recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name="recon_config")
-
-        fov_check = pe.Node(niu.Function(function=_check_cw256), name="fov_check")
+        fov_check = pe.Node(niu.Function(function=_check_cw256), name='fov_check')
         fov_check.inputs.default_flags = ['-noskullstrip', '-noT2pial', '-noFLAIRpial']
 
         autorecon1 = pe.Node(
-            ReconAll(directive="autorecon1", openmp=omp_nthreads),
-            name="autorecon1",
+            ReconAll(directive='autorecon1', openmp=omp_nthreads),
+            name='autorecon1',
             n_procs=omp_nthreads,
             mem_gb=5,
         )
         autorecon1.interface._can_resume = False
         autorecon1.interface._always_run = True
 
-        skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name="skull_strip_extern")
+        skull_strip_extern = pe.Node(FSInjectBrainExtracted(), name='skull_strip_extern')
 
         autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
 
@@ -303,10 +302,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ])
         # fmt:on
     else:
-        fs_base_inputs = autorecon1 = pe.Node(
-            nio.FreeSurferSource(),
-            name='fs_base_inputs'
-        )
+        fs_base_inputs = autorecon1 = pe.Node(nio.FreeSurferSource(), name='fs_base_inputs')
 
         # fmt:off
         workflow.connect([
