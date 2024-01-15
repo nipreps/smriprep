@@ -88,7 +88,7 @@ jobs:
         path: dist/
       if: matrix.install == 'sdist' || matrix.install == 'wheel'
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Select archive
@@ -112,9 +112,10 @@ jobs:
     - uses: codecov/codecov-action@v3
       name: Submit to CodeCov
 
-  flake8:
+  style:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: pipx run flake8 smriprep
+    - run: pipx run ruff smriprep
+    - run: pipx run ruff format --diff smriprep

@@ -6,70 +6,70 @@ class CreateSignedDistanceVolumeInputSpec(CommandLineInputSpec):
     surf_file = File(
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=0,
-        desc="Input surface GIFTI file (.surf.gii)",
+        desc='Input surface GIFTI file (.surf.gii)',
     )
     ref_file = File(
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=1,
-        desc="NIfTI volume in the desired output space (dims, spacing, origin)",
+        desc='NIfTI volume in the desired output space (dims, spacing, origin)',
     )
     out_file = File(
-        name_source=["surf_file"],
-        name_template="%s_distvol.nii.gz",
-        argstr="%s",
+        name_source=['surf_file'],
+        name_template='%s_distvol.nii.gz',
+        argstr='%s',
         position=2,
-        desc="Name of output volume containing signed distances",
+        desc='Name of output volume containing signed distances',
     )
     out_mask = File(
-        name_source=["surf_file"],
-        name_template="%s_distmask.nii.gz",
-        argstr="-roi-out %s",
-        desc="Name of file to store a mask where the ``out_file`` has a computed value",
+        name_source=['surf_file'],
+        name_template='%s_distmask.nii.gz',
+        argstr='-roi-out %s',
+        desc='Name of file to store a mask where the ``out_file`` has a computed value',
     )
     fill_value = traits.Float(
         0.0,
         mandatory=False,
         usedefault=True,
-        argstr="-fill-value %f",
+        argstr='-fill-value %f',
         desc="value to put in all voxels that don't get assigned a distance",
     )
     exact_limit = traits.Float(
         5.0,
         usedefault=True,
-        argstr="-exact-limit %f",
-        desc="distance for exact output in mm",
+        argstr='-exact-limit %f',
+        desc='distance for exact output in mm',
     )
     approx_limit = traits.Float(
         20.0,
         usedefault=True,
-        argstr="-approx-limit %f",
-        desc="distance for approximate output in mm",
+        argstr='-approx-limit %f',
+        desc='distance for approximate output in mm',
     )
     approx_neighborhood = traits.Int(
         2,
         usedefault=True,
-        argstr="-approx-neighborhood %d",
-        desc="size of neighborhood cube measured from center to face in voxels, default 2 = 5x5x5",
+        argstr='-approx-neighborhood %d',
+        desc='size of neighborhood cube measured from center to face in voxels, default 2 = 5x5x5',
     )
     winding_method = traits.Enum(
-        "EVEN_ODD",
-        "NEGATIVE",
-        "NONZERO",
-        "NORMALS",
-        argstr="-winding %s",
+        'EVEN_ODD',
+        'NEGATIVE',
+        'NONZERO',
+        'NORMALS',
+        argstr='-winding %s',
         usedefault=True,
-        desc="winding method for point inside surface test",
+        desc='winding method for point inside surface test',
     )
 
 
 class CreateSignedDistanceVolumeOutputSpec(TraitedSpec):
-    out_file = File(desc="Name of output volume containing signed distances")
+    out_file = File(desc='Name of output volume containing signed distances')
     out_mask = File(
-        desc="Name of file to store a mask where the ``out_file`` has a computed value"
+        desc='Name of file to store a mask where the ``out_file`` has a computed value'
     )
 
 
@@ -141,35 +141,35 @@ class CreateSignedDistanceVolume(WBCommand):
 
     input_spec = CreateSignedDistanceVolumeInputSpec
     output_spec = CreateSignedDistanceVolumeOutputSpec
-    _cmd = "wb_command -create-signed-distance-volume"
+    _cmd = 'wb_command -create-signed-distance-volume'
 
 
 class SurfaceAffineRegressionInputSpec(CommandLineInputSpec):
     in_surface = File(
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=0,
-        desc="Surface to warp",
+        desc='Surface to warp',
     )
     target_surface = File(
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=1,
-        desc="Surface to match the coordinates of",
+        desc='Surface to match the coordinates of',
     )
     out_affine = File(
-        name_template="%s_xfm",
-        name_source=["in_surface"],
-        argstr="%s",
+        name_template='%s_xfm',
+        name_source=['in_surface'],
+        argstr='%s',
         position=2,
-        desc="the output affine file",
+        desc='the output affine file',
     )
 
 
 class SurfaceAffineRegressionOutputSpec(TraitedSpec):
-    out_affine = File(desc="The output affine file")
+    out_affine = File(desc='The output affine file')
 
 
 class SurfaceAffineRegression(WBCommand):
@@ -195,51 +195,52 @@ class SurfaceAffineRegression(WBCommand):
     tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii \
     sub-01_hemi-L_sulc.shape_xfm'
     """
+
     input_spec = SurfaceAffineRegressionInputSpec
     output_spec = SurfaceAffineRegressionOutputSpec
-    _cmd = "wb_command -surface-affine-regression"
+    _cmd = 'wb_command -surface-affine-regression'
 
 
 class SurfaceApplyAffineInputSpec(CommandLineInputSpec):
     in_surface = File(
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=0,
-        desc="the surface to transform",
+        desc='the surface to transform',
     )
     in_affine = File(
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=1,
-        desc="the affine file",
+        desc='the affine file',
     )
     out_surface = File(
-        name_template="%s_xformed.surf.gii",
-        name_source=["in_surface"],
-        argstr="%s",
+        name_template='%s_xformed.surf.gii',
+        name_source=['in_surface'],
+        argstr='%s',
         position=2,
-        desc="the output transformed surface",
+        desc='the output transformed surface',
     )
     flirt_source = File(
         exists=True,
-        requires=["flirt_target"],
-        argstr="-flirt %s",
+        requires=['flirt_target'],
+        argstr='-flirt %s',
         position=3,
-        desc="Source volume (must be used if affine is a flirt affine)",
+        desc='Source volume (must be used if affine is a flirt affine)',
     )
     flirt_target = File(
         exists=True,
-        requires=["flirt_source"],
-        argstr="%s",
+        requires=['flirt_source'],
+        argstr='%s',
         position=4,
-        desc="Target volume (must be used if affine is a flirt affine)",
+        desc='Target volume (must be used if affine is a flirt affine)',
     )
 
 
 class SurfaceApplyAffineOutputSpec(TraitedSpec):
-    out_surface = File(desc="the output transformed surface")
+    out_surface = File(desc='the output transformed surface')
 
 
 class SurfaceApplyAffine(WBCommand):
@@ -279,43 +280,44 @@ class SurfaceApplyAffine(WBCommand):
 
     >>> os.unlink('affine.txt')
     """
+
     input_spec = SurfaceApplyAffineInputSpec
     output_spec = SurfaceApplyAffineOutputSpec
-    _cmd = "wb_command -surface-apply-affine"
+    _cmd = 'wb_command -surface-apply-affine'
 
 
 class SurfaceApplyWarpfieldInputSpec(CommandLineInputSpec):
     in_surface = File(
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=0,
-        desc="the surface to transform",
+        desc='the surface to transform',
     )
     warpfield = File(
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=1,
-        desc="the INVERSE warpfield",
+        desc='the INVERSE warpfield',
     )
     out_surface = File(
-        name_template="%s_warped.surf.gii",
-        name_source=["in_surface"],
-        argstr="%s",
+        name_template='%s_warped.surf.gii',
+        name_source=['in_surface'],
+        argstr='%s',
         position=2,
-        desc="the output transformed surface",
+        desc='the output transformed surface',
     )
     fnirt_forward_warp = File(
         exists=True,
-        argstr="-fnirt %s",
+        argstr='-fnirt %s',
         position=3,
-        desc="the forward warpfield (must be used if fnirt warpfield)",
+        desc='the forward warpfield (must be used if fnirt warpfield)',
     )
 
 
 class SurfaceApplyWarpfieldOutputSpec(TraitedSpec):
-    out_surface = File(desc="the output transformed surface")
+    out_surface = File(desc='the output transformed surface')
 
 
 class SurfaceApplyWarpfield(WBCommand):
@@ -347,9 +349,10 @@ class SurfaceApplyWarpfield(WBCommand):
     sub-01_desc-warped_T1w.nii.gz \
     sub-01_hemi-L_sphere.surf_warped.surf.gii'
     """
+
     input_spec = SurfaceApplyWarpfieldInputSpec
     output_spec = SurfaceApplyWarpfieldOutputSpec
-    _cmd = "wb_command -surface-apply-warpfield"
+    _cmd = 'wb_command -surface-apply-warpfield'
 
 
 class SurfaceModifySphereInputSpec(CommandLineInputSpec):
@@ -357,32 +360,29 @@ class SurfaceModifySphereInputSpec(CommandLineInputSpec):
         exists=True,
         mandatory=True,
         position=0,
-        argstr="%s",
-        desc="the sphere to modify",
+        argstr='%s',
+        desc='the sphere to modify',
     )
     radius = traits.Int(
-        mandatory=True,
-        position=1,
-        argstr="%d",
-        desc='the radius the output sphere should have'
+        mandatory=True, position=1, argstr='%d', desc='the radius the output sphere should have'
     )
     out_surface = File(
-        name_template="%s_mod.surf.gii",
-        name_source="in_surface",
+        name_template='%s_mod.surf.gii',
+        name_source='in_surface',
         position=2,
-        argstr="%s",
-        desc="the modified sphere",
+        argstr='%s',
+        desc='the modified sphere',
     )
     recenter = traits.Bool(
         False,
         position=3,
-        argstr="-recenter",
-        desc="recenter the sphere by means of the bounding box",
+        argstr='-recenter',
+        desc='recenter the sphere by means of the bounding box',
     )
 
 
 class SurfaceModifySphereOutputSpec(TraitedSpec):
-    out_surface = File(desc="the modified sphere")
+    out_surface = File(desc='the modified sphere')
 
 
 class SurfaceModifySphere(WBCommand):
@@ -484,37 +484,37 @@ class SurfaceSphereProjectUnprojectInputSpec(TraitedSpec):
        topology."""
 
     sphere_in = File(
-        desc="a sphere with the desired output mesh",
+        desc='a sphere with the desired output mesh',
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=0,
     )
     sphere_project_to = File(
-        desc="a sphere that aligns with sphere-in",
+        desc='a sphere that aligns with sphere-in',
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=1,
     )
     sphere_unproject_from = File(
-        desc="<sphere-project-to> deformed to the desired output space",
+        desc='<sphere-project-to> deformed to the desired output space',
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=2,
     )
     sphere_out = traits.File(
-        name_template="%s_unprojected.surf.gii",
-        name_source=["sphere_in"],
-        desc="the output sphere",
-        argstr="%s",
+        name_template='%s_unprojected.surf.gii',
+        name_source=['sphere_in'],
+        desc='the output sphere',
+        argstr='%s',
         position=3,
     )
 
 
 class SurfaceSphereProjectUnprojectOutputSpec(TraitedSpec):
-    sphere_out = File(desc="the output sphere")
+    sphere_out = File(desc='the output sphere')
 
 
 class SurfaceSphereProjectUnproject(WBCommand):
@@ -535,7 +535,7 @@ class SurfaceSphereProjectUnproject(WBCommand):
 
     input_spec = SurfaceSphereProjectUnprojectInputSpec
     output_spec = SurfaceSphereProjectUnprojectOutputSpec
-    _cmd = "wb_command -surface-sphere-project-unproject"
+    _cmd = 'wb_command -surface-sphere-project-unproject'
 
 
 class SurfaceResampleInputSpec(TraitedSpec):
@@ -580,68 +580,68 @@ class SurfaceResampleInputSpec(TraitedSpec):
     """
 
     surface_in = File(
-        desc="the surface file to resample",
+        desc='the surface file to resample',
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=0,
     )
     current_sphere = File(
-        desc="a sphere surface with the mesh that the input surface is currently on",
+        desc='a sphere surface with the mesh that the input surface is currently on',
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=1,
     )
     new_sphere = File(
-        desc="a sphere surface that is in register with <current-sphere> and has the "
-        "desired output mesh",
+        desc='a sphere surface that is in register with <current-sphere> and has the '
+        'desired output mesh',
         exists=True,
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=2,
     )
     method = traits.Enum(
-        "ADAP_BARY_AREA",
-        "BARYCENTRIC",
-        desc="the method name",
+        'ADAP_BARY_AREA',
+        'BARYCENTRIC',
+        desc='the method name',
         mandatory=True,
-        argstr="%s",
+        argstr='%s',
         position=3,
     )
     surface_out = traits.File(
-        name_template="%s_resampled.surf.gii",
-        name_source=["surface_in"],
+        name_template='%s_resampled.surf.gii',
+        name_source=['surface_in'],
         keep_extension=False,
-        desc="the output surface file",
-        argstr="%s",
+        desc='the output surface file',
+        argstr='%s',
         position=4,
     )
     correction_source = traits.Enum(
-        "area_surfs",
-        "area_metrics",
-        desc="specify surfaces or vertex area metrics to do vertex area correction based on",
-        argstr="-%s",
+        'area_surfs',
+        'area_metrics',
+        desc='specify surfaces or vertex area metrics to do vertex area correction based on',
+        argstr='-%s',
         position=5,
     )
     current_area = File(
-        desc="a relevant surface with <current-sphere> mesh",
+        desc='a relevant surface with <current-sphere> mesh',
         exists=True,
-        argstr="%s",
+        argstr='%s',
         position=6,
         requires=['correction_source'],
     )
     new_area = File(
-        desc="a relevant surface with <new-sphere> mesh",
+        desc='a relevant surface with <new-sphere> mesh',
         exists=True,
-        argstr="%s",
+        argstr='%s',
         position=7,
         requires=['correction_source'],
     )
 
 
 class SurfaceResampleOutputSpec(TraitedSpec):
-    surface_out = File(desc="the output surface file")
+    surface_out = File(desc='the output surface file')
 
 
 class SurfaceResample(WBCommand):
@@ -663,4 +663,4 @@ class SurfaceResample(WBCommand):
 
     input_spec = SurfaceResampleInputSpec
     output_spec = SurfaceResampleOutputSpec
-    _cmd = "wb_command -surface-resample"
+    _cmd = 'wb_command -surface-resample'

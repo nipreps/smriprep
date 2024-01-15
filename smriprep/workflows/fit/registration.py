@@ -22,17 +22,17 @@
 #
 """Spatial normalization workflows."""
 from collections import defaultdict
-from nipype.pipeline import engine as pe
-from nipype.interfaces import utility as niu
 
 from nipype.interfaces import ants
+from nipype.interfaces import utility as niu
 from nipype.interfaces.ants.base import Info as ANTsInfo
-
-from templateflow import __version__ as tf_ver
-from templateflow.api import get_metadata
+from nipype.pipeline import engine as pe
 from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 from niworkflows.interfaces.norm import SpatialNormalization
-from ...interfaces.templateflow import TemplateFlowSelect, TemplateDesc
+from templateflow import __version__ as tf_ver
+from templateflow.api import get_metadata
+
+from ...interfaces.templateflow import TemplateDesc, TemplateFlowSelect
 
 
 def init_register_template_wf(
@@ -40,7 +40,7 @@ def init_register_template_wf(
     sloppy,
     omp_nthreads,
     templates,
-    name="register_template_wf",
+    name='register_template_wf',
 ):
     """
     Build an individual spatial normalization workflow using ``antsRegistration``.
@@ -114,74 +114,73 @@ using brain-extracted versions of both T1w reference and the T1w template.
 The following template{tpls} were selected for spatial normalization
 and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
 """.format(
-            ants_ver=ANTsInfo.version() or "(version unknown)",
-            targets="%s standard space%s"
-            % (
-                defaultdict("several".format, {1: "one", 2: "two", 3: "three", 4: "four"})[ntpls],
-                "s" * (ntpls != 1),
+            ants_ver=ANTsInfo.version() or '(version unknown)',
+            targets='{} standard space{}'.format(
+                defaultdict('several'.format, {1: 'one', 2: 'two', 3: 'three', 4: 'four'})[ntpls],
+                's' * (ntpls != 1),
             ),
-            targets_id=", ".join(templates),
+            targets_id=', '.join(templates),
             tf_ver=tf_ver,
-            tpls=(" was", "s were")[ntpls != 1],
+            tpls=(' was', 's were')[ntpls != 1],
         )
 
         # Append template citations to description
         for template in templates:
-            template_meta = get_metadata(template.split(":")[0])
-            template_refs = ["@%s" % template.split(":")[0].lower()]
+            template_meta = get_metadata(template.split(':')[0])
+            template_refs = ['@%s' % template.split(':')[0].lower()]
 
-            if template_meta.get("RRID", None):
-                template_refs += ["RRID:%s" % template_meta["RRID"]]
+            if template_meta.get('RRID', None):
+                template_refs += ['RRID:%s' % template_meta['RRID']]
 
             workflow.__desc__ += """\
 *{template_name}* [{template_refs}; TemplateFlow ID: {template}]""".format(
                 template=template,
-                template_name=template_meta["Name"],
-                template_refs=", ".join(template_refs),
+                template_name=template_meta['Name'],
+                template_refs=', '.join(template_refs),
             )
-            workflow.__desc__ += ".\n" if template == templates[-1] else ", "
+            workflow.__desc__ += '.\n' if template == templates[-1] else ', '
 
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                "lesion_mask",
-                "moving_image",
-                "moving_mask",
-                "template",
+                'lesion_mask',
+                'moving_image',
+                'moving_mask',
+                'template',
             ]
         ),
-        name="inputnode",
+        name='inputnode',
     )
-    inputnode.iterables = [("template", templates)]
+    inputnode.iterables = [('template', templates)]
 
     out_fields = [
-        "anat2std_xfm",
-        "std2anat_xfm",
-        "template",
-        "template_spec",
+        'anat2std_xfm',
+        'std2anat_xfm',
+        'template',
+        'template_spec',
     ]
     outputnode = _make_outputnode(workflow, out_fields, joinsource='inputnode')
 
-    split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name="split_desc")
+    split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name='split_desc')
 
     tf_select = pe.Node(
         TemplateFlowSelect(resolution=1 + sloppy),
-        name="tf_select",
+        name='tf_select',
         run_without_submitting=True,
     )
 
     # With the improvements from nipreps/niworkflows#342 this truncation is now necessary
     trunc_mov = pe.Node(
-        ants.ImageMath(operation="TruncateImageIntensity", op2="0.01 0.999 256"),
-        name="trunc_mov",
+        ants.ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
+        name='trunc_mov',
     )
 
     registration = pe.Node(
         SpatialNormalization(
             float=True,
-            flavor=["precise", "testing"][sloppy],
+            flavor=['precise', 'testing'][sloppy],
         ),
-        name="registration",
+        name='registration',
         n_procs=omp_nthreads,
         mem_gb=2,
     )
@@ -219,10 +218,10 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
 
 def _make_outputnode(workflow, out_fields, joinsource):
     if joinsource:
-        pout = pe.Node(niu.IdentityInterface(fields=out_fields), name="poutputnode")
+        pout = pe.Node(niu.IdentityInterface(fields=out_fields), name='poutputnode')
         out = pe.JoinNode(
-            niu.IdentityInterface(fields=out_fields), name="outputnode", joinsource=joinsource
+            niu.IdentityInterface(fields=out_fields), name='outputnode', joinsource=joinsource
         )
         workflow.connect([(pout, out, [(f, f) for f in out_fields])])
         return pout
-    return pe.Node(niu.IdentityInterface(fields=out_fields), name="outputnode")
+    return pe.Node(niu.IdentityInterface(fields=out_fields), name='outputnode')

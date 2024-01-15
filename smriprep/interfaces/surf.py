@@ -23,30 +23,28 @@
 """Handling surfaces."""
 import os
 from pathlib import Path
-from typing import Optional
 
-import numpy as np
 import nibabel as nb
 import nitransforms as nt
-
+import numpy as np
 from nipype.interfaces.base import (
     BaseInterfaceInputSpec,
-    TraitedSpec,
-    SimpleInterface,
     File,
-    isdefined,
     InputMultiObject,
+    SimpleInterface,
+    TraitedSpec,
+    isdefined,
     traits,
 )
 
 
 class _NormalizeSurfInputSpec(BaseInterfaceInputSpec):
-    in_file = File(mandatory=True, exists=True, desc="Freesurfer-generated GIFTI file")
-    transform_file = File(exists=True, desc="FSL, LTA or ITK affine transform file")
+    in_file = File(mandatory=True, exists=True, desc='Freesurfer-generated GIFTI file')
+    transform_file = File(exists=True, desc='FSL, LTA or ITK affine transform file')
 
 
 class _NormalizeSurfOutputSpec(TraitedSpec):
-    out_file = File(desc="output file with re-centered GIFTI coordinates")
+    out_file = File(desc='output file with re-centered GIFTI coordinates')
 
 
 class NormalizeSurf(SimpleInterface):
@@ -88,18 +86,18 @@ class NormalizeSurf(SimpleInterface):
         transform_file = self.inputs.transform_file
         if not isdefined(transform_file):
             transform_file = None
-        self._results["out_file"] = normalize_surfs(
+        self._results['out_file'] = normalize_surfs(
             self.inputs.in_file, transform_file, newpath=runtime.cwd
         )
         return runtime
 
 
 class FixGiftiMetadataInputSpec(TraitedSpec):
-    in_file = File(mandatory=True, exists=True, desc="Freesurfer-generated GIFTI file")
+    in_file = File(mandatory=True, exists=True, desc='Freesurfer-generated GIFTI file')
 
 
 class FixGiftiMetadataOutputSpec(TraitedSpec):
-    out_file = File(desc="output file with fixed metadata")
+    out_file = File(desc='output file with fixed metadata')
 
 
 class FixGiftiMetadata(SimpleInterface):
@@ -114,34 +112,35 @@ class FixGiftiMetadata(SimpleInterface):
     output_spec = FixGiftiMetadataOutputSpec
 
     def _run_interface(self, runtime):
-        self._results["out_file"] = fix_gifti_metadata(self.inputs.in_file, newpath=runtime.cwd)
+        self._results['out_file'] = fix_gifti_metadata(self.inputs.in_file, newpath=runtime.cwd)
         return runtime
 
 
 class AggregateSurfacesInputSpec(TraitedSpec):
-    surfaces = InputMultiObject(File(exists=True), desc="Input surfaces")
-    morphometrics = InputMultiObject(File(exists=True), desc="Input morphometrics")
+    surfaces = InputMultiObject(File(exists=True), desc='Input surfaces')
+    morphometrics = InputMultiObject(File(exists=True), desc='Input morphometrics')
 
 
 class AggregateSurfacesOutputSpec(TraitedSpec):
-    pial = traits.List(File(), maxlen=2, desc="Pial surfaces")
-    white = traits.List(File(), maxlen=2, desc="White surfaces")
-    inflated = traits.List(File(), maxlen=2, desc="Inflated surfaces")
-    midthickness = traits.List(File(), maxlen=2, desc="Midthickness (or graymid) surfaces")
-    thickness = traits.List(File(), maxlen=2, desc="Cortical thickness maps")
-    sulc = traits.List(File(), maxlen=2, desc="Sulcal depth maps")
-    curv = traits.List(File(), maxlen=2, desc="Curvature maps")
+    pial = traits.List(File(), maxlen=2, desc='Pial surfaces')
+    white = traits.List(File(), maxlen=2, desc='White surfaces')
+    inflated = traits.List(File(), maxlen=2, desc='Inflated surfaces')
+    midthickness = traits.List(File(), maxlen=2, desc='Midthickness (or graymid) surfaces')
+    thickness = traits.List(File(), maxlen=2, desc='Cortical thickness maps')
+    sulc = traits.List(File(), maxlen=2, desc='Sulcal depth maps')
+    curv = traits.List(File(), maxlen=2, desc='Curvature maps')
 
 
 class AggregateSurfaces(SimpleInterface):
     """Aggregate and group surfaces & morphometrics into left/right pairs."""
+
     input_spec = AggregateSurfacesInputSpec
     output_spec = AggregateSurfacesOutputSpec
 
     def _run_interface(self, runtime):
-        from collections import defaultdict
         import os
         import re
+        from collections import defaultdict
 
         container = defaultdict(list)
         inputs = (self.inputs.surfaces or []) + (self.inputs.morphometrics or [])
@@ -159,15 +158,15 @@ class AggregateSurfaces(SimpleInterface):
 
 class MakeRibbonInputSpec(TraitedSpec):
     white_distvols = traits.List(
-        File(exists=True), minlen=2, maxlen=2, desc="White matter distance volumes"
+        File(exists=True), minlen=2, maxlen=2, desc='White matter distance volumes'
     )
     pial_distvols = traits.List(
-        File(exists=True), minlen=2, maxlen=2, desc="Pial matter distance volumes"
+        File(exists=True), minlen=2, maxlen=2, desc='Pial matter distance volumes'
     )
 
 
 class MakeRibbonOutputSpec(TraitedSpec):
-    ribbon = File(desc="Binary ribbon mask")
+    ribbon = File(desc='Binary ribbon mask')
 
 
 class MakeRibbon(SimpleInterface):
@@ -177,15 +176,13 @@ class MakeRibbon(SimpleInterface):
     output_spec = MakeRibbonOutputSpec
 
     def _run_interface(self, runtime):
-        self._results["ribbon"] = make_ribbon(
+        self._results['ribbon'] = make_ribbon(
             self.inputs.white_distvols, self.inputs.pial_distvols, newpath=runtime.cwd
         )
         return runtime
 
 
-def normalize_surfs(
-    in_file: str, transform_file: str | None, newpath: Optional[str] = None
-) -> str:
+def normalize_surfs(in_file: str, transform_file: str | None, newpath: str | None = None) -> str:
     """
     Update GIFTI metadata and apply rigid coordinate correction.
 
@@ -202,27 +199,27 @@ def normalize_surfs(
         transform = nt.linear.Affine()
     else:
         xfm_fmt = {
-            ".txt": "itk",
-            ".mat": "fsl",
-            ".lta": "fs",
+            '.txt': 'itk',
+            '.mat': 'fsl',
+            '.lta': 'fs',
         }[Path(transform_file).suffix]
         transform = nt.linear.load(transform_file, fmt=xfm_fmt)
-    pointset = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")[0]
+    pointset = img.get_arrays_from_intent('NIFTI_INTENT_POINTSET')[0]
 
     if not np.allclose(transform.matrix, np.eye(4)):
         pointset.data = transform.map(pointset.data, inverse=True)
 
     fname = os.path.basename(in_file)
-    if "graymid" in fname.lower():
+    if 'graymid' in fname.lower():
         # Rename graymid to midthickness
-        fname = fname.replace("graymid", "midthickness")
-    if "midthickness" in fname.lower():
-        pointset.meta.setdefault("AnatomicalStructureSecondary", "MidThickness")
-        pointset.meta.setdefault("GeometricType", "Anatomical")
+        fname = fname.replace('graymid', 'midthickness')
+    if 'midthickness' in fname.lower():
+        pointset.meta.setdefault('AnatomicalStructureSecondary', 'MidThickness')
+        pointset.meta.setdefault('GeometricType', 'Anatomical')
 
     # FreeSurfer incorrectly uses "Sphere" for spherical surfaces
-    if pointset.meta.get("GeometricType") == "Sphere":
-        pointset.meta["GeometricType"] = "Spherical"
+    if pointset.meta.get('GeometricType') == 'Sphere':
+        pointset.meta['GeometricType'] = 'Spherical'
     else:
         # mris_convert --to-scanner removes VolGeom transform from coordinates,
         # but not metadata.
@@ -231,9 +228,9 @@ def normalize_surfs(
         # Following the lead of HCP pipelines, we only adjust the coordinates
         # for anatomical surfaces. To ensure consistent treatment by FreeSurfer,
         # we leave the metadata for spherical surfaces intact.
-        for XYZC in "XYZC":
-            for RAS in "RAS":
-                pointset.meta.pop(f"VolGeom{XYZC}_{RAS}", None)
+        for XYZC in 'XYZC':
+            for RAS in 'RAS':
+                pointset.meta.pop(f'VolGeom{XYZC}_{RAS}', None)
 
     if newpath is None:
         newpath = os.getcwd()
@@ -242,7 +239,7 @@ def normalize_surfs(
     return out_file
 
 
-def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
+def fix_gifti_metadata(in_file: str, newpath: str | None = None) -> str:
     """Fix known incompatible metadata in GIFTI files.
 
     Currently resolves:
@@ -251,13 +248,13 @@ def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
     """
 
     img = nb.GiftiImage.from_filename(in_file)
-    pointset = img.get_arrays_from_intent("NIFTI_INTENT_POINTSET")[0]
+    pointset = img.get_arrays_from_intent('NIFTI_INTENT_POINTSET')[0]
 
     # FreeSurfer incorrectly uses "Sphere" for spherical surfaces
     # This is not fixed as of FreeSurfer 7.4.0
     # https://github.com/freesurfer/freesurfer/pull/1112
-    if pointset.meta.get("GeometricType") == "Sphere":
-        pointset.meta["GeometricType"] = "Spherical"
+    if pointset.meta.get('GeometricType') == 'Sphere':
+        pointset.meta['GeometricType'] = 'Spherical'
 
     if newpath is None:
         newpath = os.getcwd()
@@ -269,20 +266,20 @@ def fix_gifti_metadata(in_file: str, newpath: Optional[str] = None) -> str:
 def make_ribbon(
     white_distvols: list[str],
     pial_distvols: list[str],
-    newpath: Optional[str] = None,
+    newpath: str | None = None,
 ) -> str:
     base_img = nb.load(white_distvols[0])
     header = base_img.header
-    header.set_data_dtype("uint8")
+    header.set_data_dtype('uint8')
 
     ribbons = [
         (np.array(nb.load(white).dataobj) > 0) & (np.array(nb.load(pial).dataobj) < 0)
-        for white, pial in zip(white_distvols, pial_distvols)
+        for white, pial in zip(white_distvols, pial_distvols, strict=True)
     ]
 
     if newpath is None:
         newpath = os.getcwd()
-    out_file = os.path.join(newpath, "ribbon.nii.gz")
+    out_file = os.path.join(newpath, 'ribbon.nii.gz')
 
     ribbon_data = ribbons[0] | ribbons[1]
     ribbon = base_img.__class__(ribbon_data, base_img.affine, header)

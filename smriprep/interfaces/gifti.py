@@ -8,17 +8,17 @@ from nipype.interfaces.base import File, SimpleInterface, TraitedSpec, isdefined
 class MetricMathInputSpec(TraitedSpec):
     subject_id = traits.Str(desc='subject ID')
     hemisphere = traits.Enum(
-        "L",
-        "R",
+        'L',
+        'R',
         mandatory=True,
         desc='hemisphere',
     )
     metric = traits.Str(desc='name of metric to invert')
     metric_file = File(exists=True, mandatory=True, desc='input GIFTI file')
     operation = traits.Enum(
-        "invert",
-        "abs",
-        "bin",
+        'invert',
+        'abs',
+        'bin',
         mandatory=True,
         desc='operation to perform',
     )
@@ -53,20 +53,20 @@ class MetricMath(SimpleInterface):
 
         img = nb.GiftiImage.from_filename(self.inputs.metric_file)
         # wb_command -set-structure
-        img.meta["AnatomicalStructurePrimary"] = {'L': 'CortexLeft', 'R': 'CortexRight'}[hemi]
+        img.meta['AnatomicalStructurePrimary'] = {'L': 'CortexLeft', 'R': 'CortexRight'}[hemi]
         darray = img.darrays[0]
         # wb_command -set-map-names
         meta = darray.meta
-        meta['Name'] = f"{subject}_{hemi}_{metric}"
+        meta['Name'] = f'{subject}_{hemi}_{metric}'
 
         datatype = darray.datatype
-        if self.inputs.operation == "abs":
+        if self.inputs.operation == 'abs':
             # wb_command -metric-math "abs(var)"
             data = abs(darray.data)
-        elif self.inputs.operation == "invert":
+        elif self.inputs.operation == 'invert':
             # wb_command -metric-math "var * -1"
             data = -darray.data
-        elif self.inputs.operation == "bin":
+        elif self.inputs.operation == 'bin':
             # wb_command -metric-math "var > 0"
             data = darray.data > 0
             datatype = 'uint8'
@@ -83,7 +83,7 @@ class MetricMath(SimpleInterface):
         )
         img.darrays[0] = darray
 
-        out_filename = os.path.join(runtime.cwd, f"{subject}.{hemi}.{metric}.native.shape.gii")
+        out_filename = os.path.join(runtime.cwd, f'{subject}.{hemi}.{metric}.native.shape.gii')
         img.to_filename(out_filename)
-        self._results["metric_file"] = out_filename
+        self._results['metric_file'] = out_filename
         return runtime
