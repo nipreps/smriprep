@@ -111,6 +111,8 @@ jobs:
       run: pytest -sv --doctest-modules --cov smriprep --pyargs smriprep
     - uses: codecov/codecov-action@v4
       name: Submit to CodeCov
+      with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   style:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
