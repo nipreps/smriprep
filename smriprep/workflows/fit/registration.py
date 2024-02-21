@@ -185,6 +185,12 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         mem_gb=2,
     )
 
+    fmt_cohort = pe.Node(
+        niu.Function(function=_fmt_cohort, output_names=['template', 'spec']),
+        name='fmt_cohort',
+        run_without_submitting=True
+    )
+
     # fmt:off
     workflow.connect([
         (inputnode, split_desc, [('template', 'template')]),
@@ -202,8 +208,12 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         ]),
         (trunc_mov, registration, [
             ('output_image', 'moving_image')]),
-        (split_desc, outputnode, [
+        (split_desc, fmt_cohort, [
             ('name', 'template'),
+            ('spec', 'spec'),
+        ]),
+        (fmt_cohort, outputnode, [
+            ('template', 'template'),
             ('spec', 'template_spec'),
         ]),
         (registration, outputnode, [
@@ -225,3 +235,10 @@ def _make_outputnode(workflow, out_fields, joinsource):
         workflow.connect([(pout, out, [(f, f) for f in out_fields])])
         return pout
     return pe.Node(niu.IdentityInterface(fields=out_fields), name='outputnode')
+
+
+def _fmt_cohort(template, spec):
+    cohort = spec.pop('cohort', None)
+    if cohort is not None:
+        template = f'{template}:cohort-{cohort}'
+    return template, spec
