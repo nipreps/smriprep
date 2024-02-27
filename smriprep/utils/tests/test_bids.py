@@ -6,7 +6,7 @@ from . import DERIV_SKELETON
 
 def test_collect_derivatives(tmp_path):
     deriv_dir = tmp_path / 'derivatives'
-    generate_bids_skeleton(deriv_dir, DERIV_SKELETON)
+    generate_bids_skeleton(deriv_dir, str(DERIV_SKELETON))
     output_spaces = ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3']
     collected = collect_derivatives(deriv_dir, '01', output_spaces)
     for suffix in ('preproc', 'mask', 'dseg'):
