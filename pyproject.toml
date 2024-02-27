@@ -139,6 +139,8 @@ source = [
 
 [tool.ruff]
 line-length = 99
+
+[tool.ruff.lint]
 extend-select = [
   "F",
   "E",
@@ -163,10 +165,10 @@ extend-select = [
   "Q",
 ]
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "*/test_*.py" = ["S101"]
 
 [tool.ruff.format]
