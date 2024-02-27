@@ -25,9 +25,9 @@ from json import loads
 from pathlib import Path
 
 from bids.layout import BIDSLayout
+from niworkflows.data import load as nwf_load
 
 from ..data import load_resource
-from niworkflows.data import load as nwf_load
 
 
 def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patterns=None):

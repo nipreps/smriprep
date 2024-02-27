@@ -188,7 +188,7 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
     fmt_cohort = pe.Node(
         niu.Function(function=_fmt_cohort, output_names=['template', 'spec']),
         name='fmt_cohort',
-        run_without_submitting=True
+        run_without_submitting=True,
     )
 
     # fmt:off
