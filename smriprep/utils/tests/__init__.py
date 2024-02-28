@@ -1,3 +1,5 @@
-from pathlib import Path
+from niworkflows.data import Loader
 
-DERIV_SKELETON = Path(__file__).parent / ('derivatives.yml')
+load_data = Loader(__package__)
+
+DERIV_SKELETON = load_data('derivatives.yml')
