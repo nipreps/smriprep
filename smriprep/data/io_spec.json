@@ -50,8 +50,8 @@
       "forward": {
         "datatype": "anat",
         "extension": [
-          "h5",
-          "txt"
+          ".h5",
+          ".txt"
         ],
         "from": "T1w",
         "to": null,
@@ -61,8 +61,8 @@
       "reverse": {
         "datatype": "anat",
         "extension": [
-          "h5",
-          "txt"
+          ".h5",
+          ".txt"
         ],
         "from": null,
         "to": "T1w",
