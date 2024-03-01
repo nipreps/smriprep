@@ -21,6 +21,11 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Self-contained utilities to be used within Function nodes."""
+from pathlib import Path
+import typing as ty
+
+if ty.TYPE_CHECKING:
+    from niworkflows.utils.spaces import Reference
 
 
 def apply_lut(in_dseg, lut, newpath=None):
@@ -95,3 +100,25 @@ and proceed to delete the files listed above."""
     if logger:
         logger.warn(f'Removed "IsRunning*" files found under {subj_dir}')
     return subjects_dir
+
+
+def get_template_t1w(template: str, sloppy: bool = False) -> Path:
+    """Query templateflow for the T1w to ensure it is present on the filesystem."""
+    import templateflow.api as tf
+
+    spec = {}
+    _space = template.split(':', 1)
+    if len(_space) > 1:
+        spec['cohort'] = _space[1].replace('cohort-', '')
+    space = _space[0]
+
+    available_res = tf.TF_LAYOUT.get_resolutions(template=space)
+    if sloppy and 2 in available_res:
+        res = 2
+    elif 1 in available_res:
+        res = 1
+    else:
+        res = None
+    spec['resolution'] = res
+
+    return tf.get(space, desc=None, suffix='T1w', **spec)
