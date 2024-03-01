@@ -35,10 +35,13 @@ from niworkflows.interfaces.utility import KeySelect
 from ..interfaces import DerivativesDataSink
 from ..interfaces.templateflow import TemplateFlowSelect
 
+if ty.TYPE_CHECKING:
+    from niworkflows.utils.spaces import SpatialReferences
+
 BIDS_TISSUE_ORDER = ('GM', 'WM', 'CSF')
 
 
-def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name='anat_reports_wf'):
+def init_anat_reports_wf(*, spaces, freesurfer, output_dir, sloppy=False, name='anat_reports_wf'):
     """
     Set up a battery of datasinks to store reports in the right location.
 
@@ -131,7 +134,7 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name='anat_reports_w
     # fmt:on
 
     if spaces._cached is not None and spaces.cached.references:
-        template_iterator_wf = init_template_iterator_wf(spaces=spaces)
+        template_iterator_wf = init_template_iterator_wf(spaces=spaces, sloppy=sloppy)
         t1w_std = pe.Node(
             ApplyTransforms(
                 dimension=3,
@@ -1112,7 +1115,12 @@ def init_anat_second_derivatives_wf(
     return workflow
 
 
-def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
+def init_template_iterator_wf(
+    *,
+    spaces: 'SpatialReferences',
+    sloppy: bool = False,
+    name='template_iterator_wf'
+):
     """Prepare the necessary components to resample an image to a template space
 
     This produces a workflow with an unjoined iterable named "spacesource".
@@ -1160,7 +1168,7 @@ def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
         run_without_submitting=True,
     )
     select_tpl = pe.Node(
-        TemplateFlowSelect(resolution=1), name='select_tpl', run_without_submitting=True
+        TemplateFlowSelect(resolution=2 if sloppy else 1), name='select_tpl', run_without_submitting=True
     )
 
     # fmt:off
