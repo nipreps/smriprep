@@ -25,7 +25,7 @@ dependencies = [
     "matplotlib >= 2.2.0",
     "nibabel >= 4.0.1",
     "nipype >= 1.7.0",
-    "niworkflows @ git+https://github.com/nipreps/niworkflows.git@master",
+    "niworkflows >= 1.10.1",
     "numpy",
     "packaging",
     "pybids >= 0.11.1",
