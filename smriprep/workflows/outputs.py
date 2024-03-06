@@ -1168,7 +1168,7 @@ def init_template_iterator_wf(
         run_without_submitting=True,
     )
     select_tpl = pe.Node(
-        TemplateFlowSelect(resolution=2 if sloppy else 1), name='select_tpl', run_without_submitting=True
+        TemplateFlowSelect(), name='select_tpl', run_without_submitting=True
     )
 
     # fmt:off
@@ -1185,7 +1185,7 @@ def init_template_iterator_wf(
         (spacesource, select_tpl, [
             ('space', 'template'),
             ('cohort', 'cohort'),
-            (('resolution', _no_native), 'resolution'),
+            (('resolution', _no_native, sloppy), 'resolution'),
         ]),
         (spacesource, outputnode, [
             ('space', 'space'),
@@ -1251,10 +1251,6 @@ def _pick_cohort(in_template):
     return [_pick_cohort(v) for v in in_template]
 
 
-def _fmt(in_template):
-    return in_template.replace(':', '_')
-
-
 def _empty_report(in_file=None):
     from pathlib import Path
 
@@ -1276,11 +1272,11 @@ def _is_native(value):
     return value == 'native'
 
 
-def _no_native(value):
+def _no_native(value, sloppy=False):
     try:
         return int(value)
     except (TypeError, ValueError):
-        return 1
+        return 2 if sloppy else 1
 
 
 def _drop_path(in_path):
