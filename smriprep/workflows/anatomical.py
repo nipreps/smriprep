@@ -974,9 +974,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
     templates = []
     found_xfms = {}
     for template in spaces.get_spaces(nonstandard=False, dim=(3,)):
-        from ..utils.misc import get_template_t1w
+        from smriprep.interfaces.templateflow import fetch_template_files
 
-        get_template_t1w(template, sloppy)
+        fetch_template_files(template, specs=None, sloppy=sloppy)
         xfms = precomputed.get('transforms', {}).get(template, {})
         if set(xfms) != {'forward', 'reverse'}:
             templates.append(template)

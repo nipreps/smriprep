@@ -163,7 +163,11 @@ class TemplateDesc(SimpleInterface):
         return runtime
 
 
-def fetch_template_files(template: str, specs: dict | None = None) -> dict:
+def fetch_template_files(
+    template: str,
+    specs: dict | None = None,
+    sloppy: bool = False,
+) -> dict:
     if specs is None:
         specs = {}
 
@@ -178,11 +182,18 @@ def fetch_template_files(template: str, specs: dict | None = None) -> dict:
             }
         )
 
-    if specs['resolution'] and not isinstance(specs['resolution'], list):
+    if res := specs.pop('res', None):
+        if res != 'native':
+            specs['resolution'] = res
+
+    if not specs.get('resolution'):
+        specs['resolution'] = 2 if sloppy else 1
+
+    if specs.get('resolution') and not isinstance(specs['resolution'], list):
         specs['resolution'] = [specs['resolution']]
 
     available_resolutions = tf.TF_LAYOUT.get_resolutions(template=name[0])
-    if specs['resolution'] and not set(specs['resolution']) & set(available_resolutions):
+    if specs.get('resolution') and not set(specs['resolution']) & set(available_resolutions):
         fallback_res = available_resolutions[0] if available_resolutions else None
         LOGGER.warning(
             f"Template {name[0]} does not have resolution(s): {specs['resolution']}."
