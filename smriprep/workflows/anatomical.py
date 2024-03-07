@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Anatomical reference preprocessing workflows."""
+
 import typing as ty
 
 from nipype import logging

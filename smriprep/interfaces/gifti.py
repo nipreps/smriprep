@@ -1,4 +1,5 @@
 """Interfaces for manipulating GIFTI files."""
+
 import os
 
 import nibabel as nb

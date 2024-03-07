@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Interfaces to get templates from TemplateFlow."""
+
 import logging
 
 from nipype.interfaces.base import (
