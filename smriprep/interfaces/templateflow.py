@@ -108,34 +108,9 @@ class TemplateFlowSelect(SimpleInterface):
         if isdefined(self.inputs.cohort):
             specs['cohort'] = self.inputs.cohort
 
-        name = self.inputs.template.strip(':').split(':', 1)
-        if len(name) > 1:
-            specs.update(
-                {
-                    k: v
-                    for modifier in name[1].split(':')
-                    for k, v in [tuple(modifier.split('-'))]
-                    if k not in specs
-                }
-            )
-
-        if specs['resolution'] and not isinstance(specs['resolution'], list):
-            specs['resolution'] = [specs['resolution']]
-
-        available_resolutions = tf.TF_LAYOUT.get_resolutions(template=name[0])
-        if specs['resolution'] and not set(specs['resolution']) & set(available_resolutions):
-            fallback_res = available_resolutions[0] if available_resolutions else None
-            LOGGER.warning(
-                f"Template {name[0]} does not have resolution(s): {specs['resolution']}."
-                f"Falling back to resolution: {fallback_res}."
-            )
-            specs['resolution'] = fallback_res
-
-        self._results['t1w_file'] = tf.get(name[0], desc=None, suffix='T1w', **specs)
-
-        self._results['brain_mask'] = tf.get(
-            name[0], desc='brain', suffix='mask', **specs
-        ) or tf.get(name[0], label='brain', suffix='mask', **specs)
+        files = fetch_template_files(self.inputs.template, specs)
+        self._results['t1w_file'] = files['t1w']
+        self._results['brain_mask'] = files['mask']
         return runtime
 
 
@@ -186,3 +161,49 @@ class TemplateDesc(SimpleInterface):
                 descsplit = desc.split('-')
                 self._results['spec'][descsplit[0]] = descsplit[1]
         return runtime
+
+
+def fetch_template_files(
+    template: str,
+    specs: dict | None = None,
+    sloppy: bool = False,
+) -> dict:
+    if specs is None:
+        specs = {}
+
+    name = template.strip(':').split(':', 1)
+    if len(name) > 1:
+        specs.update(
+            {
+                k: v
+                for modifier in name[1].split(':')
+                for k, v in [tuple(modifier.split('-'))]
+                if k not in specs
+            }
+        )
+
+    if res := specs.pop('res', None):
+        if res != 'native':
+            specs['resolution'] = res
+
+    if not specs.get('resolution'):
+        specs['resolution'] = 2 if sloppy else 1
+
+    if specs.get('resolution') and not isinstance(specs['resolution'], list):
+        specs['resolution'] = [specs['resolution']]
+
+    available_resolutions = tf.TF_LAYOUT.get_resolutions(template=name[0])
+    if specs.get('resolution') and not set(specs['resolution']) & set(available_resolutions):
+        fallback_res = available_resolutions[0] if available_resolutions else None
+        LOGGER.warning(
+            f"Template {name[0]} does not have resolution(s): {specs['resolution']}."
+            f"Falling back to resolution: {fallback_res}."
+        )
+        specs['resolution'] = fallback_res
+
+    files = {}
+    files['t1w'] = tf.get(name[0], desc=None, suffix='T1w', **specs)
+    files['mask'] = tf.get(name[0], desc='brain', suffix='mask', **specs) or tf.get(
+        name[0], label='brain', suffix='mask', **specs
+    )
+    return files
