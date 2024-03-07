@@ -33,7 +33,7 @@ from niworkflows.interfaces.space import SpaceDataSource
 from niworkflows.interfaces.utility import KeySelect
 
 from ..interfaces import DerivativesDataSink
-from ..interfaces.templateflow import TemplateFlowSelect
+from ..interfaces.templateflow import TemplateFlowSelect, fetch_template_files
 
 if ty.TYPE_CHECKING:
     from niworkflows.utils.spaces import SpatialReferences
@@ -1128,8 +1128,6 @@ def init_template_iterator_wf(
     The fields in `outputnode` can be used as if they come from a single template.
     """
     for template in spaces.get_spaces(nonstandard=False, dim=(3,)):
-        from smriprep.interfaces.templateflow import fetch_template_files
-
         fetch_template_files(template, specs=None, sloppy=sloppy)
 
     workflow = pe.Workflow(name=name)
