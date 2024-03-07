@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Nipype's recon-all replacement."""
+
 import os
 
 from looseversion import LooseVersion

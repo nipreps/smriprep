@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Writing outputs."""
+
 import typing as ty
 
 from nipype.interfaces import utility as niu

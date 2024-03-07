@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Spatial normalization workflows."""
+
 from collections import defaultdict
 
 from nipype.interfaces import ants
