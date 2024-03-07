@@ -22,6 +22,7 @@
 #
 """Self-contained utilities to be used within Function nodes."""
 
+
 def apply_lut(in_dseg, lut, newpath=None):
     """Map the input discrete segmentation to a new label set (lookup table, LUT)."""
     import nibabel as nb

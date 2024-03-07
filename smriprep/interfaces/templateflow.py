@@ -203,8 +203,7 @@ def fetch_template_files(
 
     files = {}
     files['t1w'] = tf.get(name[0], desc=None, suffix='T1w', **specs)
-    files['mask'] = (
-        tf.get(name[0], desc='brain', suffix='mask', **specs)
-        or tf.get(name[0], label='brain', suffix='mask', **specs)
+    files['mask'] = tf.get(name[0], desc='brain', suffix='mask', **specs) or tf.get(
+        name[0], label='brain', suffix='mask', **specs
     )
     return files
