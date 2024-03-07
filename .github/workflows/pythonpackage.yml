@@ -119,5 +119,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - run: pipx run ruff smriprep
+    - run: pipx run ruff check smriprep
     - run: pipx run ruff format --diff smriprep
