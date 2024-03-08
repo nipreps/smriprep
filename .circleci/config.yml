@@ -505,7 +505,8 @@ jobs:
           command: |
             mkdir -p /tmp/ds005/test
             find /tmp/ds005/derivatives -name "*" ! -path "*/figures*" -print | sed s+/tmp/ds005/derivatives/++ | sort > /tmp/ds005/test/outputs.out
-            diff /tmp/src/smriprep/.circleci/ds005_outputs.txt /tmp/ds005/test/outputs.out
+            sort /tmp/src/smriprep/.circleci/ds005_outputs.txt > /tmp/ds005/test/expected.out
+            diff /tmp/ds005/test/{expected,outputs}.out
             exit $?
       - store_artifacts:
           path: /tmp/ds005/derivatives
@@ -636,7 +637,8 @@ jobs:
           command: |
             mkdir -p /tmp/ds054/test
             find /tmp/ds054/derivatives -path */figures -prune -o -name "*" -print | sed s+/tmp/ds054/derivatives/++ | sort > /tmp/ds054/test/outputs.out
-            diff /tmp/src/smriprep/.circleci/ds054_outputs.txt /tmp/ds054/test/outputs.out
+            sort /tmp/src/smriprep/.circleci/ds054_outputs.txt > /tmp/ds054/test/expected.out
+            diff /tmp/ds054/test/{expected,outputs}.out
             exit $?
       - run:
           name: Clean working directory
