@@ -1,3 +1,18 @@
+0.14.0 (March 08, 2024)
+=======================
+New feature release in the 0.14.x series.
+
+This release restores correct handling of cohort identifiers in templates.
+A feature release is warranted due to changes in the workflow structure.
+
+* FIX: Fetch templates during workflow construction (#418)
+* FIX: Re-add cohort identifier to template name (#416)
+* FIX: Repair FreeSurfer Dependency in Dockerfile (tcsh) (#404)
+* FIX: Invert result of skull-strip check in auto mode (#402)
+* STY: Adopt ruff for linting and formatting (#397)
+* CHORE: Update ruff, ignore certain rules (#419)
+
+
 0.13.2 (December 08, 2023)
 ==========================
 Bug fix release in the 0.13.x series.
