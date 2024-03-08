@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright (c) 2023 The NiPreps Developers
+# Copyright (c) The NiPreps Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,17 @@
 # SOFTWARE.
 
 # Ubuntu 22.04 LTS - Jammy
-ARG BASE_IMAGE=ubuntu:jammy-20230308
+ARG BASE_IMAGE=ubuntu:jammy-20240125
 
 #
-# sMRIPrep wheel
+# Build wheel
 #
 FROM python:slim AS src
 RUN pip install build
 RUN apt-get update && \
     apt-get install -y --no-install-recommends git
-COPY . /src/smriprep
-RUN python -m build /src/smriprep
+COPY . /src
+RUN python -m build /src
 
 #
 # Download stages
@@ -41,6 +41,8 @@ RUN python -m build /src/smriprep
 
 # Utilities for downloading packages
 FROM ${BASE_IMAGE} as downloader
+# Bump the date to current to refresh curl/certificates/etc
+RUN echo "2023.07.20"
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
                     binutils \
@@ -67,19 +69,30 @@ RUN mkdir /opt/workbench && \
 
 # Micromamba
 FROM downloader as micromamba
+
+# Install a C compiler to build extensions when needed.
+# traits<6.4 wheels are not available for Python 3.11+, but build easily.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 WORKDIR /
 # Bump the date to current to force update micromamba
-RUN echo "2023.04.05"
+RUN echo "2024.03.08"
 RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
 
 ENV MAMBA_ROOT_PREFIX="/opt/conda"
 COPY env.yml /tmp/env.yml
 COPY requirements.txt /tmp/requirements.txt
+WORKDIR /tmp
 RUN micromamba create -y -f /tmp/env.yml && \
     micromamba clean -y -a
 
-ENV PATH="/opt/conda/envs/smriprep/bin:$PATH"
-RUN /opt/conda/envs/smriprep/bin/npm install -g svgo@^3.0 bids-validator@^1.13 && \
+# UV_USE_IO_URING for apparent race-condition (https://github.com/nodejs/node/issues/48444)
+# Check if this is still necessary when updating the base image.
+ENV PATH="/opt/conda/envs/smriprep/bin:$PATH" \
+    UV_USE_IO_URING=0
+RUN npm install -g svgo@^3.2.0 bids-validator@^1.14.0 && \
     rm -r ~/.npm
 
 #
@@ -179,7 +192,7 @@ ENV MKL_NUM_THREADS=1 \
     OMP_NUM_THREADS=1
 
 # Installing SMRIPREP
-COPY --from=src /src/smriprep/dist/*.whl .
+COPY --from=src /src/dist/*.whl .
 RUN pip install --no-cache-dir $( ls *.whl )[telemetry,test]
 
 RUN find $HOME -type d -exec chmod go=u {} + && \
