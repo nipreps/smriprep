@@ -215,10 +215,12 @@ def get_parser():
         '(default: OUTPUT_DIR/freesurfer)',
     )
     g_fs.add_argument(
-        '--fs-reuse-base',
+        '--fs-no-resume',
         action='store_true',
-        dest='fs_reuse_base',
-        help='Reuse freesurfer base template (from longitudinal preprocessing)',
+        dest='fs_no_resume',
+        help="Import precomputed freesurfer without resuming "
+        "(longitudinal or fastsurfer data) "
+        "!expert option (you know what you're doing)!",
     )
     g_fs.add_argument(
         '--cifti-output',
@@ -613,7 +615,7 @@ def build_workflow(opts, retval):
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,
         hires=opts.hires,
-        fs_reuse_base=opts.fs_reuse_base,
+        fs_no_resume=opts.fs_no_resume,
         layout=layout,
         longitudinal=opts.longitudinal,
         low_mem=opts.low_mem,

@@ -64,7 +64,7 @@ def init_surface_recon_wf(
     *,
     omp_nthreads: int,
     hires: bool,
-    fs_reuse_base: bool,
+    fs_no_resume: bool,
     precomputed: dict,
     name='surface_recon_wf',
 ):
@@ -133,7 +133,7 @@ def init_surface_recon_wf(
             wf = init_surface_recon_wf(
                 omp_nthreads=1,
                 hires=True,
-                fs_reuse_base=False,
+                fs_no_resume=False,
                 precomputed={})
 
     Parameters
@@ -142,7 +142,7 @@ def init_surface_recon_wf(
         Maximum number of threads an individual process may use
     hires : bool
         Enable sub-millimeter preprocessing in FreeSurfer
-    fs_reuse_base : bool
+    fs_no_resume : bool
         Adjust pipeline to reuse base template
         of an existing longitudinal freesurfer output
 
@@ -246,7 +246,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         name='sync',
     )
 
-    if not fs_reuse_base:
+    if not fs_no_resume:
         recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
 
         fov_check = pe.Node(niu.Function(function=_check_cw256), name='fov_check')

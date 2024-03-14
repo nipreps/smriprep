@@ -545,10 +545,10 @@ jobs:
           path: /tmp/ds005/derivatives
           destination: fasttrack
       - run:
-          name: Check fs-reuse-base using existing freesufer output
+          name: Check fs-no-resume using existing freesufer output
           no_output_timeout: 5m
           command: |
-            bash /tmp/src/smriprep/.circleci/ds005_run.sh --fs-reuse-base
+            bash /tmp/src/smriprep/.circleci/ds005_run.sh --fs-no-resume
       - run:
           name: Clean working directory
           when: on_fail
@@ -558,10 +558,10 @@ jobs:
                 -exec sh -c 'rm -f {}; touch {}' \;
       - store_artifacts:
           path: /tmp/ds005/work
-          destination: fs_reuse_base
+          destination: fs_no_resume
       - store_artifacts:
           path: /tmp/ds005/derivatives
-          destination: fs_reuse_base
+          destination: fs_no_resume
   ds054:
     <<: *machine_defaults
     environment:
