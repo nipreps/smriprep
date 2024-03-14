@@ -4,14 +4,14 @@ _machine_defaults: &machine_defaults
     TZ: "/usr/share/zoneinfo/America/Los_Angeles"
     SCRATCH: "/scratch"
   machine:
-    image: ubuntu-2204:2023.04.2
+    image: default
     docker_layer_caching: true
   working_directory: /tmp/src/smriprep
   resource_class: large
 
 _python_defaults: &python_defaults
   docker:
-    - image: cimg/python:3.10.9
+    - image: cimg/python:3.12.2
       auth:
         username: $DOCKER_USER
         password: $DOCKER_PAT
@@ -115,8 +115,7 @@ jobs:
           name: Build Docker image
           no_output_timeout: 60m
           command: |
-            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
-            pyenv local $PY3
+            pyenv local 3
             pip install hatch
             # Get version, update files.
             THISVERSION=$( hatch version )
@@ -139,8 +138,7 @@ jobs:
       - run:
           name: Check Docker image
           command: |
-            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
-            pyenv local $PY3
+            pyenv local 3
             # Get version, update files.
             THISVERSION=$( hatch version )
             BUILT_VERSION=$( docker run --rm nipreps/smriprep:latest --version )
@@ -309,8 +307,7 @@ jobs:
       - run:
           name: Test smriprep-wrapper (Python 2)
           command: |
-            export PY2=$( pyenv versions | awk '/^\* 2/ { print $2 }' )
-            pyenv local $PY2
+            pyenv local 2.7
             echo -n "Python version: "
             python --version
             pip install --upgrade "pip<21"
@@ -322,8 +319,7 @@ jobs:
       - run:
           name: Test smriprep-wrapper (Python 3)
           command: |
-            export PY3=$( pyenv versions | awk '/^\* 3/ { print $2 }' )
-            pyenv local $PY3
+            pyenv local 3
             echo -n "Python version: "
             python --version
             pip install --upgrade pip setuptools
@@ -440,10 +436,10 @@ jobs:
       - run: *pull_from_registry
       - restore_cache:
           keys:
-            - ds005-anat-v0-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v0-{{ .Branch }}
-            - ds005-anat-v0-master
-            - ds005-anat-v0-next
+            - ds005-anat-v1-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v1-{{ .Branch }}
+            - ds005-anat-v1-master
+            - ds005-anat-v1-next
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -500,7 +496,7 @@ jobs:
             rm -rf /tmp/ds005/work/reportlets
             rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
       - save_cache:
-          key: ds005-anat-v0-{{ .Branch }}-{{ epoch }}
+          key: ds005-anat-v1-{{ .Branch }}-{{ epoch }}
           paths:
             - /tmp/ds005/work
 
@@ -509,7 +505,8 @@ jobs:
           command: |
             mkdir -p /tmp/ds005/test
             find /tmp/ds005/derivatives -name "*" ! -path "*/figures*" -print | sed s+/tmp/ds005/derivatives/++ | sort > /tmp/ds005/test/outputs.out
-            diff /tmp/src/smriprep/.circleci/ds005_outputs.txt /tmp/ds005/test/outputs.out
+            sort /tmp/src/smriprep/.circleci/ds005_outputs.txt > /tmp/ds005/test/expected.out
+            diff /tmp/ds005/test/{expected,outputs}.out
             exit $?
       - store_artifacts:
           path: /tmp/ds005/derivatives
@@ -658,7 +655,8 @@ jobs:
           command: |
             mkdir -p /tmp/ds054/test
             find /tmp/ds054/derivatives -path */figures -prune -o -name "*" -print | sed s+/tmp/ds054/derivatives/++ | sort > /tmp/ds054/test/outputs.out
-            diff /tmp/src/smriprep/.circleci/ds054_outputs.txt /tmp/ds054/test/outputs.out
+            sort /tmp/src/smriprep/.circleci/ds054_outputs.txt > /tmp/ds054/test/expected.out
+            diff /tmp/ds054/test/{expected,outputs}.out
             exit $?
       - run:
           name: Clean working directory

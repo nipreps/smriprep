@@ -21,10 +21,12 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Utilities to handle BIDS inputs."""
+
 from json import loads
 from pathlib import Path
 
 from bids.layout import BIDSLayout
+from niworkflows.data import load as nwf_load
 
 from ..data import load_resource
 
@@ -39,36 +41,38 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
         if patterns is None:
             patterns = _patterns
 
-    layout = BIDSLayout(derivatives_dir, config=['bids', 'derivatives'], validate=False)
+    deriv_config = nwf_load('nipreps.json')
+    layout = BIDSLayout(derivatives_dir, config=deriv_config, validate=False)
 
     derivs_cache = {}
-    for k, q in spec['baseline'].items():
-        q['subject'] = subject_id
-        item = layout.get(return_type='filename', **q)
+    for key, qry in spec['baseline'].items():
+        qry['subject'] = subject_id
+        item = layout.get(return_type='filename', **qry)
         if not item:
             continue
 
-        derivs_cache['t1w_%s' % k] = item[0] if len(item) == 1 else item
+        derivs_cache[f't1w_{key}'] = item[0] if len(item) == 1 else item
 
     transforms = derivs_cache.setdefault('transforms', {})
-    for space in std_spaces:
-        for k, q in spec['transforms'].items():
-            q = q.copy()
-            q['subject'] = subject_id
-            q['from'] = q['from'] or space
-            q['to'] = q['to'] or space
-            item = layout.get(return_type='filename', **q)
+    for _space in std_spaces:
+        space = _space.replace(':cohort-', '+')
+        for key, qry in spec['transforms'].items():
+            qry = qry.copy()
+            qry['subject'] = subject_id
+            qry['from'] = qry['from'] or space
+            qry['to'] = qry['to'] or space
+            item = layout.get(return_type='filename', **qry)
             if not item:
                 continue
-            transforms.setdefault(space, {})[k] = item[0] if len(item) == 1 else item
+            transforms.setdefault(_space, {})[key] = item[0] if len(item) == 1 else item
 
-    for k, q in spec['surfaces'].items():
-        q['subject'] = subject_id
-        item = layout.get(return_type='filename', **q)
+    for key, qry in spec['surfaces'].items():
+        qry['subject'] = subject_id
+        item = layout.get(return_type='filename', **qry)
         if not item or len(item) != 2:
             continue
 
-        derivs_cache[k] = sorted(item)
+        derivs_cache[key] = sorted(item)
 
     return derivs_cache
 

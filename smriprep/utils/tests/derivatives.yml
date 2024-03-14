@@ -1,0 +1,101 @@
+dataset_description:
+  Name: smriprep-outputs
+  BIDSVersion: 1.9.0
+  DatasetType: derivative
+'01':
+  anat:
+  - suffix: mask
+    desc: brain
+  - suffix: T1w
+    desc: preproc
+  - suffix: dseg
+  - suffix: probseg
+    label: CSF
+  - suffix: probseg
+    label: GM
+  - suffix: probseg
+    label: WM
+  - suffix: xfm
+    from: MNI152NLin2009cAsym
+    to: T1w
+    mode: image
+    extension: .h5
+  - suffix: xfm
+    from: T1w
+    to: MNI152NLin2009cAsym
+    mode: image
+    extension: .h5
+  - suffix: xfm
+    from: T1w
+    to: MNIPediatricAsym+3
+    mode: image
+    extension: .h5
+  - suffix: xfm
+    from: MNIPediatricAsym+3
+    to: T1w
+    mode: image
+    extension: .h5
+  - suffix: white
+    hemi: L
+    extension: .surf.gii
+  - suffix: white
+    hemi: R
+    extension: .surf.gii
+  - suffix: pial
+    hemi: L
+    extension: .surf.gii
+  - suffix: pial
+    hemi: R
+    extension: .surf.gii
+  - suffix: midthickness
+    hemi: L
+    extension: .surf.gii
+  - suffix: midthickness
+    hemi: R
+    extension: .surf.gii
+  - suffix: sphere
+    hemi: L
+    extension: .surf.gii
+  - suffix: sphere
+    hemi: R
+    extension: .surf.gii
+  - suffix: sphere
+    hemi: L
+    desc: reg
+    extension: .surf.gii
+  - suffix: sphere
+    hemi: R
+    desc: reg
+    extension: .surf.gii
+  - suffix: sphere
+    hemi: L
+    space: fsLR
+    desc: reg
+    extension: .surf.gii
+  - suffix: sphere
+    hemi: R
+    space: fsLR
+    desc: reg
+    extension: .surf.gii
+  - suffix: sphere
+    hemi: L
+    space: fsLR
+    desc: msmsulc
+    extension: .surf.gii
+  - suffix: sphere
+    hemi: R
+    space: fsLR
+    desc: msmsulc
+    extension: .surf.gii
+  - suffix: thickness
+    hemi: L
+    extension: .shape.gii
+  - suffix: thickness
+    hemi: R
+    extension: .shape.gii
+  - suffix: sulc
+    hemi: L
+    extension: .shape.gii
+  - suffix: sulc
+    hemi: R
+    extension: .shape.gii

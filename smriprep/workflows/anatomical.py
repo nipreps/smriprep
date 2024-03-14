@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Anatomical reference preprocessing workflows."""
+
 import typing as ty
 
 from nipype import logging
@@ -282,7 +283,7 @@ def init_anat_preproc_wf(
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         fs_no_resume=fs_no_resume,
     )
-    template_iterator_wf = init_template_iterator_wf(spaces=spaces)
+    template_iterator_wf = init_template_iterator_wf(spaces=spaces, sloppy=sloppy)
     ds_std_volumes_wf = init_ds_anat_volumes_wf(
         bids_root=bids_root,
         output_dir=output_dir,
@@ -731,6 +732,7 @@ BIDS dataset."""
         spaces=spaces,
         freesurfer=freesurfer,
         output_dir=output_dir,
+        sloppy=sloppy,
     )
     # fmt:off
     workflow.connect([

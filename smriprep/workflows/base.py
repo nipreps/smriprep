@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """*sMRIPrep* base processing workflows."""
+
 import os
 import sys
 from copy import deepcopy

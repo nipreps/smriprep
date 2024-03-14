@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Writing outputs."""
+
 import typing as ty
 
 from nipype.interfaces import utility as niu
@@ -32,12 +33,15 @@ from niworkflows.interfaces.space import SpaceDataSource
 from niworkflows.interfaces.utility import KeySelect
 
 from ..interfaces import DerivativesDataSink
-from ..interfaces.templateflow import TemplateFlowSelect
+from ..interfaces.templateflow import TemplateFlowSelect, fetch_template_files
+
+if ty.TYPE_CHECKING:
+    from niworkflows.utils.spaces import SpatialReferences
 
 BIDS_TISSUE_ORDER = ('GM', 'WM', 'CSF')
 
 
-def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name='anat_reports_wf'):
+def init_anat_reports_wf(*, spaces, freesurfer, output_dir, sloppy=False, name='anat_reports_wf'):
     """
     Set up a battery of datasinks to store reports in the right location.
 
@@ -130,7 +134,7 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, name='anat_reports_w
     # fmt:on
 
     if spaces._cached is not None and spaces.cached.references:
-        template_iterator_wf = init_template_iterator_wf(spaces=spaces)
+        template_iterator_wf = init_template_iterator_wf(spaces=spaces, sloppy=sloppy)
         t1w_std = pe.Node(
             ApplyTransforms(
                 dimension=3,
@@ -1111,7 +1115,9 @@ def init_anat_second_derivatives_wf(
     return workflow
 
 
-def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
+def init_template_iterator_wf(
+    *, spaces: 'SpatialReferences', sloppy: bool = False, name='template_iterator_wf'
+):
     """Prepare the necessary components to resample an image to a template space
 
     This produces a workflow with an unjoined iterable named "spacesource".
@@ -1121,6 +1127,9 @@ def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
 
     The fields in `outputnode` can be used as if they come from a single template.
     """
+    for template in spaces.get_spaces(nonstandard=False, dim=(3,)):
+        fetch_template_files(template, specs=None, sloppy=sloppy)
+
     workflow = pe.Workflow(name=name)
 
     inputnode = pe.Node(
@@ -1158,9 +1167,7 @@ def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
         name='select_xfm',
         run_without_submitting=True,
     )
-    select_tpl = pe.Node(
-        TemplateFlowSelect(resolution=1), name='select_tpl', run_without_submitting=True
-    )
+    select_tpl = pe.Node(TemplateFlowSelect(), name='select_tpl', run_without_submitting=True)
 
     # fmt:off
     workflow.connect([
@@ -1176,7 +1183,7 @@ def init_template_iterator_wf(*, spaces, name='template_iterator_wf'):
         (spacesource, select_tpl, [
             ('space', 'template'),
             ('cohort', 'cohort'),
-            (('resolution', _no_native), 'resolution'),
+            (('resolution', _no_native, sloppy), 'resolution'),
         ]),
         (spacesource, outputnode, [
             ('space', 'space'),
@@ -1242,10 +1249,6 @@ def _pick_cohort(in_template):
     return [_pick_cohort(v) for v in in_template]
 
 
-def _fmt(in_template):
-    return in_template.replace(':', '_')
-
-
 def _empty_report(in_file=None):
     from pathlib import Path
 
@@ -1267,11 +1270,11 @@ def _is_native(value):
     return value == 'native'
 
 
-def _no_native(value):
+def _no_native(value, sloppy=False):
     try:
         return int(value)
     except (TypeError, ValueError):
-        return 1
+        return 2 if sloppy else 1
 
 
 def _drop_path(in_path):

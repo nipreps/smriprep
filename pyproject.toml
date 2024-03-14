@@ -25,7 +25,7 @@ dependencies = [
     "matplotlib >= 2.2.0",
     "nibabel >= 4.0.1",
     "nipype >= 1.7.0",
-    "niworkflows >= 1.8.0",
+    "niworkflows >= 1.10.1",
     "numpy",
     "packaging",
     "pybids >= 0.11.1",
@@ -138,6 +138,8 @@ source = [
 
 [tool.ruff]
 line-length = 99
+
+[tool.ruff.lint]
 extend-select = [
   "F",
   "E",
@@ -161,11 +163,16 @@ extend-select = [
   "PT",
   "Q",
 ]
+extend-ignore = [
+  "S311",  # We are not using random for cryptographic purposes
+  "ISC001",
+  "S603",
+]
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 inline-quotes = "single"
 
-[tool.ruff.extend-per-file-ignores]
+[tool.ruff.lint.extend-per-file-ignores]
 "*/test_*.py" = ["S101"]
 
 [tool.ruff.format]
