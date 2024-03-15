@@ -186,8 +186,8 @@ def init_anat_preproc_wf(
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
     fs_no_resume : bool
-        Adjust pipeline to reuse base template
-        of an existing longitudinal freesurfer output
+        use precomputed freesurfer without attempting to resume
+        (eg. for longitudinal base or fastsurfer)
         (default: ``False``).
 
     Inputs

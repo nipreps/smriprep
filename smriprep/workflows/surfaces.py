@@ -144,8 +144,8 @@ def init_surface_recon_wf(
     hires : bool
         Enable sub-millimeter preprocessing in FreeSurfer
     fs_no_resume : bool
-        Adjust pipeline to reuse base template
-        of an existing longitudinal freesurfer output
+        use precomputed freesurfer without attempting to resume
+        (eg. for longitudinal base or fastsurfer)
 
     Inputs
     ------
