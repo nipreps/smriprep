@@ -186,8 +186,8 @@ def init_anat_preproc_wf(
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
     fs_no_resume : bool
-        use precomputed freesurfer without attempting to resume
-        (eg. for longitudinal base or fastsurfer)
+        EXPERT: Import pre-computed FreeSurfer reconstruction without resuming.
+        The user is responsible for ensuring that all necessary files are present.
         (default: ``False``).
 
     Inputs
