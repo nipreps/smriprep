@@ -79,6 +79,7 @@ jobs:
 
     env:
       INSTALL_TYPE: ${{ matrix.install }}
+      FSLOUTPUTTYPE: NIFTI_GZ
 
     steps:
     - uses: actions/checkout@v4
