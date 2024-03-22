@@ -248,7 +248,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     )
 
     if not fs_no_resume:
-        # fmt:off
         workflow.connect([
             # Configuration
             (inputnode, recon_config, [('t1w', 't1w_list'),
@@ -282,15 +281,16 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                 ('outputnode.subjects_dir', 'base_directory'),
                 ('outputnode.subject_id', 'container'),
             ]),
-        ])
-        # fmt:on
+        ])  # fmt:skip
     else:
+        # Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
         fs_base_inputs = autorecon1 = pe.Node(nio.FreeSurferSource(), name='fs_base_inputs')
 
-        # fmt:off
         workflow.connect([
-            (inputnode, fs_base_inputs, [('subjects_dir', 'subjects_dir'),
-                                         ('subject_id', 'subject_id')]),
+            (inputnode, fs_base_inputs, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
             # Generate mid-thickness surfaces
             (inputnode, get_surfaces, [
                 ('subjects_dir', 'subjects_dir'),
@@ -300,10 +300,8 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
                 ('subjects_dir', 'base_directory'),
                 ('subject_id', 'container'),
             ]),
-        ])
-        # fmt:on
+        ])  # fmt:skip
 
-    # fmt:off
     workflow.connect([
         (get_surfaces, midthickness, [
             ('white', 'in_file'),
