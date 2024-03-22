@@ -188,7 +188,7 @@ sqlalchemy==2.0.28
     # via pybids
 svgutils==0.3.4
     # via niworkflows
-templateflow==24.0.0
+templateflow==24.2.0
     # via niworkflows
 threadpoolctl==3.3.0
     # via scikit-learn
