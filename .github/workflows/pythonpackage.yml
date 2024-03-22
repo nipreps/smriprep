@@ -35,6 +35,8 @@ jobs:
         run: |
           if [[ -z "$COMMIT_MSG" ]]; then
             COMMIT_MSG=$(git show -s --format=%s)
+          else
+            COMMIT_MSG=$(echo $COMMIT_MSG | head -n 1)
           fi
           echo $COMMIT_MSG
           echo "commit_message=$COMMIT_MSG" >> $GITHUB_OUTPUT
@@ -77,6 +79,7 @@ jobs:
 
     env:
       INSTALL_TYPE: ${{ matrix.install }}
+      FSLOUTPUTTYPE: NIFTI_GZ
 
     steps:
     - uses: actions/checkout@v4
