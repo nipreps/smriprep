@@ -4,7 +4,7 @@ astor==0.8.1
     # via formulaic
 attrs==23.2.0
     # via niworkflows
-bids-validator==1.14.1
+bids-validator==1.14.4
     # via pybids
 certifi==2024.2.2
     # via requests
@@ -26,7 +26,7 @@ etelemetry==0.3.1
     # via nipype
 filelock==3.13.1
     # via nipype
-fonttools==4.49.0
+fonttools==4.50.0
     # via matplotlib
 formulaic==0.5.2
     # via pybids
@@ -109,7 +109,7 @@ numpy==1.26.4
     #   scipy
     #   seaborn
     #   tifffile
-packaging==23.2
+packaging==24.0
     # via
     #   etelemetry
     #   matplotlib
@@ -190,7 +190,7 @@ svgutils==0.3.4
     # via niworkflows
 templateflow==24.2.0
     # via niworkflows
-threadpoolctl==3.3.0
+threadpoolctl==3.4.0
     # via scikit-learn
 tifffile==2024.2.12
     # via scikit-image
