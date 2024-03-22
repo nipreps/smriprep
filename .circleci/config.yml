@@ -541,6 +541,24 @@ jobs:
       - store_artifacts:
           path: /tmp/ds005/derivatives
           destination: fasttrack
+      - run:
+          name: Check fs-no-resume using existing freesufer output
+          no_output_timeout: 5m
+          command: |
+            bash /tmp/src/smriprep/.circleci/ds005_run.sh --fs-no-resume
+      - run:
+          name: Clean working directory
+          when: on_fail
+          command: |
+            rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
+            find /tmp/ds005/work \( -name "*.nii.gz" -or -name "*.nii" -or -name "*.gii" -or -name "*.h5" \) \
+                -exec sh -c 'rm -f {}; touch {}' \;
+      - store_artifacts:
+          path: /tmp/ds005/work
+          destination: fs_no_resume
+      - store_artifacts:
+          path: /tmp/ds005/derivatives
+          destination: fs_no_resume
   ds054:
     <<: *machine_defaults
     environment:

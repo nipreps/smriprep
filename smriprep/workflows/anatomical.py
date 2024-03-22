@@ -112,6 +112,7 @@ def init_anat_preproc_wf(
     cifti_output: ty.Literal['91k', '170k', False] = False,
     name: str = 'anat_preproc_wf',
     skull_strip_fixed_seed: bool = False,
+    fs_no_resume: bool = False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -183,6 +184,10 @@ def init_anat_preproc_wf(
     skull_strip_fixed_seed : :obj:`bool`
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
+        (default: ``False``).
+    fs_no_resume : bool
+        EXPERT: Import pre-computed FreeSurfer reconstruction without resuming.
+        The user is responsible for ensuring that all necessary files are present.
         (default: ``False``).
 
     Inputs
@@ -276,6 +281,7 @@ def init_anat_preproc_wf(
         sloppy=sloppy,
         omp_nthreads=omp_nthreads,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
+        fs_no_resume=fs_no_resume,
     )
     template_iterator_wf = init_template_iterator_wf(spaces=spaces, sloppy=sloppy)
     ds_std_volumes_wf = init_ds_anat_volumes_wf(
@@ -459,6 +465,7 @@ def init_anat_fit_wf(
     sloppy: bool = False,
     name='anat_fit_wf',
     skull_strip_fixed_seed: bool = False,
+    fs_no_resume: bool = False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -1042,6 +1049,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         name='surface_recon_wf',
         omp_nthreads=omp_nthreads,
         hires=hires,
+        fs_no_resume=fs_no_resume,
         precomputed=precomputed,
     )
     if t2w or flair:

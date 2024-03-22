@@ -65,6 +65,7 @@ def init_surface_recon_wf(
     *,
     omp_nthreads: int,
     hires: bool,
+    fs_no_resume: bool,
     precomputed: dict,
     name='surface_recon_wf',
 ):
@@ -130,7 +131,11 @@ def init_surface_recon_wf(
             :simple_form: yes
 
             from smriprep.workflows.surfaces import init_surface_recon_wf
-            wf = init_surface_recon_wf(omp_nthreads=1, hires=True, precomputed={})
+            wf = init_surface_recon_wf(
+                omp_nthreads=1,
+                hires=True,
+                fs_no_resume=False,
+                precomputed={})
 
     Parameters
     ----------
@@ -138,6 +143,9 @@ def init_surface_recon_wf(
         Maximum number of threads an individual process may use
     hires : bool
         Enable sub-millimeter preprocessing in FreeSurfer
+    fs_no_resume : bool
+        use precomputed freesurfer without attempting to resume
+        (eg. for longitudinal base or fastsurfer)
 
     Inputs
     ------
@@ -239,39 +247,62 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         name='sync',
     )
 
+    if not fs_no_resume:
+        workflow.connect([
+            # Configuration
+            (inputnode, recon_config, [('t1w', 't1w_list'),
+                                       ('t2w', 't2w_list'),
+                                       ('flair', 'flair_list')]),
+            # Passing subjects_dir / subject_id enforces serial order
+            (inputnode, autorecon1, [('subjects_dir', 'subjects_dir'),
+                                     ('subject_id', 'subject_id')]),
+            (autorecon1, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
+                                              ('subject_id', 'subject_id')]),
+            (skull_strip_extern, autorecon_resume_wf, [('subjects_dir', 'inputnode.subjects_dir'),
+                                                       ('subject_id', 'inputnode.subject_id')]),
+            # Reconstruction phases
+            (inputnode, autorecon1, [('t1w', 'T1_files')]),
+            (inputnode, fov_check, [('t1w', 'in_files')]),
+            (fov_check, autorecon1, [('out', 'flags')]),
+            (recon_config, autorecon1, [('t2w', 'T2_file'),
+                                        ('flair', 'FLAIR_file'),
+                                        ('hires', 'hires'),
+                                        # First run only (recon-all saves expert options)
+                                        ('mris_inflate', 'mris_inflate')]),
+            (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
+            (recon_config, autorecon_resume_wf, [('use_t2w', 'inputnode.use_T2'),
+                                                 ('use_flair', 'inputnode.use_FLAIR')]),
+            # Generate mid-thickness surfaces
+            (autorecon_resume_wf, get_surfaces, [
+                ('outputnode.subjects_dir', 'subjects_dir'),
+                ('outputnode.subject_id', 'subject_id'),
+            ]),
+            (autorecon_resume_wf, save_midthickness, [
+                ('outputnode.subjects_dir', 'base_directory'),
+                ('outputnode.subject_id', 'container'),
+            ]),
+        ])  # fmt:skip
+    else:
+        # Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
+        fs_base_inputs = autorecon1 = pe.Node(nio.FreeSurferSource(), name='fs_base_inputs')
+
+        workflow.connect([
+            (inputnode, fs_base_inputs, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
+            # Generate mid-thickness surfaces
+            (inputnode, get_surfaces, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
+            (inputnode, save_midthickness, [
+                ('subjects_dir', 'base_directory'),
+                ('subject_id', 'container'),
+            ]),
+        ])  # fmt:skip
+
     workflow.connect([
-        # Configuration
-        (inputnode, recon_config, [('t1w', 't1w_list'),
-                                   ('t2w', 't2w_list'),
-                                   ('flair', 'flair_list')]),
-        # Passing subjects_dir / subject_id enforces serial order
-        (inputnode, autorecon1, [('subjects_dir', 'subjects_dir'),
-                                 ('subject_id', 'subject_id')]),
-        (autorecon1, skull_strip_extern, [('subjects_dir', 'subjects_dir'),
-                                          ('subject_id', 'subject_id')]),
-        (skull_strip_extern, autorecon_resume_wf, [('subjects_dir', 'inputnode.subjects_dir'),
-                                                   ('subject_id', 'inputnode.subject_id')]),
-        # Reconstruction phases
-        (inputnode, autorecon1, [('t1w', 'T1_files')]),
-        (inputnode, fov_check, [('t1w', 'in_files')]),
-        (fov_check, autorecon1, [('out', 'flags')]),
-        (recon_config, autorecon1, [('t2w', 'T2_file'),
-                                    ('flair', 'FLAIR_file'),
-                                    ('hires', 'hires'),
-                                    # First run only (recon-all saves expert options)
-                                    ('mris_inflate', 'mris_inflate')]),
-        (inputnode, skull_strip_extern, [('skullstripped_t1', 'in_brain')]),
-        (recon_config, autorecon_resume_wf, [('use_t2w', 'inputnode.use_T2'),
-                                             ('use_flair', 'inputnode.use_FLAIR')]),
-        # Generate mid-thickness surfaces
-        (autorecon_resume_wf, get_surfaces, [
-            ('outputnode.subjects_dir', 'subjects_dir'),
-            ('outputnode.subject_id', 'subject_id'),
-        ]),
-        (autorecon_resume_wf, save_midthickness, [
-            ('outputnode.subjects_dir', 'base_directory'),
-            ('outputnode.subject_id', 'container'),
-        ]),
         (get_surfaces, midthickness, [
             ('white', 'in_file'),
             ('graymid', 'graymid'),

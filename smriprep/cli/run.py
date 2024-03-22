@@ -215,6 +215,13 @@ def get_parser():
         '(default: OUTPUT_DIR/freesurfer)',
     )
     g_fs.add_argument(
+        '--fs-no-resume',
+        action='store_true',
+        dest='fs_no_resume',
+        help='EXPERT: Import pre-computed FreeSurfer reconstruction without resuming. '
+        'The user is responsible for ensuring that all necessary files are present.',
+    )
+    g_fs.add_argument(
         '--cifti-output',
         nargs='?',
         const='91k',
@@ -616,6 +623,7 @@ def build_workflow(opts, retval):
         freesurfer=opts.run_reconall,
         fs_subjects_dir=opts.fs_subjects_dir,
         hires=opts.hires,
+        fs_no_resume=opts.fs_no_resume,
         layout=layout,
         longitudinal=opts.longitudinal,
         low_mem=opts.low_mem,
