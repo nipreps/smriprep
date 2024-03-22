@@ -1,3 +1,20 @@
+0.15.0 (March 22, 2024)
+=======================
+New feature release in the 0.15.x series.
+
+This release adds the workflow configuration option and CLI option
+to reuse existing FreeSurfer outputs without attempting to resume.
+This should allow for using longitudinal or non-standard pipelines
+(for example, FastSurfer) without additional tooling for each variant.
+
+* FIX: Patch version for smriprep-docker (#424)
+* FIX: Require recent templateflow, select correct aparc dseg.tsv (#420)
+* ENH: Add --fs-no-resume option to reuse existing FreeSurfer outputs without resuming (#393)
+* MNT: set copyright owner in LICENSE file (#426)
+* MNT: Apply Repo-Review suggestions (#422)
+* CI: Small cleanups to GHA (#423)
+
+
 0.14.0 (March 11, 2024)
 =======================
 New feature release in the 0.14.x series.
