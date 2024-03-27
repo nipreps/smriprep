@@ -230,36 +230,39 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, sloppy=False, name='
 
 def init_ds_template_wf(
     *,
-    num_t1w,
-    output_dir,
-    name='ds_template_wf',
+    num_anat: int,
+    output_dir: str,
+    image_type: str = 'T1w',
+    name: str = 'ds_template_wf',
 ):
     """
     Save the subject-specific template
 
     Parameters
     ----------
-    num_t1w : :obj:`int`
-        Number of T1w images
+    num_anat : :obj:`int`
+        Number of anatomical images
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    image_type
+        MR image type (T1w, T2w, etc.)
     name : :obj:`str`
         Workflow name (default: ds_template_wf)
 
     Inputs
     ------
     source_files
-        List of input T1w images
-    t1w_ref_xfms
-        List of affine transforms to realign input T1w images
-    t1w_preproc
-        The T1w reference map, which is calculated as the average of bias-corrected
-        and preprocessed T1w images, defining the anatomical space.
+        List of input anatomical images
+    anat_ref_xfms
+        List of affine transforms to realign input anatomical images
+    anat_preproc
+        The anatomical reference map, which is calculated as the average of bias-corrected
+        and preprocessed anatomical images, defining the anatomical space.
 
     Outputs
     -------
-    t1w_preproc
-        The location in the output directory of the preprocessed T1w image
+    anat_preproc
+        The location in the output directory of the preprocessed anatomical image
 
     """
     workflow = Workflow(name=name)
@@ -268,49 +271,49 @@ def init_ds_template_wf(
         niu.IdentityInterface(
             fields=[
                 'source_files',
-                't1w_ref_xfms',
-                't1w_preproc',
+                'anat_ref_xfms',
+                'anat_preproc',
             ]
         ),
         name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=['t1w_preproc']), name='outputnode')
+    outputnode = pe.Node(niu.IdentityInterface(fields=['anat_preproc']), name='outputnode')
 
-    ds_t1w_preproc = pe.Node(
+    ds_anat_preproc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True),
-        name='ds_t1w_preproc',
+        name='ds_anat_preproc',
         run_without_submitting=True,
     )
-    ds_t1w_preproc.inputs.SkullStripped = False
+    ds_anat_preproc.inputs.SkullStripped = False
 
     # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w_preproc, [('t1w_preproc', 'in_file'),
+        (inputnode, ds_anat_preproc, [('anat_preproc', 'in_file'),
                                      ('source_files', 'source_file')]),
-        (ds_t1w_preproc, outputnode, [('out_file', 't1w_preproc')]),
+        (ds_anat_preproc, outputnode, [('out_file', 'anat_preproc')]),
     ])
     # fmt:on
 
-    if num_t1w > 1:
+    if num_anat > 1:
         # Please note the dictionary unpacking to provide the from argument.
         # It is necessary because from is a protected keyword (not allowed as argument name).
-        ds_t1w_ref_xfms = pe.MapNode(
+        ds_anat_ref_xfms = pe.MapNode(
             DerivativesDataSink(
                 base_directory=output_dir,
-                to='T1w',
+                to=image_type,
                 mode='image',
                 suffix='xfm',
                 extension='txt',
                 **{'from': 'orig'},
             ),
             iterfield=['source_file', 'in_file'],
-            name='ds_t1w_ref_xfms',
+            name='ds_anat_ref_xfms',
             run_without_submitting=True,
         )
         # fmt:off
         workflow.connect([
-            (inputnode, ds_t1w_ref_xfms, [('source_files', 'source_file'),
-                                          ('t1w_ref_xfms', 'in_file')]),
+            (inputnode, ds_anat_ref_xfms, [('source_files', 'source_file'),
+                                           ('anat_ref_xfms', 'in_file')]),
         ])
         # fmt:on
 
