@@ -59,7 +59,7 @@ def init_smriprep_wf(
     skull_strip_fixed_seed,
     skull_strip_template,
     spaces,
-    subject_list,
+    subworkflows_list,
     work_dir,
     bids_filters,
     cifti_output,
@@ -102,7 +102,7 @@ def init_smriprep_wf(
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=spaces,
-                subject_list=['smripreptest'],
+                subworkflows_list=[('smripreptest', None)],
                 work_dir='.',
                 bids_filters=None,
                 cifti_output=None,
@@ -148,8 +148,8 @@ def init_smriprep_wf(
         Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
-    subject_list : :obj:`list`
-        List of subject labels
+    subworkflows_list : :obj:`list` or :obj:`tuple`
+        List of subject-session label pairs
     work_dir : :obj:`str`
         Directory in which to store workflow execution state and
         temporary files
@@ -174,7 +174,13 @@ def init_smriprep_wf(
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
-    for subject_id in subject_list:
+    for subject_id, session_id in subworkflows_list:
+        name = (
+            f"single_subject_{subject_id}_{session_id}_wf"
+            if session_id
+            else f"single_subject_{subject_id}_wf"
+        )
+
         single_subject_wf = init_single_subject_wf(
             sloppy=sloppy,
             debug=debug,
@@ -186,7 +192,7 @@ def init_smriprep_wf(
             longitudinal=longitudinal,
             low_mem=low_mem,
             msm_sulc=msm_sulc,
-            name='single_subject_%s_wf' % subject_id,
+            name=name,
             omp_nthreads=omp_nthreads,
             output_dir=output_dir,
             skull_strip_fixed_seed=skull_strip_fixed_seed,
@@ -194,6 +200,7 @@ def init_smriprep_wf(
             skull_strip_template=skull_strip_template,
             spaces=spaces,
             subject_id=subject_id,
+            session_id=session_id,
             bids_filters=bids_filters,
             cifti_output=cifti_output,
         )
@@ -231,6 +238,7 @@ def init_single_subject_wf(
     skull_strip_template,
     spaces,
     subject_id,
+    session_id,
     bids_filters,
     cifti_output,
 ):
@@ -241,8 +249,8 @@ def init_single_subject_wf(
     It collects and reports information about the subject, and prepares
     sub-workflows to perform anatomical and functional preprocessing.
 
-    Anatomical preprocessing is performed in a single workflow, regardless of
-    the number of sessions.
+    Anatomical preprocessing is typically performed in a single workflow,
+    regardless of the number of sessions, unless the session_id parameter is provided.
     Functional preprocessing is performed using a separate workflow for each
     individual BOLD series.
 
@@ -276,6 +284,7 @@ def init_single_subject_wf(
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=spaces,
                 subject_id='test',
+                session_id=None,
                 bids_filters=None,
                 cifti_output=None,
             )
@@ -320,7 +329,9 @@ def init_single_subject_wf(
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
     subject_id : :obj:`str`
-        List of subject labels
+        Subject label
+    session_id : :obj:`str` or None
+        Session label
     bids_filters : dict
         Provides finer specification of the pipeline input files through pybids entities filters.
         A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
@@ -375,7 +386,9 @@ to workflows in *sMRIPrep*'s documentation]\
     std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
     std_spaces.append('fsnative')
     for deriv_dir in derivatives:
-        deriv_cache.update(collect_derivatives(deriv_dir, subject_id, std_spaces))
+        deriv_cache.update(
+            collect_derivatives(deriv_dir, subject_id, std_spaces, session_id=session_id)
+        )
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']), name='inputnode')
 
@@ -397,10 +410,15 @@ to workflows in *sMRIPrep*'s documentation]\
         run_without_submitting=True,
     )
 
+    if session_id is not None:
+        dismiss_entities = None
+    else:
+        dismiss_entities = ('session',)
+
     ds_report_summary = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
-            dismiss_entities=('session',),
+            dismiss_entities=dismiss_entities,
             desc='summary',
             datatype='figures',
         ),
@@ -411,7 +429,7 @@ to workflows in *sMRIPrep*'s documentation]\
     ds_report_about = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
-            dismiss_entities=('session',),
+            dismiss_entities=dismiss_entities,
             desc='about',
             datatype='figures',
         ),
