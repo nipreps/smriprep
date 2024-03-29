@@ -31,7 +31,14 @@ from niworkflows.data import load as nwf_load
 import smriprep
 
 
-def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patterns=None):
+def collect_derivatives(
+    derivatives_dir,
+    subject_id,
+    std_spaces,
+    spec=None,
+    patterns=None,
+    session_id=None,
+):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:
         _spec, _patterns = tuple(loads(smriprep.load_data('io_spec.json').read_text()).values())
@@ -65,6 +72,9 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
         for key, qry in spec['transforms'].items():
             qry = qry.copy()
             qry['subject'] = subject_id
+            if session_id:
+                qry['session'] = session_id
+
             qry['from'] = qry['from'] or space
             qry['to'] = qry['to'] or space
             item = layout.get(return_type='filename', **qry)
@@ -74,6 +84,9 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
 
     for key, qry in spec['surfaces'].items():
         qry['subject'] = subject_id
+        if session_id:
+            qry['session'] = session_id
+
         item = layout.get(return_type='filename', **qry)
         if not item or len(item) != 2:
             continue
