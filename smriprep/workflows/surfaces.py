@@ -863,8 +863,8 @@ def init_gifti_surfaces_wf(
     ``lh/rh.inflated``, and ``lh/rh.white``.
 
     Vertex coordinates are :py:class:`transformed
-    <smriprep.interfaces.NormalizeSurf>` to align with native T1w space
-    when ``fsnative2t1w_xfm`` is provided.
+    <smriprep.interfaces.NormalizeSurf>` to align with native anatomical space
+    when ``fsnative2anat_xfm`` is provided.
 
     Workflow Graph
         .. workflow::
@@ -880,7 +880,7 @@ def init_gifti_surfaces_wf(
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
+    fsnative2anat_xfm
         LTA formatted affine transform file
 
     Outputs
@@ -896,7 +896,7 @@ def init_gifti_surfaces_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(['subjects_dir', 'subject_id', 'fsnative2t1w_xfm']),
+        niu.IdentityInterface(['subjects_dir', 'subject_id', 'fsnative2anat_xfm']),
         name='inputnode',
     )
     outputnode = pe.Node(niu.IdentityInterface(['surfaces', *surfaces]), name='outputnode')
@@ -931,7 +931,7 @@ def init_gifti_surfaces_wf(
             ('subject_id', 'subject_id'),
         ]),
         (inputnode, fix_surfs, [
-            ('fsnative2t1w_xfm', 'transform_file'),
+            ('fsnative2anat_xfm', 'transform_file'),
         ]),
         (get_surfaces, surface_list, [
             (surf, f'in{i}') for i, surf in enumerate(surfaces, start=1)
@@ -973,8 +973,6 @@ def init_gifti_morphometrics_wf(
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
-        LTA formatted affine transform file (inverse)
 
     Outputs
     -------
