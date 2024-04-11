@@ -423,7 +423,7 @@ def init_ds_dseg_wf(*, output_dir: str, name: str = 'ds_dseg_wf'):
     )
     outputnode = pe.Node(niu.IdentityInterface(fields=['anat_dseg']), name='outputnode')
 
-    ds_t1w_dseg = pe.Node(
+    ds_anat_dseg = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             suffix='dseg',
@@ -436,9 +436,9 @@ def init_ds_dseg_wf(*, output_dir: str, name: str = 'ds_dseg_wf'):
 
     # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w_dseg, [('anat_dseg', 'in_file'),
+        (inputnode, ds_anat_dseg, [('anat_dseg', 'in_file'),
                                   ('source_files', 'source_file')]),
-        (ds_t1w_dseg, outputnode, [('out_file', 'anat_dseg')]),
+        (ds_anat_dseg, outputnode, [('out_file', 'anat_dseg')]),
     ])
     # fmt:on
 
@@ -484,7 +484,7 @@ def init_ds_tpms_wf(
     )
     outputnode = pe.Node(niu.IdentityInterface(fields=['anat_tpms']), name='outputnode')
 
-    ds_t1w_tpms = pe.Node(
+    ds_anat_tpms = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             suffix='probseg',
@@ -494,13 +494,13 @@ def init_ds_tpms_wf(
         name='ds_anat_tpms',
         run_without_submitting=True,
     )
-    ds_t1w_tpms.inputs.label = tpm_labels
+    ds_anat_tpms.inputs.label = tpm_labels
 
     # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w_tpms, [('anat_tpms', 'in_file'),
+        (inputnode, ds_anat_tpms, [('anat_tpms', 'in_file'),
                                   ('source_files', 'source_file')]),
-        (ds_t1w_tpms, outputnode, [('out_file', 'anat_tpms')]),
+        (ds_anat_tpms, outputnode, [('out_file', 'anat_tpms')]),
     ])
     # fmt:on
 
@@ -596,10 +596,12 @@ def init_ds_template_registration_wf(
 def init_ds_fs_registration_wf(
     *,
     output_dir: str,
+    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
     name: str = 'ds_fs_registration_wf',
 ):
     """
-    Save rigid registration between subject anatomical template and FreeSurfer T1.mgz
+    Save rigid registration between subject anatomical template and either
+    FreeSurfer T1.mgz or T2.mgz
 
     Parameters
     ----------
@@ -611,17 +613,17 @@ def init_ds_fs_registration_wf(
     Inputs
     ------
     source_files
-        List of input T1w images
-    fsnative2t1w_xfm
+        List of input anatomical images
+    fsnative2anat_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed
-        subject space to T1w
+        subject space to T1/T2
 
     Outputs
     -------
-    t1w2fsnative_xfm
-        LTA-style affine matrix translating from T1w to
+    anat2fsnative_xfm
+        LTA-style affine matrix translating from T1/T2 to
         FreeSurfer-conformed subject space
-    fsnative2t1w_xfm
+    fsnative2anat_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed
         subject space to T1w
 
@@ -629,11 +631,11 @@ def init_ds_fs_registration_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=['source_files', 'fsnative2t1w_xfm']),
+        niu.IdentityInterface(fields=['source_files', 'fsnative2anat_xfm']),
         name='inputnode',
     )
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=['fsnative2t1w_xfm', 't1w2fsnative_xfm']),
+        niu.IdentityInterface(fields=['fsnative2anat_xfm', 'anat2fsnative_xfm']),
         name='outputnode',
     )
 
@@ -641,40 +643,40 @@ def init_ds_fs_registration_wf(
 
     # FS native space transforms
     lta2itk = pe.Node(ConcatenateXFMs(inverse=True), name='lta2itk', run_without_submitting=True)
-    ds_t1w_fsnative = pe.Node(
+    ds_anat_fsnative = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             mode='image',
             to='fsnative',
             suffix='xfm',
             extension='txt',
-            **{'from': 'T1w'},
+            **{'from': image_type},
         ),
-        name='ds_t1w_fsnative',
+        name='ds_anat_fsnative',
         run_without_submitting=True,
     )
-    ds_fsnative_t1w = pe.Node(
+    ds_fsnative_anat = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             mode='image',
-            to='T1w',
+            to=image_type,
             suffix='xfm',
             extension='txt',
             **{'from': 'fsnative'},
         ),
-        name='ds_fsnative_t1w',
+        name='ds_fsnative_anat',
         run_without_submitting=True,
     )
 
     # fmt:off
     workflow.connect([
-        (inputnode, lta2itk, [('fsnative2t1w_xfm', 'in_xfms')]),
-        (inputnode, ds_t1w_fsnative, [('source_files', 'source_file')]),
-        (lta2itk, ds_t1w_fsnative, [('out_inv', 'in_file')]),
-        (inputnode, ds_fsnative_t1w, [('source_files', 'source_file')]),
-        (lta2itk, ds_fsnative_t1w, [('out_xfm', 'in_file')]),
-        (ds_fsnative_t1w, outputnode, [('out_file', 'fsnative2t1w_xfm')]),
-        (ds_t1w_fsnative, outputnode, [('out_file', 't1w2fsnative_xfm')]),
+        (inputnode, lta2itk, [('fsnative2anat_xfm', 'in_xfms')]),
+        (inputnode, ds_anat_fsnative, [('source_files', 'source_file')]),
+        (lta2itk, ds_anat_fsnative, [('out_inv', 'in_file')]),
+        (inputnode, ds_fsnative_anat, [('source_files', 'source_file')]),
+        (lta2itk, ds_fsnative_anat, [('out_xfm', 'in_file')]),
+        (ds_fsnative_anat, outputnode, [('out_file', 'fsnative2anat_xfm')]),
+        (ds_anat_fsnative, outputnode, [('out_file', 'anat2fsnative_xfm')]),
     ])
     # fmt:on
     return workflow
@@ -704,7 +706,7 @@ def init_ds_surfaces_wf(
     Inputs
     ------
     source_files
-        List of input T1w images
+        List of input anatomical images
     ``<surface>``
         Left and right GIFTIs for each surface passed to ``surfaces``
 
