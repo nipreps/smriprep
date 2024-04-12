@@ -34,7 +34,7 @@ greenlet==3.0.3
     # via sqlalchemy
 h5py==3.10.0
     # via nitransforms
-idna==3.6
+idna==3.7
     # via requests
 imageio==2.34.0
     # via scikit-image
