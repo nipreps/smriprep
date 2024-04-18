@@ -355,7 +355,7 @@ def init_anat_preproc_wf(
                 ('outputnode.t1w_preproc', 'inputnode.reference'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (anat_fit_wf, ds_surfaces_wf, [
                 ('outputnode.t1w_valid_list', 'inputnode.source_files'),
@@ -765,7 +765,7 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
             num_files=num_t1w,
-            contrast='T1w',
+            image_type='T1w',
             name='anat_template_wf',
         )
         ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_t1w=num_t1w)
@@ -1088,10 +1088,10 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
                 ('source_files', 'inputnode.source_files'),
             ]),
             (surface_recon_wf, ds_fs_registration_wf, [
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (ds_fs_registration_wf, outputnode, [
-                ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+                ('outputnode.fsnative2anat_xfm', 'fsnative2t1w_xfm'),
             ]),
         ])
         # fmt:on
@@ -1114,7 +1114,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, refinement_wf, [
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (t1w_buffer, refinement_wf, [
                 ('t1w_preproc', 'inputnode.reference_image'),
@@ -1135,7 +1135,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
             num_files=len(t2w),
-            contrast='T2w',
+            image_type='T2w',
             name='t2w_template_wf',
         )
         bbreg = pe.Node(
@@ -1224,7 +1224,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, gifti_surfaces_wf, [
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (gifti_surfaces_wf, surfaces_buffer, [
                 (f'outputnode.{surf}', surf) for surf in surfs
@@ -1375,7 +1375,7 @@ def init_anat_template_wf(
     longitudinal: bool,
     omp_nthreads: int,
     num_files: int,
-    contrast: str,
+    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
     name: str = 'anat_template_wf',
 ):
     """
@@ -1400,8 +1400,8 @@ def init_anat_template_wf(
         Maximum number of threads an individual process may use
     num_files : :obj:`int`
         Number of images
-    contrast : :obj:`str`
-        Name of contrast, for reporting purposes, e.g., T1w, T2w, PDw
+    image_type : :obj:`str`
+       MR image type (T1w, T2w, etc.)
     name : :obj:`str`, optional
         Workflow name (default: anat_template_wf)
 
@@ -1427,8 +1427,8 @@ def init_anat_template_wf(
     if num_files > 1:
         fs_ver = fs.Info().looseversion() or '(version unknown)'
         workflow.__desc__ = f"""\
-An anatomical {contrast}-reference map was computed after registration of
-{num_files} {contrast} images (after INU-correction) using
+An anatomical {image_type}-reference map was computed after registration of
+{num_files} {image} images (after INU-correction) using
 `mri_robust_template` [FreeSurfer {fs_ver}, @fs_template].
 """
 
