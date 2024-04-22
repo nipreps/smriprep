@@ -1031,13 +1031,11 @@ def init_ds_anat_volumes_wf(
     return workflow
 
 
-def init_anat_second_derivatives_wf(
+def init_ds_fs_segs_wf(
     *,
     bids_root: str,
     output_dir: str,
-    cifti_output: ty.Literal['91k', '170k', False],
-    name='anat_second_derivatives_wf',
-    tpm_labels=BIDS_TISSUE_ORDER,
+    name='ds_fs_segs_wf',
 ):
     """
     Set up a battery of datasinks to store derivatives in the right location.
@@ -1049,41 +1047,18 @@ def init_anat_second_derivatives_wf(
     output_dir : :obj:`str`
         Directory in which to save derivatives
     name : :obj:`str`
-        Workflow name (default: anat_derivatives_wf)
-    tpm_labels : :obj:`tuple`
-        Tissue probability maps in order
+        Workflow name (default: ds_anat_segs_wf)
 
     Inputs
     ------
+    anat_fs_aparc
+        FreeSurfer's aparc+aseg segmentation, in native anatomical space
+    anat_fs_aseg
+        FreeSurfer's aseg segmentation, in native anatomical space
+    source_files
+        List of input anatomical images
     template
         Template space and specifications
-    source_files
-        List of input T1w images
-    t1w_preproc
-        The T1w reference map, which is calculated as the average of bias-corrected
-        and preprocessed T1w images, defining the anatomical space.
-    t1w_mask
-        Mask of the ``t1w_preproc``
-    t1w_dseg
-        Segmentation in T1w space
-    t1w_tpms
-        Tissue probability maps in T1w space
-    anat2std_xfm
-        Nonlinear spatial transform to resample imaging data given in anatomical space
-        into standard space.
-    surfaces
-        GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
-    morphometrics
-        GIFTIs of cortical thickness, curvature, and sulcal depth
-    t1w_fs_aseg
-        FreeSurfer's aseg segmentation, in native T1w space
-    t1w_fs_aparc
-        FreeSurfer's aparc+aseg segmentation, in native T1w space
-    cifti_morph
-        Morphometric CIFTI-2 dscalar files
-    cifti_metadata
-        JSON files containing metadata dictionaries
-
     """
     workflow = Workflow(name=name)
 
@@ -1092,8 +1067,8 @@ def init_anat_second_derivatives_wf(
             fields=[
                 'template',
                 'source_files',
-                't1w_fs_aseg',
-                't1w_fs_aparc',
+                'anat_fs_aseg',
+                'anat_fs_aparc',
             ]
         ),
         name='inputnode',
@@ -1103,27 +1078,25 @@ def init_anat_second_derivatives_wf(
     raw_sources.inputs.bids_root = bids_root
 
     # Parcellations
-    ds_t1w_fsaseg = pe.Node(
+    ds_anat_fsaseg = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg', compress=True),
-        name='ds_t1w_fsaseg',
+        name='ds_anat_fsaseg',
         run_without_submitting=True,
     )
-    ds_t1w_fsparc = pe.Node(
+    ds_anat_fsparc = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir, desc='aparcaseg', suffix='dseg', compress=True
         ),
-        name='ds_t1w_fsparc',
+        name='ds_anat_fsparc',
         run_without_submitting=True,
     )
 
-    # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file'),
-                                    ('source_files', 'source_file')]),
-        (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),
-                                    ('source_files', 'source_file')]),
-    ])
-    # fmt:on
+        (inputnode, ds_anat_fsaseg, [('anat_fs_aseg', 'in_file'),
+                                     ('source_files', 'source_file')]),
+        (inputnode, ds_anat_fsparc, [('anat_fs_aparc', 'in_file'),
+                                     ('source_files', 'source_file')]),
+    ])  # fmt:skip
 
     return workflow
 
