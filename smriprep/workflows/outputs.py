@@ -1057,15 +1057,12 @@ def init_ds_fs_segs_wf(
         FreeSurfer's aseg segmentation, in native anatomical space
     source_files
         List of input anatomical images
-    template
-        Template space and specifications
     """
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                'template',
                 'source_files',
                 'anat_fs_aseg',
                 'anat_fs_aparc',
