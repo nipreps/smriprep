@@ -61,10 +61,10 @@ from ..utils.misc import fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
 from .outputs import (
     init_anat_reports_wf,
-    init_anat_second_derivatives_wf,
     init_ds_anat_volumes_wf,
     init_ds_dseg_wf,
     init_ds_fs_registration_wf,
+    init_ds_fs_segs_wf,
     init_ds_grayord_metrics_wf,
     init_ds_mask_wf,
     init_ds_surface_metrics_wf,
@@ -335,10 +335,9 @@ def init_anat_preproc_wf(
     ])  # fmt:skip
 
     if freesurfer:
-        anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+        ds_fs_segs_wf = init_ds_fs_segs_wf(
             bids_root=bids_root,
             output_dir=output_dir,
-            cifti_output=cifti_output,
         )
         surface_derivatives_wf = init_surface_derivatives_wf(
             cifti_output=cifti_output,
@@ -369,12 +368,12 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, ds_curv_wf, [
                 ('outputnode.curv', 'inputnode.curv'),
             ]),
-            (anat_fit_wf, anat_second_derivatives_wf, [
+            (anat_fit_wf, ds_fs_segs_wf, [
                 ('outputnode.t1w_valid_list', 'inputnode.source_files'),
             ]),
-            (surface_derivatives_wf, anat_second_derivatives_wf, [
-                ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-                ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
+            (surface_derivatives_wf, ds_fs_segs_wf, [
+                ('outputnode.out_aseg', 'inputnode.anat_fs_aseg'),
+                ('outputnode.out_aparc', 'inputnode.anat_fs_aparc'),
             ]),
             (surface_derivatives_wf, outputnode, [
                 ('outputnode.out_aseg', 't1w_aseg'),
