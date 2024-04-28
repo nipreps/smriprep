@@ -909,11 +909,11 @@ def init_ds_anat_volumes_wf(
             fields=[
                 # Original T1w image
                 'source_files',
-                # T1w-space images
-                't1w_preproc',
-                't1w_mask',
-                't1w_dseg',
-                't1w_tpms',
+                # anat-space images
+                'anat_preproc',
+                'anat_mask',
+                'anat_dseg',
+                'anat_tpms',
                 # Template
                 'ref_file',
                 'anat2std_xfm',
@@ -932,7 +932,7 @@ def init_ds_anat_volumes_wf(
     gen_ref = pe.Node(GenerateSamplingReference(), name='gen_ref', mem_gb=0.01)
 
     # Mask T1w preproc images
-    mask_t1w = pe.Node(ApplyMask(), name='mask_t1w')
+    mask_anat = pe.Node(ApplyMask(), name='mask_anat')
 
     # Resample T1w-space inputs
     anat2std_t1w = pe.Node(
@@ -993,15 +993,15 @@ def init_ds_anat_volumes_wf(
             ('ref_file', 'fixed_image'),
             (('resolution', _is_native), 'keep_native'),
         ]),
-        (inputnode, mask_t1w, [
-            ('t1w_preproc', 'in_file'),
-            ('t1w_mask', 'in_mask'),
+        (inputnode, mask_anat, [
+            ('anat_preproc', 'in_file'),
+            ('anat_mask', 'in_mask'),
         ]),
-        (mask_t1w, anat2std_t1w, [('out_file', 'input_image')]),
-        (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
-        (inputnode, anat2std_dseg, [('t1w_dseg', 'input_image')]),
-        (inputnode, anat2std_tpms, [('t1w_tpms', 'input_image')]),
-        (inputnode, gen_ref, [('t1w_preproc', 'moving_image')]),
+        (mask_anat, anat2std_t1w, [('out_file', 'input_image')]),
+        (inputnode, anat2std_mask, [('anat_mask', 'input_image')]),
+        (inputnode, anat2std_dseg, [('anat_dseg', 'input_image')]),
+        (inputnode, anat2std_tpms, [('anat_tpms', 'input_image')]),
+        (inputnode, gen_ref, [('anat_preproc', 'moving_image')]),
         (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
         (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
         (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
