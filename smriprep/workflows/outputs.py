@@ -684,7 +684,6 @@ def init_ds_fs_registration_wf(
 
 def init_ds_surfaces_wf(
     *,
-    bids_root: str,
     output_dir: str,
     surfaces: list[str],
     name='ds_surfaces_wf',
@@ -744,6 +743,8 @@ def init_ds_surfaces_wf(
                 ds_surf.inputs.desc = 'reg'
                 if surf == 'sphere_reg_fsLR':
                     ds_surf.inputs.space = 'fsLR'
+                elif surf == 'sphere_reg_dhcpAsym':
+                    ds_surf.inputs.space = 'dhcpAsym'
 
         # fmt:off
         workflow.connect([
