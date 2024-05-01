@@ -324,7 +324,8 @@ def init_ds_mask_wf(
     *,
     bids_root: str,
     output_dir: str,
-    mask_type: str,
+    mask_type: ty.Literal['brain', 'roi'],
+    extra_entities: dict | None = None,
     name='ds_mask_wf',
 ):
     """
@@ -336,6 +337,8 @@ def init_ds_mask_wf(
         Root path of BIDS dataset
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    extra_entities : :obj:`dict` or None
+        Additional entities to add to filename
     name : :obj:`str`
         Workflow name (default: ds_mask_wf)
 
@@ -363,12 +366,15 @@ def init_ds_mask_wf(
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
+    extra_entities = extra_entities or {}
+
     ds_mask = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             desc=mask_type,
             suffix='mask',
             compress=True,
+            **extra_entities,
         ),
         name='ds_anat_mask',
         run_without_submitting=True,
@@ -391,7 +397,12 @@ def init_ds_mask_wf(
     return workflow
 
 
-def init_ds_dseg_wf(*, output_dir: str, name: str = 'ds_dseg_wf'):
+def init_ds_dseg_wf(
+    *,
+    output_dir: str,
+    extra_entities: dict | None = None,
+    name: str = 'ds_dseg_wf',
+):
     """
     Save discrete segmentations
 
@@ -399,6 +410,8 @@ def init_ds_dseg_wf(*, output_dir: str, name: str = 'ds_dseg_wf'):
     ----------
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    extra_entities : :obj:`dict` or None
+        Additional entities to add to filename
     name : :obj:`str`
         Workflow name (default: ds_dseg_wf)
 
@@ -423,12 +436,15 @@ def init_ds_dseg_wf(*, output_dir: str, name: str = 'ds_dseg_wf'):
     )
     outputnode = pe.Node(niu.IdentityInterface(fields=['anat_dseg']), name='outputnode')
 
+    extra_entities = extra_entities or {}
+
     ds_anat_dseg = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             suffix='dseg',
             compress=True,
             dismiss_entities=['desc'],
+            **extra_entities,
         ),
         name='ds_anat_dseg',
         run_without_submitting=True,
@@ -448,6 +464,7 @@ def init_ds_dseg_wf(*, output_dir: str, name: str = 'ds_dseg_wf'):
 def init_ds_tpms_wf(
     *,
     output_dir: str,
+    extra_entities: dict | None = None,
     name: str = 'ds_tpms_wf',
     tpm_labels: tuple = BIDS_TISSUE_ORDER,
 ):
@@ -458,6 +475,8 @@ def init_ds_tpms_wf(
     ----------
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    extra_entities : :obj:`dict` or None
+        Additional entities to add to filename
     name : :obj:`str`
         Workflow name (default: anat_derivatives_wf)
     tpm_labels : :obj:`tuple`
@@ -484,12 +503,15 @@ def init_ds_tpms_wf(
     )
     outputnode = pe.Node(niu.IdentityInterface(fields=['anat_tpms']), name='outputnode')
 
+    extra_entities = extra_entities or {}
+
     ds_anat_tpms = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             suffix='probseg',
             compress=True,
             dismiss_entities=['desc'],
+            **extra_entities,
         ),
         name='ds_anat_tpms',
         run_without_submitting=True,
@@ -907,7 +929,7 @@ def init_ds_anat_volumes_wf(
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                # Original T1w image
+                # Original anat image
                 'source_files',
                 # anat-space images
                 'anat_preproc',
@@ -1036,6 +1058,7 @@ def init_ds_fs_segs_wf(
     *,
     bids_root: str,
     output_dir: str,
+    extra_entities: dict | None = None,
     name='ds_fs_segs_wf',
 ):
     """
@@ -1047,6 +1070,8 @@ def init_ds_fs_segs_wf(
         Root path of BIDS dataset
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    extra_entities : :obj:`dict` or None
+        Additional entities to add to filename
     name : :obj:`str`
         Workflow name (default: ds_anat_segs_wf)
 
@@ -1075,15 +1100,27 @@ def init_ds_fs_segs_wf(
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
+    extra_entities = extra_entities or {}
+
     # Parcellations
     ds_anat_fsaseg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg', compress=True),
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc='aseg',
+            suffix='dseg',
+            compress=True,
+            **extra_entities,
+        ),
         name='ds_anat_fsaseg',
         run_without_submitting=True,
     )
     ds_anat_fsparc = pe.Node(
         DerivativesDataSink(
-            base_directory=output_dir, desc='aparcaseg', suffix='dseg', compress=True
+            base_directory=output_dir,
+            desc='aparcaseg',
+            suffix='dseg',
+            compress=True,
+            **extra_entities,
         ),
         name='ds_anat_fsparc',
         run_without_submitting=True,
