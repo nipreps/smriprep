@@ -194,7 +194,7 @@ threadpoolctl==3.4.0
     # via scikit-learn
 tifffile==2024.2.12
     # via scikit-image
-tqdm==4.66.2
+tqdm==4.66.3
     # via templateflow
 traits==6.3.2
     # via
