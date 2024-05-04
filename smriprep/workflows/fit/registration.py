@@ -128,10 +128,10 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         # Append template citations to description
         for template in templates:
             template_meta = get_metadata(template.split(':')[0])
-            template_refs = ['@%s' % template.split(':')[0].lower()]
+            template_refs = ['@{}'.format(template.split(':')[0].lower())]
 
             if template_meta.get('RRID', None):
-                template_refs += ['RRID:%s' % template_meta['RRID']]
+                template_refs += [f'RRID:{template_meta["RRID"]}']
 
             workflow.__desc__ += """\
 *{template_name}* [{template_refs}; TemplateFlow ID: {template}]""".format(
