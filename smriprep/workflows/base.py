@@ -168,7 +168,7 @@ def init_smriprep_wf(
                 freesurfer_home=os.getenv('FREESURFER_HOME'),
                 spaces=spaces.get_fs_spaces(),
             ),
-            name='fsdir_run_%s' % run_uuid.replace('-', '_'),
+            name='fsdir_run_{}'.format(run_uuid.replace('-', '_')),
             run_without_submitting=True,
         )
         if fs_subjects_dir is not None:
@@ -186,7 +186,7 @@ def init_smriprep_wf(
             longitudinal=longitudinal,
             low_mem=low_mem,
             msm_sulc=msm_sulc,
-            name='single_subject_%s_wf' % subject_id,
+            name=f'single_subject_{subject_id}_wf',
             omp_nthreads=omp_nthreads,
             output_dir=output_dir,
             skull_strip_fixed_seed=skull_strip_fixed_seed,
