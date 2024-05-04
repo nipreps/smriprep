@@ -98,22 +98,9 @@ version-file = "smriprep/_version.py"
 # Developer tool configurations
 #
 
+# Disable black
 [tool.black]
-line-length = 99
-skip-string-normalization = true
-
-[tool.isort]
-profile = 'black'
-
-[tool.flake8]
-max-line-length = "99"
-doctests = "False"
-exclude = "*build/"
-ignore = ["W503", "E203"]
-per-file-ignores = [
-    "**/__init__.py : F401",
-    "docs/conf.py : E265",
-]
+exclude = ".*"
 
 [tool.pytest.ini_options]
 minversion = "7"
