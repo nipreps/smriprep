@@ -20,7 +20,11 @@ if gradunwarp.GradUnwarp.version():
 BASE_LAYOUT = {
     '01': {
         'anat': [
-            {'run': 1, 'suffix': 'T1w'},
+            {
+                'run': 1,
+                'suffix': 'T1w',
+                'metadata': {'ImageType': ['ND']},
+            },
             {'run': 2, 'suffix': 'T1w'},
             {'suffix': 'T2w'},
         ],

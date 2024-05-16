@@ -1484,7 +1484,7 @@ An anatomical {contrast}-reference map was computed after registration of
     if gradunwarp_file:
         nds = [
             (
-                meta.get('NonlinearGradientCorrection', None)
+                not meta.get('NonlinearGradientCorrection', None)
                 or 'ND' in meta.get('ImageType', [])
                 or False
             )
@@ -1498,9 +1498,12 @@ An anatomical {contrast}-reference map was computed after registration of
             gradunwarp_file = None
     if gradunwarp_file:
         gradunwarp_ver = GradUnwarp.version()
-        workflow.__desc__ += f"""\
+        workflow.__desc__ = (
+            (workflow.__desc__ or '')
+            + f"""\
  {"Each" if num_files > 1 else "The"} {contrast} image was corrected for gradient
  non-linearity with `gradunwarp` [@gradunwarp] {gradunwarp_ver} [@gradunwarp]\n"""
+        )
         gradunwarp_wf = init_gradunwarp_wf('gradunward_T1w')
         gradunwarp_wf.inputs.inputnode.grad_file = gradunwarp_file
         # fmt:off
