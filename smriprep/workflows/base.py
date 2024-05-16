@@ -422,6 +422,7 @@ to workflows in *sMRIPrep*'s documentation]\
     # Preprocessing of T1w (includes registration to MNI)
     anat_preproc_wf = init_anat_preproc_wf(
         bids_root=layout.root,
+        layout=layout,
         sloppy=sloppy,
         debug=debug,
         precomputed=deriv_cache,

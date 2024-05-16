@@ -1,13 +1,21 @@
 from pathlib import Path
 
+import bids
 import nibabel as nb
 import numpy as np
 import pytest
 from nipype.pipeline.engine.utils import generate_expanded_graph
+from niworkflows.interfaces import gradunwarp
 from niworkflows.utils.spaces import Reference, SpatialReferences
 from niworkflows.utils.testing import generate_bids_skeleton
 
 from ..anatomical import init_anat_fit_wf, init_anat_preproc_wf
+
+gradunwarp_file_params = [None]
+if gradunwarp.GradUnwarp.version():
+    from gradunwarp.core.tests.test_regression import siemens_gradfile
+
+    gradunwarp_file_params.append(siemens_gradfile)
 
 BASE_LAYOUT = {
     '01': {
@@ -73,14 +81,17 @@ def test_init_anat_preproc_wf(
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
 
+    bids_layout = bids.BIDSLayout(bids_root)
+
     init_anat_preproc_wf(
         bids_root=str(bids_root),
+        layout=bids_layout,
         output_dir=str(output_dir),
         freesurfer=freesurfer,
         hires=False,
         longitudinal=False,
         msm_sulc=False,
-        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T1w.nii.gz')],
+        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
         t2w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')],
         skull_strip_mode='force',
         skull_strip_template=Reference('OASIS30ANTs'),
@@ -96,23 +107,28 @@ def test_init_anat_preproc_wf(
 
 @pytest.mark.parametrize('msm_sulc', [True, False])
 @pytest.mark.parametrize('skull_strip_mode', ['skip', 'force'])
+@pytest.mark.parametrize('gradunwarp_file', gradunwarp_file_params)
 def test_anat_fit_wf(
     bids_root: Path,
     tmp_path: Path,
     msm_sulc: bool,
     skull_strip_mode: str,
+    gradunwarp_file: str,
 ):
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
 
+    bids_layout = bids.BIDSLayout(bids_root)
+
     init_anat_fit_wf(
         bids_root=str(bids_root),
+        layout=bids_layout,
         output_dir=str(output_dir),
         freesurfer=True,
         hires=False,
         longitudinal=False,
         msm_sulc=msm_sulc,
-        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T1w.nii.gz')],
+        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
         t2w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')],
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=Reference('OASIS30ANTs'),
@@ -122,6 +138,7 @@ def test_anat_fit_wf(
         ),
         precomputed={},
         omp_nthreads=1,
+        gradunwarp_file=gradunwarp_file,
     )
 
 
@@ -200,9 +217,12 @@ def test_anat_fit_precomputes(
             for path in xfm.values():
                 Path(path).touch()
 
+    bids_layout = bids.BIDSLayout(bids_root)
+
     # Create workflow
     wf = init_anat_fit_wf(
         bids_root=str(bids_root),
+        layout=bids_layout,
         output_dir=str(output_dir),
         freesurfer=True,
         hires=False,
