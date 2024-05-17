@@ -1480,7 +1480,22 @@ An anatomical {contrast}-reference map was computed after registration of
     )
     anat_conform = pe.MapNode(Conform(), iterfield='in_file', name='anat_conform')
 
-    # -1 Gradient unwarping (optional)
+    # fmt:off
+    workflow.connect([
+        (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
+        (anat_ref_dimensions, denoise, [('t1w_valid_list', 'input_image')]),
+        (anat_ref_dimensions, anat_conform, [
+            ('target_zooms', 'target_zooms'),
+            ('target_shape', 'target_shape'),
+        ]),
+        (anat_ref_dimensions, outputnode, [
+            ('out_report', 'out_report'),
+            ('t1w_valid_list', 'anat_valid_list'),
+        ]),
+    ])
+    # fmt:on
+
+    # 0.5 Gradient unwarping (optional)
     if gradunwarp_file:
         nds = [
             (
@@ -1495,7 +1510,9 @@ An anatomical {contrast}-reference map was computed after registration of
                 f'Inconsistent distortion correction metadata across {contrast} images.'
             )
         if not any(nds):
+            # gradient unwarping not needed for that contrast
             gradunwarp_file = None
+
     if gradunwarp_file:
         gradunwarp_ver = GradUnwarp.version()
         workflow.__desc__ = (
@@ -1508,31 +1525,12 @@ An anatomical {contrast}-reference map was computed after registration of
         gradunwarp_wf.inputs.inputnode.grad_file = gradunwarp_file
         # fmt:off
         workflow.connect([
-            (inputnode, gradunwarp_wf, [('anat_files', 'inputnode.input_file')]),
-            (gradunwarp_wf, anat_ref_dimensions, [('outputnode.corrected_file', 't1w_list')]),
+            (denoise, gradunwarp_wf, [('output_image', 'inputnode.input_file')]),
+            (gradunwarp_wf, anat_conform, [('outputnode.corrected_file', 'in_file')]),
         ])
     else:
-        workflow.connect(
-            [
-                (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
-            ]
-        )
+        workflow.connect([(denoise, anat_conform, [('output_image', 'in_file')])])
         # fmt:on
-
-    # fmt:off
-    workflow.connect([
-        (anat_ref_dimensions, denoise, [('t1w_valid_list', 'input_image')]),
-        (anat_ref_dimensions, anat_conform, [
-            ('target_zooms', 'target_zooms'),
-            ('target_shape', 'target_shape'),
-        ]),
-        (denoise, anat_conform, [('output_image', 'in_file')]),
-        (anat_ref_dimensions, outputnode, [
-            ('out_report', 'out_report'),
-            ('t1w_valid_list', 'anat_valid_list'),
-        ]),
-    ])
-    # fmt:on
 
     if num_files == 1:
         get1st = pe.Node(niu.Select(index=[0]), name='get1st')

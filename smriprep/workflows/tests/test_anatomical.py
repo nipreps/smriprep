@@ -5,17 +5,13 @@ import nibabel as nb
 import numpy as np
 import pytest
 from nipype.pipeline.engine.utils import generate_expanded_graph
-from niworkflows.interfaces import gradunwarp
+from niworkflows.tests.data import load_test_data
 from niworkflows.utils.spaces import Reference, SpatialReferences
 from niworkflows.utils.testing import generate_bids_skeleton
 
 from ..anatomical import init_anat_fit_wf, init_anat_preproc_wf
 
-gradunwarp_file_params = [None]
-if gradunwarp.GradUnwarp.version():
-    from gradunwarp.core.tests.test_regression import siemens_gradfile
-
-    gradunwarp_file_params.append(siemens_gradfile)
+gradunwarp_file_params = [None, load_test_data('gradunwarp_coeffs.grad')]
 
 BASE_LAYOUT = {
     '01': {
