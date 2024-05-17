@@ -24,6 +24,7 @@
 
 import typing as ty
 
+import bids
 from nipype import logging
 from nipype.interfaces import (
     freesurfer as fs,
@@ -47,12 +48,14 @@ from niworkflows.interfaces.freesurfer import (
 from niworkflows.interfaces.freesurfer import (
     StructuralReference,
 )
+from niworkflows.interfaces.gradunwarp import GradUnwarp
 from niworkflows.interfaces.header import ValidateImage
 from niworkflows.interfaces.images import Conform, TemplateDimensions
 from niworkflows.interfaces.nibabel import ApplyMask, Binarize
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.utils.misc import add_suffix
 from niworkflows.utils.spaces import Reference, SpatialReferences
+from niworkflows.workflows.gradunwarp import init_gradunwarp_wf
 
 from ..data import load_resource
 from ..interfaces import DerivativesDataSink
@@ -94,6 +97,7 @@ LOGGER = logging.getLogger('nipype.workflow')
 def init_anat_preproc_wf(
     *,
     bids_root: str,
+    layout: bids.BIDSLayout,
     output_dir: str,
     freesurfer: bool,
     hires: bool,
@@ -113,6 +117,7 @@ def init_anat_preproc_wf(
     name: str = 'anat_preproc_wf',
     skull_strip_fixed_seed: bool = False,
     fs_no_resume: bool = False,
+    gradunwarp_file: str | None = None,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -150,6 +155,8 @@ def init_anat_preproc_wf(
     ----------
     bids_root : :obj:`str`
         Path of the input BIDS dataset root
+    layout : BIDSLayout object
+        BIDS dataset layout
     output_dir : :obj:`str`
         Directory in which to save derivatives
     freesurfer : :obj:`bool`
@@ -189,6 +196,8 @@ def init_anat_preproc_wf(
         EXPERT: Import pre-computed FreeSurfer reconstruction without resuming.
         The user is responsible for ensuring that all necessary files are present.
         (default: ``False``).
+    gradunwarp_file : :obj:`str`, optional
+        Gradient unwarping filename (default: None)
 
     Inputs
     ------
@@ -265,6 +274,7 @@ def init_anat_preproc_wf(
 
     anat_fit_wf = init_anat_fit_wf(
         bids_root=bids_root,
+        layout=layout,
         output_dir=output_dir,
         freesurfer=freesurfer,
         hires=hires,
@@ -282,6 +292,7 @@ def init_anat_preproc_wf(
         omp_nthreads=omp_nthreads,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         fs_no_resume=fs_no_resume,
+        gradunwarp_file=gradunwarp_file,
     )
     template_iterator_wf = init_template_iterator_wf(spaces=spaces, sloppy=sloppy)
     ds_std_volumes_wf = init_ds_anat_volumes_wf(
@@ -448,6 +459,7 @@ def init_anat_preproc_wf(
 def init_anat_fit_wf(
     *,
     bids_root: str,
+    layout: bids.BIDSLayout,
     output_dir: str,
     freesurfer: bool,
     hires: bool,
@@ -466,6 +478,7 @@ def init_anat_fit_wf(
     name='anat_fit_wf',
     skull_strip_fixed_seed: bool = False,
     fs_no_resume: bool = False,
+    gradunwarp_file: str | None = None,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -511,6 +524,8 @@ def init_anat_fit_wf(
     ----------
     bids_root : :obj:`str`
         Path of the input BIDS dataset root
+    layout : BIDSLayout object
+        BIDS dataset layout
     output_dir : :obj:`str`
         Directory in which to save derivatives
     freesurfer : :obj:`bool`
@@ -546,6 +561,12 @@ def init_anat_fit_wf(
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
+    fs_no_resume : bool
+        EXPERT: Import pre-computed FreeSurfer reconstruction without resuming.
+        The user is responsible for ensuring that all necessary files are present.
+        (default: ``False``).
+    gradunwarp_file : :obj:`str`, optional
+        Gradient unwarping filename (default: None)
 
     Inputs
     ------
@@ -760,12 +781,14 @@ BIDS dataset."""
 non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
 [@ants, RRID:SCR_004757]"""
         desc += '.\n' if num_t1w > 1 else ', and used as T1w-reference throughout the workflow.\n'
-
+        t1w_metas = [layout.get_file(t).get_metadata() for t in t1w]
         anat_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
             num_files=num_t1w,
             contrast='T1w',
+            gradunwarp_file=gradunwarp_file,
+            metadata=t1w_metas,
             name='anat_template_wf',
         )
         ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_t1w=num_t1w)
@@ -1131,11 +1154,14 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
 
     if t2w and not have_t2w:
         LOGGER.info('ANAT Stage 7: Creating T2w template')
+        t2w_metas = [layout.get_file(t).get_metadata() for t in t1w]
         t2w_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
             num_files=len(t2w),
             contrast='T2w',
+            metadata=t2w_metas,
+            gradunwarp_file=gradunwarp_file,
             name='t2w_template_wf',
         )
         bbreg = pe.Node(
@@ -1376,6 +1402,8 @@ def init_anat_template_wf(
     omp_nthreads: int,
     num_files: int,
     contrast: str,
+    metadata: dict,
+    gradunwarp_file: str | None = None,
     name: str = 'anat_template_wf',
 ):
     """
@@ -1388,7 +1416,8 @@ def init_anat_template_wf(
 
             from smriprep.workflows.anatomical import init_anat_template_wf
             wf = init_anat_template_wf(
-                longitudinal=False, omp_nthreads=1, num_files=1, contrast="T1w"
+                longitudinal=False, omp_nthreads=1, num_files=1, contrast="T1w",
+                gradunwarp_file=None,
             )
 
     Parameters
@@ -1402,6 +1431,8 @@ def init_anat_template_wf(
         Number of images
     contrast : :obj:`str`
         Name of contrast, for reporting purposes, e.g., T1w, T2w, PDw
+    gradunwarp_file : :obj:`str`, optional
+        Gradient unwarping filename (default: None)
     name : :obj:`str`, optional
         Workflow name (default: anat_template_wf)
 
@@ -1457,13 +1488,49 @@ An anatomical {contrast}-reference map was computed after registration of
             ('target_zooms', 'target_zooms'),
             ('target_shape', 'target_shape'),
         ]),
-        (denoise, anat_conform, [('output_image', 'in_file')]),
         (anat_ref_dimensions, outputnode, [
             ('out_report', 'out_report'),
             ('t1w_valid_list', 'anat_valid_list'),
         ]),
     ])
     # fmt:on
+
+    # 0.5 Gradient unwarping (optional)
+    if gradunwarp_file:
+        nds = [
+            (
+                not meta.get('NonlinearGradientCorrection', None)
+                or 'ND' in meta.get('ImageType', [])
+                or False
+            )
+            for meta in metadata
+        ]
+        if any(nds) and not all(nds):
+            raise RuntimeError(
+                f'Inconsistent distortion correction metadata across {contrast} images.'
+            )
+        if not any(nds):
+            # gradient unwarping not needed for that contrast
+            gradunwarp_file = None
+
+    if gradunwarp_file:
+        gradunwarp_ver = GradUnwarp.version()
+        workflow.__desc__ = (
+            (workflow.__desc__ or '')
+            + f"""\
+ {"Each" if num_files > 1 else "The"} {contrast} image was corrected for gradient
+ non-linearity with `gradunwarp` [@gradunwarp] {gradunwarp_ver} [@gradunwarp]\n"""
+        )
+        gradunwarp_wf = init_gradunwarp_wf('gradunward_T1w')
+        gradunwarp_wf.inputs.inputnode.grad_file = gradunwarp_file
+        # fmt:off
+        workflow.connect([
+            (denoise, gradunwarp_wf, [('output_image', 'inputnode.input_file')]),
+            (gradunwarp_wf, anat_conform, [('outputnode.corrected_file', 'in_file')]),
+        ])
+    else:
+        workflow.connect([(denoise, anat_conform, [('output_image', 'in_file')])])
+        # fmt:on
 
     if num_files == 1:
         get1st = pe.Node(niu.Select(index=[0]), name='get1st')

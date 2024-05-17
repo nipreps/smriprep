@@ -173,6 +173,12 @@ def get_parser():
         action='store_true',
         help='treat dataset as longitudinal - may increase runtime',
     )
+    g_conf.add_argument(
+        '--gradunwarp-file',
+        metavar='PATH',
+        type=Path,
+        help='Path to vendor file for gradunwarp gradient distortion ' 'correction.',
+    )
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
