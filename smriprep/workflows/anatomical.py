@@ -1014,8 +1014,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
                 ('outputnode.std2anat_xfm', 'inputnode.std2anat_xfm'),
             ]),
             (register_template_wf, template_buffer, [('outputnode.template', 'in2')]),
-            (ds_template_registration_wf, std2anat_buffer, [('outputnode.std2anat_xfm', 'in2')]),
-            (ds_template_registration_wf, anat2std_buffer, [('outputnode.anat2std_xfm', 'in2')]),
+            (register_template_wf, std2anat_buffer, [('outputnode.std2anat_xfm', 'in2')]),
+            (register_template_wf, anat2std_buffer, [('outputnode.anat2std_xfm', 'in2')]),
         ])
         # fmt:on
     if found_xfms:
