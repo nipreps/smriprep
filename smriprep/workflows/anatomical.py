@@ -1445,8 +1445,8 @@ An anatomical {image_type}-reference map was computed after registration of
 
     # fmt:off
     workflow.connect([
-        (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
-        (anat_ref_dimensions, denoise, [('t1w_valid_list', 'input_image')]),
+        (inputnode, anat_ref_dimensions, [('anat_files', 'anat_list')]),
+        (anat_ref_dimensions, denoise, [('anat_valid_list', 'input_image')]),
         (anat_ref_dimensions, anat_conform, [
             ('target_zooms', 'target_zooms'),
             ('target_shape', 'target_shape'),
@@ -1454,7 +1454,7 @@ An anatomical {image_type}-reference map was computed after registration of
         (denoise, anat_conform, [('output_image', 'in_file')]),
         (anat_ref_dimensions, outputnode, [
             ('out_report', 'out_report'),
-            ('t1w_valid_list', 'anat_valid_list'),
+            ('anat_valid_list', 'anat_valid_list'),
         ]),
     ])
     # fmt:on
@@ -1524,7 +1524,7 @@ An anatomical {image_type}-reference map was computed after registration of
 
     # fmt:off
     workflow.connect([
-        (anat_ref_dimensions, anat_conform_xfm, [('t1w_valid_list', 'source_file')]),
+        (anat_ref_dimensions, anat_conform_xfm, [('anat_valid_list', 'source_file')]),
         (anat_conform, anat_conform_xfm, [('out_file', 'target_file')]),
         (anat_conform, n4_correct, [('out_file', 'input_image')]),
         (anat_conform, anat_merge, [
