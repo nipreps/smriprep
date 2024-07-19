@@ -59,7 +59,6 @@ autodoc_mock_imports = [
     "matplotlib",
     "nilearn",
     "nitime",
-    "numpy",
     "pandas",
     "seaborn",
     "skimage",
