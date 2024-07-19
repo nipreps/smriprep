@@ -141,6 +141,10 @@ source = [
 
 [tool.ruff]
 line-length = 99
+extend-exclude = [
+  "wrapper/*.py",
+  "docs/sphinxext/*",
+]
 
 [tool.ruff.lint]
 extend-select = [
@@ -177,6 +181,7 @@ inline-quotes = "single"
 
 [tool.ruff.lint.extend-per-file-ignores]
 "*/test_*.py" = ["S101"]
+"docs/conf.py" = ["A001"]
 
 [tool.ruff.format]
 quote-style = "single"
