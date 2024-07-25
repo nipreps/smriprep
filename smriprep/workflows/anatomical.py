@@ -961,8 +961,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             workflow.connect([
                 (fast, fast2bids, [('partial_volume_files', 'inlist')]),
                 (sourcefile_buffer, ds_tpms_wf, [('source_files', 'inputnode.source_files')]),
-                (fast2bids, ds_tpms_wf, [('out', 'inputnode.t1w_tpms')]),
-                (ds_tpms_wf, seg_buffer, [('outputnode.t1w_tpms', 't1w_tpms')]),
+                (fast2bids, ds_tpms_wf, [('out', 'inputnode.anat_tpms')]),
+                (ds_tpms_wf, seg_buffer, [('outputnode.anat_tpms', 't1w_tpms')]),
             ])
         # fmt:on
     else:
