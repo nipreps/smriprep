@@ -767,7 +767,7 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
             image_type='T1w',
             name='anat_template_wf',
         )
-        ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_t1w=num_t1w)
+        ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_anat=num_t1w)
 
         # fmt:off
         workflow.connect([
@@ -780,11 +780,11 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
                 ('outputnode.out_report', 'inputnode.t1w_conform_report'),
             ]),
             (anat_template_wf, ds_template_wf, [
-                ('outputnode.anat_realign_xfm', 'inputnode.t1w_ref_xfms'),
+                ('outputnode.anat_realign_xfm', 'inputnode.anat_ref_xfms'),
             ]),
             (sourcefile_buffer, ds_template_wf, [('source_files', 'inputnode.source_files')]),
-            (t1w_buffer, ds_template_wf, [('t1w_preproc', 'inputnode.t1w_preproc')]),
-            (ds_template_wf, outputnode, [('outputnode.t1w_preproc', 't1w_preproc')]),
+            (t1w_buffer, ds_template_wf, [('t1w_preproc', 'inputnode.anat_preproc')]),
+            (ds_template_wf, outputnode, [('outputnode.anat_preproc', 't1w_preproc')]),
         ])
         # fmt:on
     else:
