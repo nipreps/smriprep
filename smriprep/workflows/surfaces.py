@@ -409,7 +409,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('reference_image', 'inputnode.in_file'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
         (inputnode, refine, [('reference_image', 'in_anat'),
                              ('ants_segs', 'in_ants')]),
