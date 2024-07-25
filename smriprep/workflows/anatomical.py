@@ -287,7 +287,6 @@ def init_anat_preproc_wf(
     ds_std_volumes_wf = init_ds_anat_volumes_wf(
         bids_root=bids_root,
         output_dir=output_dir,
-        name='ds_std_volumes_wf',
     )
 
     workflow.connect([
@@ -320,10 +319,10 @@ def init_anat_preproc_wf(
         ]),
         (anat_fit_wf, ds_std_volumes_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files'),
-            ('outputnode.t1w_preproc', 'inputnode.t1w_preproc'),
-            ('outputnode.t1w_mask', 'inputnode.t1w_mask'),
-            ('outputnode.t1w_dseg', 'inputnode.t1w_dseg'),
-            ('outputnode.t1w_tpms', 'inputnode.t1w_tpms'),
+            ('outputnode.t1w_preproc', 'inputnode.anat_preproc'),
+            ('outputnode.t1w_mask', 'inputnode.anat_mask'),
+            ('outputnode.t1w_dseg', 'inputnode.anat_dseg'),
+            ('outputnode.t1w_tpms', 'inputnode.anat_tpms'),
         ]),
         (template_iterator_wf, ds_std_volumes_wf, [
             ('outputnode.std_t1w', 'inputnode.ref_file'),
