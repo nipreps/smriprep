@@ -339,12 +339,8 @@ def init_anat_preproc_wf(
             bids_root=bids_root,
             output_dir=output_dir,
         )
-        surface_derivatives_wf = init_surface_derivatives_wf(
-            cifti_output=cifti_output,
-        )
-        ds_surfaces_wf = init_ds_surfaces_wf(
-            bids_root=bids_root, output_dir=output_dir, surfaces=['inflated']
-        )
+        surface_derivatives_wf = init_surface_derivatives_wf()
+        ds_surfaces_wf = init_ds_surfaces_wf(output_dir=output_dir, surfaces=['inflated'])
         ds_curv_wf = init_ds_surface_metrics_wf(
             bids_root=bids_root, output_dir=output_dir, metrics=['curv'], name='ds_curv_wf'
         )
@@ -1215,9 +1211,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         LOGGER.info(f'ANAT Stage 8: Creating GIFTI surfaces for {surfs + spheres}')
     if surfs:
         gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=surfs)
-        ds_surfaces_wf = init_ds_surfaces_wf(
-            bids_root=bids_root, output_dir=output_dir, surfaces=surfs
-        )
+        ds_surfaces_wf = init_ds_surfaces_wf(output_dir=output_dir, surfaces=surfs)
         # fmt:off
         workflow.connect([
             (surface_recon_wf, gifti_surfaces_wf, [
@@ -1239,7 +1233,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             surfaces=spheres, to_scanner=False, name='gifti_spheres_wf'
         )
         ds_spheres_wf = init_ds_surfaces_wf(
-            bids_root=bids_root, output_dir=output_dir, surfaces=spheres, name='ds_spheres_wf'
+            output_dir=output_dir, surfaces=spheres, name='ds_spheres_wf'
         )
         # fmt:off
         workflow.connect([
@@ -1315,7 +1309,6 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         LOGGER.info('ANAT Stage 9: Creating fsLR registration sphere')
         fsLR_reg_wf = init_fsLR_reg_wf()
         ds_fsLR_reg_wf = init_ds_surfaces_wf(
-            bids_root=bids_root,
             output_dir=output_dir,
             surfaces=['sphere_reg_fsLR'],
             name='ds_fsLR_reg_wf',
@@ -1340,7 +1333,6 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         LOGGER.info('ANAT Stage 10: Creating MSM-Sulc registration sphere')
         msm_sulc_wf = init_msm_sulc_wf(sloppy=sloppy)
         ds_msmsulc_wf = init_ds_surfaces_wf(
-            bids_root=bids_root,
             output_dir=output_dir,
             surfaces=['sphere_reg_msm'],
             name='ds_msmsulc_wf',
