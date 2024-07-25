@@ -953,8 +953,8 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             workflow.connect([
                 (fast, lut_t1w_dseg, [('partial_volume_map', 'in_dseg')]),
                 (sourcefile_buffer, ds_dseg_wf, [('source_files', 'inputnode.source_files')]),
-                (lut_t1w_dseg, ds_dseg_wf, [('out', 'inputnode.t1w_dseg')]),
-                (ds_dseg_wf, seg_buffer, [('outputnode.t1w_dseg', 't1w_dseg')]),
+                (lut_t1w_dseg, ds_dseg_wf, [('out', 'inputnode.anat_dseg')]),
+                (ds_dseg_wf, seg_buffer, [('outputnode.anat_dseg', 't1w_dseg')]),
             ])
         if not have_tpms:
             ds_tpms_wf = init_ds_tpms_wf(output_dir=output_dir)
