@@ -230,36 +230,39 @@ def init_anat_reports_wf(*, spaces, freesurfer, output_dir, sloppy=False, name='
 
 def init_ds_template_wf(
     *,
-    num_t1w,
-    output_dir,
-    name='ds_template_wf',
+    num_anat: int,
+    output_dir: str,
+    image_type: ty.Literal['T1w', 'T2w'],
+    name: str = 'ds_template_wf',
 ):
     """
     Save the subject-specific template
 
     Parameters
     ----------
-    num_t1w : :obj:`int`
-        Number of T1w images
+    num_anat : :obj:`int`
+        Number of anatomical images
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    image_type
+        MR image type (T1w, T2w, etc.)
     name : :obj:`str`
         Workflow name (default: ds_template_wf)
 
     Inputs
     ------
     source_files
-        List of input T1w images
-    t1w_ref_xfms
-        List of affine transforms to realign input T1w images
-    t1w_preproc
-        The T1w reference map, which is calculated as the average of bias-corrected
-        and preprocessed T1w images, defining the anatomical space.
+        List of input anatomical images
+    anat_ref_xfms
+        List of affine transforms to realign input anatomical images
+    anat_preproc
+        The anatomical reference map, which is calculated as the average of bias-corrected
+        and preprocessed anatomical images, defining the anatomical space.
 
     Outputs
     -------
-    t1w_preproc
-        The location in the output directory of the preprocessed T1w image
+    anat_preproc
+        The location in the output directory of the preprocessed anatomical image
 
     """
     workflow = Workflow(name=name)
@@ -268,49 +271,49 @@ def init_ds_template_wf(
         niu.IdentityInterface(
             fields=[
                 'source_files',
-                't1w_ref_xfms',
-                't1w_preproc',
+                'anat_ref_xfms',
+                'anat_preproc',
             ]
         ),
         name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=['t1w_preproc']), name='outputnode')
+    outputnode = pe.Node(niu.IdentityInterface(fields=['anat_preproc']), name='outputnode')
 
-    ds_t1w_preproc = pe.Node(
+    ds_anat_preproc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True),
-        name='ds_t1w_preproc',
+        name='ds_anat_preproc',
         run_without_submitting=True,
     )
-    ds_t1w_preproc.inputs.SkullStripped = False
+    ds_anat_preproc.inputs.SkullStripped = False
 
     # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w_preproc, [('t1w_preproc', 'in_file'),
+        (inputnode, ds_anat_preproc, [('anat_preproc', 'in_file'),
                                      ('source_files', 'source_file')]),
-        (ds_t1w_preproc, outputnode, [('out_file', 't1w_preproc')]),
+        (ds_anat_preproc, outputnode, [('out_file', 'anat_preproc')]),
     ])
     # fmt:on
 
-    if num_t1w > 1:
+    if num_anat > 1:
         # Please note the dictionary unpacking to provide the from argument.
         # It is necessary because from is a protected keyword (not allowed as argument name).
-        ds_t1w_ref_xfms = pe.MapNode(
+        ds_anat_ref_xfms = pe.MapNode(
             DerivativesDataSink(
                 base_directory=output_dir,
-                to='T1w',
+                to=image_type,
                 mode='image',
                 suffix='xfm',
                 extension='txt',
                 **{'from': 'orig'},
             ),
             iterfield=['source_file', 'in_file'],
-            name='ds_t1w_ref_xfms',
+            name='ds_anat_ref_xfms',
             run_without_submitting=True,
         )
         # fmt:off
         workflow.connect([
-            (inputnode, ds_t1w_ref_xfms, [('source_files', 'source_file'),
-                                          ('t1w_ref_xfms', 'in_file')]),
+            (inputnode, ds_anat_ref_xfms, [('source_files', 'source_file'),
+                                           ('anat_ref_xfms', 'in_file')]),
         ])
         # fmt:on
 
@@ -321,7 +324,8 @@ def init_ds_mask_wf(
     *,
     bids_root: str,
     output_dir: str,
-    mask_type: str,
+    mask_type: ty.Literal['brain', 'roi', 'ribbon'],
+    extra_entities: dict | None = None,
     name='ds_mask_wf',
 ):
     """
@@ -333,13 +337,15 @@ def init_ds_mask_wf(
         Root path of BIDS dataset
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    extra_entities : :obj:`dict` or None
+        Additional entities to add to filename
     name : :obj:`str`
         Workflow name (default: ds_mask_wf)
 
     Inputs
     ------
     source_files
-        List of input T1w images
+        List of input anat images
     mask_file
         Mask to save
 
@@ -360,14 +366,17 @@ def init_ds_mask_wf(
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
+    extra_entities = extra_entities or {}
+
     ds_mask = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             desc=mask_type,
             suffix='mask',
             compress=True,
+            **extra_entities,
         ),
-        name='ds_t1w_mask',
+        name='ds_anat_mask',
         run_without_submitting=True,
     )
     if mask_type == 'brain':
@@ -388,7 +397,12 @@ def init_ds_mask_wf(
     return workflow
 
 
-def init_ds_dseg_wf(*, output_dir, name='ds_dseg_wf'):
+def init_ds_dseg_wf(
+    *,
+    output_dir: str,
+    extra_entities: dict | None = None,
+    name: str = 'ds_dseg_wf',
+):
     """
     Save discrete segmentations
 
@@ -396,53 +410,64 @@ def init_ds_dseg_wf(*, output_dir, name='ds_dseg_wf'):
     ----------
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    extra_entities : :obj:`dict` or None
+        Additional entities to add to filename
     name : :obj:`str`
         Workflow name (default: ds_dseg_wf)
 
     Inputs
     ------
     source_files
-        List of input T1w images
-    t1w_dseg
-        Segmentation in T1w space
+        List of input anatomical images
+    anat_dseg
+        Segmentation in anatomical space
 
     Outputs
     -------
-    t1w_dseg
+    anat_dseg
         The location in the output directory of the discrete segmentation
 
     """
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=['source_files', 't1w_dseg']),
+        niu.IdentityInterface(fields=['source_files', 'anat_dseg']),
         name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=['t1w_dseg']), name='outputnode')
+    outputnode = pe.Node(niu.IdentityInterface(fields=['anat_dseg']), name='outputnode')
 
-    ds_t1w_dseg = pe.Node(
+    extra_entities = extra_entities or {}
+
+    ds_anat_dseg = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             suffix='dseg',
             compress=True,
             dismiss_entities=['desc'],
+            **extra_entities,
         ),
-        name='ds_t1w_dseg',
+        name='ds_anat_dseg',
         run_without_submitting=True,
     )
 
     # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w_dseg, [('t1w_dseg', 'in_file'),
+        (inputnode, ds_anat_dseg, [('anat_dseg', 'in_file'),
                                   ('source_files', 'source_file')]),
-        (ds_t1w_dseg, outputnode, [('out_file', 't1w_dseg')]),
+        (ds_anat_dseg, outputnode, [('out_file', 'anat_dseg')]),
     ])
     # fmt:on
 
     return workflow
 
 
-def init_ds_tpms_wf(*, output_dir, name='ds_tpms_wf', tpm_labels=BIDS_TISSUE_ORDER):
+def init_ds_tpms_wf(
+    *,
+    output_dir: str,
+    extra_entities: dict | None = None,
+    name: str = 'ds_tpms_wf',
+    tpm_labels: tuple = BIDS_TISSUE_ORDER,
+):
     """
     Save tissue probability maps
 
@@ -450,6 +475,8 @@ def init_ds_tpms_wf(*, output_dir, name='ds_tpms_wf', tpm_labels=BIDS_TISSUE_ORD
     ----------
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    extra_entities : :obj:`dict` or None
+        Additional entities to add to filename
     name : :obj:`str`
         Workflow name (default: anat_derivatives_wf)
     tpm_labels : :obj:`tuple`
@@ -458,41 +485,44 @@ def init_ds_tpms_wf(*, output_dir, name='ds_tpms_wf', tpm_labels=BIDS_TISSUE_ORD
     Inputs
     ------
     source_files
-        List of input T1w images
-    t1w_tpms
-        Tissue probability maps in T1w space
+        List of input anatomical images
+    anat_tpms
+        Tissue probability maps in anatomical space
 
     Outputs
     -------
-    t1w_tpms
+    anat_tpms
         The location in the output directory of the tissue probability maps
 
     """
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=['source_files', 't1w_tpms']),
+        niu.IdentityInterface(fields=['source_files', 'anat_tpms']),
         name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=['t1w_tpms']), name='outputnode')
+    outputnode = pe.Node(niu.IdentityInterface(fields=['anat_tpms']), name='outputnode')
 
-    ds_t1w_tpms = pe.Node(
+    extra_entities = extra_entities or {}
+
+    ds_anat_tpms = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             suffix='probseg',
             compress=True,
             dismiss_entities=['desc'],
+            **extra_entities,
         ),
-        name='ds_t1w_tpms',
+        name='ds_anat_tpms',
         run_without_submitting=True,
     )
-    ds_t1w_tpms.inputs.label = tpm_labels
+    ds_anat_tpms.inputs.label = tpm_labels
 
     # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w_tpms, [('t1w_tpms', 'in_file'),
+        (inputnode, ds_anat_tpms, [('anat_tpms', 'in_file'),
                                   ('source_files', 'source_file')]),
-        (ds_t1w_tpms, outputnode, [('out_file', 't1w_tpms')]),
+        (ds_anat_tpms, outputnode, [('out_file', 'anat_tpms')]),
     ])
     # fmt:on
 
@@ -501,8 +531,9 @@ def init_ds_tpms_wf(*, output_dir, name='ds_tpms_wf', tpm_labels=BIDS_TISSUE_ORD
 
 def init_ds_template_registration_wf(
     *,
-    output_dir,
-    name='ds_template_registration_wf',
+    output_dir: str,
+    image_type: ty.Literal['T1w', 'T2w'],
+    name: str = 'ds_template_registration_wf',
 ):
     """
     Save template registration transforms
@@ -511,6 +542,8 @@ def init_ds_template_registration_wf(
     ----------
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    image_type : :obj:`str`
+        Anatomical image type (T1w, T2w, etc)
     name : :obj:`str`
         Workflow name (default: anat_derivatives_wf)
 
@@ -519,7 +552,7 @@ def init_ds_template_registration_wf(
     template
         Template space and specifications
     source_files
-        List of input T1w images
+        List of input anatomical images
     anat2std_xfm
         Nonlinear spatial transform to resample imaging data given in anatomical space
         into standard space.
@@ -538,44 +571,44 @@ def init_ds_template_registration_wf(
         name='outputnode',
     )
 
-    ds_std2t1w_xfm = pe.MapNode(
+    ds_std2anat_xfm = pe.MapNode(
         DerivativesDataSink(
             base_directory=output_dir,
-            to='T1w',
+            to=image_type,
             mode='image',
             suffix='xfm',
             dismiss_entities=['desc'],
         ),
         iterfield=('in_file', 'from'),
-        name='ds_std2t1w_xfm',
+        name='ds_std2anat_xfm',
         run_without_submitting=True,
     )
 
-    ds_t1w2std_xfm = pe.MapNode(
+    ds_anat2std_xfm = pe.MapNode(
         DerivativesDataSink(
             base_directory=output_dir,
             mode='image',
             suffix='xfm',
             dismiss_entities=['desc'],
-            **{'from': 'T1w'},
+            **{'from': image_type},
         ),
         iterfield=('in_file', 'to'),
-        name='ds_t1w2std_xfm',
+        name='ds_anat2std_xfm',
         run_without_submitting=True,
     )
 
     # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w2std_xfm, [
+        (inputnode, ds_anat2std_xfm, [
             ('anat2std_xfm', 'in_file'),
             (('template', _combine_cohort), 'to'),
             ('source_files', 'source_file')]),
-        (inputnode, ds_std2t1w_xfm, [
+        (inputnode, ds_std2anat_xfm, [
             ('std2anat_xfm', 'in_file'),
             (('template', _combine_cohort), 'from'),
             ('source_files', 'source_file')]),
-        (ds_t1w2std_xfm, outputnode, [('out_file', 'anat2std_xfm')]),
-        (ds_std2t1w_xfm, outputnode, [('out_file', 'std2anat_xfm')]),
+        (ds_anat2std_xfm, outputnode, [('out_file', 'anat2std_xfm')]),
+        (ds_std2anat_xfm, outputnode, [('out_file', 'std2anat_xfm')]),
     ])
     # fmt:on
 
@@ -584,11 +617,13 @@ def init_ds_template_registration_wf(
 
 def init_ds_fs_registration_wf(
     *,
-    output_dir,
-    name='ds_fs_registration_wf',
+    output_dir: str,
+    image_type: ty.Literal['T1w', 'T2w'],
+    name: str = 'ds_fs_registration_wf',
 ):
     """
-    Save rigid registration between subject anatomical template and FreeSurfer T1.mgz
+    Save rigid registration between subject anatomical template and either
+    FreeSurfer T1.mgz or T2.mgz
 
     Parameters
     ----------
@@ -600,17 +635,17 @@ def init_ds_fs_registration_wf(
     Inputs
     ------
     source_files
-        List of input T1w images
-    fsnative2t1w_xfm
+        List of input anatomical images
+    fsnative2anat_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed
-        subject space to T1w
+        subject space to T1/T2
 
     Outputs
     -------
-    t1w2fsnative_xfm
-        LTA-style affine matrix translating from T1w to
+    anat2fsnative_xfm
+        LTA-style affine matrix translating from T1/T2 to
         FreeSurfer-conformed subject space
-    fsnative2t1w_xfm
+    fsnative2anat_xfm
         LTA-style affine matrix translating from FreeSurfer-conformed
         subject space to T1w
 
@@ -618,11 +653,11 @@ def init_ds_fs_registration_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=['source_files', 'fsnative2t1w_xfm']),
+        niu.IdentityInterface(fields=['source_files', 'fsnative2anat_xfm']),
         name='inputnode',
     )
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=['fsnative2t1w_xfm', 't1w2fsnative_xfm']),
+        niu.IdentityInterface(fields=['fsnative2anat_xfm', 'anat2fsnative_xfm']),
         name='outputnode',
     )
 
@@ -630,40 +665,40 @@ def init_ds_fs_registration_wf(
 
     # FS native space transforms
     lta2itk = pe.Node(ConcatenateXFMs(inverse=True), name='lta2itk', run_without_submitting=True)
-    ds_t1w_fsnative = pe.Node(
+    ds_anat_fsnative = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             mode='image',
             to='fsnative',
             suffix='xfm',
             extension='txt',
-            **{'from': 'T1w'},
+            **{'from': image_type},
         ),
-        name='ds_t1w_fsnative',
+        name='ds_anat_fsnative',
         run_without_submitting=True,
     )
-    ds_fsnative_t1w = pe.Node(
+    ds_fsnative_anat = pe.Node(
         DerivativesDataSink(
             base_directory=output_dir,
             mode='image',
-            to='T1w',
+            to=image_type,
             suffix='xfm',
             extension='txt',
             **{'from': 'fsnative'},
         ),
-        name='ds_fsnative_t1w',
+        name='ds_fsnative_anat',
         run_without_submitting=True,
     )
 
     # fmt:off
     workflow.connect([
-        (inputnode, lta2itk, [('fsnative2t1w_xfm', 'in_xfms')]),
-        (inputnode, ds_t1w_fsnative, [('source_files', 'source_file')]),
-        (lta2itk, ds_t1w_fsnative, [('out_inv', 'in_file')]),
-        (inputnode, ds_fsnative_t1w, [('source_files', 'source_file')]),
-        (lta2itk, ds_fsnative_t1w, [('out_xfm', 'in_file')]),
-        (ds_fsnative_t1w, outputnode, [('out_file', 'fsnative2t1w_xfm')]),
-        (ds_t1w_fsnative, outputnode, [('out_file', 't1w2fsnative_xfm')]),
+        (inputnode, lta2itk, [('fsnative2anat_xfm', 'in_xfms')]),
+        (inputnode, ds_anat_fsnative, [('source_files', 'source_file')]),
+        (lta2itk, ds_anat_fsnative, [('out_inv', 'in_file')]),
+        (inputnode, ds_fsnative_anat, [('source_files', 'source_file')]),
+        (lta2itk, ds_fsnative_anat, [('out_xfm', 'in_file')]),
+        (ds_fsnative_anat, outputnode, [('out_file', 'fsnative2anat_xfm')]),
+        (ds_anat_fsnative, outputnode, [('out_file', 'anat2fsnative_xfm')]),
     ])
     # fmt:on
     return workflow
@@ -671,7 +706,6 @@ def init_ds_fs_registration_wf(
 
 def init_ds_surfaces_wf(
     *,
-    bids_root: str,
     output_dir: str,
     surfaces: list[str],
     name='ds_surfaces_wf',
@@ -693,7 +727,7 @@ def init_ds_surfaces_wf(
     Inputs
     ------
     source_files
-        List of input T1w images
+        List of input anatomical images
     ``<surface>``
         Left and right GIFTIs for each surface passed to ``surfaces``
 
@@ -731,6 +765,8 @@ def init_ds_surfaces_wf(
                 ds_surf.inputs.desc = 'reg'
                 if surf == 'sphere_reg_fsLR':
                     ds_surf.inputs.space = 'fsLR'
+                elif surf == 'sphere_reg_dhcpAsym':
+                    ds_surf.inputs.space = 'dhcpAsym'
 
         # fmt:off
         workflow.connect([
@@ -893,13 +929,13 @@ def init_ds_anat_volumes_wf(
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                # Original T1w image
+                # Original anat image
                 'source_files',
-                # T1w-space images
-                't1w_preproc',
-                't1w_mask',
-                't1w_dseg',
-                't1w_tpms',
+                # anat-space images
+                'anat_preproc',
+                'anat_mask',
+                'anat_dseg',
+                'anat_tpms',
                 # Template
                 'ref_file',
                 'anat2std_xfm',
@@ -918,7 +954,7 @@ def init_ds_anat_volumes_wf(
     gen_ref = pe.Node(GenerateSamplingReference(), name='gen_ref', mem_gb=0.01)
 
     # Mask T1w preproc images
-    mask_t1w = pe.Node(ApplyMask(), name='mask_t1w')
+    mask_anat = pe.Node(ApplyMask(), name='mask_anat')
 
     # Resample T1w-space inputs
     anat2std_t1w = pe.Node(
@@ -979,15 +1015,15 @@ def init_ds_anat_volumes_wf(
             ('ref_file', 'fixed_image'),
             (('resolution', _is_native), 'keep_native'),
         ]),
-        (inputnode, mask_t1w, [
-            ('t1w_preproc', 'in_file'),
-            ('t1w_mask', 'in_mask'),
+        (inputnode, mask_anat, [
+            ('anat_preproc', 'in_file'),
+            ('anat_mask', 'in_mask'),
         ]),
-        (mask_t1w, anat2std_t1w, [('out_file', 'input_image')]),
-        (inputnode, anat2std_mask, [('t1w_mask', 'input_image')]),
-        (inputnode, anat2std_dseg, [('t1w_dseg', 'input_image')]),
-        (inputnode, anat2std_tpms, [('t1w_tpms', 'input_image')]),
-        (inputnode, gen_ref, [('t1w_preproc', 'moving_image')]),
+        (mask_anat, anat2std_t1w, [('out_file', 'input_image')]),
+        (inputnode, anat2std_mask, [('anat_mask', 'input_image')]),
+        (inputnode, anat2std_dseg, [('anat_dseg', 'input_image')]),
+        (inputnode, anat2std_tpms, [('anat_tpms', 'input_image')]),
+        (inputnode, gen_ref, [('anat_preproc', 'moving_image')]),
         (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
         (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
         (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
@@ -1018,13 +1054,12 @@ def init_ds_anat_volumes_wf(
     return workflow
 
 
-def init_anat_second_derivatives_wf(
+def init_ds_fs_segs_wf(
     *,
     bids_root: str,
     output_dir: str,
-    cifti_output: ty.Literal['91k', '170k', False],
-    name='anat_second_derivatives_wf',
-    tpm_labels=BIDS_TISSUE_ORDER,
+    extra_entities: dict | None = None,
+    name='ds_fs_segs_wf',
 ):
     """
     Set up a battery of datasinks to store derivatives in the right location.
@@ -1035,52 +1070,28 @@ def init_anat_second_derivatives_wf(
         Root path of BIDS dataset
     output_dir : :obj:`str`
         Directory in which to save derivatives
+    extra_entities : :obj:`dict` or None
+        Additional entities to add to filename
     name : :obj:`str`
-        Workflow name (default: anat_derivatives_wf)
-    tpm_labels : :obj:`tuple`
-        Tissue probability maps in order
+        Workflow name (default: ds_anat_segs_wf)
 
     Inputs
     ------
-    template
-        Template space and specifications
+    anat_fs_aparc
+        FreeSurfer's aparc+aseg segmentation, in native anatomical space
+    anat_fs_aseg
+        FreeSurfer's aseg segmentation, in native anatomical space
     source_files
-        List of input T1w images
-    t1w_preproc
-        The T1w reference map, which is calculated as the average of bias-corrected
-        and preprocessed T1w images, defining the anatomical space.
-    t1w_mask
-        Mask of the ``t1w_preproc``
-    t1w_dseg
-        Segmentation in T1w space
-    t1w_tpms
-        Tissue probability maps in T1w space
-    anat2std_xfm
-        Nonlinear spatial transform to resample imaging data given in anatomical space
-        into standard space.
-    surfaces
-        GIFTI surfaces (gray/white boundary, midthickness, pial, inflated)
-    morphometrics
-        GIFTIs of cortical thickness, curvature, and sulcal depth
-    t1w_fs_aseg
-        FreeSurfer's aseg segmentation, in native T1w space
-    t1w_fs_aparc
-        FreeSurfer's aparc+aseg segmentation, in native T1w space
-    cifti_morph
-        Morphometric CIFTI-2 dscalar files
-    cifti_metadata
-        JSON files containing metadata dictionaries
-
+        List of input anatomical images
     """
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                'template',
                 'source_files',
-                't1w_fs_aseg',
-                't1w_fs_aparc',
+                'anat_fs_aseg',
+                'anat_fs_aparc',
             ]
         ),
         name='inputnode',
@@ -1089,28 +1100,38 @@ def init_anat_second_derivatives_wf(
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
+    extra_entities = extra_entities or {}
+
     # Parcellations
-    ds_t1w_fsaseg = pe.Node(
-        DerivativesDataSink(base_directory=output_dir, desc='aseg', suffix='dseg', compress=True),
-        name='ds_t1w_fsaseg',
+    ds_anat_fsaseg = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            desc='aseg',
+            suffix='dseg',
+            compress=True,
+            **extra_entities,
+        ),
+        name='ds_anat_fsaseg',
         run_without_submitting=True,
     )
-    ds_t1w_fsparc = pe.Node(
+    ds_anat_fsparc = pe.Node(
         DerivativesDataSink(
-            base_directory=output_dir, desc='aparcaseg', suffix='dseg', compress=True
+            base_directory=output_dir,
+            desc='aparcaseg',
+            suffix='dseg',
+            compress=True,
+            **extra_entities,
         ),
-        name='ds_t1w_fsparc',
+        name='ds_anat_fsparc',
         run_without_submitting=True,
     )
 
-    # fmt:off
     workflow.connect([
-        (inputnode, ds_t1w_fsaseg, [('t1w_fs_aseg', 'in_file'),
-                                    ('source_files', 'source_file')]),
-        (inputnode, ds_t1w_fsparc, [('t1w_fs_aparc', 'in_file'),
-                                    ('source_files', 'source_file')]),
-    ])
-    # fmt:on
+        (inputnode, ds_anat_fsaseg, [('anat_fs_aseg', 'in_file'),
+                                     ('source_files', 'source_file')]),
+        (inputnode, ds_anat_fsparc, [('anat_fs_aparc', 'in_file'),
+                                     ('source_files', 'source_file')]),
+    ])  # fmt:skip
 
     return workflow
 

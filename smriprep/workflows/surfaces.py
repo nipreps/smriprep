@@ -43,6 +43,7 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.freesurfer import PatchedRobustRegister as RobustRegister
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
+from niworkflows.interfaces.patches import FreeSurferSource
 from niworkflows.interfaces.utility import KeySelect
 from niworkflows.interfaces.workbench import (
     MetricDilate,
@@ -228,7 +229,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name='get_surfaces')
+    get_surfaces = pe.Node(FreeSurferSource(), name='get_surfaces')
 
     midthickness = pe.MapNode(
         MakeMidthickness(thickness=True, distance=0.5, out_name='midthickness'),
@@ -284,7 +285,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ])  # fmt:skip
     else:
         # Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
-        fs_base_inputs = autorecon1 = pe.Node(nio.FreeSurferSource(), name='fs_base_inputs')
+        fs_base_inputs = autorecon1 = pe.Node(FreeSurferSource(), name='fs_base_inputs')
 
         workflow.connect([
             (inputnode, fs_base_inputs, [
@@ -328,7 +329,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     return workflow
 
 
-def init_refinement_wf(*, name='refinement_wf'):
+def init_refinement_wf(
+    *, image_type: ty.Literal['T1w', 'T2w'] = 'T1w', name: str = 'refinement_wf'
+) -> Workflow:
     r"""
     Refine ANTs brain extraction with FreeSurfer segmentation
 
@@ -346,20 +349,12 @@ def init_refinement_wf(*, name='refinement_wf'):
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    fsnative2anat_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical
     reference_image
         Input
-    t2w
-        List of T2-weighted structural images (only first used)
-    flair
-        List of FLAIR images
-    skullstripped_t1
-        Skull-stripped T1-weighted image (or mask of image)
     ants_segs
         Brain tissue segmentation from ANTS ``antsBrainExtraction.sh``
-    corrected_t1
-        INU-corrected, merged T1-weighted image
     subjects_dir
         FreeSurfer SUBJECTS_DIR
     subject_id
@@ -367,14 +362,6 @@ def init_refinement_wf(*, name='refinement_wf'):
 
     Outputs
     -------
-    subjects_dir
-        FreeSurfer SUBJECTS_DIR
-    subject_id
-        FreeSurfer subject ID
-    t1w2fsnative_xfm
-        LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
-    fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
     out_brainmask
         Refined brainmask, derived from FreeSurfer's ``aseg`` volume
 
@@ -397,7 +384,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             fields=[
                 'reference_image',
                 'ants_segs',
-                'fsnative2t1w_xfm',
+                'fsnative2anat_xfm',
                 'subjects_dir',
                 'subject_id',
             ]
@@ -413,24 +400,22 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         name='outputnode',
     )
 
-    aseg_to_native_wf = init_segs_to_native_wf()
+    aseg_to_native_wf = init_segs_to_native_wf(image_type=image_type)
     refine = pe.Node(RefineBrainMask(), name='refine')
 
-    # fmt:off
     workflow.connect([
         # Refine ANTs mask, deriving new mask from FS' aseg
         (inputnode, aseg_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('reference_image', 'inputnode.in_file'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
         (inputnode, refine, [('reference_image', 'in_anat'),
                              ('ants_segs', 'in_ants')]),
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
         (refine, outputnode, [('out_file', 'out_brainmask')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
 
     return workflow
 
@@ -610,8 +595,8 @@ def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
 
 def init_surface_derivatives_wf(
     *,
-    cifti_output: ty.Literal['91k', '170k', False] = False,
-    name='surface_derivatives_wf',
+    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
+    name: str = 'surface_derivatives_wf',
 ):
     r"""
     Generate sMRIPrep derivatives from FreeSurfer derivatives
@@ -627,9 +612,9 @@ def init_surface_derivatives_wf(
     Inputs
     ------
     reference
-        Reference image in native T1w space, for defining a resampling grid
-    fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+        Reference image in native anatomical space, for defining a resampling grid
+    fsnative2anat_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical
     subjects_dir
         FreeSurfer SUBJECTS_DIR
     subject_id
@@ -643,9 +628,9 @@ def init_surface_derivatives_wf(
     morphometrics
         GIFTIs of cortical thickness, curvature, and sulcal depth
     out_aseg
-        FreeSurfer's aseg segmentation, in native T1w space
+        FreeSurfer's aseg segmentation, in native anatomical space
     out_aparc
-        FreeSurfer's aparc+aseg segmentation, in native T1w space
+        FreeSurfer's aparc+aseg segmentation, in native anatomical space
 
     See also
     --------
@@ -659,7 +644,7 @@ def init_surface_derivatives_wf(
             fields=[
                 'subjects_dir',
                 'subject_id',
-                'fsnative2t1w_xfm',
+                'fsnative2anat_xfm',
                 'reference',
             ]
         ),
@@ -679,8 +664,8 @@ def init_surface_derivatives_wf(
 
     gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=['inflated'])
     gifti_morph_wf = init_gifti_morphometrics_wf(morphometrics=['curv'])
-    aseg_to_native_wf = init_segs_to_native_wf()
-    aparc_to_native_wf = init_segs_to_native_wf(segmentation='aparc_aseg')
+    aseg_to_native_wf = init_segs_to_native_wf(image_type=image_type)
+    aparc_to_native_wf = init_segs_to_native_wf(image_type=image_type, segmentation='aparc_aseg')
 
     # fmt:off
     workflow.connect([
@@ -688,7 +673,7 @@ def init_surface_derivatives_wf(
         (inputnode, gifti_surfaces_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
         (inputnode, gifti_morph_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
@@ -698,13 +683,13 @@ def init_surface_derivatives_wf(
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('reference', 'inputnode.in_file'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
         (inputnode, aparc_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('reference', 'inputnode.in_file'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
 
         # Output
@@ -863,8 +848,8 @@ def init_gifti_surfaces_wf(
     ``lh/rh.inflated``, and ``lh/rh.white``.
 
     Vertex coordinates are :py:class:`transformed
-    <smriprep.interfaces.NormalizeSurf>` to align with native T1w space
-    when ``fsnative2t1w_xfm`` is provided.
+    <smriprep.interfaces.NormalizeSurf>` to align with native anatomical space
+    when ``fsnative2anat_xfm`` is provided.
 
     Workflow Graph
         .. workflow::
@@ -880,7 +865,7 @@ def init_gifti_surfaces_wf(
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
+    fsnative2anat_xfm
         LTA formatted affine transform file
 
     Outputs
@@ -896,7 +881,7 @@ def init_gifti_surfaces_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(['subjects_dir', 'subject_id', 'fsnative2t1w_xfm']),
+        niu.IdentityInterface(['subjects_dir', 'subject_id', 'fsnative2anat_xfm']),
         name='inputnode',
     )
     outputnode = pe.Node(niu.IdentityInterface(['surfaces', *surfaces]), name='outputnode')
@@ -931,7 +916,7 @@ def init_gifti_surfaces_wf(
             ('subject_id', 'subject_id'),
         ]),
         (inputnode, fix_surfs, [
-            ('fsnative2t1w_xfm', 'transform_file'),
+            ('fsnative2anat_xfm', 'transform_file'),
         ]),
         (get_surfaces, surface_list, [
             (surf, f'in{i}') for i, surf in enumerate(surfaces, start=1)
@@ -973,8 +958,6 @@ def init_gifti_morphometrics_wf(
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
-        LTA formatted affine transform file (inverse)
 
     Outputs
     -------
@@ -1002,7 +985,7 @@ def init_gifti_morphometrics_wf(
         name='outputnode',
     )
 
-    get_subject = pe.Node(nio.FreeSurferSource(), name='get_surfaces')
+    get_subject = pe.Node(FreeSurferSource(), name='get_surfaces')
 
     morphometry_list = pe.Node(
         niu.Merge(len(morphometrics), ravel_inputs=True),
@@ -1184,7 +1167,12 @@ def init_hcp_morphometrics_wf(
     return workflow
 
 
-def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
+def init_segs_to_native_wf(
+    *,
+    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
+    segmentation: ty.Literal['aseg', 'aparc_aseg', 'wmparc'] = 'aseg',
+    name: str = 'segs_to_native_wf',
+) -> Workflow:
     """
     Get a segmentation from FreeSurfer conformed space into native T1w space.
 
@@ -1198,19 +1186,21 @@ def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
 
     Parameters
     ----------
+    image_type
+        MR anatomical image type ('T1w' or 'T2w')
     segmentation
         The name of a segmentation ('aseg' or 'aparc_aseg' or 'wmparc')
 
     Inputs
     ------
     in_file
-        Anatomical, merged T1w image after INU correction
+        Anatomical, merged anatomical image after INU correction
     subjects_dir
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    fsnative2anat_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical
 
     Outputs
     -------
@@ -1220,16 +1210,16 @@ def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
     """
     workflow = Workflow(name=f'{name}_{segmentation}')
     inputnode = pe.Node(
-        niu.IdentityInterface(['in_file', 'subjects_dir', 'subject_id', 'fsnative2t1w_xfm']),
+        niu.IdentityInterface(['in_file', 'subjects_dir', 'subject_id', 'fsnative2anat_xfm']),
         name='inputnode',
     )
     outputnode = pe.Node(niu.IdentityInterface(['out_file']), name='outputnode')
     # Extract the aseg and aparc+aseg outputs
-    fssource = pe.Node(nio.FreeSurferSource(), name='fs_datasource')
+    fssource = pe.Node(FreeSurferSource(), name='fs_datasource')
 
     lta = pe.Node(ConcatenateXFMs(out_fmt='fs'), name='lta', run_without_submitting=True)
 
-    # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
+    # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2anat_xfm,
     # and convert to NIfTI while we're at it
     resample = pe.Node(
         fs.ApplyVolTransform(transformed_file='seg.nii.gz', interp='nearest'),
@@ -1254,20 +1244,20 @@ def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
 
         segmentation = (segmentation, _sel)
 
-    # fmt:off
+    anat = 'T2' if image_type == 'T2w' else 'T1'
+
     workflow.connect([
         (inputnode, fssource, [
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id')]),
         (inputnode, lta, [('in_file', 'reference'),
-                          ('fsnative2t1w_xfm', 'in_xfms')]),
-        (fssource, lta, [('T1', 'moving')]),
+                          ('fsnative2anat_xfm', 'in_xfms')]),
+        (fssource, lta, [(anat, 'moving')]),
         (inputnode, resample, [('in_file', 'target_file')]),
         (fssource, resample, [(segmentation, 'source_file')]),
         (lta, resample, [('out_xfm', 'lta_file')]),
         (resample, outputnode, [('transformed_file', 'out_file')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
     return workflow
 
 
