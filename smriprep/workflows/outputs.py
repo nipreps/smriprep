@@ -731,6 +731,8 @@ def init_ds_surfaces_wf(
                 ds_surf.inputs.desc = 'reg'
                 if surf == 'sphere_reg_fsLR':
                     ds_surf.inputs.space = 'fsLR'
+                elif surf == 'sphere_reg':
+                    ds_surf.inputs.space = 'fsaverage'
 
         # fmt:off
         workflow.connect([
