@@ -724,15 +724,11 @@ def init_ds_surfaces_wf(
             run_without_submitting=True,
         )
         if surf.startswith('sphere_reg'):
-            if surf == 'sphere_reg_msm':
-                ds_surf.inputs.desc = 'msmsulc'
+            ds_surf.inputs.space, ds_surf.inputs.desc = 'fsaverage', 'reg'  # Default
+            if surf == 'sphere_reg_fsLR':
                 ds_surf.inputs.space = 'fsLR'
-            else:
-                ds_surf.inputs.desc = 'reg'
-                if surf == 'sphere_reg_fsLR':
-                    ds_surf.inputs.space = 'fsLR'
-                elif surf == 'sphere_reg':
-                    ds_surf.inputs.space = 'fsaverage'
+            elif surf == 'sphere_reg_msm':
+                ds_surf.inputs.space, ds_surf.inputs.desc = 'fsLR', 'msmsulc'
 
         # fmt:off
         workflow.connect([
