@@ -762,7 +762,9 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
             image_type='T1w',
             name='anat_template_wf',
         )
-        ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_anat=num_t1w)
+        ds_template_wf = init_ds_template_wf(
+            output_dir=output_dir, num_anat=num_t1w, image_type='T1w'
+        )
 
         # fmt:off
         workflow.connect([
@@ -992,7 +994,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             omp_nthreads=omp_nthreads,
             templates=templates,
         )
-        ds_template_registration_wf = init_ds_template_registration_wf(output_dir=output_dir)
+        ds_template_registration_wf = init_ds_template_registration_wf(
+            output_dir=output_dir, image_type='T1w'
+        )
 
         # fmt:off
         workflow.connect([
@@ -1075,7 +1079,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
 
     fsnative_xfms = precomputed.get('transforms', {}).get('fsnative')
     if not fsnative_xfms:
-        ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir)
+        ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir, image_type='T1w')
         # fmt:off
         workflow.connect([
             (sourcefile_buffer, ds_fs_registration_wf, [
@@ -1365,7 +1369,7 @@ def init_anat_template_wf(
     longitudinal: bool,
     omp_nthreads: int,
     num_files: int,
-    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
+    image_type: ty.Literal['T1w', 'T2w'],
     name: str = 'anat_template_wf',
 ):
     """

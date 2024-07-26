@@ -232,7 +232,7 @@ def init_ds_template_wf(
     *,
     num_anat: int,
     output_dir: str,
-    image_type: str = 'T1w',
+    image_type: ty.Literal['T1w', 'T2w'],
     name: str = 'ds_template_wf',
 ):
     """
@@ -532,7 +532,7 @@ def init_ds_tpms_wf(
 def init_ds_template_registration_wf(
     *,
     output_dir: str,
-    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
+    image_type: ty.Literal['T1w', 'T2w'],
     name: str = 'ds_template_registration_wf',
 ):
     """
@@ -618,7 +618,7 @@ def init_ds_template_registration_wf(
 def init_ds_fs_registration_wf(
     *,
     output_dir: str,
-    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
+    image_type: ty.Literal['T1w', 'T2w'],
     name: str = 'ds_fs_registration_wf',
 ):
     """
