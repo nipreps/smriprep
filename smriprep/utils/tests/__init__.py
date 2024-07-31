@@ -1,4 +1,4 @@
-from niworkflows.data import Loader
+from acres import Loader
 
 load_data = Loader(__package__)
 

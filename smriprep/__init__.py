@@ -9,6 +9,8 @@ API for developers
 
 """
 
+from smriprep.data import load as load_data
+
 from .__about__ import (
     __copyright__,
     __credits__,
@@ -19,4 +21,5 @@ __all__ = [
     '__copyright__',
     '__credits__',
     '__version__',
+    'load_data',
 ]

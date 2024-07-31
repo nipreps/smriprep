@@ -28,13 +28,13 @@ from pathlib import Path
 from bids.layout import BIDSLayout
 from niworkflows.data import load as nwf_load
 
-from ..data import load_resource
+import smriprep
 
 
 def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patterns=None):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:
-        _spec, _patterns = tuple(loads(load_resource('io_spec.json').read_text()).values())
+        _spec, _patterns = tuple(loads(smriprep.load_data('io_spec.json').read_text()).values())
 
         if spec is None:
             spec = _spec
@@ -96,11 +96,11 @@ def write_derivative_description(bids_dir, deriv_dir):
 
     .. testsetup::
 
-    >>> from smriprep.data import load_resource
+    >>> from smriprep.data import load
     >>> from pathlib import Path
     >>> from tempfile import TemporaryDirectory
     >>> tmpdir = TemporaryDirectory()
-    >>> bids_dir = load_resource('tests')
+    >>> bids_dir = load('tests')
     >>> deriv_desc = Path(tmpdir.name) / 'dataset_description.json'
 
     .. doctest::
