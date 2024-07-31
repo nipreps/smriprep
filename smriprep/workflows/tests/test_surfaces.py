@@ -7,7 +7,8 @@ import numpy as np
 import pytest
 from nipype.pipeline import engine as pe
 
-from ...data import load_resource
+from smriprep.interfaces.tests.data import load as load_test_data
+
 from ..surfaces import init_anat_ribbon_wf, init_gifti_surfaces_wf
 
 
@@ -23,9 +24,7 @@ def test_ribbon_workflow(tmp_path: Path):
 
     # Low-res file that includes the fsaverage surfaces in its bounding box
     # We will use it both as a template and a comparison.
-    test_ribbon = load_resource(
-        '../interfaces/tests/data/sub-fsaverage_res-4_desc-cropped_ribbon.nii.gz'
-    )
+    test_ribbon = load_test_data('sub-fsaverage_res-4_desc-cropped_ribbon.nii.gz')
 
     gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=['white', 'pial'])
     anat_ribbon_wf = init_anat_ribbon_wf()

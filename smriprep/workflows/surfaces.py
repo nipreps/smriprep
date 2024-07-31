@@ -53,10 +53,10 @@ from niworkflows.interfaces.workbench import (
     MetricResample,
 )
 
+import smriprep
 from smriprep.interfaces.surf import MakeRibbon
 from smriprep.interfaces.workbench import SurfaceResample
 
-from ..data import load_resource
 from ..interfaces.freesurfer import MakeMidthickness, ReconAll
 from ..interfaces.gifti import MetricMath
 from ..interfaces.workbench import CreateSignedDistanceVolume
@@ -723,7 +723,7 @@ def init_fsLR_reg_wf(*, name='fsLR_reg_wf'):
         iterfield=['sphere_in', 'sphere_project_to', 'sphere_unproject_from'],
         name='project_unproject',
     )
-    atlases = load_resource('atlases')
+    atlases = smriprep.load_data('atlases')
     project_unproject.inputs.sphere_project_to = [
         atlases / 'fs_L' / 'fsaverage.L.sphere.164k_fs_L.surf.gii',
         atlases / 'fs_R' / 'fsaverage.R.sphere.164k_fs_R.surf.gii',
@@ -804,8 +804,8 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
     # --out=${HEMI}. --verbose
-    atlases = load_resource('atlases')
-    msm_conf = load_resource(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
+    atlases = smriprep.load_data('atlases')
+    msm_conf = smriprep.load_data(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
     msmsulc = pe.MapNode(
         MSM(verbose=True, config_file=msm_conf),
         iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
@@ -1512,7 +1512,7 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
         name='outputnode',
     )
 
-    atlases = load_resource('atlases')
+    atlases = smriprep.load_data('atlases')
     select_surfaces = pe.Node(
         KeySelect(
             fields=[

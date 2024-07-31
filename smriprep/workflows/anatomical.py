@@ -54,7 +54,8 @@ from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.utils.misc import add_suffix
 from niworkflows.utils.spaces import Reference, SpatialReferences
 
-from ..data import load_resource
+import smriprep
+
 from ..interfaces import DerivativesDataSink
 from ..utils.misc import apply_lut as _apply_bids_lut
 from ..utils.misc import fs_isRunning as _fs_isRunning
@@ -1461,7 +1462,7 @@ An anatomical {image_type}-reference map was computed after registration of
 
     if num_files == 1:
         get1st = pe.Node(niu.Select(index=[0]), name='get1st')
-        outputnode.inputs.anat_realign_xfm = [str(load_resource('itkIdentityTransform.txt'))]
+        outputnode.inputs.anat_realign_xfm = [str(smriprep.load_data('itkIdentityTransform.txt'))]
 
         # fmt:off
         workflow.connect([

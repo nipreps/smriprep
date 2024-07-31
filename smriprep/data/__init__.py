@@ -1,25 +1,14 @@
-import atexit
-from contextlib import ExitStack
-from pathlib import Path
+"""sMRIPRep data files
 
-try:
-    from functools import cache
-except ImportError:  # PY38
-    from functools import lru_cache as cache
+.. autofunction:: load
 
-try:  # Prefer backport to leave consistency to dependency spec
-    from importlib_resources import as_file, files
-except ImportError:
-    from importlib.resources import as_file, files
+.. automethod:: load.readable
 
-__all__ = ['load_resource']
+.. automethod:: load.as_path
 
-exit_stack = ExitStack()
-atexit.register(exit_stack.close)
+.. automethod:: load.cached
+"""
 
-path = files(__package__)
+from acres import Loader
 
-
-@cache
-def load_resource(fname: str) -> Path:
-    return exit_stack.enter_context(as_file(path.joinpath(fname)))
+load = Loader(__package__)
