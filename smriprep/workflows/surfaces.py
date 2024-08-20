@@ -1226,20 +1226,8 @@ def init_segs_to_native_wf(
         name='resample',
     )
 
-    seg_mapping = {'aparc_aseg': 'aparc+', 'aparc_a2009s': 'a2009s+', 'aparc_dkt': 'DKTatlas+'}
-    if segmentation in seg_mapping:
-        name = seg_mapping[segmentation]
-
-        def _sel(files, name=name):
-            if isinstance(files, str):
-                return files
-
-            for fl in files:
-                if name in fl:
-                    return fl
-            raise FileNotFoundError
-
-        segmentation = (segmentation, _sel)  # type: ignore
+    select_seg = pe.Node(niu.Function(function=_select_seg), name='select_seg')
+    select_seg.inputs.segmentation = segmentation
 
     anat = 'T2' if image_type == 'T2w' else 'T1'
 
@@ -1251,7 +1239,8 @@ def init_segs_to_native_wf(
                           ('fsnative2anat_xfm', 'in_xfms')]),
         (fssource, lta, [(anat, 'moving')]),
         (inputnode, resample, [('in_file', 'target_file')]),
-        (fssource, resample, [(segmentation, 'source_file')]),
+        (fssource, select_seg, [(segmentation, 'in_files')]),
+        (select_seg, resample, [('out_file', 'source_file')]),
         (lta, resample, [('out_xfm', 'lta_file')]),
         (resample, outputnode, [('transformed_file', 'out_file')]),
     ])  # fmt:skip
@@ -1675,3 +1664,17 @@ def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> tu
 
     ret = tuple(all_surfs[surface] for surface in surfaces)
     return ret if len(ret) > 1 else ret[0]
+
+
+def _select_seg(in_files, segmentation):
+    if isinstance(in_files, str):
+        return in_files
+
+    seg_mapping = {'aparc_aseg': 'aparc+', 'aparc_a2009s': 'a2009s+', 'aparc_dkt': 'DKTatlas+'}
+    if segmentation in seg_mapping:
+        segmentation = seg_mapping[segmentation]
+
+        for fl in in_files:
+            if segmentation in fl:
+                return fl
+    raise FileNotFoundError(f'No segmentation containing "{segmentation}" was found.')
