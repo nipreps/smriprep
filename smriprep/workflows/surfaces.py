@@ -1240,7 +1240,7 @@ def init_segs_to_native_wf(
         (fssource, lta, [(anat, 'moving')]),
         (inputnode, resample, [('in_file', 'target_file')]),
         (fssource, select_seg, [(segmentation, 'in_files')]),
-        (select_seg, resample, [('out_file', 'source_file')]),
+        (select_seg, resample, [('out', 'source_file')]),
         (lta, resample, [('out_xfm', 'lta_file')]),
         (resample, outputnode, [('transformed_file', 'out_file')]),
     ])  # fmt:skip
