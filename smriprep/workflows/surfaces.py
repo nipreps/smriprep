@@ -1170,11 +1170,11 @@ def init_hcp_morphometrics_wf(
 def init_segs_to_native_wf(
     *,
     image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
-    segmentation: ty.Literal['aseg', 'aparc_aseg', 'wmparc'] = 'aseg',
+    segmentation: ty.Literal['aseg', 'aparc_aseg', 'aparc_a2009s', 'aparc_dkt'] | str = 'aseg',
     name: str = 'segs_to_native_wf',
 ) -> Workflow:
     """
-    Get a segmentation from FreeSurfer conformed space into native T1w space.
+    Get a segmentation from FreeSurfer conformed space into native anatomical space.
 
     Workflow Graph
         .. workflow::
@@ -1219,30 +1219,27 @@ def init_segs_to_native_wf(
 
     lta = pe.Node(ConcatenateXFMs(out_fmt='fs'), name='lta', run_without_submitting=True)
 
-    # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2anat_xfm,
+    # Resample from Freesurfer anat to native anat, applying any offset in fsnative2anat_xfm,
     # and convert to NIfTI while we're at it
     resample = pe.Node(
         fs.ApplyVolTransform(transformed_file='seg.nii.gz', interp='nearest'),
         name='resample',
     )
 
-    if segmentation.startswith('aparc'):
-        if segmentation == 'aparc_aseg':
+    seg_mapping = {'aparc_aseg': 'aparc+', 'aparc_a2009s': 'a2009s+', 'aparc_dkt': 'DKTatlas+'}
+    if segmentation in seg_mapping:
+        name = seg_mapping[segmentation]
 
-            def _sel(x):
-                return [parc for parc in x if 'aparc+' in parc][0]  # noqa
+        def _sel(files, name=name):
+            if isinstance(files, str):
+                return files
 
-        elif segmentation == 'aparc_a2009s':
+            for fl in files:
+                if name in fl:
+                    return fl
+            raise FileNotFoundError
 
-            def _sel(x):
-                return [parc for parc in x if 'a2009s+' in parc][0]  # noqa
-
-        elif segmentation == 'aparc_dkt':
-
-            def _sel(x):
-                return [parc for parc in x if 'DKTatlas+' in parc][0]  # noqa
-
-        segmentation = (segmentation, _sel)
+        segmentation = (segmentation, _sel)  # type: ignore
 
     anat = 'T2' if image_type == 'T2w' else 'T1'
 
