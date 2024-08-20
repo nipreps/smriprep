@@ -60,7 +60,7 @@ def test_ribbon_workflow(tmp_path: Path):
     [
         ('aparc+aseg.mgz', 'aparc_aseg', 'aparc+aseg.mgz'),
         (['a2009s+aseg.mgz', 'aparc+aseg.mgz'], 'aparc_aseg', 'aparc+aseg.mgz'),
-        (['a2009s+aseg.mgz', 'aparc+aseg.mgz'], 'aparc_2009s', 'a2009s+aseg.mgz'),
+        (['a2009s+aseg.mgz', 'aparc+aseg.mgz'], 'aparc_a2009s', 'a2009s+aseg.mgz'),
         ('wmparc.mgz', 'wmparc.mgz', 'wmparc.mgz'),
     ],
 )
