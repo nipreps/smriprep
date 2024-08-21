@@ -1170,11 +1170,11 @@ def init_hcp_morphometrics_wf(
 def init_segs_to_native_wf(
     *,
     image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
-    segmentation: ty.Literal['aseg', 'aparc_aseg', 'wmparc'] = 'aseg',
+    segmentation: ty.Literal['aseg', 'aparc_aseg', 'aparc_a2009s', 'aparc_dkt'] | str = 'aseg',
     name: str = 'segs_to_native_wf',
 ) -> Workflow:
     """
-    Get a segmentation from FreeSurfer conformed space into native T1w space.
+    Get a segmentation from FreeSurfer conformed space into native anatomical space.
 
     Workflow Graph
         .. workflow::
@@ -1219,30 +1219,15 @@ def init_segs_to_native_wf(
 
     lta = pe.Node(ConcatenateXFMs(out_fmt='fs'), name='lta', run_without_submitting=True)
 
-    # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2anat_xfm,
+    # Resample from Freesurfer anat to native anat, applying any offset in fsnative2anat_xfm,
     # and convert to NIfTI while we're at it
     resample = pe.Node(
         fs.ApplyVolTransform(transformed_file='seg.nii.gz', interp='nearest'),
         name='resample',
     )
 
-    if segmentation.startswith('aparc'):
-        if segmentation == 'aparc_aseg':
-
-            def _sel(x):
-                return [parc for parc in x if 'aparc+' in parc][0]  # noqa
-
-        elif segmentation == 'aparc_a2009s':
-
-            def _sel(x):
-                return [parc for parc in x if 'a2009s+' in parc][0]  # noqa
-
-        elif segmentation == 'aparc_dkt':
-
-            def _sel(x):
-                return [parc for parc in x if 'DKTatlas+' in parc][0]  # noqa
-
-        segmentation = (segmentation, _sel)
+    select_seg = pe.Node(niu.Function(function=_select_seg), name='select_seg')
+    select_seg.inputs.segmentation = segmentation
 
     anat = 'T2' if image_type == 'T2w' else 'T1'
 
@@ -1254,7 +1239,8 @@ def init_segs_to_native_wf(
                           ('fsnative2anat_xfm', 'in_xfms')]),
         (fssource, lta, [(anat, 'moving')]),
         (inputnode, resample, [('in_file', 'target_file')]),
-        (fssource, resample, [(segmentation, 'source_file')]),
+        (fssource, select_seg, [(segmentation, 'in_files')]),
+        (select_seg, resample, [('out', 'source_file')]),
         (lta, resample, [('out_xfm', 'lta_file')]),
         (resample, outputnode, [('transformed_file', 'out_file')]),
     ])  # fmt:skip
@@ -1678,3 +1664,17 @@ def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> tu
 
     ret = tuple(all_surfs[surface] for surface in surfaces)
     return ret if len(ret) > 1 else ret[0]
+
+
+def _select_seg(in_files, segmentation):
+    if isinstance(in_files, str):
+        return in_files
+
+    seg_mapping = {'aparc_aseg': 'aparc+', 'aparc_a2009s': 'a2009s+', 'aparc_dkt': 'DKTatlas+'}
+    if segmentation in seg_mapping:
+        segmentation = seg_mapping[segmentation]
+
+        for fl in in_files:
+            if segmentation in fl:
+                return fl
+    raise FileNotFoundError(f'No segmentation containing "{segmentation}" was found.')

@@ -9,7 +9,7 @@ from nipype.pipeline import engine as pe
 
 from smriprep.interfaces.tests.data import load as load_test_data
 
-from ..surfaces import init_anat_ribbon_wf, init_gifti_surfaces_wf
+from ..surfaces import _select_seg, init_anat_ribbon_wf, init_gifti_surfaces_wf
 
 
 def test_ribbon_workflow(tmp_path: Path):
@@ -53,3 +53,16 @@ def test_ribbon_workflow(tmp_path: Path):
     assert np.allclose(ribbon.affine, expected.affine)
     # Mask data is binary, so we can use np.array_equal
     assert np.array_equal(ribbon.dataobj, expected.dataobj)
+
+
+@pytest.mark.parametrize(
+    ('in_files', 'segmentation', 'expected'),
+    [
+        ('aparc+aseg.mgz', 'aparc_aseg', 'aparc+aseg.mgz'),
+        (['a2009s+aseg.mgz', 'aparc+aseg.mgz'], 'aparc_aseg', 'aparc+aseg.mgz'),
+        (['a2009s+aseg.mgz', 'aparc+aseg.mgz'], 'aparc_a2009s', 'a2009s+aseg.mgz'),
+        ('wmparc.mgz', 'wmparc.mgz', 'wmparc.mgz'),
+    ],
+)
+def test_select_seg(in_files, segmentation, expected):
+    assert _select_seg(in_files, segmentation) == expected
