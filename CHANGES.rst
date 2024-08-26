@@ -1,3 +1,11 @@
+0.16.1 (August 26, 2024)
+========================
+A bug-fix release that reworks selection within the
+FreeSurfer to native segmentation resampling workflow.
+
+* FIX: Select function in segmentation resampling workflow (#450)
+
+
 0.16.0 (July 31, 2024)
 ======================
 Start of the 0.16.x minor series.
