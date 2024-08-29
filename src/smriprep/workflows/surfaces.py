@@ -54,6 +54,7 @@ from niworkflows.interfaces.workbench import (
 )
 
 import smriprep
+from smriprep.interfaces.cifti import GenerateDScalar
 from smriprep.interfaces.surf import MakeRibbon
 from smriprep.interfaces.workbench import SurfaceResample
 
@@ -1476,18 +1477,13 @@ def init_morph_grayords_wf(
     thickness_fsLR
         HCP-style thickness file in CIFTI-2 format, resampled to fsLR
     """
-    import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-
-    from smriprep.interfaces.cifti import GenerateDScalar
 
     workflow = Workflow(name=name)
     workflow.__desc__ = f"""\
 *Grayordinate* "dscalar" files containing {grayord_density} samples were
 resampled onto fsLR using the Connectome Workbench [@hcppipelines].
 """
-
-    fslr_density = '32k' if grayord_density == '91k' else '59k'
 
     inputnode = pe.Node(
         niu.IdentityInterface(
@@ -1527,18 +1523,138 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
         name='outputnode',
     )
 
-    atlases = smriprep.load_data('atlases')
+    metrics = ['curv', 'sulc', 'thickness']
+    select_surfaces = pe.Node(
+        KeySelect(fields=metrics, keys=['L', 'R']),
+        name='select_surfaces',
+        run_without_submitting=True,
+    )
+
+    workflow.connect([
+        (hemisource, select_surfaces, [('hemi', 'key')]),
+    ]) # fmt:skip
+
+    for metric in metrics:
+        resample_and_mask_wf = init_resample_and_mask_wf(
+            grayord_density=grayord_density,
+            omp_nthreads=omp_nthreads,
+            mem_gb=1,
+            name=f'resample_and_mask_{metric}_wf',
+        )
+        cifti_metric = pe.JoinNode(
+            GenerateDScalar(grayordinates=grayord_density, scalar_name=metric),
+            name=f'cifti_{metric}',
+            joinfield=['scalar_surfs'],
+            joinsource='hemisource',
+        )
+
+        workflow.connect([
+            (inputnode, select_surfaces, [(metric, metric)]),
+            (inputnode, resample_and_mask_wf, [
+                ('midthickness', 'inputnode.midthickness'),
+                ('midthickness_fsLR', 'inputnode.midthickness_fsLR'),
+                ('sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
+                ('roi', 'inputnode.cortex_mask'),
+            ]),
+            (hemisource, resample_and_mask_wf, [('hemi', 'inputnode.hemi')]),
+            (select_surfaces, resample_and_mask_wf, [(metric, 'inputnode.in_file')]),
+            (resample_and_mask_wf, cifti_metric, [('outputnode.out_file', 'scalar_surfs')]),
+            (cifti_metric, outputnode, [
+                ('out_file', f'{metric}_fsLR'),
+                ('out_metadata', f'{metric}_metadata'),
+            ]),
+        ])  # fmt:skip
+
+    return workflow
+
+
+def init_resample_and_mask_wf(
+    grayord_density: ty.Literal['91k', '170k'],
+    omp_nthreads: int,
+    mem_gb: float,
+    name: str = 'resample_and_mask_wf',
+):
+    """Resample GIFTI surfaces to fsLR space and mask with fsLR ROI.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: colored
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_resample_and_mask_wf
+            wf = init_resample_and_mask_wf(
+                grayord_density='91k',
+                omp_nthreads=1,
+                mem_gb=1,
+            )
+
+    Parameters
+    ----------
+    grayord_density : :class:`str`
+        Either ``"91k"`` or ``"170k"``, representing the total *grayordinates*.
+    omp_nthreads : :class:`int`
+        Maximum number of threads an individual process may use
+    mem_gb : :class:`float`
+        Size of BOLD file in GB
+    name : :class:`str`
+        Name of workflow (default: ``"resample_and_mask_wf"``)
+
+    Inputs
+    ------
+    in_file : :class:`str`
+        Path to metric file in subject space
+    hemi : :class:`str`
+        Hemisphere identifier (``"L"`` or ``"R"``)
+    midthickness : :class:`list` of :class:`str`
+        Path to left and right hemisphere midthickness GIFTI surfaces.
+    midthickness_fsLR : :class:`list` of :class:`str`
+        Path to left and right hemisphere midthickness GIFTI surfaces in fsLR space.
+    sphere_reg_fsLR : :class:`list` of :class:`str`
+        Path to left and right hemisphere sphere.reg GIFTI surfaces, mapping from subject to fsLR
+    cortex_mask : :class:`list` of :class:`str`
+        Path to left and right hemisphere cortex mask GIFTI files
+
+    Outputs
+    -------
+    metric_fsLR : :class:`str`
+        Path to metric resampled as GIFTI file in fsLR space
+
+    """
+    import templateflow.api as tf
+    from nipype.pipeline import engine as pe
+    from niworkflows.interfaces.utility import KeySelect
+
+    fslr_density = '32k' if grayord_density == '91k' else '59k'
+
+    workflow = pe.Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                'in_file',
+                'hemi',
+                'midthickness',
+                'midthickness_fsLR',
+                'sphere_reg_fsLR',
+                'cortex_mask',
+            ]
+        ),
+        name='inputnode',
+    )
+
+    outputnode = pe.Node(
+        niu.IdentityInterface(fields=['out_file']),
+        name='outputnode',
+    )
+
     select_surfaces = pe.Node(
         KeySelect(
             fields=[
-                'curv',
-                'sulc',
-                'thickness',
-                'roi',
                 'midthickness',
                 'midthickness_fsLR',
                 'sphere_reg_fsLR',
                 'template_sphere',
+                'cortex_mask',
                 'template_roi',
             ],
             keys=['L', 'R'],
@@ -1559,59 +1675,40 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
         )
         for hemi in ['L', 'R']
     ]
+    atlases = smriprep.load_data('atlases')
     select_surfaces.inputs.template_roi = [
         str(atlases / f'L.atlasroi.{fslr_density}_fs_LR.shape.gii'),
         str(atlases / f'R.atlasroi.{fslr_density}_fs_LR.shape.gii'),
     ]
 
+    resample_to_fsLR = pe.Node(
+        MetricResample(method='ADAP_BARY_AREA', area_surfs=True),
+        name='resample_to_fsLR',
+        mem_gb=1,
+        n_procs=omp_nthreads,
+    )
+    mask_fsLR = pe.Node(MetricMask(), name='mask_fsLR')
+
     workflow.connect([
         (inputnode, select_surfaces, [
-            ('curv', 'curv'),
-            ('sulc', 'sulc'),
-            ('thickness', 'thickness'),
-            ('roi', 'roi'),
             ('midthickness', 'midthickness'),
             ('midthickness_fsLR', 'midthickness_fsLR'),
             ('sphere_reg_fsLR', 'sphere_reg_fsLR'),
+            ('cortex_mask', 'cortex_mask'),
+            ('hemi', 'key'),
         ]),
-        (hemisource, select_surfaces, [('hemi', 'key')]),
+        (inputnode, resample_to_fsLR, [('in_file', 'in_file')]),
+        (select_surfaces, resample_to_fsLR, [
+            ('sphere_reg_fsLR', 'current_sphere'),
+            ('template_sphere', 'new_sphere'),
+            ('midthickness', 'current_area'),
+            ('midthickness_fsLR', 'new_area'),
+            ('cortex_mask', 'roi_metric'),
+        ]),
+        (select_surfaces, mask_fsLR, [('template_roi', 'mask')]),
+        (resample_to_fsLR, mask_fsLR, [('out_file', 'in_file')]),
+        (mask_fsLR, outputnode, [('out_file', 'out_file')]),
     ])  # fmt:skip
-
-    for metric in ('curv', 'sulc', 'thickness'):
-        resampler = pe.Node(
-            MetricResample(method='ADAP_BARY_AREA', area_surfs=True),
-            name=f'resample_{metric}',
-            n_procs=omp_nthreads,
-        )
-        mask_fsLR = pe.Node(
-            MetricMask(),
-            name=f'mask_{metric}',
-            n_procs=omp_nthreads,
-        )
-        cifti_metric = pe.JoinNode(
-            GenerateDScalar(grayordinates=grayord_density, scalar_name=metric),
-            name=f'cifti_{metric}',
-            joinfield=['scalar_surfs'],
-            joinsource='hemisource',
-        )
-
-        workflow.connect([
-            (select_surfaces, resampler, [
-                (metric, 'in_file'),
-                ('sphere_reg_fsLR', 'current_sphere'),
-                ('template_sphere', 'new_sphere'),
-                ('midthickness', 'current_area'),
-                ('midthickness_fsLR', 'new_area'),
-                ('roi', 'roi_metric'),
-            ]),
-            (select_surfaces, mask_fsLR, [('template_roi', 'mask')]),
-            (resampler, mask_fsLR, [('out_file', 'in_file')]),
-            (mask_fsLR, cifti_metric, [('out_file', 'scalar_surfs')]),
-            (cifti_metric, outputnode, [
-                ('out_file', f'{metric}_fsLR'),
-                ('out_metadata', f'{metric}_metadata'),
-            ]),
-        ])  # fmt:skip
 
     return workflow
 
