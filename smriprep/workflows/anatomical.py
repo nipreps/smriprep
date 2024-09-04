@@ -57,6 +57,8 @@ from niworkflows.utils.spaces import Reference, SpatialReferences
 import smriprep
 
 from ..interfaces import DerivativesDataSink
+
+# from ..interfaces.calc import T1T2Ratio
 from ..utils.misc import apply_lut as _apply_bids_lut
 from ..utils.misc import fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
@@ -645,6 +647,7 @@ BIDS dataset."""
                 'sphere_reg_fsLR',
                 'sphere_reg_msm',
                 'anat_ribbon',
+                't1t2_ratio',
                 # Reverse transform; not computable from forward transform
                 'std2anat_xfm',
                 # Metadata
@@ -1307,6 +1310,16 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
     else:
         LOGGER.info('ANAT Stage 8a: Found pre-computed cortical ribbon mask')
         outputnode.inputs.anat_ribbon = precomputed['anat_ribbon']
+
+    if t2w and 't1t2ratio' not in precomputed:
+        LOGGER.info('ANAT Stage 8b: Creating T1w/T2w ratio map')
+        # Commented out to pacify linter.
+        # t1t2_ratio = pe.Node(T1T2Ratio(), name='t1t2_ratio')
+
+    elif not t2w:
+        LOGGER.info('ANAT No T2w images provided - skipping Stage 8b')
+    else:
+        LOGGER.info('ANAT Found precomputed T1w/T2w ratio map - skipping Stage 8b')
 
     # Stage 9: Baseline fsLR registration
     if len(precomputed.get('sphere_reg_fsLR', [])) < 2:
