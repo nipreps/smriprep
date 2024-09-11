@@ -195,7 +195,7 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
     )
 
     include_t2w = pe.Node(
-        niu.Function(function=_include_t2w, output_names['moving_image', 'get_T2w']),
+        niu.Function(function=_include_t2w, output_names=['moving_image', 'get_T2w']),
         name='include_t2w',
         run_without_submitting=True,
     )
