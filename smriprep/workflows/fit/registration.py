@@ -41,6 +41,7 @@ def init_register_template_wf(
     sloppy,
     omp_nthreads,
     templates,
+    use_T2w=False,
     name='register_template_wf',
 ):
     """
@@ -165,7 +166,7 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
     split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name='split_desc')
 
     tf_select = pe.Node(
-        TemplateFlowSelect(resolution=1 + sloppy),
+        TemplateFlowSelect(resolution=1 + sloppy, get_T2w=use_T2w),
         name='tf_select',
         run_without_submitting=True,
     )

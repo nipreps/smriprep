@@ -39,7 +39,7 @@ LOGGER = logging.getLogger('nipype.interface')
 
 
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
-    template = traits.Str('MNI152NLin2009cAsym', mandatory=True, desc='Template ID')
+    template = traits.Str(mandatory=True, desc='Template ID')
     atlas = InputMultiObject(traits.Str, desc='Specify an atlas')
     cohort = InputMultiObject(traits.Either(traits.Str, traits.Int), desc='Specify a cohort')
     resolution = InputMultiObject(traits.Int, desc='Specify a template resolution index')
@@ -117,7 +117,7 @@ class TemplateFlowSelect(SimpleInterface):
             self.inputs.template, specs, self.inputs.get_T2w
         )
         self._results['t1w_file'] = files['t1w']
-        if files['t2w'] is not None:
+        if self.inputs.get_T2w and files['t2w'] is not None:
             self._results['t2w_file'] = files['t2w']
         self._results['brain_mask'] = files['mask']
         return runtime
