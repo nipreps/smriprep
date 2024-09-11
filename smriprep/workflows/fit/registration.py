@@ -172,8 +172,9 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
     )
 
     # With the improvements from nipreps/niworkflows#342 this truncation is now necessary
-    trunc_mov = pe.Node(
-        ants.ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
+    trunc_mov = pe.MapNode(
+        ants.ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 255'),
+        iterfield='op1',
         name='trunc_mov',
     )
 
@@ -193,9 +194,13 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         run_without_submitting=True,
     )
 
+    def _has_t2w(moving_image):
+        return isinstance(moving_image, list) and len(moving_image) > 1
+
     # fmt:off
     workflow.connect([
         (inputnode, split_desc, [('template', 'template')]),
+        (inputnode, tf_select, [(('moving_image', _has_t2w), 'get_T2w')]),
         (inputnode, trunc_mov, [('moving_image', 'op1')]),
         (inputnode, registration, [
             ('moving_mask', 'moving_mask'),
