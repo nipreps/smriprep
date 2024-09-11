@@ -114,7 +114,9 @@ class TemplateFlowSelect(SimpleInterface):
             specs['cohort'] = self.inputs.cohort
 
         files = fetch_template_files(
-            self.inputs.template, specs, self.inputs.get_T2w
+            self.inputs.template,
+            specs,
+            get_T2w=self.inputs.get_T2w,
         )
         self._results['t1w_file'] = files['t1w']
         if self.inputs.get_T2w and files['t2w'] is not None:
