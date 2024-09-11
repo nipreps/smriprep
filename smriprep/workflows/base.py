@@ -63,6 +63,7 @@ def init_smriprep_wf(
     work_dir,
     bids_filters,
     cifti_output,
+    standardize_with_T2w
 ):
     """
     Create the execution graph of *sMRIPrep*, with a sub-workflow for each subject.
@@ -156,6 +157,9 @@ def init_smriprep_wf(
     bids_filters : dict
         Provides finer specification of the pipeline input files through pybids entities filters.
         A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
+    standardize_with_T2w : :obj:`bool`
+        Use T2w as a moving image channel in the spatial normalization to template
+        space(s).
 
     """
     smriprep_wf = Workflow(name='smriprep_wf')
@@ -196,6 +200,7 @@ def init_smriprep_wf(
             subject_id=subject_id,
             bids_filters=bids_filters,
             cifti_output=cifti_output,
+            standardize_with_T2w=standardize_with_T2w,
         )
 
         single_subject_wf.config['execution']['crashdump_dir'] = os.path.join(
@@ -233,6 +238,7 @@ def init_single_subject_wf(
     subject_id,
     bids_filters,
     cifti_output,
+    standardize_with_T2w,
 ):
     """
     Create a single subject workflow.
@@ -324,6 +330,9 @@ def init_single_subject_wf(
     bids_filters : dict
         Provides finer specification of the pipeline input files through pybids entities filters.
         A dict with the following structure {<suffix>:{<entity>:<filter>,...},...}
+    standardize_with_T2w : :obj:`bool`
+        Use T2w as a moving image channel in the spatial normalization to template
+        space(s).
 
     Inputs
     ------
@@ -441,6 +450,7 @@ to workflows in *sMRIPrep*'s documentation]\
         skull_strip_template=skull_strip_template,
         spaces=spaces,
         cifti_output=cifti_output,
+        norm_add_T2w=standardize_with_T2w,
     )
 
     # fmt:off

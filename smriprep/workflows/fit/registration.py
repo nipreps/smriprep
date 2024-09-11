@@ -166,7 +166,7 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
     split_desc = pe.Node(TemplateDesc(), run_without_submitting=True, name='split_desc')
 
     tf_select = pe.Node(
-        TemplateFlowSelect(resolution=1 + sloppy, get_T2w=use_T2w),
+        TemplateFlowSelect(resolution=1 + sloppy),
         name='tf_select',
         run_without_submitting=True,
     )
@@ -194,14 +194,19 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         run_without_submitting=True,
     )
 
-    def _has_t2w(moving_image):
-        return isinstance(moving_image, list) and len(moving_image) > 1
+    include_t2w = pe.Node(
+        niu.Function(function=_include_t2w, output_names['moving_image', 'get_T2w']),
+        name='include_t2w',
+        run_without_submitting=True,
+    )
+    include_t2w.inputs.use_T2w = use_T2w
 
     # fmt:off
     workflow.connect([
         (inputnode, split_desc, [('template', 'template')]),
-        (inputnode, tf_select, [(('moving_image', _has_t2w), 'get_T2w')]),
-        (inputnode, trunc_mov, [('moving_image', 'op1')]),
+        (inputnode, include_t2w, [('moving_image', 'moving_image')]),
+        (include_t2w, tf_select, [('get_T2w', 'get_T2w')]),
+        (include_t2w, trunc_mov, [('moving_image', 'op1')]),
         (inputnode, registration, [
             ('moving_mask', 'moving_mask'),
             ('lesion_mask', 'lesion_mask')]),
@@ -249,3 +254,12 @@ def _fmt_cohort(template, spec):
     if cohort is not None:
         template = f'{template}:cohort-{cohort}'
     return template, spec
+
+
+def _include_t2w(moving_image, use_T2w=False):
+    islist = isinstance(moving_image, list)
+    if not use_T2w:
+        return moving_image[0] if islist else moving_image, False
+    
+    return moving_image, islist and len(moving_image) > 1
+

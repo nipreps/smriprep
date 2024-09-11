@@ -177,6 +177,11 @@ def get_parser():
         action='store_true',
         help='treat dataset as longitudinal - may increase runtime',
     )
+    g_conf.add_argument(
+        '--standardize-with-T2w',
+        action='store_true',
+        help='treat dataset as longitudinal - may increase runtime',
+    )
 
     #  ANTs options
     g_ants = parser.add_argument_group('Specific options for ANTs registrations')
@@ -629,6 +634,7 @@ def build_workflow(opts, retval):
         fs_no_resume=opts.fs_no_resume,
         layout=layout,
         longitudinal=opts.longitudinal,
+        standardize_with_T2w=opts.standardize_with_T2w,
         low_mem=opts.low_mem,
         msm_sulc=opts.msm_sulc,
         omp_nthreads=omp_nthreads,
