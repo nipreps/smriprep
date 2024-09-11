@@ -1146,6 +1146,12 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             image_type='T2w',
             name='t2w_template_wf',
         )
+        register_template_wf = init_register_template_wf(
+            sloppy=sloppy,
+            omp_nthreads=omp_nthreads,
+            templates=templates,
+            use_T2w=norm_add_T2w and t2w,
+        )
         bbreg = pe.Node(
             fs.BBRegister(
                 contrast_type='t2',
@@ -1198,11 +1204,23 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (merge_t2w, register_template_wf, [('out', 'inputnode.moving_image')]),
         ])  # fmt:skip
     elif not t2w:
+        register_template_wf = init_register_template_wf(
+            sloppy=sloppy,
+            omp_nthreads=omp_nthreads,
+            templates=templates,
+            use_T2w=norm_add_T2w and t2w,
+        )
         workflow.connect([
             (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
         ])
         LOGGER.info('ANAT No T2w images provided - skipping Stage 7')
     else:
+        register_template_wf = init_register_template_wf(
+            sloppy=sloppy,
+            omp_nthreads=omp_nthreads,
+            templates=templates,
+            use_T2w=norm_add_T2w and t2w,
+        )
         merge_t2w = pe.Node(niu.Merge(2), name='merge_t2w', run_without_submitting=True)
         workflow.connect([
             (t1w_buffer, merge_t2w, [('t1w_preproc', 'in1')]),
