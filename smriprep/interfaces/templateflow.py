@@ -46,6 +46,7 @@ class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
     template_spec = traits.DictStrAny(
         {'atlas': None, 'cohort': None}, usedefault=True, desc='Template specifications'
     )
+    get_T2w = traits.Bool(False, usedefault=True, desc='Get the T2w if available')
 
 
 class _TemplateFlowSelectOutputSpec(TraitedSpec):
@@ -58,7 +59,7 @@ class TemplateFlowSelect(SimpleInterface):
     """
     Select TemplateFlow elements.
 
-    >>> select = TemplateFlowSelect(resolution=1)
+    >>> select = TemplateFlowSelect(resolution=1, get_T2w=True)
     >>> select.inputs.template = 'MNI152NLin2009cAsym'
     >>> result = select.run()
     >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
@@ -112,7 +113,9 @@ class TemplateFlowSelect(SimpleInterface):
         if isdefined(self.inputs.cohort):
             specs['cohort'] = self.inputs.cohort
 
-        files = fetch_template_files(self.inputs.template, specs)
+        files = fetch_template_files(
+            self.inputs.template, specs, self.inputs.get_T2w
+        )
         self._results['t1w_file'] = files['t1w']
         if files['t2w'] is not None:
             self._results['t2w_file'] = files['t2w']
@@ -173,6 +176,7 @@ def fetch_template_files(
     template: str,
     specs: dict | None = None,
     sloppy: bool = False,
+    get_T2w: bool = False,
 ) -> dict:
     if specs is None:
         specs = {}
@@ -209,7 +213,8 @@ def fetch_template_files(
 
     files = {}
     files['t1w'] = tf.get(name[0], desc=None, suffix='T1w', **specs)
-    files['t2w'] = tf.get(name[0], desc=None, suffix='T2w', **specs)
+    if get_T2w:
+        files['t2w'] = tf.get(name[0], desc=None, suffix='T2w', **specs)
     files['mask'] = tf.get(name[0], desc='brain', suffix='mask', **specs) or tf.get(
         name[0], label='brain', suffix='mask', **specs
     )
