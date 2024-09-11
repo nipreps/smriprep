@@ -119,7 +119,7 @@ class TemplateFlowSelect(SimpleInterface):
             get_T2w=self.inputs.get_T2w,
         )
         self._results['t1w_file'] = files['t1w']
-        if self.inputs.get_T2w:
+        if self.inputs.get_T2w and 't2w' in files:
             self._results['t2w_file'] = files['t2w']
         self._results['brain_mask'] = files['mask']
         return runtime
