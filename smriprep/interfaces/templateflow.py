@@ -59,6 +59,8 @@ class TemplateFlowSelect(SimpleInterface):
     """
     Select TemplateFlow elements.
 
+    Examples
+    --------
     >>> select = TemplateFlowSelect(resolution=1, get_T2w=True)
     >>> select.inputs.template = 'MNI152NLin2009cAsym'
     >>> result = select.run()
@@ -98,6 +100,9 @@ class TemplateFlowSelect(SimpleInterface):
     >>> result = select.run()
     >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
     '.../tpl-MNI305_T1w.nii.gz'
+
+    >>> bool(result.outputs.t2w_file)
+    False
 
     """
 
