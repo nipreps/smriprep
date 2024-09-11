@@ -119,7 +119,7 @@ class TemplateFlowSelect(SimpleInterface):
             get_T2w=self.inputs.get_T2w,
         )
         self._results['t1w_file'] = files['t1w']
-        if self.inputs.get_T2w and files['t2w'] is not None:
+        if self.inputs.get_T2w:
             self._results['t2w_file'] = files['t2w']
         self._results['brain_mask'] = files['mask']
         return runtime
@@ -215,8 +215,8 @@ def fetch_template_files(
 
     files = {}
     files['t1w'] = tf.get(name[0], desc=None, suffix='T1w', **specs)
-    if get_T2w:
-        files['t2w'] = tf.get(name[0], desc=None, suffix='T2w', **specs)
+    if get_T2w and (t2w := tf.get(name[0], desc=None, suffix='T2w', **specs)):
+        files['t2w'] = t2w
     files['mask'] = tf.get(name[0], desc='brain', suffix='mask', **specs) or tf.get(
         name[0], label='brain', suffix='mask', **specs
     )
