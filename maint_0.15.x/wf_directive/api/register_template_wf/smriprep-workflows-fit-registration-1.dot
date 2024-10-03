@@ -1,4 +1,4 @@
-strict digraph  {
+strict digraph {
 "poutputnode (utility)";
 "outputnode (utility)";
 "inputnode (utility)";

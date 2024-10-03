@@ -1,4 +1,4 @@
-strict digraph  {
+strict digraph {
 "inputnode (utility)";
 "anat_preproc_wf";
 "summary (reports)";

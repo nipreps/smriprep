@@ -1,4 +1,4 @@
-strict digraph  {
+strict digraph {
 "inputnode (utility)";
 "segs_to_native_wf_aseg";
 "refine (freesurfer)";

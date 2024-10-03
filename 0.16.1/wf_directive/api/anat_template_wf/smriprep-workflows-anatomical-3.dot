@@ -1,4 +1,4 @@
-strict digraph  {
+strict digraph {
 "inputnode (utility)";
 "anat_ref_dimensions (images)";
 "denoise (ants)";

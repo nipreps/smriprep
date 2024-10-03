@@ -1,4 +1,4 @@
-strict digraph  {
+strict digraph {
 "inputnode (utility)";
 "get_surfaces (patches)";
 "surfmorph_list (utility)";

@@ -1,4 +1,4 @@
-strict digraph  {
+strict digraph {
 "inputnode (utility)";
 "recon_config (freesurfer)";
 "autorecon1 (freesurfer)";

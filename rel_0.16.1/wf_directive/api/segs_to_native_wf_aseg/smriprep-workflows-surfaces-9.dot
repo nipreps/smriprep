@@ -1,4 +1,4 @@
-strict digraph  {
+strict digraph {
 "inputnode (utility)";
 "fs_datasource (patches)";
 "lta (nitransforms)";
