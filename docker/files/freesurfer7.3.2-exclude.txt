@@ -798,7 +798,6 @@ freesurfer/mni/bin/minclookup
 freesurfer/mni/bin/mincmakescalar
 freesurfer/mni/bin/mincmakevector
 freesurfer/mni/bin/mincmath
-freesurfer/mni/bin/minc_modify_header
 freesurfer/mni/bin/mincpik
 freesurfer/mni/bin/mincresample
 freesurfer/mni/bin/mincreshape
