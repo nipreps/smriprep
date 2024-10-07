@@ -39,17 +39,19 @@ LOGGER = logging.getLogger('nipype.interface')
 
 
 class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
-    template = traits.Str('MNI152NLin2009cAsym', mandatory=True, desc='Template ID')
+    template = traits.Str(mandatory=True, desc='Template ID')
     atlas = InputMultiObject(traits.Str, desc='Specify an atlas')
     cohort = InputMultiObject(traits.Either(traits.Str, traits.Int), desc='Specify a cohort')
     resolution = InputMultiObject(traits.Int, desc='Specify a template resolution index')
     template_spec = traits.DictStrAny(
         {'atlas': None, 'cohort': None}, usedefault=True, desc='Template specifications'
     )
+    get_T2w = traits.Bool(False, usedefault=True, desc='Get the T2w if available')
 
 
 class _TemplateFlowSelectOutputSpec(TraitedSpec):
     t1w_file = File(exists=True, desc='T1w template')
+    t2w_file = File(exists=True, desc='T2w template')
     brain_mask = File(exists=True, desc="Template's brain mask")
 
 
@@ -57,7 +59,9 @@ class TemplateFlowSelect(SimpleInterface):
     """
     Select TemplateFlow elements.
 
-    >>> select = TemplateFlowSelect(resolution=1)
+    Examples
+    --------
+    >>> select = TemplateFlowSelect(resolution=1, get_T2w=True)
     >>> select.inputs.template = 'MNI152NLin2009cAsym'
     >>> result = select.run()
     >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
@@ -65,6 +69,9 @@ class TemplateFlowSelect(SimpleInterface):
 
     >>> result.outputs.brain_mask  # doctest: +ELLIPSIS
     '.../tpl-MNI152NLin2009cAsym_res-01_desc-brain_mask.nii.gz'
+
+    >>> result.outputs.t2w_file  # doctest: +ELLIPSIS
+    '.../tpl-MNI152NLin2009cAsym_res-01_T2w.nii.gz'
 
     >>> select = TemplateFlowSelect()
     >>> select.inputs.template = 'MNIPediatricAsym'
@@ -94,6 +101,9 @@ class TemplateFlowSelect(SimpleInterface):
     >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
     '.../tpl-MNI305_T1w.nii.gz'
 
+    >>> bool(result.outputs.t2w_file)
+    False
+
     """
 
     input_spec = _TemplateFlowSelectInputSpec
@@ -108,8 +118,14 @@ class TemplateFlowSelect(SimpleInterface):
         if isdefined(self.inputs.cohort):
             specs['cohort'] = self.inputs.cohort
 
-        files = fetch_template_files(self.inputs.template, specs)
+        files = fetch_template_files(
+            self.inputs.template,
+            specs,
+            get_T2w=self.inputs.get_T2w,
+        )
         self._results['t1w_file'] = files['t1w']
+        if self.inputs.get_T2w and 't2w' in files:
+            self._results['t2w_file'] = files['t2w']
         self._results['brain_mask'] = files['mask']
         return runtime
 
@@ -167,6 +183,7 @@ def fetch_template_files(
     template: str,
     specs: dict | None = None,
     sloppy: bool = False,
+    get_T2w: bool = False,
 ) -> dict:
     if specs is None:
         specs = {}
@@ -203,6 +220,8 @@ def fetch_template_files(
 
     files = {}
     files['t1w'] = tf.get(name[0], desc=None, suffix='T1w', **specs)
+    if get_T2w and (t2w := tf.get(name[0], desc=None, suffix='T2w', **specs)):
+        files['t2w'] = t2w
     files['mask'] = tf.get(name[0], desc='brain', suffix='mask', **specs) or tf.get(
         name[0], label='brain', suffix='mask', **specs
     )

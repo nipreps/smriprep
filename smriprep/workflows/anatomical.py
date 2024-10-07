@@ -114,6 +114,7 @@ def init_anat_preproc_wf(
     name: str = 'anat_preproc_wf',
     skull_strip_fixed_seed: bool = False,
     fs_no_resume: bool = False,
+    norm_add_T2w: bool = False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -190,6 +191,9 @@ def init_anat_preproc_wf(
         EXPERT: Import pre-computed FreeSurfer reconstruction without resuming.
         The user is responsible for ensuring that all necessary files are present.
         (default: ``False``).
+    norm_add_T2w : :obj:`bool`
+        Use T2w as a moving image channel in the spatial normalization to template
+        space(s).
 
     Inputs
     ------
@@ -283,6 +287,7 @@ def init_anat_preproc_wf(
         omp_nthreads=omp_nthreads,
         skull_strip_fixed_seed=skull_strip_fixed_seed,
         fs_no_resume=fs_no_resume,
+        norm_add_T2w=norm_add_T2w,
     )
     template_iterator_wf = init_template_iterator_wf(spaces=spaces, sloppy=sloppy)
     ds_std_volumes_wf = init_ds_anat_volumes_wf(
@@ -461,6 +466,7 @@ def init_anat_fit_wf(
     name='anat_fit_wf',
     skull_strip_fixed_seed: bool = False,
     fs_no_resume: bool = False,
+    norm_add_T2w: bool = False,
 ):
     """
     Stage the anatomical preprocessing steps of *sMRIPrep*.
@@ -541,6 +547,9 @@ def init_anat_fit_wf(
         Do not use a random seed for skull-stripping - will ensure
         run-to-run replicability when used with --omp-nthreads 1
         (default: ``False``).
+    norm_add_T2w : :obj:`bool`
+        Use T2w as a moving image channel in the spatial normalization to template
+        space(s).
 
     Inputs
     ------
@@ -994,6 +1003,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             sloppy=sloppy,
             omp_nthreads=omp_nthreads,
             templates=templates,
+            use_T2w=norm_add_T2w and t2w,
         )
         ds_template_registration_wf = init_ds_template_registration_wf(
             output_dir=output_dir, image_type='T1w'
@@ -1002,7 +1012,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         # fmt:off
         workflow.connect([
             (inputnode, register_template_wf, [('roi', 'inputnode.lesion_mask')]),
-            (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
             (refined_buffer, register_template_wf, [('t1w_mask', 'inputnode.moving_mask')]),
             (sourcefile_buffer, ds_template_registration_wf, [
                 ('source_files', 'inputnode.source_files')
@@ -1137,6 +1146,12 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             image_type='T2w',
             name='t2w_template_wf',
         )
+        register_template_wf = init_register_template_wf(
+            sloppy=sloppy,
+            omp_nthreads=omp_nthreads,
+            templates=templates,
+            use_T2w=norm_add_T2w and t2w,
+        )
         bbreg = pe.Node(
             fs.BBRegister(
                 contrast_type='t2',
@@ -1166,6 +1181,8 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         )
         ds_t2w_preproc.inputs.SkullStripped = False
 
+        merge_t2w = pe.Node(niu.Merge(2), name='merge_t2w', run_without_submitting=True)
+
         workflow.connect([
             (inputnode, t2w_template_wf, [('t2w', 'inputnode.anat_files')]),
             (t2w_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
@@ -1182,10 +1199,34 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (inputnode, ds_t2w_preproc, [('t2w', 'source_file')]),
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
             (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
+            (t1w_buffer, merge_t2w, [('t1w_preproc', 'in1')]),
+            (t2w_resample, merge_t2w, [('output_image', 'in2')]),
+            (merge_t2w, register_template_wf, [('out', 'inputnode.moving_image')]),
         ])  # fmt:skip
     elif not t2w:
+        register_template_wf = init_register_template_wf(
+            sloppy=sloppy,
+            omp_nthreads=omp_nthreads,
+            templates=templates,
+            use_T2w=norm_add_T2w and t2w,
+        )
+        workflow.connect([
+            (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
+        ])
         LOGGER.info('ANAT No T2w images provided - skipping Stage 7')
     else:
+        register_template_wf = init_register_template_wf(
+            sloppy=sloppy,
+            omp_nthreads=omp_nthreads,
+            templates=templates,
+            use_T2w=norm_add_T2w and t2w,
+        )
+        merge_t2w = pe.Node(niu.Merge(2), name='merge_t2w', run_without_submitting=True)
+        workflow.connect([
+            (t1w_buffer, merge_t2w, [('t1w_preproc', 'in1')]),
+            (inputnode, merge_t2w, [('t2w', 'in2')]),
+            (merge_t2w, register_template_wf, [('out', 'inputnode.moving_image')]),
+        ])  # fmt:skip
         LOGGER.info('ANAT Found preprocessed T2w - skipping Stage 7')
 
     # Stages 8-10: Surface conversion and registration
