@@ -1,0 +1,26 @@
+smriprep.workflows package
+==========================
+
+.. automodule:: smriprep.workflows
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   smriprep.workflows.fit
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   smriprep.workflows.anatomical
+   smriprep.workflows.base
+   smriprep.workflows.outputs
+   smriprep.workflows.surfaces

@@ -1,0 +1,7 @@
+smriprep.workflows.fit.registration module
+==========================================
+
+.. automodule:: smriprep.workflows.fit.registration
+   :members:
+   :undoc-members:
+   :show-inheritance:

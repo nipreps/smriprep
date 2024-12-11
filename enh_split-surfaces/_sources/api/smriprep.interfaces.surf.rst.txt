@@ -1,0 +1,7 @@
+smriprep.interfaces.surf module
+===============================
+
+.. automodule:: smriprep.interfaces.surf
+   :members:
+   :undoc-members:
+   :show-inheritance:

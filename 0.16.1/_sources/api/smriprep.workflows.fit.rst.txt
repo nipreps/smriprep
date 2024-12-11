@@ -1,0 +1,15 @@
+smriprep.workflows.fit package
+==============================
+
+.. automodule:: smriprep.workflows.fit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   smriprep.workflows.fit.registration
