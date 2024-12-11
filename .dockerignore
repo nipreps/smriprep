@@ -15,10 +15,6 @@ smriprep.egg-info
 pip-wheel-metadata/**/*
 pip-wheel-metadata
 
-# pip installs
-src/**/*
-src/
-
 # other
 work/**/*
 work
