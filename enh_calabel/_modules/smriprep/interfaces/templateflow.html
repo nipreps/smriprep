@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.templateflow &mdash; smriprep 0.16.2.dev3 documentation</title>
+  <title>smriprep.interfaces.templateflow &mdash; smriprep 0.16.2.dev5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=1413ff29"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=7b397ac5"></script>
-        <script src="../../../_static/doctools.js?v=6afcdcd2"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/jquery.js?v=1413ff29"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../../../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -34,9 +32,6 @@
           <a href="../../../index.html" class="icon icon-home">
             smriprep
           </a>
-              <div class="version">
-                0.16.2.dev3
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -119,6 +114,7 @@
     <span class="n">InputMultiObject</span><span class="p">,</span>
     <span class="n">SimpleInterface</span><span class="p">,</span>
     <span class="n">TraitedSpec</span><span class="p">,</span>
+    <span class="n">Undefined</span><span class="p">,</span>
     <span class="n">isdefined</span><span class="p">,</span>
     <span class="n">traits</span><span class="p">,</span>
 <span class="p">)</span>
@@ -140,6 +136,7 @@
 <span class="k">class</span> <span class="nc">_TemplateFlowSelectOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">t1w_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;T1w template&#39;</span><span class="p">)</span>
     <span class="n">brain_mask</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Template&#39;s brain mask&quot;</span><span class="p">)</span>
+    <span class="n">t2w_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;T2w template&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TemplateFlowSelect">
@@ -163,6 +160,8 @@
 <span class="sd">    &gt;&gt;&gt; result = select.run()</span>
 <span class="sd">    &gt;&gt;&gt; result.outputs.t1w_file  # doctest: +ELLIPSIS</span>
 <span class="sd">    &#39;.../tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; result.outputs.t2w_file  # doctest: +ELLIPSIS</span>
+<span class="sd">    &#39;.../tpl-MNIPediatricAsym_cohort-5_res-1_T2w.nii.gz&#39;</span>
 
 <span class="sd">    &gt;&gt;&gt; select = TemplateFlowSelect(resolution=2)</span>
 <span class="sd">    &gt;&gt;&gt; select.inputs.template = &#39;MNIPediatricAsym:cohort-5&#39;</span>
@@ -184,7 +183,8 @@
 <span class="sd">    &gt;&gt;&gt; result = select.run()</span>
 <span class="sd">    &gt;&gt;&gt; result.outputs.t1w_file  # doctest: +ELLIPSIS</span>
 <span class="sd">    &#39;.../tpl-MNI305_T1w.nii.gz&#39;</span>
-
+<span class="sd">    &gt;&gt;&gt; result.outputs.t2w_file</span>
+<span class="sd">    &lt;undefined&gt;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_TemplateFlowSelectInputSpec</span>
@@ -202,6 +202,7 @@
         <span class="n">files</span> <span class="o">=</span> <span class="n">fetch_template_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="n">specs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;t1w_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="s1">&#39;t1w&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;brain_mask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;t2w_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="s1">&#39;t2w&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">runtime</span></div>
 
 
@@ -303,6 +304,8 @@
     <span class="n">files</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;brain&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">specs</span><span class="p">)</span> <span class="ow">or</span> <span class="n">tf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
         <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;brain&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">specs</span>
     <span class="p">)</span>
+    <span class="c1"># Not guaranteed to exist so add fallback</span>
+    <span class="n">files</span><span class="p">[</span><span class="s1">&#39;t2w&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">desc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;T2w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">specs</span><span class="p">)</span> <span class="ow">or</span> <span class="n">Undefined</span>
     <span class="k">return</span> <span class="n">files</span></div>
 
 </pre></div>
@@ -365,6 +368,7 @@
         </dl>
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../dependabot_github_actions_codecov_codecov-action-5/index.html">dependabot/github_actions/codecov/codecov-action-5</a></dd>
             <dd><a href="templateflow.html">enh/calabel</a></dd>
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>

@@ -1,0 +1,16 @@
+strict digraph {
+"inputnode (utility)";
+"fs_datasource (patches)";
+"lta (nitransforms)";
+"resample (freesurfer)";
+"select_seg (utility)";
+"outputnode (utility)";
+"inputnode (utility)" -> "fs_datasource (patches)";
+"inputnode (utility)" -> "lta (nitransforms)";
+"inputnode (utility)" -> "resample (freesurfer)";
+"fs_datasource (patches)" -> "lta (nitransforms)";
+"fs_datasource (patches)" -> "select_seg (utility)";
+"lta (nitransforms)" -> "resample (freesurfer)";
+"resample (freesurfer)" -> "outputnode (utility)";
+"select_seg (utility)" -> "resample (freesurfer)";
+}

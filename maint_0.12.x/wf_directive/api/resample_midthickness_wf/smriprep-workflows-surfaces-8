@@ -1,0 +1,9 @@
+digraph resample_midthickness_wf{
+  label="resample_midthickness_wf";
+  resample_midthickness_wf_inputnode[label="inputnode (utility)", style=filled, fillcolor="#FFFFC8"];
+  resample_midthickness_wf_resampler[label="resampler (workbench)", style=filled, fillcolor="#FFFFC8"];
+  resample_midthickness_wf_outputnode[label="outputnode (utility)", style=filled, fillcolor="#FFFFC8"];
+  resample_midthickness_wf_inputnode -> resample_midthickness_wf_resampler;
+  resample_midthickness_wf_inputnode -> resample_midthickness_wf_resampler;
+  resample_midthickness_wf_resampler -> resample_midthickness_wf_outputnode;
+}

@@ -1,0 +1,10 @@
+strict digraph {
+"inputnode (utility)";
+"segs_to_native_wf_aseg";
+"refine (freesurfer)";
+"outputnode (utility)";
+"inputnode (utility)" -> "segs_to_native_wf_aseg";
+"inputnode (utility)" -> "refine (freesurfer)";
+"segs_to_native_wf_aseg" -> "refine (freesurfer)";
+"refine (freesurfer)" -> "outputnode (utility)";
+}

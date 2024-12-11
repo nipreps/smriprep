@@ -1,24 +1,22 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.16.2.dev3 documentation</title>
+  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.16.2.dev5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=1413ff29"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=7b397ac5"></script>
-        <script src="../_static/doctools.js?v=6afcdcd2"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/jquery.js?v=1413ff29"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,9 +35,6 @@
           <a href="../index.html" class="icon icon-home">
             smriprep
           </a>
-              <div class="version">
-                0.16.2.dev3
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -272,17 +267,27 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 <dt class="field-odd">Optional Inputs<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>FLAIR_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Convert FLAIR image to orig directory.
-Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-FLAIR</span> <span class="pre">%s</span></code>.</p></li>
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-FLAIR</span> <span class="pre">%s</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
 <li><p><strong>T1_files</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Name of T1 file to process.
-Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-i</span> <span class="pre">%s...</span></code>.</p></li>
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-i</span> <span class="pre">%s...</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
 <li><p><strong>T2_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Convert T2 image to orig directory.
-Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-T2</span> <span class="pre">%s</span></code>.</p></li>
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-T2</span> <span class="pre">%s</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
 <li><p><strong>args</strong> (<em>a string</em>) – Additional parameters to the command.
 Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code>.</p></li>
+<li><p><strong>base_template_id</strong> (<em>a string</em>) – Base template id.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-base</span> <span class="pre">%s</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>, <code class="docutils literal notranslate"><span class="pre">longitudinal_timepoint_id</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">base_timepoint_ids</span></code>.</p></li>
+<li><p><strong>base_timepoint_ids</strong> (<em>a list of items which are a string</em>) – Processed timepoint to use in template.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-base-tp</span> <span class="pre">%s...</span></code>.</p></li>
 <li><p><strong>big_ventricles</strong> (<em>a boolean</em>) – For use in subjects with enlarged ventricles.
 Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-bigventricles</span></code>.</p></li>
 <li><p><strong>brainstem</strong> (<em>a boolean</em>) – Segment brainstem structures.
-Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-brainstem-structures</span></code>.</p></li>
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-brainstem-structures</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
 <li><p><strong>directive</strong> (<em>‘all’ or ‘autorecon1’ or ‘autorecon2’ or ‘autorecon2-volonly’ or ‘autorecon2-perhemi’ or ‘autorecon2-inflate1’ or ‘autorecon2-cp’ or ‘autorecon2-wm’ or ‘autorecon3’ or ‘autorecon3-T2pial’ or ‘autorecon-pial’ or ‘autorecon-hemi’ or ‘localGI’ or ‘qcache’</em>) – Process directive.
 Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-%s</span></code> (position: 0).
 Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">steps</span></code>.
@@ -296,13 +301,22 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 <li><p><strong>hemi</strong> (<em>‘lh’ or ‘rh’</em>) – Hemisphere to process.
 Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-%s-only</span></code>.</p></li>
 <li><p><strong>hippocampal_subfields_T1</strong> (<em>a boolean</em>) – Segment hippocampal subfields using input T1 scan.
-Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-hippocampal-subfields-T1</span></code>.</p></li>
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-hippocampal-subfields-T1</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
 <li><p><strong>hippocampal_subfields_T2</strong> (<em>a tuple of the form: (a pathlike object or string representing an existing file, a string)</em>) – Segment hippocampal subfields using T2 scan, identified by ID (may be combined with hippocampal_subfields_T1).
-Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-hippocampal-subfields-T2</span> <span class="pre">%s</span> <span class="pre">%s</span></code>.</p></li>
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-hippocampal-subfields-T2</span> <span class="pre">%s</span> <span class="pre">%s</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
 <li><p><strong>hires</strong> (<em>a boolean</em>) – Conform to minimum voxel size (for voxels &lt; 1mm).
 Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-hires</span></code>.</p></li>
+<li><p><strong>longitudinal_template_id</strong> (<em>a string</em>) – Longitudinal base template id.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code> (position: 2).</p></li>
+<li><p><strong>longitudinal_timepoint_id</strong> (<em>a string</em>) – Longitudinal session/timepoint id.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-long</span> <span class="pre">%s</span></code> (position: 1).
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>, <code class="docutils literal notranslate"><span class="pre">base_template_id</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">longitudinal_template_id</span></code>.</p></li>
 <li><p><strong>mprage</strong> (<em>a boolean</em>) – Assume scan parameters are MGH MP-RAGE protocol, which produces darker gray matter.
-Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-mprage</span></code>.</p></li>
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-mprage</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
 <li><p><strong>mri_aparc2aseg</strong> (<em>a string</em>) – Flags to pass to mri_aparc2aseg commands.
 Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
 <li><p><strong>mri_ca_label</strong> (<em>a string</em>) – Flags to pass to mri_ca_label commands.
@@ -361,7 +375,7 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">directive</span></code>.</p></li>
 <li><p><strong>subject_id</strong> (<em>a string</em>) – Subject name.
 Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-subjid</span> <span class="pre">%s</span></code>.
-(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">recon_all</span></code>)</p></li>
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">base_template_id</span></code>, <code class="docutils literal notranslate"><span class="pre">longitudinal_timepoint_id</span></code>.</p></li>
 <li><p><strong>subjects_dir</strong> (<em>a pathlike object or string representing an existing directory</em>) – Path to subjects directory.
 Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-sd</span> <span class="pre">%s</span></code>.</p></li>
 <li><p><strong>talairach</strong> (<em>a string</em>) – Flags to pass to talairach commands.
@@ -402,7 +416,7 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 <li><p><strong>norm</strong> (<em>a pathlike object or string representing an existing file</em>) – Normalized skull-stripped volume.</p></li>
 <li><p><strong>nu</strong> (<em>a pathlike object or string representing an existing file</em>) – Non-uniformity corrected whole-head volume.</p></li>
 <li><p><strong>orig</strong> (<em>a pathlike object or string representing an existing file</em>) – Base image conformed to Freesurfer space.</p></li>
-<li><p><strong>pial</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Gray matter/pia mater surface meshes.</p></li>
+<li><p><strong>pial</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Gray matter/pia matter surface meshes.</p></li>
 <li><p><strong>rawavg</strong> (<em>a pathlike object or string representing an existing file</em>) – Volume formed by averaging input images.</p></li>
 <li><p><strong>ribbon</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Volumetric maps of cortical ribbons.</p></li>
 <li><p><strong>smoothwm</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Smoothed original surface meshes.</p></li>
@@ -493,6 +507,7 @@ validates arguments and generates command line</p>
         </dl>
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../dependabot_github_actions_codecov_codecov-action-5/api/smriprep.interfaces.freesurfer.html">dependabot/github_actions/codecov/codecov-action-5</a></dd>
             <dd><a href="../../enh_calabel/api/smriprep.interfaces.freesurfer.html">enh/calabel</a></dd>
             <dd><a href="../../enh_split-surfaces/api/smriprep.interfaces.freesurfer.html">enh/split-surfaces</a></dd>
             <dd><a href="../../fix_parcstats/api/smriprep.interfaces.freesurfer.html">fix/parcstats</a></dd>

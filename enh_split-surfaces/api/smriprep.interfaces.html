@@ -1,24 +1,22 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces package &mdash; smriprep 0.16.2.dev3 documentation</title>
+  <title>smriprep.interfaces package &mdash; smriprep 0.16.2.dev5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=1413ff29"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=7b397ac5"></script>
-        <script src="../_static/doctools.js?v=6afcdcd2"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/jquery.js?v=1413ff29"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,9 +35,6 @@
           <a href="../index.html" class="icon icon-home">
             smriprep
           </a>
-              <div class="version">
-                0.16.2.dev3
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -130,10 +125,10 @@
 (Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
 <li><p><strong>compress</strong> (<em>a list of items which are a boolean or None</em>) – Whether <code class="docutils literal notranslate"><span class="pre">in_file</span></code> should be compressed (True), uncompressed (False) or left unmodified (None, default).
 (Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">[]</span></code>)</p></li>
-<li><p><strong>data_dtype</strong> (<em>a string</em>) – NumPy datatype to coerce NIfTI data to, or <cite>source</cite> tomatch the input file dtype.</p></li>
+<li><p><strong>data_dtype</strong> (<em>a string</em>) – NumPy datatype to coerce NIfTI data to, or <cite>source</cite> to match the input file dtype.</p></li>
 <li><p><strong>dismiss_entities</strong> (<em>a list of items which are a string or None</em>) – A list entities that will not be propagated from the source file.
 (Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">[]</span></code>)</p></li>
-<li><p><strong>meta_dict</strong> (<em>a dictionary with keys which are a value of class ‘str’ and with values which are any value</em>) – An input dictionary containing metadata.</p></li>
+<li><p><strong>meta_dict</strong> (<em>a dictionary with keys which are a string and with values which are any value</em>) – An input dictionary containing metadata.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Outputs<span class="colon">:</span></dt>
@@ -229,6 +224,7 @@
         </dl>
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../dependabot_github_actions_codecov_codecov-action-5/api/smriprep.interfaces.html">dependabot/github_actions/codecov/codecov-action-5</a></dd>
             <dd><a href="../../enh_calabel/api/smriprep.interfaces.html">enh/calabel</a></dd>
             <dd><a href="smriprep.interfaces.html">enh/split-surfaces</a></dd>
             <dd><a href="../../fix_parcstats/api/smriprep.interfaces.html">fix/parcstats</a></dd>
