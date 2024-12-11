@@ -82,9 +82,9 @@ allow-direct-references = true
 exclude = [".git_archival.txt"]  # No longer needed in sdist
 
 [tool.hatch.build.targets.wheel]
-packages = ["smriprep"]
+packages = ["src/smriprep"]
 exclude = [
-    "smriprep/data/tests/work",  # Large test data directory
+    "src/smriprep/data/tests/work",  # Large test data directory
 ]
 
 ##  The following two sections configure setuptools_scm in the hatch way
@@ -93,7 +93,7 @@ exclude = [
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "smriprep/_version.py"
+version-file = "src/smriprep/_version.py"
 
 #
 # Developer tool configurations
