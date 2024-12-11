@@ -118,10 +118,21 @@ per-file-ignores = [
 
 [tool.pytest.ini_options]
 minversion = "8"
+testpaths = ["src"]
 log_cli_level = "INFO"
 xfail_strict = true
 norecursedirs = [".git"]
-addopts = ["-svx", "--doctest-modules", "-ra", "--strict-config", "--strict-markers"]
+addopts = [
+  "-svx",
+  "-ra",
+  "--strict-config",
+  "--strict-markers",
+  "--doctest-modules",
+  # Config pytest-cov
+  "--cov=src/smriprep",
+  "--cov-report=xml",
+  "--cov-config=pyproject.toml",
+]
 doctest_optionflags = "ALLOW_UNICODE NORMALIZE_WHITESPACE ELLIPSIS"
 env = "PYTHONHASHSEED=0"
 filterwarnings = ["ignore::DeprecationWarning"]
