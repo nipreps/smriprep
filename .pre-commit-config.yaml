@@ -14,7 +14,11 @@ repos:
     rev: v0.5.3
     hooks:
       - id: ruff
-        args: [ --fix ]
+        args: [--fix]
       - id: ruff-format
       - id: ruff
-        args: [ --select, ISC001, --fix ]
+        args: [--select, ISC001, --fix]
+  - repo: https://github.com/woodruffw/zizmor-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: zizmor
