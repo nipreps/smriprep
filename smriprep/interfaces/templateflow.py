@@ -30,6 +30,7 @@ from nipype.interfaces.base import (
     InputMultiObject,
     SimpleInterface,
     TraitedSpec,
+    Undefined,
     isdefined,
     traits,
 )
@@ -51,6 +52,7 @@ class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
 class _TemplateFlowSelectOutputSpec(TraitedSpec):
     t1w_file = File(exists=True, desc='T1w template')
     brain_mask = File(exists=True, desc="Template's brain mask")
+    t2w_file = File(desc='T2w template')
 
 
 class TemplateFlowSelect(SimpleInterface):
@@ -72,6 +74,8 @@ class TemplateFlowSelect(SimpleInterface):
     >>> result = select.run()
     >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
     '.../tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz'
+    >>> result.outputs.t2w_file  # doctest: +ELLIPSIS
+    '.../tpl-MNIPediatricAsym_cohort-5_res-1_T2w.nii.gz'
 
     >>> select = TemplateFlowSelect(resolution=2)
     >>> select.inputs.template = 'MNIPediatricAsym:cohort-5'
@@ -93,7 +97,8 @@ class TemplateFlowSelect(SimpleInterface):
     >>> result = select.run()
     >>> result.outputs.t1w_file  # doctest: +ELLIPSIS
     '.../tpl-MNI305_T1w.nii.gz'
-
+    >>> result.outputs.t2w_file
+    <undefined>
     """
 
     input_spec = _TemplateFlowSelectInputSpec
@@ -111,6 +116,7 @@ class TemplateFlowSelect(SimpleInterface):
         files = fetch_template_files(self.inputs.template, specs)
         self._results['t1w_file'] = files['t1w']
         self._results['brain_mask'] = files['mask']
+        self._results['t2w_file'] = files['t2w']
         return runtime
 
 
@@ -206,4 +212,6 @@ def fetch_template_files(
     files['mask'] = tf.get(name[0], desc='brain', suffix='mask', **specs) or tf.get(
         name[0], label='brain', suffix='mask', **specs
     )
+    # Not guaranteed to exist so add fallback
+    files['t2w'] = tf.get(name[0], desc=None, suffix='T2w', **specs) or Undefined
     return files
