@@ -7,7 +7,7 @@ on:
       - master
       - maint/*
     tags:
-      - '*'
+      - "*"
   pull_request:
     branches:
       - main
@@ -15,7 +15,7 @@ on:
       - maint/*
   schedule:
     # 8am EST / 9am EDT Mondays
-    - cron: '0 13 * * 1'
+    - cron: "0 13 * * 1"
   workflow_dispatch:
 
 defaults:
@@ -60,10 +60,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-latest']
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        os: ["ubuntu-latest"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         dependencies: [latest] # , pre]
-        architecture: ['x64']
+        architecture: ["x64"]
         include:
           # Test minimum dependencies on oldest supported Python
           - os: ubuntu-latest
@@ -124,8 +124,8 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        os: ['ubuntu-latest']
-        python-version: ['3.12']
+        os: ["ubuntu-latest"]
+        python-version: ["3.12"]
 
     env:
       DEPENDS: ${{ matrix.dependencies }}
@@ -195,11 +195,11 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
 
   checks:
-    runs-on: 'ubuntu-latest'
+    runs-on: "ubuntu-latest"
     continue-on-error: true
     strategy:
       matrix:
-        check: ['style', 'spellcheck']
+        check: ["style", "spellcheck"]
 
     steps:
       - uses: actions/checkout@v4
