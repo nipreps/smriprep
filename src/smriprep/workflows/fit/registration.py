@@ -218,11 +218,11 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         (tf_select, set_reference, [
             ('t1w_file', 'template_t1w'),
             ('t2w_file', 'template_t2w'),
-        ])
+        ]),
         (set_reference, registration, [
             ('reference_type', 'reference'),
             ('use_histogram_matching', 'use_histogram_matching'),
-        ])
+        ]),
         (split_desc, registration, [
             ('name', 'template'),
             ('spec', 'template_spec'),
