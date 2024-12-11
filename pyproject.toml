@@ -198,3 +198,6 @@ inline-quotes = "single"
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.codespell]
+skip = "*/data/*,*/docs/_build/*,*.svg,*/docs/_static/*"
