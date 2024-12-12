@@ -1,0 +1,273 @@
+name: Build-Test-Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - maint/*
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - main
+      - master
+      - maint/*
+  schedule:
+    # 8am EST / 9am EDT Mondays
+    - cron: "0 13 * * 1"
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Force tox and pytest to use color
+  FORCE_COLOR: true
+  TEMPLATEFLOW_HOME: /tmp/templateflow
+
+jobs:
+  build:
+    name: Build & verify package
+    runs-on: ubuntu-latest
+    permissions:
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      ## Stuck on https://github.com/astral-sh/uv/issues/5450
+      ## or https://github.com/hynek/build-and-inspect-python-package/issues/155
+      # - uses: hynek/build-and-inspect-python-package@v2
+      #   with:
+      #     upload-name-suffix: -main
+      #     attest-build-provenance-github: ${{ github.event_name != 'pull_request' }}
+      # - uses: hynek/build-and-inspect-python-package@v2
+      #   with:
+      #     path: wrapper
+      #     upload-name-suffix: -wrapper
+      #     attest-build-provenance-github: ${{ github.event_name != 'pull_request' }}
+      ## Manually reproducing with pyproject-build
+      ## Probably slightly slower
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+      - name: Build smriprep
+        run: uvx --from=build pyproject-build --installer uv .
+      - name: Upload smriprep as Packages-main
+        uses: actions/upload-artifact@v4
+        with:
+          name: Packages-main
+          path: dist/
+
+      - name: Show package contents hierarchically, including metadata.
+        shell: bash
+        run: |
+          echo -e '\n<details><summary>SDist contents</summary>\n' >> $GITHUB_STEP_SUMMARY
+          tar -tvzf dist/*.tar.gz | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          echo -e '\n</details>\n' >> $GITHUB_STEP_SUMMARY
+
+          echo -e '\n<details><summary>Wheel contents</summary>\n' >> $GITHUB_STEP_SUMMARY
+          unzip -l dist/*.whl | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          echo -e '\n</details>\n' >> $GITHUB_STEP_SUMMARY
+
+          echo ----- Metadata Follows -----
+          echo -e '\n<details><summary>Metadata</summary>\n' >> $GITHUB_STEP_SUMMARY
+          tar --wildcards -xOf dist/*.tar.gz "*/PKG-INFO" | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          echo -e '\n</details>\n' >> $GITHUB_STEP_SUMMARY
+          echo ----- End of Metadata  -----
+
+      - name: Report on smriprep packages
+        run: |
+          echo "name=Packages-main" >>${GITHUB_OUTPUT}
+      - name: Build smriprep-docker
+        run: uvx --from=build pyproject-build --installer uv ./wrapper
+      - name: Upload smriprep as Packages-wrapper
+        uses: actions/upload-artifact@v4
+        with:
+          name: Packages-wrapper
+          path: wrapper/dist/
+
+      - name: Show package contents hierarchically, including metadata.
+        shell: bash
+        run: |
+          echo -e '\n<details><summary>SDist contents</summary>\n' >> $GITHUB_STEP_SUMMARY
+          tar -tvzf wrapper/dist/*.tar.gz | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          echo -e '\n</details>\n' >> $GITHUB_STEP_SUMMARY
+
+          echo -e '\n<details><summary>Wheel contents</summary>\n' >> $GITHUB_STEP_SUMMARY
+          unzip -l wrapper/dist/*.whl | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          echo -e '\n</details>\n' >> $GITHUB_STEP_SUMMARY
+
+          echo ----- Metadata Follows -----
+          echo -e '\n<details><summary>Metadata</summary>\n' >> $GITHUB_STEP_SUMMARY
+          tar --wildcards -xOf wrapper/dist/*.tar.gz "*/PKG-INFO" | sed 's/^/    /' | tee -a $GITHUB_STEP_SUMMARY
+          echo -e '\n</details>\n' >> $GITHUB_STEP_SUMMARY
+          echo ----- End of Metadata  -----
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ["ubuntu-latest"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        dependencies: [latest] # , pre]
+        architecture: ["x64"]
+        include:
+          # Test minimum dependencies on oldest supported Python
+          - os: ubuntu-latest
+            python-version: "3.10"
+            dependencies: min
+        exclude:
+          # Do not test pre-releases for versions out of SPEC0
+          - os: ubuntu-latest
+            python-version: "3.10"
+            dependencies: pre
+
+    env:
+      DEPENDS: ${{ matrix.dependencies }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.architecture }}
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Restore cached templateflow
+        id: tf-cache-restore
+        uses: actions/cache@v4
+        with:
+          path: /tmp/templateflow
+          key: templateflow-v0
+          # Use the following to fall back to and build on v0 when bumping to v1
+          # If the cache need to be cleared, remove this when bumping key version
+          # restore-keys: |
+          #   templateflow-v0
+      - name: Initialize templateflow
+        if: steps.tf-cache-restore.outputs.cache-hit != 'true'
+        run: |
+          uvx templateflow update --no-overwrite
+
+      - name: Install tox
+        run: |
+          uv tool install tox --with=tox-uv --with=tox-gh-actions
+      - name: Show tox config
+        run: tox c
+      - name: Run tox
+        run: tox -v --exit-and-dump-after 1200
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: ${{ always() }}
+
+  test-packages:
+    runs-on: ${{ matrix.os }}
+    needs: [build]
+    strategy:
+      matrix:
+        os: ["ubuntu-latest"]
+        python-version: ["3.12"]
+
+    env:
+      DEPENDS: ${{ matrix.dependencies }}
+
+    steps:
+      - name: Download packages built by build-and-inspect-python-package
+        uses: actions/download-artifact@v4
+        with:
+          pattern: Packages-*
+          path: dist
+      - run: ls -lR
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Restore cached templateflow
+        id: tf-cache-restore
+        uses: actions/cache@v4
+        with:
+          path: /tmp/templateflow
+          key: templateflow-v0
+          # Use the following to fall back to and build on v0 when bumping to v1
+          # If the cache need to be cleared, remove this when bumping key version
+          # restore-keys: |
+          #   templateflow-v0
+      - name: Check wrapper version
+        run: |
+          echo n | uvx --from=$( ls dist/*/smriprep_docker*.whl ) smriprep-docker --version
+
+      - name: Unpack sdist
+        run: |
+          tar --strip-components=1 -xzf dist/*/smriprep-*.tar.gz
+
+      - name: Install tox
+        run: |
+          uv tool install tox --with=tox-uv --with=tox-gh-actions
+      - name: Show tox config
+        run: tox c
+      - name: Run tox
+        run: tox -v --exit-and-dump-after 1200
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: ${{ always() }}
+
+  publish:
+    name: Publish released package to pypi.org
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    environment: PyPI
+    needs: [test, test-packages]
+    permissions:
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Download packages built by build-and-inspect-python-package
+        uses: actions/download-artifact@v4
+        with:
+          name: Packages
+          path: dist
+
+      - name: Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  checks:
+    runs-on: "ubuntu-latest"
+    continue-on-error: true
+    strategy:
+      matrix:
+        check: ["style", "spellcheck"]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v4
+      - name: Install tox
+        run: uv tool install tox --with=tox-uv
+      - name: Show tox config
+        run: tox c -e ${{ matrix.check }}
+      - name: Run check
+        run: tox -e ${{ matrix.check }}

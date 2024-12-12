@@ -44,8 +44,11 @@ class _TemplateFlowSelectInputSpec(BaseInterfaceInputSpec):
     atlas = InputMultiObject(traits.Str, desc='Specify an atlas')
     cohort = InputMultiObject(traits.Either(traits.Str, traits.Int), desc='Specify a cohort')
     resolution = InputMultiObject(traits.Int, desc='Specify a template resolution index')
-    template_spec = traits.DictStrAny(
-        {'atlas': None, 'cohort': None}, usedefault=True, desc='Template specifications'
+    template_spec = traits.Dict(
+        traits.Str,
+        value={'atlas': None, 'cohort': None},
+        usedefault=True,
+        desc='Template specifications',
     )
 
 

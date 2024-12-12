@@ -229,7 +229,7 @@ epub_exclude_files = ['search.html']
 
 # -- Extension configuration -------------------------------------------------
 
-apidoc_module_dir = '../smriprep'
+apidoc_module_dir = '../src/smriprep'
 apidoc_output_dir = 'api'
 apidoc_excluded_paths = [
     'conftest.py',
@@ -254,7 +254,7 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/', None),
-    'matplotlib': ('https://matplotlib.org/', None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
     'bids': ('https://bids-standard.github.io/pybids/', None),
     'nibabel': ('https://nipy.org/nibabel/', None),
     'nipype': ('https://nipype.readthedocs.io/en/latest/', None),
