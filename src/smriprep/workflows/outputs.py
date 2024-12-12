@@ -708,6 +708,7 @@ def init_ds_surfaces_wf(
     *,
     output_dir: str,
     surfaces: list[str],
+    entities: dict[str, str] | None = None,
     name='ds_surfaces_wf',
 ) -> Workflow:
     """
@@ -721,6 +722,8 @@ def init_ds_surfaces_wf(
         Directory in which to save derivatives
     surfaces : :class:`str`
         List of surfaces to generate DataSinks for
+    entities : :class:`dict` of :class:`str`
+        Entities to include in outputs
     name : :class:`str`
         Workflow name (default: ds_surfaces_wf)
 
@@ -738,6 +741,9 @@ def init_ds_surfaces_wf(
 
     """
     workflow = Workflow(name=name)
+
+    if entities is None:
+        entities = {}
 
     inputnode = pe.Node(
         niu.IdentityInterface(fields=['source_files'] + surfaces),
@@ -765,6 +771,8 @@ def init_ds_surfaces_wf(
                 ds_surf.inputs.space = 'dhcpAsym'
             elif surf == 'sphere_reg_msm':
                 ds_surf.inputs.space, ds_surf.inputs.desc = 'fsLR', 'msmsulc'
+
+        ds_surf.inputs.trait_set(**entities)
 
         # fmt:off
         workflow.connect([
