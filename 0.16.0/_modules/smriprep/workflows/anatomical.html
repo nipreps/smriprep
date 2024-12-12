@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.anatomical &mdash; smriprep 0.16.2.dev36 documentation</title>
+  <title>smriprep.workflows.anatomical &mdash; smriprep 0.16.2.dev38 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -167,7 +167,7 @@
     <span class="n">init_morph_grayords_wf</span><span class="p">,</span>
     <span class="n">init_msm_sulc_wf</span><span class="p">,</span>
     <span class="n">init_refinement_wf</span><span class="p">,</span>
-    <span class="n">init_resample_midthickness_wf</span><span class="p">,</span>
+    <span class="n">init_resample_surfaces_wf</span><span class="p">,</span>
     <span class="n">init_surface_derivatives_wf</span><span class="p">,</span>
     <span class="n">init_surface_recon_wf</span><span class="p">,</span>
 <span class="p">)</span>
@@ -464,11 +464,23 @@
 
         <span class="k">if</span> <span class="n">cifti_output</span><span class="p">:</span>
             <span class="n">hcp_morphometrics_wf</span> <span class="o">=</span> <span class="n">init_hcp_morphometrics_wf</span><span class="p">(</span><span class="n">omp_nthreads</span><span class="o">=</span><span class="n">omp_nthreads</span><span class="p">)</span>
-            <span class="n">resample_midthickness_wf</span> <span class="o">=</span> <span class="n">init_resample_midthickness_wf</span><span class="p">(</span><span class="n">grayord_density</span><span class="o">=</span><span class="n">cifti_output</span><span class="p">)</span>
+            <span class="n">resample_surfaces_wf</span> <span class="o">=</span> <span class="n">init_resample_surfaces_wf</span><span class="p">(</span>
+                <span class="n">surfaces</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;pial&#39;</span><span class="p">,</span> <span class="s1">&#39;midthickness&#39;</span><span class="p">],</span>
+                <span class="n">grayord_density</span><span class="o">=</span><span class="n">cifti_output</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">morph_grayords_wf</span> <span class="o">=</span> <span class="n">init_morph_grayords_wf</span><span class="p">(</span>
                 <span class="n">grayord_density</span><span class="o">=</span><span class="n">cifti_output</span><span class="p">,</span> <span class="n">omp_nthreads</span><span class="o">=</span><span class="n">omp_nthreads</span>
             <span class="p">)</span>
 
+            <span class="n">ds_fsLR_surfaces_wf</span> <span class="o">=</span> <span class="n">init_ds_surfaces_wf</span><span class="p">(</span>
+                <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+                <span class="n">surfaces</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;pial&#39;</span><span class="p">,</span> <span class="s1">&#39;midthickness&#39;</span><span class="p">],</span>
+                <span class="n">entities</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s1">&#39;space&#39;</span><span class="p">:</span> <span class="s1">&#39;fsLR&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;density&#39;</span><span class="p">:</span> <span class="s1">&#39;32k&#39;</span> <span class="k">if</span> <span class="n">cifti_output</span> <span class="o">==</span> <span class="s1">&#39;91k&#39;</span> <span class="k">else</span> <span class="s1">&#39;59k&#39;</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_fsLR_surfaces_wf&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">ds_grayord_metrics_wf</span> <span class="o">=</span> <span class="n">init_ds_grayord_metrics_wf</span><span class="p">(</span>
                 <span class="n">bids_root</span><span class="o">=</span><span class="n">bids_root</span><span class="p">,</span>
                 <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
@@ -486,7 +498,9 @@
                 <span class="p">(</span><span class="n">surface_derivatives_wf</span><span class="p">,</span> <span class="n">hcp_morphometrics_wf</span><span class="p">,</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.curv&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.curv&#39;</span><span class="p">),</span>
                 <span class="p">]),</span>
-                <span class="p">(</span><span class="n">anat_fit_wf</span><span class="p">,</span> <span class="n">resample_midthickness_wf</span><span class="p">,</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">anat_fit_wf</span><span class="p">,</span> <span class="n">resample_surfaces_wf</span><span class="p">,</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s1">&#39;outputnode.white&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.white&#39;</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;outputnode.pial&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.pial&#39;</span><span class="p">),</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.midthickness&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.midthickness&#39;</span><span class="p">),</span>
                     <span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;outputnode.sphere_reg_</span><span class="si">{</span><span class="s1">&#39;msm&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">msm_sulc</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;fsLR&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -506,11 +520,19 @@
                     <span class="p">(</span><span class="s1">&#39;outputnode.thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.thickness&#39;</span><span class="p">),</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.roi&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.roi&#39;</span><span class="p">),</span>
                 <span class="p">]),</span>
-                <span class="p">(</span><span class="n">resample_midthickness_wf</span><span class="p">,</span> <span class="n">morph_grayords_wf</span><span class="p">,</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">resample_surfaces_wf</span><span class="p">,</span> <span class="n">morph_grayords_wf</span><span class="p">,</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.midthickness_fsLR&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.midthickness_fsLR&#39;</span><span class="p">),</span>
+                <span class="p">]),</span>
+                <span class="p">(</span><span class="n">anat_fit_wf</span><span class="p">,</span> <span class="n">ds_fsLR_surfaces_wf</span><span class="p">,</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s1">&#39;outputnode.t1w_valid_list&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.source_files&#39;</span><span class="p">),</span>
                 <span class="p">]),</span>
                 <span class="p">(</span><span class="n">anat_fit_wf</span><span class="p">,</span> <span class="n">ds_grayord_metrics_wf</span><span class="p">,</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.t1w_valid_list&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.source_files&#39;</span><span class="p">),</span>
+                <span class="p">]),</span>
+                <span class="p">(</span><span class="n">resample_surfaces_wf</span><span class="p">,</span> <span class="n">ds_fsLR_surfaces_wf</span><span class="p">,</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="s1">&#39;outputnode.white_fsLR&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.white&#39;</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;outputnode.pial_fsLR&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.pial&#39;</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;outputnode.midthickness_fsLR&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.midthickness&#39;</span><span class="p">),</span>
                 <span class="p">]),</span>
                 <span class="p">(</span><span class="n">morph_grayords_wf</span><span class="p">,</span> <span class="n">ds_grayord_metrics_wf</span><span class="p">,</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.curv_fsLR&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.curv&#39;</span><span class="p">),</span>

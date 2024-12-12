@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.surfaces module &mdash; smriprep 0.16.2.dev36 documentation</title>
+  <title>smriprep.workflows.surfaces module &mdash; smriprep 0.16.2.dev38 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -374,9 +374,9 @@ subject-specific cortical ROI.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_resample_midthickness_wf">
-<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_resample_midthickness_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grayord_density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'91k'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'170k'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'resample_midthickness_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_resample_midthickness_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_resample_midthickness_wf" title="Link to this definition"></a></dt>
-<dd><p>Resample subject midthickness surface to specified density.</p>
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_resample_surfaces_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_resample_surfaces_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surfaces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grayord_density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'91k'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'170k'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'resample_surfaces_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_resample_surfaces_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_resample_surfaces_wf" title="Link to this definition"></a></dt>
+<dd><p>Resample subject surfaces surface to specified density.</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
 <img alt="../_images/smriprep-workflows-surfaces-8.png" src="../_images/smriprep-workflows-surfaces-8.png" />
@@ -387,18 +387,19 @@ subject-specific cortical ROI.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>grayord_density</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Either <cite>91k</cite> or <cite>170k</cite>, representing the total of vertices or <em>grayordinates</em>.</p></li>
-<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Unique name for the subworkflow (default: <code class="docutils literal notranslate"><span class="pre">&quot;resample_midthickness_wf&quot;</span></code>)</p></li>
+<li><p><strong>surfaces</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Names of surfaces (e.g., <code class="docutils literal notranslate"><span class="pre">'white'</span></code>) to resample. Both hemispheres will be resampled.</p></li>
+<li><p><strong>grayord_density</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Either <cite>91k</cite> or <cite>170k</cite>, representing the total of vertices or <em>grayordinates</em>.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Unique name for the subworkflow (default: <code class="docutils literal notranslate"><span class="pre">&quot;resample_surfaces_wf&quot;</span></code>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Inputs<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>midthickness</strong> – GIFTI surface mesh corresponding to the midthickness surface</p></li>
+<li><p><strong>``&lt;surface&gt;``</strong> – Left and right GIFTIs for each surface name passed to <code class="docutils literal notranslate"><span class="pre">surfaces</span></code></p></li>
 <li><p><strong>sphere_reg_fsLR</strong> – GIFTI surface mesh corresponding to the subject’s fsLR registration sphere</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Outputs<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>midthickness</strong> – GIFTI surface mesh corresponding to the midthickness surface, resampled to fsLR</p>
+<dd class="field-odd"><p><strong>``&lt;surface&gt;``</strong> – Left and right GIFTI surface mesh corresponding to the input surface, resampled to fsLR</p>
 </dd>
 </dl>
 </dd></dl>

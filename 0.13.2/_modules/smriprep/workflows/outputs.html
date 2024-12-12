@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.outputs &mdash; smriprep 0.16.2.dev36 documentation</title>
+  <title>smriprep.workflows.outputs &mdash; smriprep 0.16.2.dev38 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -814,6 +814,7 @@
     <span class="o">*</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">surfaces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">entities</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_surfaces_wf&#39;</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Workflow</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -827,6 +828,8 @@
 <span class="sd">        Directory in which to save derivatives</span>
 <span class="sd">    surfaces : :class:`str`</span>
 <span class="sd">        List of surfaces to generate DataSinks for</span>
+<span class="sd">    entities : :class:`dict` of :class:`str`</span>
+<span class="sd">        Entities to include in outputs</span>
 <span class="sd">    name : :class:`str`</span>
 <span class="sd">        Workflow name (default: ds_surfaces_wf)</span>
 
@@ -844,6 +847,9 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">entities</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">entities</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="n">inputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;source_files&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">surfaces</span><span class="p">),</span>
@@ -871,6 +877,8 @@
                 <span class="n">ds_surf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="s1">&#39;dhcpAsym&#39;</span>
             <span class="k">elif</span> <span class="n">surf</span> <span class="o">==</span> <span class="s1">&#39;sphere_reg_msm&#39;</span><span class="p">:</span>
                 <span class="n">ds_surf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">space</span><span class="p">,</span> <span class="n">ds_surf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">desc</span> <span class="o">=</span> <span class="s1">&#39;fsLR&#39;</span><span class="p">,</span> <span class="s1">&#39;msmsulc&#39;</span>
+
+        <span class="n">ds_surf</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">trait_set</span><span class="p">(</span><span class="o">**</span><span class="n">entities</span><span class="p">)</span>
 
         <span class="c1"># fmt:off</span>
         <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
