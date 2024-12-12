@@ -265,7 +265,7 @@ def _fmt_cohort(template, spec):
     return template, spec
 
 
-def _set_reference(image_type, template_t1w, template_t2w):
+def _set_reference(image_type, template_t1w, template_t2w=None):
     """
     Determine the normalization reference and whether histogram matching will be used.
 
