@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.templateflow &mdash; smriprep 0.16.2.dev5 documentation</title>
+  <title>smriprep.interfaces.templateflow &mdash; smriprep 0.16.2.dev24 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -125,8 +125,11 @@
     <span class="n">atlas</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Specify an atlas&#39;</span><span class="p">)</span>
     <span class="n">cohort</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">traits</span><span class="o">.</span><span class="n">Either</span><span class="p">(</span><span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">,</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Specify a cohort&#39;</span><span class="p">)</span>
     <span class="n">resolution</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Specify a template resolution index&#39;</span><span class="p">)</span>
-    <span class="n">template_spec</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">DictStrAny</span><span class="p">(</span>
-        <span class="p">{</span><span class="s1">&#39;atlas&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;cohort&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span> <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Template specifications&#39;</span>
+    <span class="n">template_spec</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span>
+        <span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">,</span>
+        <span class="n">value</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;atlas&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;cohort&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+        <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Template specifications&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -365,7 +368,6 @@
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dependabot_github_actions_codecov_codecov-action-5/index.html">dependabot/github_actions/codecov/codecov-action-5</a></dd>
             <dd><a href="../../../../enh_calabel/index.html">enh/calabel</a></dd>
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
