@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.fit.registration &mdash; smriprep 0.16.2.dev26 documentation</title>
+  <title>smriprep.workflows.fit.registration &mdash; smriprep 0.16.2.dev33 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/banner.css?v=fd51b7f5" />
@@ -123,9 +123,10 @@
 <a class="viewcode-back" href="../../../../api/smriprep.workflows.fit.registration.html#smriprep.workflows.fit.registration.init_register_template_wf">[docs]</a>
 <span class="k">def</span> <span class="nf">init_register_template_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">sloppy</span><span class="p">,</span>
-    <span class="n">omp_nthreads</span><span class="p">,</span>
-    <span class="n">templates</span><span class="p">,</span>
+    <span class="n">sloppy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">omp_nthreads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">templates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">image_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span>
     <span class="n">name</span><span class="o">=</span><span class="s1">&#39;register_template_wf&#39;</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -174,6 +175,8 @@
 <span class="sd">        input domain to enable standardization of lesioned brains.</span>
 <span class="sd">    template</span>
 <span class="sd">        Template name and specification</span>
+<span class="sd">    image_type</span>
+<span class="sd">        Moving image modality</span>
 
 <span class="sd">    Outputs</span>
 <span class="sd">    -------</span>
@@ -255,6 +258,15 @@
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
+    <span class="n">set_reference</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span>
+            <span class="n">function</span><span class="o">=</span><span class="n">_set_reference</span><span class="p">,</span>
+            <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;reference_type&#39;</span><span class="p">,</span> <span class="s1">&#39;use_histogram_matching&#39;</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;set_reference&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">set_reference</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">image_type</span> <span class="o">=</span> <span class="n">image_type</span>
+
     <span class="c1"># With the improvements from nipreps/niworkflows#342 this truncation is now necessary</span>
     <span class="n">trunc_mov</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">ants</span><span class="o">.</span><span class="n">ImageMath</span><span class="p">(</span><span class="n">operation</span><span class="o">=</span><span class="s1">&#39;TruncateImageIntensity&#39;</span><span class="p">,</span> <span class="n">op2</span><span class="o">=</span><span class="s1">&#39;0.01 0.999 256&#39;</span><span class="p">),</span>
@@ -287,6 +299,14 @@
         <span class="p">(</span><span class="n">split_desc</span><span class="p">,</span> <span class="n">tf_select</span><span class="p">,</span> <span class="p">[</span>
             <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;spec&#39;</span><span class="p">,</span> <span class="s1">&#39;template_spec&#39;</span><span class="p">),</span>
+        <span class="p">]),</span>
+        <span class="p">(</span><span class="n">tf_select</span><span class="p">,</span> <span class="n">set_reference</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;t1w_file&#39;</span><span class="p">,</span> <span class="s1">&#39;template_t1w&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;t2w_file&#39;</span><span class="p">,</span> <span class="s1">&#39;template_t2w&#39;</span><span class="p">),</span>
+        <span class="p">]),</span>
+        <span class="p">(</span><span class="n">set_reference</span><span class="p">,</span> <span class="n">registration</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;reference_type&#39;</span><span class="p">,</span> <span class="s1">&#39;reference&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;use_histogram_matching&#39;</span><span class="p">,</span> <span class="s1">&#39;use_histogram_matching&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
         <span class="p">(</span><span class="n">split_desc</span><span class="p">,</span> <span class="n">registration</span><span class="p">,</span> <span class="p">[</span>
             <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
@@ -329,6 +349,30 @@
     <span class="k">if</span> <span class="n">cohort</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">template</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">template</span><span class="si">}</span><span class="s1">:cohort-</span><span class="si">{</span><span class="n">cohort</span><span class="si">}</span><span class="s1">&#39;</span>
     <span class="k">return</span> <span class="n">template</span><span class="p">,</span> <span class="n">spec</span>
+
+
+<span class="k">def</span> <span class="nf">_set_reference</span><span class="p">(</span><span class="n">image_type</span><span class="p">,</span> <span class="n">template_t1w</span><span class="p">,</span> <span class="n">template_t2w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine the normalization reference and whether histogram matching will be used.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    image_type : MR image type of anatomical reference (T1w, T2w)</span>
+<span class="sd">    template_t1w : T1w file</span>
+<span class="sd">    template_t2w : T2w file or undefined</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    reference_type : modality of template reference (T1w, T2w)</span>
+<span class="sd">    histogram_matching : False when image_type does not match reference image, otherwise Undefined</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="n">Undefined</span>
+
+    <span class="k">if</span> <span class="n">image_type</span> <span class="o">==</span> <span class="s1">&#39;T2w&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">template_t2w</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;T2w&#39;</span><span class="p">,</span> <span class="n">Undefined</span>
+        <span class="k">return</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="n">Undefined</span>
 </pre></div>
 
            </div>
