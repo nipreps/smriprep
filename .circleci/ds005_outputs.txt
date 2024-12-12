@@ -25,6 +25,9 @@ smriprep/sub-01/anat/sub-01_hemi-L_curv.shape.gii
 smriprep/sub-01/anat/sub-01_hemi-L_inflated.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_midthickness.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_pial.surf.gii
+smriprep/sub-01/anat/sub-01_hemi-L_space-fsLR_den-32k_midthickness.surf.gii
+smriprep/sub-01/anat/sub-01_hemi-L_space-fsLR_den-32k_pial.surf.gii
+smriprep/sub-01/anat/sub-01_hemi-L_space-fsLR_den-32k_white.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_space-fsLR_desc-msmsulc_sphere.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_space-fsLR_desc-reg_sphere.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_space-fsaverage_desc-reg_sphere.surf.gii
@@ -36,6 +39,9 @@ smriprep/sub-01/anat/sub-01_hemi-R_curv.shape.gii
 smriprep/sub-01/anat/sub-01_hemi-R_inflated.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_midthickness.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_pial.surf.gii
+smriprep/sub-01/anat/sub-01_hemi-R_space-fsLR_den-32k_midthickness.surf.gii
+smriprep/sub-01/anat/sub-01_hemi-R_space-fsLR_den-32k_pial.surf.gii
+smriprep/sub-01/anat/sub-01_hemi-R_space-fsLR_den-32k_white.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_space-fsLR_desc-msmsulc_sphere.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_space-fsLR_desc-reg_sphere.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_space-fsaverage_desc-reg_sphere.surf.gii

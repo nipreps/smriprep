@@ -84,7 +84,7 @@ from .surfaces import (
     init_morph_grayords_wf,
     init_msm_sulc_wf,
     init_refinement_wf,
-    init_resample_midthickness_wf,
+    init_resample_surfaces_wf,
     init_surface_derivatives_wf,
     init_surface_recon_wf,
 )
@@ -379,11 +379,23 @@ def init_anat_preproc_wf(
 
         if cifti_output:
             hcp_morphometrics_wf = init_hcp_morphometrics_wf(omp_nthreads=omp_nthreads)
-            resample_midthickness_wf = init_resample_midthickness_wf(grayord_density=cifti_output)
+            resample_surfaces_wf = init_resample_surfaces_wf(
+                surfaces=['white', 'pial', 'midthickness'],
+                grayord_density=cifti_output,
+            )
             morph_grayords_wf = init_morph_grayords_wf(
                 grayord_density=cifti_output, omp_nthreads=omp_nthreads
             )
 
+            ds_fsLR_surfaces_wf = init_ds_surfaces_wf(
+                output_dir=output_dir,
+                surfaces=['white', 'pial', 'midthickness'],
+                entities={
+                    'space': 'fsLR',
+                    'density': '32k' if cifti_output == '91k' else '59k',
+                },
+                name='ds_fsLR_surfaces_wf',
+            )
             ds_grayord_metrics_wf = init_ds_grayord_metrics_wf(
                 bids_root=bids_root,
                 output_dir=output_dir,
@@ -401,7 +413,9 @@ def init_anat_preproc_wf(
                 (surface_derivatives_wf, hcp_morphometrics_wf, [
                     ('outputnode.curv', 'inputnode.curv'),
                 ]),
-                (anat_fit_wf, resample_midthickness_wf, [
+                (anat_fit_wf, resample_surfaces_wf, [
+                    ('outputnode.white', 'inputnode.white'),
+                    ('outputnode.pial', 'inputnode.pial'),
                     ('outputnode.midthickness', 'inputnode.midthickness'),
                     (
                         f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
@@ -421,11 +435,19 @@ def init_anat_preproc_wf(
                     ('outputnode.thickness', 'inputnode.thickness'),
                     ('outputnode.roi', 'inputnode.roi'),
                 ]),
-                (resample_midthickness_wf, morph_grayords_wf, [
+                (resample_surfaces_wf, morph_grayords_wf, [
                     ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
+                ]),
+                (anat_fit_wf, ds_fsLR_surfaces_wf, [
+                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
                 ]),
                 (anat_fit_wf, ds_grayord_metrics_wf, [
                     ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ]),
+                (resample_surfaces_wf, ds_fsLR_surfaces_wf, [
+                    ('outputnode.white_fsLR', 'inputnode.white'),
+                    ('outputnode.pial_fsLR', 'inputnode.pial'),
+                    ('outputnode.midthickness_fsLR', 'inputnode.midthickness'),
                 ]),
                 (morph_grayords_wf, ds_grayord_metrics_wf, [
                     ('outputnode.curv_fsLR', 'inputnode.curv'),
