@@ -1316,13 +1316,55 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
     return workflow
 
 
+def init_resample_midthickness_wf(
+    grayord_density: ty.Literal['91k', '170k'],
+    name: str = 'resample_midthickness_wf',
+):
+    """
+    Resample subject midthickness surface to specified density.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: colored
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_resample_midthickness_wf
+            wf = init_resample_midthickness_wf(grayord_density='91k')
+
+    Parameters
+    ----------
+    grayord_density : :class:`str`
+        Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
+    name : :class:`str`
+        Unique name for the subworkflow (default: ``"resample_midthickness_wf"``)
+
+    Inputs
+    ------
+    midthickness
+        Left and right GIFTIs for midthickness surface
+    sphere_reg_fsLR
+        GIFTI surface mesh corresponding to the subject's fsLR registration sphere
+
+    Outputs
+    -------
+    midthickness
+        Left and right GIFTI surface mesh corresponding to the midthickness surface,
+        resampled to fsLR
+    """
+    return init_resample_surfaces_wf(
+        surfaces=['midthickness'],
+        grayord_density=grayord_density,
+        name=name,
+    )
+
+
 def init_resample_surfaces_wf(
     surfaces: list[str],
     grayord_density: ty.Literal['91k', '170k'],
     name: str = 'resample_surfaces_wf',
 ):
     """
-    Resample subject surfaces surface to specified density.
+    Resample subject surfaces to specified density.
 
     Workflow Graph
         .. workflow::
@@ -1353,7 +1395,7 @@ def init_resample_surfaces_wf(
 
     Outputs
     -------
-    ``<surface>``
+    ``<surface>_fsLR``
         Left and right GIFTI surface mesh corresponding to the input surface, resampled to fsLR
     """
     import templateflow.api as tf
