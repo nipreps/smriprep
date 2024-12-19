@@ -193,7 +193,7 @@ jobs:
       - name: Download packages built by build-and-inspect-python-package
         uses: actions/download-artifact@v4
         with:
-          name: Packages
+          pattern: Packages-*
           path: dist
 
       - name: Upload package to PyPI
