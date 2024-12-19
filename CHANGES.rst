@@ -1,3 +1,25 @@
+0.17.0 (December 19, 2024)
+==========================
+New feature release in the 0.17.x series.
+
+This release improves handling of datasets where T1w images are not
+the primary modality. It also supports the generation of fsLR meshes
+on the subject surface with the names:
+
+```
+sub-<label>/anat/sub-<label>_hemi-<L|R>_space-fsLR_den-<label>_<surface>.surf.gii
+```
+
+These are useful for plotting CIFTI results on subject anatomy.
+
+* FIX: Stop excluding FS minc_modify_header used during fallback registration (#453)
+* ENH: Output fsLR meshes on subject surfaces (#460)
+* ENH: Support spatial normalization to alternative modalities (#459)
+* ENH: Add `t2w_file` output to `TemplateFlowSelect` (#457)
+* MNT: Enable pre-release tests (#461)
+* MNT: Complete transition from flake8/black to ruff (#435)
+* MNT: Adopt src/ layout and tox (#458)
+
 0.16.1 (August 26, 2024)
 ========================
 A bug-fix release that reworks selection within the
