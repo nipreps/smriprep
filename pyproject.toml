@@ -1,5 +1,11 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+# Pin hatchling 1.26 to keep metadata 2.3
+# The hynek/build-and-inspect-python-package action is pinned at 2.8,
+# which in turn pins a twine that rejects 2.4.
+# Until uv build fixes a problem with its tar library, we're stuck here.
+# https://github.com/hynek/build-and-inspect-python-package/issues/155
+# https://github.com/astral-sh/uv/issues/5450
+requires = ["hatchling~=1.26.3", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
