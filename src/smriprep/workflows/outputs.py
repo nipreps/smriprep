@@ -1325,7 +1325,7 @@ def _combine_cohort(in_template):
         template = in_template.split(':')[0]
         if 'cohort-' not in in_template:
             return template
-        return f"{template}+{in_template.split('cohort-')[-1].split(':')[0]}"
+        return f'{template}+{in_template.split("cohort-")[-1].split(":")[0]}'
     return [_combine_cohort(v) for v in in_template]
 
 
