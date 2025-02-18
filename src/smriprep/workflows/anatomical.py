@@ -773,7 +773,7 @@ BIDS dataset."""
         LOGGER.info('ANAT Stage 1: Adding template workflow')
         ants_ver = ANTsInfo.version() or '(version unknown)'
         desc += f"""\
- {"Each" if num_t1w > 1 else "The"} T1w image was corrected for intensity
+ {'Each' if num_t1w > 1 else 'The'} T1w image was corrected for intensity
 non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
 [@ants, RRID:SCR_004757]"""
         desc += '.\n' if num_t1w > 1 else ', and used as T1w-reference throughout the workflow.\n'

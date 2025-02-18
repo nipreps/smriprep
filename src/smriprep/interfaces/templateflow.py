@@ -205,8 +205,8 @@ def fetch_template_files(
     if specs.get('resolution') and not set(specs['resolution']) & set(available_resolutions):
         fallback_res = available_resolutions[0] if available_resolutions else None
         LOGGER.warning(
-            f"Template {name[0]} does not have resolution(s): {specs['resolution']}."
-            f"Falling back to resolution: {fallback_res}."
+            f'Template {name[0]} does not have resolution(s): {specs["resolution"]}.'
+            f'Falling back to resolution: {fallback_res}.'
         )
         specs['resolution'] = fallback_res
 

@@ -1684,7 +1684,7 @@ def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> tu
 
     surf_dir = Path(subjects_dir) / subject_id / 'surf'
     all_surfs = {
-        surface: sorted(str(fn) for fn in surf_dir.glob(f"[lr]h.{surface.replace('_', '.')}"))
+        surface: sorted(str(fn) for fn in surf_dir.glob(f'[lr]h.{surface.replace("_", ".")}'))
         for surface in expanded_surfaces
     }
 
