@@ -18,6 +18,6 @@ docker:
 
 
 .git-blame-ignore-revs:
-	git log --grep "\[git-blame-ignore-rev\]" --pretty=format:"# %ad - %ae - %s%n%H" --date short \
+	git log --grep "ignore-rev\]" --pretty=format:"# %ad - %ae - %s%n%H" --date short \
 		> .git-blame-ignore-revs
 	echo >> .git-blame-ignore-revs
