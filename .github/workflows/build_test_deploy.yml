@@ -46,14 +46,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      # Note that we cannot upgrade this past 2.9 until uv build resolves a bug
-      # or build-and-inspect-python-package lets us select build as a backend
+      # Note that we may need to revert to 2.9 if bugs are found in `uv build`,
+      # unless build-and-inspect-python-package lets us select build as a backend
       #
       # https://github.com/astral-sh/uv/issues/5450
       # or https://github.com/hynek/build-and-inspect-python-package/issues/155
       #
-      # When we do move on, we should leave a comment to fall back in case of future uv build bugs
-      - uses: hynek/build-and-inspect-python-package@v2.8
+      # If 2.9 is required, then we will need to pin to hatchling 1.26.x to avoid
+      # incompatibilities with twine and the package metadata emitted by hatchiling.
+      - uses: hynek/build-and-inspect-python-package@v2
         with:
           upload-name-suffix: -main
           attest-build-provenance-github: ${{ github.event_name != 'pull_request' }}
