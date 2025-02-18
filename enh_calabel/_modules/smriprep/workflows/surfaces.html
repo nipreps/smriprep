@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.surfaces &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.workflows.surfaces &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -111,24 +111,24 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">ty</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ty</span>
 
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="n">freesurfer</span> <span class="k">as</span> <span class="n">fs</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">nio</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="n">Undefined</span>
-<span class="kn">from</span> <span class="nn">nipype.pipeline</span> <span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
-<span class="kn">from</span> <span class="nn">niworkflows.engine.workflows</span> <span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.freesurfer</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">freesurfer</span> <span class="k">as</span> <span class="n">fs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">nio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Undefined</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">FSDetectInputs</span><span class="p">,</span>
     <span class="n">FSInjectBrainExtracted</span><span class="p">,</span>
     <span class="n">RefineBrainMask</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.freesurfer</span> <span class="kn">import</span> <span class="n">PatchedRobustRegister</span> <span class="k">as</span> <span class="n">RobustRegister</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.nitransforms</span> <span class="kn">import</span> <span class="n">ConcatenateXFMs</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.patches</span> <span class="kn">import</span> <span class="n">FreeSurferSource</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.utility</span> <span class="kn">import</span> <span class="n">KeySelect</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.workbench</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">PatchedRobustRegister</span> <span class="k">as</span> <span class="n">RobustRegister</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.nitransforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConcatenateXFMs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreeSurferSource</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.utility</span><span class="w"> </span><span class="kn">import</span> <span class="n">KeySelect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">MetricDilate</span><span class="p">,</span>
     <span class="n">MetricFillHoles</span><span class="p">,</span>
     <span class="n">MetricMask</span><span class="p">,</span>
@@ -136,18 +136,18 @@
     <span class="n">MetricResample</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">smriprep</span>
-<span class="kn">from</span> <span class="nn">smriprep.interfaces.surf</span> <span class="kn">import</span> <span class="n">MakeRibbon</span>
-<span class="kn">from</span> <span class="nn">smriprep.interfaces.workbench</span> <span class="kn">import</span> <span class="n">SurfaceResample</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">smriprep</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.surf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MakeRibbon</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">SurfaceResample</span>
 
-<span class="kn">from</span> <span class="nn">..interfaces.freesurfer</span> <span class="kn">import</span> <span class="n">MakeMidthickness</span><span class="p">,</span> <span class="n">ReconAll</span>
-<span class="kn">from</span> <span class="nn">..interfaces.gifti</span> <span class="kn">import</span> <span class="n">MetricMath</span>
-<span class="kn">from</span> <span class="nn">..interfaces.workbench</span> <span class="kn">import</span> <span class="n">CreateSignedDistanceVolume</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MakeMidthickness</span><span class="p">,</span> <span class="n">ReconAll</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.gifti</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricMath</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">CreateSignedDistanceVolume</span>
 
 
 <div class="viewcode-block" id="init_surface_recon_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_surface_recon_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_surface_recon_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_surface_recon_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">omp_nthreads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">hires</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
@@ -417,7 +417,7 @@
 
 <div class="viewcode-block" id="init_refinement_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_refinement_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_refinement_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_refinement_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span> <span class="n">image_type</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="s1">&#39;T2w&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;refinement_wf&#39;</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Workflow</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -511,7 +511,7 @@
 
 <div class="viewcode-block" id="init_autorecon_resume_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_autorecon_resume_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_autorecon_resume_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">omp_nthreads</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;autorecon_resume_wf&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_autorecon_resume_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">omp_nthreads</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;autorecon_resume_wf&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Resume recon-all execution, assuming the `-autorecon1` stage has been completed.</span>
 
@@ -654,7 +654,7 @@
     <span class="p">)</span>
     <span class="n">autorecon3</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">_always_run</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">_dedup</span><span class="p">(</span><span class="n">in_list</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_dedup</span><span class="p">(</span><span class="n">in_list</span><span class="p">):</span>
         <span class="n">vals</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">in_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Non-identical values can&#39;t be deduplicated:</span><span class="se">\n</span><span class="si">{</span><span class="n">in_list</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -687,7 +687,7 @@
 
 <div class="viewcode-block" id="init_surface_derivatives_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_surface_derivatives_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_surface_derivatives_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_surface_derivatives_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">image_type</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="s1">&#39;T2w&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;surface_derivatives_wf&#39;</span><span class="p">,</span>
@@ -800,9 +800,9 @@
 
 <div class="viewcode-block" id="init_fsLR_reg_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_fsLR_reg_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_fsLR_reg_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fsLR_reg_wf&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_fsLR_reg_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fsLR_reg_wf&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate GIFTI registration files to fsLR space&quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">..interfaces.workbench</span> <span class="kn">import</span> <span class="n">SurfaceSphereProjectUnproject</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">SurfaceSphereProjectUnproject</span>
 
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
@@ -843,10 +843,10 @@
 
 <div class="viewcode-block" id="init_msm_sulc_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_msm_sulc_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_msm_sulc_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">sloppy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;msm_sulc_wf&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_msm_sulc_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">sloppy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;msm_sulc_wf&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run MSMSulc registration to fsLR surfaces, per hemisphere.&quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">..interfaces.msm</span> <span class="kn">import</span> <span class="n">MSM</span>
-    <span class="kn">from</span> <span class="nn">..interfaces.workbench</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.msm</span><span class="w"> </span><span class="kn">import</span> <span class="n">MSM</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">SurfaceAffineRegression</span><span class="p">,</span>
         <span class="n">SurfaceApplyAffine</span><span class="p">,</span>
         <span class="n">SurfaceModifySphere</span><span class="p">,</span>
@@ -938,7 +938,7 @@
 
 <div class="viewcode-block" id="init_gifti_surfaces_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_gifti_surfaces_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_gifti_surfaces_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_gifti_surfaces_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">surfaces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;pial&#39;</span><span class="p">,</span> <span class="s1">&#39;midthickness&#39;</span><span class="p">,</span> <span class="s1">&#39;inflated&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">),</span>
     <span class="n">to_scanner</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -979,7 +979,7 @@
 <span class="sd">        Left and right GIFTIs for each surface passed to ``surfaces``</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">..interfaces.surf</span> <span class="kn">import</span> <span class="n">NormalizeSurf</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.surf</span><span class="w"> </span><span class="kn">import</span> <span class="n">NormalizeSurf</span>
 
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
@@ -1038,7 +1038,7 @@
 
 <div class="viewcode-block" id="init_gifti_morphometrics_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_gifti_morphometrics_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_gifti_morphometrics_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_gifti_morphometrics_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">morphometrics</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;curv&#39;</span><span class="p">,</span> <span class="s1">&#39;sulc&#39;</span><span class="p">),</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;gifti_morphometrics_wf&#39;</span><span class="p">,</span>
@@ -1073,7 +1073,7 @@
 <span class="sd">        Left and right GIFTIs for each morphometry type passed to ``morphometrics``</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">..interfaces.freesurfer</span> <span class="kn">import</span> <span class="n">MRIsConvertData</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MRIsConvertData</span>
 
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
@@ -1133,7 +1133,7 @@
 
 <div class="viewcode-block" id="init_hcp_morphometrics_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_hcp_morphometrics_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_hcp_morphometrics_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_hcp_morphometrics_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">omp_nthreads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;hcp_morphometrics_wf&#39;</span><span class="p">,</span>
@@ -1279,7 +1279,7 @@
 
 <div class="viewcode-block" id="init_segs_to_native_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_segs_to_native_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_segs_to_native_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_segs_to_native_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">image_type</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="s1">&#39;T2w&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span>
     <span class="n">segmentation</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;aseg&#39;</span><span class="p">,</span> <span class="s1">&#39;aparc_aseg&#39;</span><span class="p">,</span> <span class="s1">&#39;aparc_a2009s&#39;</span><span class="p">,</span> <span class="s1">&#39;aparc_dkt&#39;</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;aseg&#39;</span><span class="p">,</span>
@@ -1362,7 +1362,7 @@
 
 <div class="viewcode-block" id="init_anat_ribbon_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_anat_ribbon_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_anat_ribbon_wf</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;anat_ribbon_wf&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_anat_ribbon_wf</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;anat_ribbon_wf&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create anatomical ribbon mask</span>
 
 <span class="sd">    Workflow Graph</span>
@@ -1434,7 +1434,7 @@
 
 <div class="viewcode-block" id="init_resample_surfaces_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_resample_surfaces_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_resample_surfaces_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_resample_surfaces_wf</span><span class="p">(</span>
     <span class="n">surfaces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">grayord_density</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;91k&#39;</span><span class="p">,</span> <span class="s1">&#39;170k&#39;</span><span class="p">],</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;resample_surfaces_wf&#39;</span><span class="p">,</span>
@@ -1474,8 +1474,8 @@
 <span class="sd">    ``&lt;surface&gt;``</span>
 <span class="sd">        Left and right GIFTI surface mesh corresponding to the input surface, resampled to fsLR</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">templateflow.api</span> <span class="k">as</span> <span class="nn">tf</span>
-    <span class="kn">from</span> <span class="nn">niworkflows.engine.workflows</span> <span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">templateflow.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
 
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
@@ -1544,7 +1544,7 @@
 
 <div class="viewcode-block" id="init_morph_grayords_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_morph_grayords_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_morph_grayords_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_morph_grayords_wf</span><span class="p">(</span>
     <span class="n">grayord_density</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;91k&#39;</span><span class="p">,</span> <span class="s1">&#39;170k&#39;</span><span class="p">],</span>
     <span class="n">omp_nthreads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;morph_grayords_wf&#39;</span><span class="p">,</span>
@@ -1597,10 +1597,10 @@
 <span class="sd">    thickness_fsLR</span>
 <span class="sd">        HCP-style thickness file in CIFTI-2 format, resampled to fsLR</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">templateflow.api</span> <span class="k">as</span> <span class="nn">tf</span>
-    <span class="kn">from</span> <span class="nn">niworkflows.engine.workflows</span> <span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">templateflow.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
 
-    <span class="kn">from</span> <span class="nn">smriprep.interfaces.cifti</span> <span class="kn">import</span> <span class="n">GenerateDScalar</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.cifti</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenerateDScalar</span>
 
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
     <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
@@ -1738,9 +1738,9 @@
 
 
 
-<span class="k">def</span> <span class="nf">_check_cw256</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="n">default_flags</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-    <span class="kn">from</span> <span class="nn">nibabel.funcs</span> <span class="kn">import</span> <span class="n">concat_images</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_cw256</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="n">default_flags</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nibabel.funcs</span><span class="w"> </span><span class="kn">import</span> <span class="n">concat_images</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">in_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">in_files</span><span class="p">]</span>
@@ -1752,18 +1752,18 @@
     <span class="k">return</span> <span class="n">flags</span>
 
 
-<span class="k">def</span> <span class="nf">_sorted_by_basename</span><span class="p">(</span><span class="n">inlist</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sorted_by_basename</span><span class="p">(</span><span class="n">inlist</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">os.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">basename</span>
 
     <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">inlist</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
 
 
-<span class="k">def</span> <span class="nf">_collate</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_collate</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">files</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">),</span> <span class="mi">2</span><span class="p">)]</span>
 
 
-<span class="k">def</span> <span class="nf">_extract_fs_fields</span><span class="p">(</span><span class="n">filenames</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_extract_fs_fields</span><span class="p">(</span><span class="n">filenames</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">filenames</span><span class="p">]</span>
@@ -1775,7 +1775,7 @@
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">),</span> <span class="n">subject_id</span>
 
 
-<span class="k">def</span> <span class="nf">_get_surfaces</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">surfaces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_surfaces</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">surfaces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get a list of FreeSurfer surface files for a given subject.</span>
 
@@ -1798,7 +1798,7 @@
 <span class="sd">        A list of surfaces for each requested surface, sorted</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
     <span class="n">expanded_surfaces</span> <span class="o">=</span> <span class="n">surfaces</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="k">if</span> <span class="s1">&#39;midthickness&#39;</span> <span class="ow">in</span> <span class="n">surfaces</span><span class="p">:</span>
@@ -1806,7 +1806,7 @@
 
     <span class="n">surf_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">subject_id</span> <span class="o">/</span> <span class="s1">&#39;surf&#39;</span>
     <span class="n">all_surfs</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">surface</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">surf_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[lr]h.</span><span class="si">{</span><span class="n">surface</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;.&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+        <span class="n">surface</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">surf_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;[lr]h.</span><span class="si">{</span><span class="n">surface</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;.&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">surface</span> <span class="ow">in</span> <span class="n">expanded_surfaces</span>
     <span class="p">}</span>
 
@@ -1817,7 +1817,7 @@
     <span class="k">return</span> <span class="n">ret</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_select_seg</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="n">segmentation</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_select_seg</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="n">segmentation</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">in_files</span>
 
@@ -1831,7 +1831,7 @@
     <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No segmentation containing &quot;</span><span class="si">{</span><span class="n">segmentation</span><span class="si">}</span><span class="s1">&quot; was found.&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_repeat</span><span class="p">(</span><span class="n">seq</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_repeat</span><span class="p">(</span><span class="n">seq</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">seq</span> <span class="o">*</span> <span class="n">count</span>
 </pre></div>
 

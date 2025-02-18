@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.anatomical &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.workflows.anatomical &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -102,45 +102,45 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;Anatomical reference preprocessing workflows.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">ty</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ty</span>
 
-<span class="kn">from</span> <span class="nn">nipype</span> <span class="kn">import</span> <span class="n">logging</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">freesurfer</span> <span class="k">as</span> <span class="n">fs</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">fsl</span><span class="p">,</span>
     <span class="n">image</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.ants</span> <span class="kn">import</span> <span class="n">DenoiseImage</span><span class="p">,</span> <span class="n">N4BiasFieldCorrection</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.ants.base</span> <span class="kn">import</span> <span class="n">Info</span> <span class="k">as</span> <span class="n">ANTsInfo</span>
-<span class="kn">from</span> <span class="nn">nipype.pipeline</span> <span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
-<span class="kn">from</span> <span class="nn">niworkflows.anat.ants</span> <span class="kn">import</span> <span class="n">init_brain_extraction_wf</span><span class="p">,</span> <span class="n">init_n4_only_wf</span>
-<span class="kn">from</span> <span class="nn">niworkflows.engine.workflows</span> <span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.fixes</span> <span class="kn">import</span> <span class="n">FixHeaderApplyTransforms</span> <span class="k">as</span> <span class="n">ApplyTransforms</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.freesurfer</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.ants</span><span class="w"> </span><span class="kn">import</span> <span class="n">DenoiseImage</span><span class="p">,</span> <span class="n">N4BiasFieldCorrection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.ants.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Info</span> <span class="k">as</span> <span class="n">ANTsInfo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.anat.ants</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_brain_extraction_wf</span><span class="p">,</span> <span class="n">init_n4_only_wf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.fixes</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixHeaderApplyTransforms</span> <span class="k">as</span> <span class="n">ApplyTransforms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">PatchedLTAConvert</span> <span class="k">as</span> <span class="n">LTAConvert</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.freesurfer</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">StructuralReference</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.header</span> <span class="kn">import</span> <span class="n">ValidateImage</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.images</span> <span class="kn">import</span> <span class="n">Conform</span><span class="p">,</span> <span class="n">TemplateDimensions</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.nibabel</span> <span class="kn">import</span> <span class="n">ApplyMask</span><span class="p">,</span> <span class="n">Binarize</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.nitransforms</span> <span class="kn">import</span> <span class="n">ConcatenateXFMs</span>
-<span class="kn">from</span> <span class="nn">niworkflows.utils.misc</span> <span class="kn">import</span> <span class="n">add_suffix</span>
-<span class="kn">from</span> <span class="nn">niworkflows.utils.spaces</span> <span class="kn">import</span> <span class="n">Reference</span><span class="p">,</span> <span class="n">SpatialReferences</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.header</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidateImage</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.images</span><span class="w"> </span><span class="kn">import</span> <span class="n">Conform</span><span class="p">,</span> <span class="n">TemplateDimensions</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApplyMask</span><span class="p">,</span> <span class="n">Binarize</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.nitransforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConcatenateXFMs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_suffix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">Reference</span><span class="p">,</span> <span class="n">SpatialReferences</span>
 
-<span class="kn">import</span> <span class="nn">smriprep</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">smriprep</span>
 
-<span class="kn">from</span> <span class="nn">..interfaces</span> <span class="kn">import</span> <span class="n">DerivativesDataSink</span>
-<span class="kn">from</span> <span class="nn">..utils.misc</span> <span class="kn">import</span> <span class="n">apply_lut</span> <span class="k">as</span> <span class="n">_apply_bids_lut</span>
-<span class="kn">from</span> <span class="nn">..utils.misc</span> <span class="kn">import</span> <span class="n">fs_isRunning</span> <span class="k">as</span> <span class="n">_fs_isRunning</span>
-<span class="kn">from</span> <span class="nn">.fit.registration</span> <span class="kn">import</span> <span class="n">init_register_template_wf</span>
-<span class="kn">from</span> <span class="nn">.outputs</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">DerivativesDataSink</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_lut</span> <span class="k">as</span> <span class="n">_apply_bids_lut</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">fs_isRunning</span> <span class="k">as</span> <span class="n">_fs_isRunning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.fit.registration</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_register_template_wf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.outputs</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">init_anat_reports_wf</span><span class="p">,</span>
     <span class="n">init_ds_anat_volumes_wf</span><span class="p">,</span>
     <span class="n">init_ds_dseg_wf</span><span class="p">,</span>
@@ -155,7 +155,7 @@
     <span class="n">init_ds_tpms_wf</span><span class="p">,</span>
     <span class="n">init_template_iterator_wf</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.surfaces</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.surfaces</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">init_anat_ribbon_wf</span><span class="p">,</span>
     <span class="n">init_fsLR_reg_wf</span><span class="p">,</span>
     <span class="n">init_gifti_morphometrics_wf</span><span class="p">,</span>
@@ -174,7 +174,7 @@
 
 <div class="viewcode-block" id="init_anat_preproc_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.anatomical.html#smriprep.workflows.anatomical.init_anat_preproc_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_anat_preproc_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_anat_preproc_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bids_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -547,7 +547,7 @@
 
 <div class="viewcode-block" id="init_anat_fit_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.anatomical.html#smriprep.workflows.anatomical.init_anat_fit_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_anat_fit_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_anat_fit_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bids_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -858,7 +858,7 @@
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ANAT Stage 1: Adding template workflow&#39;</span><span class="p">)</span>
         <span class="n">ants_ver</span> <span class="o">=</span> <span class="n">ANTsInfo</span><span class="o">.</span><span class="n">version</span><span class="p">()</span> <span class="ow">or</span> <span class="s1">&#39;(version unknown)&#39;</span>
         <span class="n">desc</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2"> </span><span class="si">{</span><span class="s2">&quot;Each&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">num_t1w</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">&quot;The&quot;</span><span class="si">}</span><span class="s2"> T1w image was corrected for intensity</span>
+<span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Each&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">num_t1w</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;The&#39;</span><span class="si">}</span><span class="s2"> T1w image was corrected for intensity</span>
 <span class="s2">non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs </span><span class="si">{</span><span class="n">ants_ver</span><span class="si">}</span>
 <span class="s2">[@ants, RRID:SCR_004757]&quot;&quot;&quot;</span>
         <span class="n">desc</span> <span class="o">+=</span> <span class="s1">&#39;.</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">num_t1w</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;, and used as T1w-reference throughout the workflow.</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -1475,7 +1475,7 @@
 
 <div class="viewcode-block" id="init_anat_template_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.anatomical.html#smriprep.workflows.anatomical.init_anat_template_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_anat_template_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_anat_template_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">longitudinal</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">omp_nthreads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -1630,7 +1630,7 @@
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_set_threads</span><span class="p">(</span><span class="n">in_list</span><span class="p">,</span> <span class="n">maximum</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_threads</span><span class="p">(</span><span class="n">in_list</span><span class="p">,</span> <span class="n">maximum</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">in_list</span><span class="p">),</span> <span class="n">maximum</span><span class="p">)</span>
 
     <span class="c1"># fmt:off</span>
@@ -1656,13 +1656,13 @@
 
 
 
-<span class="k">def</span> <span class="nf">_pop</span><span class="p">(</span><span class="n">inlist</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_pop</span><span class="p">(</span><span class="n">inlist</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inlist</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">inlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">inlist</span>
 
 
-<span class="k">def</span> <span class="nf">_aseg_to_three</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_aseg_to_three</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Map FreeSurfer&#39;s segmentation onto a brain (3-)tissue segmentation.</span>
 
@@ -1675,7 +1675,7 @@
 <span class="sd">    is available in the FreeSurfer source.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
     <span class="c1"># Base struct</span>
     <span class="n">aseg_lut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">256</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
@@ -1707,11 +1707,11 @@
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">aseg_lut</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_split_segments</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_split_segments</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nb</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nb</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
     <span class="n">segimg</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">(</span><span class="n">segimg</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span>
@@ -1727,15 +1727,15 @@
     <span class="k">return</span> <span class="n">out_files</span>
 
 
-<span class="k">def</span> <span class="nf">_probseg_fast2bids</span><span class="p">(</span><span class="n">inlist</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_probseg_fast2bids</span><span class="p">(</span><span class="n">inlist</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reorder a list of probseg maps from FAST (CSF, WM, GM) to BIDS (GM, WM, CSF).&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">inlist</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">inlist</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">inlist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">_is_skull_stripped</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_skull_stripped</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if T1w images are skull-stripped.&quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nb</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nb</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">img</span><span class="p">)</span><span class="o">.</span><span class="n">dataobj</span>
     <span class="n">sidevals</span> <span class="o">=</span> <span class="p">(</span>

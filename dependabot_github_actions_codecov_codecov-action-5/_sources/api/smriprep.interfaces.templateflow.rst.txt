@@ -1,7 +1,0 @@
-smriprep.interfaces.templateflow module
-=======================================
-
-.. automodule:: smriprep.interfaces.templateflow
-   :members:
-   :undoc-members:
-   :show-inheritance:

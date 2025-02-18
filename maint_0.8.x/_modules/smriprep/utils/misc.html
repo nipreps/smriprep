@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.misc &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.utils.misc &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -108,14 +108,14 @@
 
 <div class="viewcode-block" id="apply_lut">
 <a class="viewcode-back" href="../../../api/smriprep.utils.misc.html#smriprep.utils.misc.apply_lut">[docs]</a>
-<span class="k">def</span> <span class="nf">apply_lut</span><span class="p">(</span><span class="n">in_dseg</span><span class="p">,</span> <span class="n">lut</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_lut</span><span class="p">(</span><span class="n">in_dseg</span><span class="p">,</span> <span class="n">lut</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Map the input discrete segmentation to a new label set (lookup table, LUT).&quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nb</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-    <span class="kn">from</span> <span class="nn">nipype.utils.filemanip</span> <span class="kn">import</span> <span class="n">fname_presuffix</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nb</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.utils.filemanip</span><span class="w"> </span><span class="kn">import</span> <span class="n">fname_presuffix</span>
 
     <span class="k">if</span> <span class="n">newpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">getcwd</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">os</span><span class="w"> </span><span class="kn">import</span> <span class="n">getcwd</span>
 
         <span class="n">newpath</span> <span class="o">=</span> <span class="n">getcwd</span><span class="p">()</span>
 
@@ -135,7 +135,7 @@
 
 <div class="viewcode-block" id="fs_isRunning">
 <a class="viewcode-back" href="../../../api/smriprep.utils.misc.html#smriprep.utils.misc.fs_isRunning">[docs]</a>
-<span class="k">def</span> <span class="nf">fs_isRunning</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">mtime_tol</span><span class="o">=</span><span class="mi">86400</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fs_isRunning</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">mtime_tol</span><span class="o">=</span><span class="mi">86400</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Checks FreeSurfer subjects dir for presence of recon-all blocking ``IsRunning`` files,</span>
 <span class="sd">    and optionally removes any based on the modification time.</span>
@@ -154,8 +154,8 @@
 <span class="sd">    subjects_dir : os.PathLike or None</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">time</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
     <span class="k">if</span> <span class="n">subjects_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">subjects_dir</span>

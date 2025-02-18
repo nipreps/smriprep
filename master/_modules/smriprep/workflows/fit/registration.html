@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.fit.registration &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.workflows.fit.registration &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/banner.css?v=fd51b7f5" />
@@ -102,23 +102,23 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;Spatial normalization workflows.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="n">ants</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.ants.base</span> <span class="kn">import</span> <span class="n">Info</span> <span class="k">as</span> <span class="n">ANTsInfo</span>
-<span class="kn">from</span> <span class="nn">nipype.pipeline</span> <span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
-<span class="kn">from</span> <span class="nn">niworkflows.engine.workflows</span> <span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.norm</span> <span class="kn">import</span> <span class="n">SpatialNormalization</span>
-<span class="kn">from</span> <span class="nn">templateflow</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">tf_ver</span>
-<span class="kn">from</span> <span class="nn">templateflow.api</span> <span class="kn">import</span> <span class="n">get_metadata</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">ants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.ants.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Info</span> <span class="k">as</span> <span class="n">ANTsInfo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.norm</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpatialNormalization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">templateflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">tf_ver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">templateflow.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_metadata</span>
 
-<span class="kn">from</span> <span class="nn">...interfaces.templateflow</span> <span class="kn">import</span> <span class="n">TemplateDesc</span><span class="p">,</span> <span class="n">TemplateFlowSelect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...interfaces.templateflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateDesc</span><span class="p">,</span> <span class="n">TemplateFlowSelect</span>
 
 
 <div class="viewcode-block" id="init_register_template_wf">
 <a class="viewcode-back" href="../../../../api/smriprep.workflows.fit.registration.html#smriprep.workflows.fit.registration.init_register_template_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_register_template_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_register_template_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">sloppy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">omp_nthreads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -330,7 +330,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_make_outputnode</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="n">out_fields</span><span class="p">,</span> <span class="n">joinsource</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_outputnode</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="n">out_fields</span><span class="p">,</span> <span class="n">joinsource</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">joinsource</span><span class="p">:</span>
         <span class="n">pout</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">out_fields</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;poutputnode&#39;</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">JoinNode</span><span class="p">(</span>
@@ -341,14 +341,14 @@
     <span class="k">return</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">out_fields</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputnode&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_fmt_cohort</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_fmt_cohort</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
     <span class="n">cohort</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;cohort&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cohort</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">template</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">template</span><span class="si">}</span><span class="s1">:cohort-</span><span class="si">{</span><span class="n">cohort</span><span class="si">}</span><span class="s1">&#39;</span>
     <span class="k">return</span> <span class="n">template</span><span class="p">,</span> <span class="n">spec</span>
 
 
-<span class="k">def</span> <span class="nf">_set_reference</span><span class="p">(</span><span class="n">image_type</span><span class="p">,</span> <span class="n">template_t1w</span><span class="p">,</span> <span class="n">template_t2w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_reference</span><span class="p">(</span><span class="n">image_type</span><span class="p">,</span> <span class="n">template_t1w</span><span class="p">,</span> <span class="n">template_t2w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Determine the normalization reference and whether histogram matching will be used.</span>
 
@@ -363,7 +363,7 @@
 <span class="sd">    reference_type : modality of template reference (T1w, T2w)</span>
 <span class="sd">    histogram_matching : False when image_type does not match reference image, otherwise Undefined</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="n">Undefined</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Undefined</span>
 
     <span class="k">if</span> <span class="n">image_type</span> <span class="o">==</span> <span class="s1">&#39;T2w&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">template_t2w</span><span class="p">:</span>

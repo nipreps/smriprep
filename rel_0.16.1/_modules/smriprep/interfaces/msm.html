@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.msm &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.interfaces.msm &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -82,9 +82,9 @@
 
     <p class="scv-banner scv-sphinx_rtd_theme"><b>Warning:</b> This document is for the development version of smriprep.</p>
 <h1>Source code for smriprep.interfaces.msm</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CommandLine</span><span class="p">,</span>
     <span class="n">CommandLineInputSpec</span><span class="p">,</span>
     <span class="n">File</span><span class="p">,</span>
@@ -93,7 +93,7 @@
 <span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">MSMInputSpec</span><span class="p">(</span><span class="n">CommandLineInputSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MSMInputSpec</span><span class="p">(</span><span class="n">CommandLineInputSpec</span><span class="p">):</span>
     <span class="n">in_mesh</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
         <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -179,7 +179,7 @@
     <span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">MSMOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MSMOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">warped_mesh</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
         <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the warped input mesh (i.e., new vertex locations - this capture the warp field, &#39;</span>
         <span class="s1">&#39;much like a _warp.nii.gz file would for volumetric warps created by FNIRT).&#39;</span>
@@ -195,7 +195,7 @@
 
 <div class="viewcode-block" id="MSM">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.msm.html#smriprep.interfaces.msm.MSM">[docs]</a>
-<span class="k">class</span> <span class="nc">MSM</span><span class="p">(</span><span class="n">CommandLine</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MSM</span><span class="p">(</span><span class="n">CommandLine</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    MSM (Multimodal Surface Matching) is a tool for registering cortical surfaces.</span>
 <span class="sd">    The tool has been developed and tested using FreeSurfer extracted surfaces.</span>
@@ -233,8 +233,8 @@
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">MSMOutputSpec</span>
     <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;msm&#39;</span>
 
-    <span class="k">def</span> <span class="nf">_list_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">nipype.utils.filemanip</span> <span class="kn">import</span> <span class="n">split_filename</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_list_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.utils.filemanip</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_filename</span>
 
         <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">out_base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">out_base</span> <span class="ow">or</span> <span class="n">split_filename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_mesh</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>

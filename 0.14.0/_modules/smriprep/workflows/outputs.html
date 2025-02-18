@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.outputs &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.workflows.outputs &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -105,28 +105,28 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;Writing outputs.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">typing</span> <span class="k">as</span> <span class="nn">ty</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ty</span>
 
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
-<span class="kn">from</span> <span class="nn">nipype.pipeline</span> <span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
-<span class="kn">from</span> <span class="nn">niworkflows.engine.workflows</span> <span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.fixes</span> <span class="kn">import</span> <span class="n">FixHeaderApplyTransforms</span> <span class="k">as</span> <span class="n">ApplyTransforms</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.nibabel</span> <span class="kn">import</span> <span class="n">ApplyMask</span><span class="p">,</span> <span class="n">GenerateSamplingReference</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.space</span> <span class="kn">import</span> <span class="n">SpaceDataSource</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.utility</span> <span class="kn">import</span> <span class="n">KeySelect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.fixes</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixHeaderApplyTransforms</span> <span class="k">as</span> <span class="n">ApplyTransforms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApplyMask</span><span class="p">,</span> <span class="n">GenerateSamplingReference</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.space</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpaceDataSource</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.utility</span><span class="w"> </span><span class="kn">import</span> <span class="n">KeySelect</span>
 
-<span class="kn">from</span> <span class="nn">..interfaces</span> <span class="kn">import</span> <span class="n">DerivativesDataSink</span>
-<span class="kn">from</span> <span class="nn">..interfaces.templateflow</span> <span class="kn">import</span> <span class="n">TemplateFlowSelect</span><span class="p">,</span> <span class="n">fetch_template_files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">DerivativesDataSink</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.templateflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateFlowSelect</span><span class="p">,</span> <span class="n">fetch_template_files</span>
 
 <span class="k">if</span> <span class="n">ty</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">niworkflows.utils.spaces</span> <span class="kn">import</span> <span class="n">SpatialReferences</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpatialReferences</span>
 
 <span class="n">BIDS_TISSUE_ORDER</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="s1">&#39;WM&#39;</span><span class="p">,</span> <span class="s1">&#39;CSF&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="init_anat_reports_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_anat_reports_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_anat_reports_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">spaces</span><span class="p">,</span> <span class="n">freesurfer</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">sloppy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;anat_reports_wf&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_anat_reports_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">spaces</span><span class="p">,</span> <span class="n">freesurfer</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">sloppy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;anat_reports_wf&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set up a battery of datasinks to store reports in the right location.</span>
 
@@ -164,8 +164,8 @@
 <span class="sd">        Template space and specifications</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">niworkflows.interfaces.reportlets.masks</span> <span class="kn">import</span> <span class="n">ROIsPlot</span>
-    <span class="kn">from</span> <span class="nn">niworkflows.interfaces.reportlets.registration</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.reportlets.masks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ROIsPlot</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.reportlets.registration</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">SimpleBeforeAfterRPT</span> <span class="k">as</span> <span class="n">SimpleBeforeAfter</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -291,7 +291,7 @@
         <span class="c1"># fmt:on</span>
 
     <span class="k">if</span> <span class="n">freesurfer</span><span class="p">:</span>
-        <span class="kn">from</span> <span class="nn">..interfaces.reports</span> <span class="kn">import</span> <span class="n">FSSurfaceReport</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.reports</span><span class="w"> </span><span class="kn">import</span> <span class="n">FSSurfaceReport</span>
 
         <span class="n">recon_report</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">FSSurfaceReport</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;recon_report&#39;</span><span class="p">)</span>
         <span class="n">recon_report</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">_always_run</span> <span class="o">=</span> <span class="kc">True</span>
@@ -316,7 +316,7 @@
 
 <div class="viewcode-block" id="init_ds_template_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_template_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_template_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_template_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">num_anat</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -411,7 +411,7 @@
 
 <div class="viewcode-block" id="init_ds_mask_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_mask_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_mask_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_mask_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bids_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -491,7 +491,7 @@
 
 <div class="viewcode-block" id="init_ds_dseg_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_dseg_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_dseg_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_dseg_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">extra_entities</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -558,7 +558,7 @@
 
 <div class="viewcode-block" id="init_ds_tpms_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_tpms_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_tpms_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_tpms_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">extra_entities</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -629,7 +629,7 @@
 
 <div class="viewcode-block" id="init_ds_template_registration_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_template_registration_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_template_registration_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_template_registration_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">image_type</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="s1">&#39;T2w&#39;</span><span class="p">],</span>
@@ -718,7 +718,7 @@
 
 <div class="viewcode-block" id="init_ds_fs_registration_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_fs_registration_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_fs_registration_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_fs_registration_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">image_type</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="s1">&#39;T2w&#39;</span><span class="p">],</span>
@@ -764,7 +764,7 @@
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputnode&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="kn">from</span> <span class="nn">niworkflows.interfaces.nitransforms</span> <span class="kn">import</span> <span class="n">ConcatenateXFMs</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.nitransforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConcatenateXFMs</span>
 
     <span class="c1"># FS native space transforms</span>
     <span class="n">lta2itk</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">ConcatenateXFMs</span><span class="p">(</span><span class="n">inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lta2itk&#39;</span><span class="p">,</span> <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -810,7 +810,7 @@
 
 <div class="viewcode-block" id="init_ds_surfaces_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_surfaces_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_surfaces_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_surfaces_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">surfaces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -893,7 +893,7 @@
 
 <div class="viewcode-block" id="init_ds_surface_metrics_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_surface_metrics_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_surface_metrics_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_surface_metrics_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bids_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -961,7 +961,7 @@
 
 <div class="viewcode-block" id="init_ds_grayord_metrics_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_grayord_metrics_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_grayord_metrics_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_grayord_metrics_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bids_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1039,7 +1039,7 @@
 
 <div class="viewcode-block" id="init_ds_anat_volumes_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_anat_volumes_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_anat_volumes_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_anat_volumes_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bids_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1178,7 +1178,7 @@
 
 <div class="viewcode-block" id="init_ds_fs_segs_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_fs_segs_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_ds_fs_segs_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_fs_segs_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bids_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1263,7 +1263,7 @@
 
 <div class="viewcode-block" id="init_template_iterator_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_template_iterator_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_template_iterator_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_template_iterator_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span> <span class="n">spaces</span><span class="p">:</span> <span class="s1">&#39;SpatialReferences&#39;</span><span class="p">,</span> <span class="n">sloppy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;template_iterator_wf&#39;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Prepare the necessary components to resample an image to a template space</span>
@@ -1352,8 +1352,8 @@
 
 
 
-<span class="k">def</span> <span class="nf">_bids_relative</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="n">bids_root</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_bids_relative</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="n">bids_root</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="n">in_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">in_files</span><span class="p">]</span>
@@ -1366,10 +1366,10 @@
     <span class="k">return</span> <span class="n">in_files</span>
 
 
-<span class="k">def</span> <span class="nf">_rpt_masks</span><span class="p">(</span><span class="n">mask_file</span><span class="p">,</span> <span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">,</span> <span class="n">after_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_rpt_masks</span><span class="p">(</span><span class="n">mask_file</span><span class="p">,</span> <span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">,</span> <span class="n">after_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">os.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">abspath</span>
 
-    <span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nb</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nb</span>
 
     <span class="n">msk</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">mask_file</span><span class="p">)</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span>
     <span class="n">bnii</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">before</span><span class="p">)</span>
@@ -1382,26 +1382,26 @@
     <span class="k">return</span> <span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;before.nii.gz&#39;</span><span class="p">),</span> <span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;after.nii.gz&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_drop_cohort</span><span class="p">(</span><span class="n">in_template</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_drop_cohort</span><span class="p">(</span><span class="n">in_template</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_template</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">in_template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">_drop_cohort</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">in_template</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_pick_cohort</span><span class="p">(</span><span class="n">in_template</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_pick_cohort</span><span class="p">(</span><span class="n">in_template</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_template</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="s1">&#39;cohort-&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">in_template</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="n">Undefined</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Undefined</span>
 
             <span class="k">return</span> <span class="n">Undefined</span>
         <span class="k">return</span> <span class="n">in_template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;cohort-&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">_pick_cohort</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">in_template</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_empty_report</span><span class="p">(</span><span class="n">in_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_empty_report</span><span class="p">(</span><span class="n">in_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-    <span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="n">isdefined</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">isdefined</span>
 
     <span class="k">if</span> <span class="n">in_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">isdefined</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">in_file</span>
@@ -1415,45 +1415,45 @@
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_is_native</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_native</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;native&#39;</span>
 
 
-<span class="k">def</span> <span class="nf">_no_native</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">sloppy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_no_native</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">sloppy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
         <span class="k">return</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">sloppy</span> <span class="k">else</span> <span class="mi">1</span>
 
 
-<span class="k">def</span> <span class="nf">_drop_path</span><span class="p">(</span><span class="n">in_path</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_drop_path</span><span class="p">(</span><span class="n">in_path</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-    <span class="kn">from</span> <span class="nn">templateflow.conf</span> <span class="kn">import</span> <span class="n">TF_HOME</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">templateflow.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">TF_HOME</span>
 
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">in_path</span><span class="p">)</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">TF_HOME</span><span class="p">))</span>
 
 
-<span class="k">def</span> <span class="nf">_fmt_cohort</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">cohort</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="n">isdefined</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_fmt_cohort</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">cohort</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">isdefined</span>
 
     <span class="k">if</span> <span class="n">cohort</span> <span class="ow">and</span> <span class="n">isdefined</span><span class="p">(</span><span class="n">cohort</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">template</span><span class="si">}</span><span class="s1">:cohort-</span><span class="si">{</span><span class="n">cohort</span><span class="si">}</span><span class="s1">&#39;</span>
     <span class="k">return</span> <span class="n">template</span>
 
 
-<span class="k">def</span> <span class="nf">_combine_cohort</span><span class="p">(</span><span class="n">in_template</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_combine_cohort</span><span class="p">(</span><span class="n">in_template</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_template</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">template</span> <span class="o">=</span> <span class="n">in_template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="s1">&#39;cohort-&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">in_template</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">template</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">template</span><span class="si">}</span><span class="s2">+</span><span class="si">{</span><span class="n">in_template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;cohort-&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">template</span><span class="si">}</span><span class="s1">+</span><span class="si">{</span><span class="n">in_template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;cohort-&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">_combine_cohort</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">in_template</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_read_json</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">loads</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_json</span><span class="p">(</span><span class="n">in_file</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="kn">import</span> <span class="n">loads</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
     <span class="k">return</span> <span class="n">loads</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
 </pre></div>

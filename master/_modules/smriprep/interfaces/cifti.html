@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.cifti &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.interfaces.cifti &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -79,17 +79,17 @@
 
 
 <h1>Source code for smriprep.interfaces.cifti</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nb</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">nibabel</span> <span class="kn">import</span> <span class="n">cifti2</span> <span class="k">as</span> <span class="n">ci</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="n">File</span><span class="p">,</span> <span class="n">SimpleInterface</span><span class="p">,</span> <span class="n">TraitedSpec</span><span class="p">,</span> <span class="n">traits</span>
-<span class="kn">from</span> <span class="nn">templateflow</span> <span class="kn">import</span> <span class="n">api</span> <span class="k">as</span> <span class="n">tf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nb</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">cifti2</span> <span class="k">as</span> <span class="n">ci</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">File</span><span class="p">,</span> <span class="n">SimpleInterface</span><span class="p">,</span> <span class="n">TraitedSpec</span><span class="p">,</span> <span class="n">traits</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">templateflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">api</span> <span class="k">as</span> <span class="n">tf</span>
 
 
-<span class="k">class</span> <span class="nc">_GenerateDScalarInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_GenerateDScalarInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">surface_target</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span>
         <span class="s1">&#39;fsLR&#39;</span><span class="p">,</span>
         <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -104,14 +104,14 @@
     <span class="n">scalar_name</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Name of scalar&#39;</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_GenerateDScalarOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_GenerateDScalarOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;generated CIFTI file&#39;</span><span class="p">)</span>
     <span class="n">out_metadata</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;CIFTI metadata JSON&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="GenerateDScalar">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.cifti.html#smriprep.interfaces.cifti.GenerateDScalar">[docs]</a>
-<span class="k">class</span> <span class="nc">GenerateDScalar</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenerateDScalar</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate a HCP-style CIFTI-2 image from scalar surface files.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -119,7 +119,7 @@
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_GenerateDScalarInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">_GenerateDScalarOutputSpec</span>
 
-    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
         <span class="n">surface_labels</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">_prepare_cifti</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">grayordinates</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_create_cifti_image</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">scalar_surfs</span><span class="p">,</span>
@@ -134,7 +134,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_prepare_cifti</span><span class="p">(</span><span class="n">grayordinates</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_prepare_cifti</span><span class="p">(</span><span class="n">grayordinates</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Fetch the required templates needed for CIFTI-2 generation, based on input surface density.</span>
 
@@ -214,7 +214,7 @@
     <span class="k">return</span> <span class="n">surface_labels</span><span class="p">,</span> <span class="n">metadata</span>
 
 
-<span class="k">def</span> <span class="nf">_create_cifti_image</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_cifti_image</span><span class="p">(</span>
     <span class="n">scalar_surfs</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">surface_labels</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">scalar_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>

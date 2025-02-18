@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.base &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.workflows.base &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -102,26 +102,26 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;*sMRIPrep* base processing workflows.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
 
-<span class="kn">from</span> <span class="nn">nipype</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">nipype_ver</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
-<span class="kn">from</span> <span class="nn">nipype.pipeline</span> <span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
-<span class="kn">from</span> <span class="nn">niworkflows.engine.workflows</span> <span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.bids</span> <span class="kn">import</span> <span class="n">BIDSDataGrabber</span><span class="p">,</span> <span class="n">BIDSFreeSurferDir</span><span class="p">,</span> <span class="n">BIDSInfo</span>
-<span class="kn">from</span> <span class="nn">niworkflows.utils.bids</span> <span class="kn">import</span> <span class="n">collect_data</span>
-<span class="kn">from</span> <span class="nn">niworkflows.utils.misc</span> <span class="kn">import</span> <span class="n">fix_multi_T1w_source_name</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">nipype_ver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">BIDSDataGrabber</span><span class="p">,</span> <span class="n">BIDSFreeSurferDir</span><span class="p">,</span> <span class="n">BIDSInfo</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">fix_multi_T1w_source_name</span>
 
-<span class="kn">from</span> <span class="nn">..__about__</span> <span class="kn">import</span> <span class="n">__version__</span>
-<span class="kn">from</span> <span class="nn">..interfaces</span> <span class="kn">import</span> <span class="n">DerivativesDataSink</span>
-<span class="kn">from</span> <span class="nn">.anatomical</span> <span class="kn">import</span> <span class="n">init_anat_preproc_wf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">DerivativesDataSink</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.anatomical</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_anat_preproc_wf</span>
 
 
 <div class="viewcode-block" id="init_smriprep_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.base.html#smriprep.workflows.base.init_smriprep_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_smriprep_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_smriprep_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">sloppy</span><span class="p">,</span>
     <span class="n">debug</span><span class="p">,</span>
@@ -296,7 +296,7 @@
 
 <div class="viewcode-block" id="init_single_subject_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.base.html#smriprep.workflows.base.init_single_subject_wf">[docs]</a>
-<span class="k">def</span> <span class="nf">init_single_subject_wf</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_single_subject_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">sloppy</span><span class="p">,</span>
     <span class="n">debug</span><span class="p">,</span>
@@ -416,7 +416,7 @@
 <span class="sd">        FreeSurfer SUBJECTS_DIR</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">from</span> <span class="nn">..interfaces.reports</span> <span class="kn">import</span> <span class="n">AboutSummary</span><span class="p">,</span> <span class="n">SubjectSummary</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.reports</span><span class="w"> </span><span class="kn">import</span> <span class="n">AboutSummary</span><span class="p">,</span> <span class="n">SubjectSummary</span>
 
     <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;single_subject_wf&#39;</span><span class="p">,</span> <span class="s1">&#39;single_subject_smripreptest_wf&#39;</span><span class="p">):</span>
         <span class="c1"># for documentation purposes</span>
@@ -454,7 +454,7 @@
 
 <span class="s2">&quot;&quot;&quot;</span>
 
-    <span class="kn">from</span> <span class="nn">..utils.bids</span> <span class="kn">import</span> <span class="n">collect_derivatives</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_derivatives</span>
 
     <span class="n">deriv_cache</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">std_spaces</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">get_spaces</span><span class="p">(</span><span class="n">nonstandard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
@@ -552,7 +552,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_prefix</span><span class="p">(</span><span class="n">subid</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_prefix</span><span class="p">(</span><span class="n">subid</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">subid</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;sub-&#39;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">subid</span>
     <span class="k">return</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s1">&#39;sub&#39;</span><span class="p">,</span> <span class="n">subid</span><span class="p">))</span>

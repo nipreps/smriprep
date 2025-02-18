@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.bids module &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.utils.bids module &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -116,9 +116,9 @@
 <dt class="sig sig-object py" id="smriprep.utils.bids.write_derivative_description">
 <span class="sig-prename descclassname"><span class="pre">smriprep.utils.bids.</span></span><span class="sig-name descname"><span class="pre">write_derivative_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bids_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/utils/bids.html#write_derivative_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.utils.bids.write_derivative_description" title="Link to this definition"></a></dt>
 <dd><p>Write a <code class="docutils literal notranslate"><span class="pre">dataset_description.json</span></code> for the derivatives folder.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">smriprep.data</span> <span class="kn">import</span> <span class="n">load</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">tempfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemporaryDirectory</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tmpdir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bids_dir</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="s1">&#39;tests&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">deriv_desc</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmpdir</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;dataset_description.json&#39;</span>

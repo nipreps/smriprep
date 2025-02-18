@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.gifti &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.interfaces.gifti &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -84,13 +84,13 @@
 <h1>Source code for smriprep.interfaces.gifti</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Interfaces for manipulating GIFTI files.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="kn">import</span> <span class="nn">nibabel</span> <span class="k">as</span> <span class="nn">nb</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="n">File</span><span class="p">,</span> <span class="n">SimpleInterface</span><span class="p">,</span> <span class="n">TraitedSpec</span><span class="p">,</span> <span class="n">isdefined</span><span class="p">,</span> <span class="n">traits</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nb</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">File</span><span class="p">,</span> <span class="n">SimpleInterface</span><span class="p">,</span> <span class="n">TraitedSpec</span><span class="p">,</span> <span class="n">isdefined</span><span class="p">,</span> <span class="n">traits</span>
 
 
-<span class="k">class</span> <span class="nc">MetricMathInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MetricMathInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">subject_id</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;subject ID&#39;</span><span class="p">)</span>
     <span class="n">hemisphere</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span>
         <span class="s1">&#39;L&#39;</span><span class="p">,</span>
@@ -109,13 +109,13 @@
     <span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">MetricMathOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MetricMathOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">metric_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;output GIFTI file&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="MetricMath">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.gifti.html#smriprep.interfaces.gifti.MetricMath">[docs]</a>
-<span class="k">class</span> <span class="nc">MetricMath</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MetricMath</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Prepare GIFTI metric file for use in MSMSulc</span>
 
 <span class="sd">    This interface mirrors the action of the following portion</span>
@@ -133,7 +133,7 @@
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">MetricMathInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">MetricMathOutputSpec</span>
 
-    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
         <span class="n">subject</span><span class="p">,</span> <span class="n">hemi</span><span class="p">,</span> <span class="n">metric</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">subject_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">hemisphere</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">metric</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">isdefined</span><span class="p">(</span><span class="n">subject</span><span class="p">):</span>
             <span class="n">subject</span> <span class="o">=</span> <span class="s1">&#39;sub-XYZ&#39;</span>

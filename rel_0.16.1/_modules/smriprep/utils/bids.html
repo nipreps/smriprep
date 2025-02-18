@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.bids &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.utils.bids &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -105,18 +105,18 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;Utilities to handle BIDS inputs.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">loads</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="kn">import</span> <span class="n">loads</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span> <span class="nn">bids.layout</span> <span class="kn">import</span> <span class="n">BIDSLayout</span>
-<span class="kn">from</span> <span class="nn">niworkflows.data</span> <span class="kn">import</span> <span class="n">load</span> <span class="k">as</span> <span class="n">nwf_load</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bids.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">BIDSLayout</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span> <span class="k">as</span> <span class="n">nwf_load</span>
 
-<span class="kn">import</span> <span class="nn">smriprep</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">smriprep</span>
 
 
 <div class="viewcode-block" id="collect_derivatives">
 <a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.collect_derivatives">[docs]</a>
-<span class="k">def</span> <span class="nf">collect_derivatives</span><span class="p">(</span><span class="n">derivatives_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">std_spaces</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">patterns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">collect_derivatives</span><span class="p">(</span><span class="n">derivatives_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">std_spaces</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">patterns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gather existing derivatives and compose a cache.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">patterns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_spec</span><span class="p">,</span> <span class="n">_patterns</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">loads</span><span class="p">(</span><span class="n">smriprep</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="s1">&#39;io_spec.json&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
@@ -165,7 +165,7 @@
 
 <div class="viewcode-block" id="write_bidsignore">
 <a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.write_bidsignore">[docs]</a>
-<span class="k">def</span> <span class="nf">write_bidsignore</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_bidsignore</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">):</span>
     <span class="n">bids_ignore</span> <span class="o">=</span> <span class="p">[</span>
         <span class="s1">&#39;*.html&#39;</span><span class="p">,</span>
         <span class="s1">&#39;logs/&#39;</span><span class="p">,</span>
@@ -181,7 +181,7 @@
 
 <div class="viewcode-block" id="write_derivative_description">
 <a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.write_derivative_description">[docs]</a>
-<span class="k">def</span> <span class="nf">write_derivative_description</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">,</span> <span class="n">deriv_dir</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_derivative_description</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">,</span> <span class="n">deriv_dir</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write a ``dataset_description.json`` for the derivatives folder.</span>
 
@@ -206,11 +206,11 @@
 
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">json</span>
-    <span class="kn">import</span> <span class="nn">os</span>
-    <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-    <span class="kn">from</span> <span class="nn">..__about__</span> <span class="kn">import</span> <span class="n">DOWNLOAD_URL</span><span class="p">,</span> <span class="n">__version__</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">DOWNLOAD_URL</span><span class="p">,</span> <span class="n">__version__</span>
 
     <span class="n">bids_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">)</span>
     <span class="n">deriv_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">)</span>
@@ -234,7 +234,7 @@
     <span class="k">if</span> <span class="s1">&#39;SMRIPREP_DOCKER_TAG&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
         <span class="n">desc</span><span class="p">[</span><span class="s1">&#39;GeneratedBy&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;Container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;Type&#39;</span><span class="p">:</span> <span class="s1">&#39;docker&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;Tag&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;poldracklab/smriprep:</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SMRIPREP_DOCKER_TAG&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;Tag&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;poldracklab/smriprep:</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SMRIPREP_DOCKER_TAG&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="k">if</span> <span class="s1">&#39;SMRIPREP_SINGULARITY_URL&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
         <span class="n">desc</span><span class="p">[</span><span class="s1">&#39;GeneratedBy&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;Container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>

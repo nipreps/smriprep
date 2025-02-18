@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.reports &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.interfaces.reports &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -106,11 +106,11 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;Interfaces to generate reportlets.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span> <span class="nn">nipype.interfaces</span> <span class="kn">import</span> <span class="n">freesurfer</span> <span class="k">as</span> <span class="n">fs</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">freesurfer</span> <span class="k">as</span> <span class="n">fs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BaseInterfaceInputSpec</span><span class="p">,</span>
     <span class="n">Directory</span><span class="p">,</span>
     <span class="n">File</span><span class="p">,</span>
@@ -120,9 +120,9 @@
     <span class="n">TraitedSpec</span><span class="p">,</span>
     <span class="n">isdefined</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.io</span> <span class="kn">import</span> <span class="n">FSSourceInputSpec</span> <span class="k">as</span> <span class="n">_FSSourceInputSpec</span>
-<span class="kn">from</span> <span class="nn">nipype.interfaces.mixins</span> <span class="kn">import</span> <span class="n">reporting</span>
-<span class="kn">from</span> <span class="nn">niworkflows.interfaces.reportlets.base</span> <span class="kn">import</span> <span class="n">_SVGReportCapableInputSpec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">FSSourceInputSpec</span> <span class="k">as</span> <span class="n">_FSSourceInputSpec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">reporting</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.reportlets.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_SVGReportCapableInputSpec</span>
 
 <span class="n">SUBJECT_TEMPLATE</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="se">\t</span><span class="s2">&lt;ul class=&quot;elem-desc&quot;&gt;</span>
@@ -142,30 +142,30 @@
 <span class="s2">&quot;&quot;&quot;</span>
 
 
-<span class="k">class</span> <span class="nc">_SummaryOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_SummaryOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">out_report</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;HTML segment containing summary&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="SummaryInterface">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.reports.html#smriprep.interfaces.reports.SummaryInterface">[docs]</a>
-<span class="k">class</span> <span class="nc">SummaryInterface</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SummaryInterface</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base Nipype interface for html summaries.&quot;&quot;&quot;</span>
 
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">_SummaryOutputSpec</span>
 
-    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
         <span class="n">segment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_segment</span><span class="p">()</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">runtime</span><span class="o">.</span><span class="n">cwd</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;report.html&#39;</span>
         <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;out_report&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">runtime</span>
 
-    <span class="k">def</span> <span class="nf">_generate_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
 
-<span class="k">class</span> <span class="nc">_SubjectSummaryInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_SubjectSummaryInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
     <span class="n">t1w</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;T1w structural images&#39;</span><span class="p">)</span>
     <span class="n">t2w</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;T2w structural images&#39;</span><span class="p">)</span>
     <span class="n">subjects_dir</span> <span class="o">=</span> <span class="n">Directory</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;FreeSurfer subjects directory&#39;</span><span class="p">)</span>
@@ -173,7 +173,7 @@
     <span class="n">output_spaces</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">Str</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;list of standard spaces&#39;</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_SubjectSummaryOutputSpec</span><span class="p">(</span><span class="n">_SummaryOutputSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_SubjectSummaryOutputSpec</span><span class="p">(</span><span class="n">_SummaryOutputSpec</span><span class="p">):</span>
     <span class="c1"># This exists to ensure that the summary is run prior to the first ReconAll</span>
     <span class="c1"># call, allowing a determination whether there is a pre-existing directory</span>
     <span class="n">subject_id</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;FreeSurfer subject ID&#39;</span><span class="p">)</span>
@@ -181,18 +181,18 @@
 
 <div class="viewcode-block" id="SubjectSummary">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.reports.html#smriprep.interfaces.reports.SubjectSummary">[docs]</a>
-<span class="k">class</span> <span class="nc">SubjectSummary</span><span class="p">(</span><span class="n">SummaryInterface</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SubjectSummary</span><span class="p">(</span><span class="n">SummaryInterface</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Subject html summary reportlet.&quot;&quot;&quot;</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_SubjectSummaryInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">_SubjectSummaryOutputSpec</span>
 
-    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">isdefined</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">subject_id</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;subject_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">subject_id</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_run_interface</span><span class="p">(</span><span class="n">runtime</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_generate_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">isdefined</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">subjects_dir</span><span class="p">):</span>
             <span class="n">freesurfer_status</span> <span class="o">=</span> <span class="s1">&#39;Not run&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -227,7 +227,7 @@
 
 
 
-<span class="k">class</span> <span class="nc">_AboutSummaryInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_AboutSummaryInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;sMRIPrep version&#39;</span><span class="p">)</span>
     <span class="n">command</span> <span class="o">=</span> <span class="n">Str</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;sMRIPrep command&#39;</span><span class="p">)</span>
     <span class="c1"># Date not included - update timestamp only if version or command changes</span>
@@ -235,12 +235,12 @@
 
 <div class="viewcode-block" id="AboutSummary">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.reports.html#smriprep.interfaces.reports.AboutSummary">[docs]</a>
-<span class="k">class</span> <span class="nc">AboutSummary</span><span class="p">(</span><span class="n">SummaryInterface</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AboutSummary</span><span class="p">(</span><span class="n">SummaryInterface</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;About section reportlet.&quot;&quot;&quot;</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_AboutSummaryInputSpec</span>
 
-    <span class="k">def</span> <span class="nf">_generate_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">ABOUT_TEMPLATE</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
             <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">command</span><span class="p">,</span>
@@ -249,25 +249,25 @@
 
 
 
-<span class="k">class</span> <span class="nc">_FSSurfaceReportInputSpec</span><span class="p">(</span><span class="n">_SVGReportCapableInputSpec</span><span class="p">,</span> <span class="n">_FSSourceInputSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_FSSurfaceReportInputSpec</span><span class="p">(</span><span class="n">_SVGReportCapableInputSpec</span><span class="p">,</span> <span class="n">_FSSourceInputSpec</span><span class="p">):</span>
     <span class="k">pass</span>
 
 
-<span class="k">class</span> <span class="nc">_FSSurfaceReportOutputSpec</span><span class="p">(</span><span class="n">reporting</span><span class="o">.</span><span class="n">ReportCapableOutputSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_FSSurfaceReportOutputSpec</span><span class="p">(</span><span class="n">reporting</span><span class="o">.</span><span class="n">ReportCapableOutputSpec</span><span class="p">):</span>
     <span class="k">pass</span>
 
 
 <div class="viewcode-block" id="FSSurfaceReport">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.reports.html#smriprep.interfaces.reports.FSSurfaceReport">[docs]</a>
-<span class="k">class</span> <span class="nc">FSSurfaceReport</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FSSurfaceReport</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Replaces ``ReconAllRPT``, without need of calling recon-all.&quot;&quot;&quot;</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_FSSurfaceReportInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">_FSSurfaceReportOutputSpec</span>
 
-    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">nibabel</span> <span class="kn">import</span> <span class="n">load</span>
-        <span class="kn">from</span> <span class="nn">niworkflows.viz.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.viz.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
             <span class="n">compose_view</span><span class="p">,</span>
             <span class="n">cuts_from_bbox</span><span class="p">,</span>
             <span class="n">plot_registration</span><span class="p">,</span>

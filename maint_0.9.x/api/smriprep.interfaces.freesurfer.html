@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -190,7 +190,7 @@ files.</p>
 <p>This interface also sets the OMP_NUM_THREADS environment variable to floor(1.5x) the
 number of threads requested by the user, as tests indicate that cores are underutilized
 by a factor of 2/3.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">smriprep.interfaces.freesurfer</span> <span class="kn">import</span> <span class="n">MakeMidthickness</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MakeMidthickness</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span> <span class="o">=</span> <span class="n">MakeMidthickness</span><span class="p">(</span><span class="n">thickness</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span> <span class="o">=</span> <span class="s1">&#39;lh.white&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">cmdline</span>

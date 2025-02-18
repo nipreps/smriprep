@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.templateflow &mdash; smriprep 0.17.1.dev3 documentation</title>
+  <title>smriprep.interfaces.templateflow &mdash; smriprep 0.17.1.dev8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -106,9 +106,9 @@
 <span class="c1">#</span>
 <span class="sd">&quot;&quot;&quot;Interfaces to get templates from TemplateFlow.&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">nipype.interfaces.base</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BaseInterfaceInputSpec</span><span class="p">,</span>
     <span class="n">File</span><span class="p">,</span>
     <span class="n">InputMultiObject</span><span class="p">,</span>
@@ -118,12 +118,12 @@
     <span class="n">isdefined</span><span class="p">,</span>
     <span class="n">traits</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">templateflow</span> <span class="kn">import</span> <span class="n">api</span> <span class="k">as</span> <span class="n">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">templateflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">api</span> <span class="k">as</span> <span class="n">tf</span>
 
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;nipype.interface&#39;</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_TemplateFlowSelectInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_TemplateFlowSelectInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
     <span class="n">template</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="s1">&#39;MNI152NLin2009cAsym&#39;</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Template ID&#39;</span><span class="p">)</span>
     <span class="n">atlas</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Specify an atlas&#39;</span><span class="p">)</span>
     <span class="n">cohort</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">traits</span><span class="o">.</span><span class="n">Either</span><span class="p">(</span><span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">,</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Specify a cohort&#39;</span><span class="p">)</span>
@@ -136,7 +136,7 @@
     <span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_TemplateFlowSelectOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_TemplateFlowSelectOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">t1w_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;T1w template&#39;</span><span class="p">)</span>
     <span class="n">brain_mask</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Template&#39;s brain mask&quot;</span><span class="p">)</span>
     <span class="n">t2w_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;T2w template&#39;</span><span class="p">)</span>
@@ -144,7 +144,7 @@
 
 <div class="viewcode-block" id="TemplateFlowSelect">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.templateflow.html#smriprep.interfaces.templateflow.TemplateFlowSelect">[docs]</a>
-<span class="k">class</span> <span class="nc">TemplateFlowSelect</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TemplateFlowSelect</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Select TemplateFlow elements.</span>
 
@@ -193,7 +193,7 @@
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_TemplateFlowSelectInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">_TemplateFlowSelectOutputSpec</span>
 
-    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
         <span class="n">specs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template_spec</span>
         <span class="k">if</span> <span class="n">isdefined</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">resolution</span><span class="p">):</span>
             <span class="n">specs</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">resolution</span>
@@ -210,18 +210,18 @@
 
 
 
-<span class="k">class</span> <span class="nc">_TemplateDescInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_TemplateDescInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
     <span class="n">template</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;univocal template identifier&#39;</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">_TemplateDescOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_TemplateDescOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;template identifier&#39;</span><span class="p">)</span>
     <span class="n">spec</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;template arguments&#39;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TemplateDesc">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.templateflow.html#smriprep.interfaces.templateflow.TemplateDesc">[docs]</a>
-<span class="k">class</span> <span class="nc">TemplateDesc</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TemplateDesc</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Select template description and name pairs.</span>
 
@@ -249,7 +249,7 @@
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_TemplateDescInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">_TemplateDescOutputSpec</span>
 
-    <span class="k">def</span> <span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
         <span class="n">_split</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -264,7 +264,7 @@
 
 <div class="viewcode-block" id="fetch_template_files">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.templateflow.html#smriprep.interfaces.templateflow.fetch_template_files">[docs]</a>
-<span class="k">def</span> <span class="nf">fetch_template_files</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_template_files</span><span class="p">(</span>
     <span class="n">template</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">specs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">sloppy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -297,8 +297,8 @@
     <span class="k">if</span> <span class="n">specs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;resolution&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">])</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">available_resolutions</span><span class="p">):</span>
         <span class="n">fallback_res</span> <span class="o">=</span> <span class="n">available_resolutions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">available_resolutions</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Template </span><span class="si">{</span><span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> does not have resolution(s): </span><span class="si">{</span><span class="n">specs</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">.&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;Falling back to resolution: </span><span class="si">{</span><span class="n">fallback_res</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;Template </span><span class="si">{</span><span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> does not have resolution(s): </span><span class="si">{</span><span class="n">specs</span><span class="p">[</span><span class="s2">&quot;resolution&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">.&#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;Falling back to resolution: </span><span class="si">{</span><span class="n">fallback_res</span><span class="si">}</span><span class="s1">.&#39;</span>
         <span class="p">)</span>
         <span class="n">specs</span><span class="p">[</span><span class="s1">&#39;resolution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fallback_res</span>
 
