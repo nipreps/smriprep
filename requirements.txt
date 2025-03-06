@@ -44,7 +44,7 @@ interface-meta==1.3.0
     # via formulaic
 isodate==0.6.1
     # via rdflib
-jinja2==3.1.4
+jinja2==3.1.6
     # via niworkflows
 joblib==1.4.2
     # via
