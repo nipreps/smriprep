@@ -30,6 +30,7 @@ structural images.
 
 import typing as ty
 
+from nibabel.processing import fwhm2sigma
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces import io as nio
 from nipype.interfaces import utility as niu
@@ -1564,6 +1565,157 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
                 ('out_metadata', f'{metric}_metadata'),
             ]),
         ])  # fmt:skip
+
+    return workflow
+
+
+def init_myelinmap_fsLR_wf(
+    grayord_density: ty.Literal['91k', '170k'],
+    omp_nthreads: int,
+    mem_gb: float,
+    name: str = 'myelinmap_fsLR_wf',
+):
+    """Resample myelinmap volume to fsLR surface.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: colored
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_myelinmap_fsLR_wf
+            wf = init_myelinmap_fsLR_wf(grayord_density='91k', omp_nthreads=1, mem_gb=1)
+
+    Parameters
+    ----------
+    grayord_density : :class:`str`
+        Either ``"91k"`` or ``"170k"``, representing the total *grayordinates*.
+    omp_nthreads : :class:`int`
+        Maximum number of threads an individual process may use
+    mem_gb : :class:`float`
+        Size of BOLD file in GB
+    name : :class:`str`
+        Name of workflow (default: ``"myelinmap_fsLR_wf"``)
+
+    Inputs
+    ------
+    in_file : :class:`str`
+        Path to the myelin map in subject volume space
+    thickness : :class:`list` of :class:`str`
+        Path to left and right hemisphere thickness GIFTI shape files
+    midthickness : :class:`list` of :class:`str`
+        Path to left and right hemisphere midthickness GIFTI surface files
+    midthickness_fsLR : :class:`list` of :class:`str`
+        Path to left and right hemisphere midthickness GIFTI surface files in fsLR space
+    sphere_reg_fsLR : :class:`list` of :class:`str`
+        Path to left and right hemisphere sphere.reg GIFTI surface files,
+        mapping from subject to fsLR
+    cortex_mask : :class:`list` of :class:`str`
+        Path to left and right hemisphere cortex mask GIFTI files
+
+    Outputs
+    -------
+    out_fsLR : :class:`str`
+        Path to the resampled myelin map in fsLR space
+
+    """
+    from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+    from niworkflows.interfaces.utility import KeySelect
+    from niworkflows.interfaces.workbench import VolumeToSurfaceMapping
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(
+            fields=[
+                'in_file',
+                'thickness',
+                'midthickness',
+                'midthickness_fsLR',
+                'sphere_reg_fsLR',
+                'cortex_mask',
+                'volume_roi',
+            ]
+        ),
+        name='inputnode',
+    )
+
+    outputnode = pe.Node(
+        niu.IdentityInterface(fields=['out_file', 'out_metadata']),
+        name='outputnode',
+    )
+
+    hemisource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='hemisource',
+        iterables=[('hemi', ['L', 'R'])],
+    )
+
+    select_surfaces = pe.Node(
+        KeySelect(
+            fields=[
+                'thickness',
+                'midthickness',
+            ],
+            keys=['L', 'R'],
+        ),
+        name='select_surfaces',
+        run_without_submitting=True,
+    )
+
+    volume_to_surface = pe.Node(
+        VolumeToSurfaceMapping(method='myelin-style', sigma=fwhm2sigma(5)),
+        name='volume_to_surface',
+        mem_gb=mem_gb * 3,
+        n_procs=omp_nthreads,
+    )
+    # For SmoothedMyelinMap
+    # smooth = pe.Node(
+    #     MetricSmooth(sigma=fwhm2sigma(4), nearest=True),
+    #     name='metric_dilate',
+    #     mem_gb=1,
+    #     n_procs=omp_nthreads,
+    # )
+    resample_and_mask_wf = init_resample_and_mask_wf(
+        grayord_density=grayord_density,
+        omp_nthreads=omp_nthreads,
+        mem_gb=mem_gb,
+    )
+    cifti_myelinmap = pe.JoinNode(
+        GenerateDScalar(grayordinates=grayord_density, scalar_name='MyelinMap'),
+        name='cifti_myelinmap',
+        joinfield=['scalar_surfs'],
+        joinsource='hemisource',
+    )
+
+    workflow.connect([
+        (inputnode, select_surfaces, [
+            ('midthickness', 'midthickness'),
+            ('thickness', 'thickness'),
+        ]),
+        (hemisource, select_surfaces, [('hemi', 'key')]),
+        # Resample volume to native surface
+        (inputnode, volume_to_surface, [
+            ('in_file', 'volume_file'),
+            ('ribbon_file', 'ribbon_roi'),
+        ]),
+        (select_surfaces, volume_to_surface, [
+            ('midthickness', 'surface_file'),
+            ('thickness', 'thickness'),
+        ]),
+        (inputnode, resample_and_mask_wf, [
+            ('midthickness', 'inputnode.midthickness'),
+            ('midthickness_fsLR', 'inputnode.midthickness_fsLR'),
+            ('sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
+            ('cortex_mask', 'inputnode.cortex_mask'),
+        ]),
+        (hemisource, resample_and_mask_wf, [('hemi', 'inputnode.hemi')]),
+        (volume_to_surface, resample_and_mask_wf, [('out_file', 'inputnode.in_file')]),
+        (resample_and_mask_wf, cifti_myelinmap, [('outputnode.out_file', 'scalar_surfs')]),
+        (cifti_myelinmap, outputnode, [
+            ('out_file', 'out_file'),
+            ('out_metadata', 'out_metadata'),
+        ]),
+    ])  # fmt:skip
 
     return workflow
 
