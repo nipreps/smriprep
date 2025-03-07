@@ -57,6 +57,7 @@ from niworkflows.utils.spaces import Reference, SpatialReferences
 import smriprep
 
 from ..interfaces import DerivativesDataSink
+from ..interfaces.calc import T1T2Ratio
 from ..utils.misc import apply_lut as _apply_bids_lut
 from ..utils.misc import fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
@@ -83,6 +84,7 @@ from .surfaces import (
     init_hcp_morphometrics_wf,
     init_morph_grayords_wf,
     init_msm_sulc_wf,
+    init_myelinmap_fsLR_wf,
     init_refinement_wf,
     init_resample_surfaces_wf,
     init_surface_derivatives_wf,
@@ -458,6 +460,52 @@ def init_anat_preproc_wf(
                     ('outputnode.sulc_metadata', 'inputnode.sulc_metadata'),
                 ]),
             ])  # fmt:skip
+
+            if t2w:
+                myelinmap_sources = pe.Node(niu.Merge(2), name='myelinmap_sources')
+                t1t2_ratio = pe.Node(T1T2Ratio(), name='t1t2_ratio')
+                myelinmap_fsLR_wf = init_myelinmap_fsLR_wf(
+                    grayord_density=cifti_output, omp_nthreads=omp_nthreads, mem_gb=1
+                )
+                ds_grayord_myelinmap_wf = init_ds_grayord_metrics_wf(
+                    bids_root=bids_root,
+                    output_dir=output_dir,
+                    metrics=['myelinmap'],
+                    cifti_output=cifti_output,
+                )
+
+                workflow.connect([
+                    (anat_fit_wf, t1t2_ratio, [
+                        ('outputnode.t1w_preproc', 't1w_file'),
+                        ('outputnode.t2w_preproc', 't2w_file'),
+                    ]),
+                    (t1t2_ratio, myelinmap_fsLR_wf, [('out_file', 'inputnode.in_file')]),
+                    (anat_fit_wf, myelinmap_fsLR_wf, [
+                        ('outputnode.midthickness', 'inputnode.midthickness'),
+                        (
+                            f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
+                            'inputnode.sphere_reg_fsLR',
+                        ),
+                    ]),
+                    (hcp_morphometrics_wf, myelinmap_fsLR_wf, [
+                        ('outputnode.thickness', 'inputnode.thickness'),
+                        ('outputnode.roi', 'inputnode.cortex_mask'),
+                    ]),
+                    (resample_surfaces_wf, myelinmap_fsLR_wf, [
+                        ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
+                    ]),
+                    (anat_fit_wf, myelinmap_sources, [
+                        ('outputnode.t1w_preproc', 'in1'),
+                        ('outputnode.t2w_preproc', 'in2'),
+                    ]),
+                    (myelinmap_sources, ds_grayord_myelinmap_wf, [
+                        ('out', 'inputnode.source_files'),
+                    ]),
+                    (myelinmap_fsLR_wf, ds_grayord_myelinmap_wf, [
+                        ('outputnode.out_file', 'inputnode.myelinmap'),
+                        ('outputnode.out_metadata', 'inputnode.myelinmap_metadata'),
+                    ]),
+                ])  # fmt:skip
 
     return workflow
 
