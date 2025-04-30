@@ -21,8 +21,6 @@ class FixBiasItersFAST(FAST):
 
     def _run_interface(self, runtime, correct_return_codes=(0,)):
         # Run normally
-        runtime = super()._run_interface(
-            runtime, correct_return_codes
-        )
+        runtime = super()._run_interface(runtime, correct_return_codes)
 
         return runtime
