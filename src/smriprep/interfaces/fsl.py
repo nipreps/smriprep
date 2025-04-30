@@ -15,6 +15,12 @@ class FAST(_FAST):
     """
     A replacement for nipype.interfaces.fsl.preprocess.FAST that allows
     `bias_iters=0` to disable bias field correction entirely
+
+    >>> from smriprep.interfaces.fsl import FixBiasItersFAST as FAST
+    >>> fast = fsl.FAST()
+    >>> fast.inputs.in_files = 'sub-01_desc-warped_T1w.nii.gz'
+    >>> fast.cmdline
+    'fast -o fast_ -S 1 -I 0 sub-01_desc-warped_T1w.nii.gz'
     """
 
     input_spec = _FixTraitFASTInputSpec
