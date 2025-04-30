@@ -1,5 +1,5 @@
 from nipype.interfaces.base import traits
-from nipype.interfaces.fsl.preprocess import FAST, FASTInputSpec
+from nipype.interfaces.fsl.preprocess import FAST as _FAST, FASTInputSpec
 
 
 class _FixTraitFASTInputSpec(FASTInputSpec):
@@ -11,7 +11,7 @@ class _FixTraitFASTInputSpec(FASTInputSpec):
     )
 
 
-class FixBiasItersFAST(FAST):
+class FAST(_FAST):
     """
     A replacement for nipype.interfaces.fsl.preprocess.FAST that allows
     `bias_iters=0` to disable bias field correction entirely
@@ -19,8 +19,3 @@ class FixBiasItersFAST(FAST):
 
     input_spec = _FixTraitFASTInputSpec
 
-    def _run_interface(self, runtime, correct_return_codes=(0,)):
-        # Run normally
-        runtime = super()._run_interface(runtime, correct_return_codes)
-
-        return runtime

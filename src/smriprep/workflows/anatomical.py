@@ -57,7 +57,7 @@ from niworkflows.utils.spaces import Reference, SpatialReferences
 import smriprep
 
 from ..interfaces import DerivativesDataSink
-from ..interfaces.fsl import FixBiasItersFAST as FAST
+from ..interfaces.fsl import FAST
 from ..utils.misc import apply_lut as _apply_bids_lut
 from ..utils.misc import fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
