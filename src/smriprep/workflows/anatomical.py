@@ -955,7 +955,7 @@ white-matter (WM) and gray-matter (GM) was performed on
 the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast].
 """
         fast = pe.Node(
-            FAST(segments=True, no_bias=True, probability_maps=True),
+            FAST(segments=True, no_bias=True, probability_maps=True, bias_iters=0),
             name='fast',
             mem_gb=3,
         )
