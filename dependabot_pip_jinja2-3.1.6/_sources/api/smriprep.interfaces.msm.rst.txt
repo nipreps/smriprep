@@ -1,7 +1,0 @@
-smriprep.interfaces.msm module
-==============================
-
-.. automodule:: smriprep.interfaces.msm
-   :members:
-   :undoc-members:
-   :show-inheritance:

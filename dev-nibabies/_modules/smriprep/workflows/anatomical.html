@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.anatomical &mdash; smriprep 0.17.1.dev10 documentation</title>
+  <title>smriprep.workflows.anatomical &mdash; smriprep 0.17.1.dev22 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -140,6 +140,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">smriprep</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">DerivativesDataSink</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.fsl</span><span class="w"> </span><span class="kn">import</span> <span class="n">FAST</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_lut</span> <span class="k">as</span> <span class="n">_apply_bids_lut</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">fs_isRunning</span> <span class="k">as</span> <span class="n">_fs_isRunning</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.fit.registration</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_register_template_wf</span>
@@ -1035,14 +1036,14 @@
     <span class="c1"># Stage 3: Segmentation</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">have_dseg</span> <span class="ow">and</span> <span class="n">have_tpms</span><span class="p">):</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ANAT Stage 3: Preparing segmentation workflow&#39;</span><span class="p">)</span>
-        <span class="n">fsl_ver</span> <span class="o">=</span> <span class="n">fsl</span><span class="o">.</span><span class="n">FAST</span><span class="p">()</span><span class="o">.</span><span class="n">version</span> <span class="ow">or</span> <span class="s1">&#39;(version unknown)&#39;</span>
+        <span class="n">fsl_ver</span> <span class="o">=</span> <span class="n">FAST</span><span class="p">()</span><span class="o">.</span><span class="n">version</span> <span class="ow">or</span> <span class="s1">&#39;(version unknown)&#39;</span>
         <span class="n">desc</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
 <span class="s2">Brain tissue segmentation of cerebrospinal fluid (CSF),</span>
 <span class="s2">white-matter (WM) and gray-matter (GM) was performed on</span>
 <span class="s2">the brain-extracted T1w using `fast` [FSL </span><span class="si">{</span><span class="n">fsl_ver</span><span class="si">}</span><span class="s2">, RRID:SCR_002823, @fsl_fast].</span>
 <span class="s2">&quot;&quot;&quot;</span>
         <span class="n">fast</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
-            <span class="n">fsl</span><span class="o">.</span><span class="n">FAST</span><span class="p">(</span><span class="n">segments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">no_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">probability_maps</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">FAST</span><span class="p">(</span><span class="n">segments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">no_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">probability_maps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bias_iters</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fast&#39;</span><span class="p">,</span>
             <span class="n">mem_gb</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
         <span class="p">)</span>
@@ -1811,7 +1812,6 @@
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dependabot_pip_jinja2-3.1.6/index.html">dependabot/pip/jinja2-3.1.6</a></dd>
             <dd><a href="anatomical.html">dev-nibabies</a></dd>
             <dd><a href="../../../../enh_calabel/index.html">enh/calabel</a></dd>
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>

@@ -1,7 +1,0 @@
-smriprep.interfaces.freesurfer module
-=====================================
-
-.. automodule:: smriprep.interfaces.freesurfer
-   :members:
-   :undoc-members:
-   :show-inheritance:

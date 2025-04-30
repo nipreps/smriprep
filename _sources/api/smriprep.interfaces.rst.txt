@@ -14,6 +14,7 @@ Submodules
 
    smriprep.interfaces.cifti
    smriprep.interfaces.freesurfer
+   smriprep.interfaces.fsl
    smriprep.interfaces.gifti
    smriprep.interfaces.msm
    smriprep.interfaces.reports
