@@ -1,5 +1,6 @@
 from nipype.interfaces.base import traits
-from nipype.interfaces.fsl.preprocess import FAST as _FAST, FASTInputSpec
+from nipype.interfaces.fsl.preprocess import FAST as _FAST
+from nipype.interfaces.fsl.preprocess import FASTInputSpec
 
 
 class _FixTraitFASTInputSpec(FASTInputSpec):
@@ -24,4 +25,3 @@ class FAST(_FAST):
     """
 
     input_spec = _FixTraitFASTInputSpec
-
