@@ -57,6 +57,7 @@ from niworkflows.utils.spaces import Reference, SpatialReferences
 import smriprep
 
 from ..interfaces import DerivativesDataSink
+from ..interfaces.fsl import FixBiasItersFAST as FAST
 from ..utils.misc import apply_lut as _apply_bids_lut
 from ..utils.misc import fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
@@ -947,14 +948,14 @@ A pre-computed brain mask was provided as input and used throughout the workflow
     # Stage 3: Segmentation
     if not (have_dseg and have_tpms):
         LOGGER.info('ANAT Stage 3: Preparing segmentation workflow')
-        fsl_ver = fsl.FAST().version or '(version unknown)'
+        fsl_ver = FAST().version or '(version unknown)'
         desc += f"""\
 Brain tissue segmentation of cerebrospinal fluid (CSF),
 white-matter (WM) and gray-matter (GM) was performed on
 the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast].
 """
         fast = pe.Node(
-            fsl.FAST(segments=True, no_bias=True, probability_maps=True),
+            FAST(segments=True, no_bias=True, probability_maps=True),
             name='fast',
             mem_gb=3,
         )
