@@ -1319,6 +1319,118 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
     return workflow
 
 
+def init_resample_surfaces_wb_wf(
+    surfaces: list[str],
+    space: str,
+    density: str,
+    name: str = 'resample_surfaces_wb_wf',
+):
+    """
+    Resample subject surfaces surface to specified space and density.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: colored
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_resample_surfaces_wb_wf
+            wf = init_resample_surfaces_wb_wf(
+                surfaces=['white', 'pial', 'midthickness'],
+                space='onavg',
+                density='10k',
+            )
+
+    Parameters
+    ----------
+    surfaces : :class:`list` of :class:`str`
+        Names of surfaces (e.g., ``'white'``) to resample. Both hemispheres will be resampled.
+    space : :class:`str`
+        The space to resample to, e.g., ``'onavg'``, ``'fsLR'``.
+    density : :class:`str`
+        The density to resample to, e.g., ``'10k'``, ``'41k'``. Number of vertices per hemisphere.
+    name : :class:`str`
+        Unique name for the subworkflow (default: ``"resample_surfaces_wb_wf"``)
+
+    Inputs
+    ------
+    ``<surface>``
+        Left and right GIFTIs for each surface name passed to ``surfaces``.
+    sphere_reg_fsLR
+        GIFTI surface mesh corresponding to the subject's fsLR registration sphere.
+
+    Outputs
+    -------
+    ``<surface>``
+        Left and right GIFTI surface mesh corresponding to the input surface, resampled to the
+        specified space and density.
+    """
+    import templateflow.api as tf
+    from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=[*surfaces, 'sphere_reg_fsLR']),
+        name='inputnode',
+    )
+
+    outputnode = pe.Node(
+        niu.IdentityInterface(fields=[f'{surf}_resampled' for surf in surfaces]), name='outputnode'
+    )
+
+    surface_list = pe.Node(
+        niu.Merge(len(surfaces), ravel_inputs=True),
+        name='surface_list',
+        run_without_submitting=True,
+    )
+
+    resampler = pe.MapNode(
+        SurfaceResample(method='BARYCENTRIC'),
+        iterfield=['surface_in', 'current_sphere', 'new_sphere'],
+        name='resampler',
+    )
+    new_sphere = [
+        str(
+            tf.get(
+                template=space,
+                density=density,
+                suffix='sphere',
+                hemi=hemi,
+                space=(None if space == 'fsLR' else 'fsLR'),
+                extension='.surf.gii',
+            )
+        )
+        # Order matters. Iterate over surfaces, then hemis to get L R L R L R
+        for _surf in surfaces
+        for hemi in ['L', 'R']
+    ]
+    print(new_sphere)
+    resampler.inputs.new_sphere = new_sphere
+
+    surface_groups = pe.Node(
+        niu.Split(splits=[2] * len(surfaces)),
+        name='surface_groups',
+        run_without_submitting=True,
+    )
+
+    workflow.connect([
+        (inputnode, surface_list, [
+            ((surf, _sorted_by_basename), f'in{i}')
+            for i, surf in enumerate(surfaces, start=1)
+        ]),
+        (inputnode, resampler, [
+            (('sphere_reg_fsLR', _repeat, len(surfaces)), 'current_sphere'),
+        ]),
+        (surface_list, resampler, [('out', 'surface_in')]),
+        (resampler, surface_groups, [('surface_out', 'inlist')]),
+        (surface_groups, outputnode, [
+            (f'out{i}', f'{surf}_resampled') for i, surf in enumerate(surfaces, start=1)
+        ]),
+    ])  # fmt:skip
+
+    return workflow
+
+
 def init_resample_surfaces_wf(
     surfaces: list[str],
     grayord_density: ty.Literal['91k', '170k'],
