@@ -1469,7 +1469,7 @@ def init_resample_surfaces_wf(
     ``<surface>``
         Left and right GIFTI surface mesh corresponding to the input surface, resampled to fsLR
     """
-    import templateflow.api as tf
+    # import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
     workflow = Workflow(name=name)
@@ -1485,51 +1485,21 @@ def init_resample_surfaces_wf(
         niu.IdentityInterface(fields=[f'{surf}_fsLR' for surf in surfaces]), name='outputnode'
     )
 
-    surface_list = pe.Node(
-        niu.Merge(len(surfaces), ravel_inputs=True),
-        name='surface_list',
-        run_without_submitting=True,
+    resample_surfaces_wb_wf = init_resample_surfaces_wb_wf(
+        surfaces=surfaces,
+        space='fsLR',
+        density=fslr_density,
+        name='resample_surfaces_fslr_wb_wf',
     )
-
-    resampler = pe.MapNode(
-        SurfaceResample(method='BARYCENTRIC'),
-        iterfield=['surface_in', 'current_sphere', 'new_sphere'],
-        name='resampler',
-    )
-    resampler.inputs.new_sphere = [
-        str(
-            tf.get(
-                template='fsLR',
-                density=fslr_density,
-                suffix='sphere',
-                hemi=hemi,
-                space=None,
-                extension='.surf.gii',
-            )
-        )
-        # Order matters. Iterate over surfaces, then hemis to get L R L R L R
-        for _surf in surfaces
-        for hemi in ['L', 'R']
-    ]
-
-    surface_groups = pe.Node(
-        niu.Split(splits=[2] * len(surfaces)),
-        name='surface_groups',
-        run_without_submitting=True,
-    )
-
     workflow.connect([
-        (inputnode, surface_list, [
-            ((surf, _sorted_by_basename), f'in{i}')
-            for i, surf in enumerate(surfaces, start=1)
+        (inputnode, resample_surfaces_wb_wf, [
+            (surf, 'inputnode.'+surf) for surf in surfaces
         ]),
-        (inputnode, resampler, [
-            (('sphere_reg_fsLR', _repeat, len(surfaces)), 'current_sphere'),
+        (inputnode, resample_surfaces_wb_wf, [
+            ('sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
         ]),
-        (surface_list, resampler, [('out', 'surface_in')]),
-        (resampler, surface_groups, [('surface_out', 'inlist')]),
-        (surface_groups, outputnode, [
-            (f'out{i}', f'{surf}_fsLR') for i, surf in enumerate(surfaces, start=1)
+        (resample_surfaces_wb_wf, outputnode, [
+            (f'outputnode.{surf}_resampled', f'{surf}_fsLR') for surf in surfaces
         ]),
     ])  # fmt:skip
 
