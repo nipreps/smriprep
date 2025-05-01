@@ -791,8 +791,10 @@ images were found within the input BIDS dataset."""
  {'Each' if num_prefer_anat > 1 else 'The'} {reference_anat} image was corrected for intensity
 non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
 [@ants, RRID:SCR_004757]"""
-        desc += '.\n' if num_prefer_anat > 1 else (
-            f', and used as {reference_anat}-reference throughout the workflow.\n'
+        desc += (
+            '.\n'
+            if num_prefer_anat > 1
+            else (f', and used as {reference_anat}-reference throughout the workflow.\n')
         )
 
         anat_template_wf = init_anat_template_wf(
@@ -1091,7 +1093,7 @@ the brain-extracted {reference_anat} using `fast` [FSL {fsl_ver}, RRID:SCR_00282
         precomputed=precomputed,
     )
     if aux or flair:
-        aux_or_flair = f'{aux_anat.strip('w')}-weighted' if aux else 'FLAIR'
+        aux_or_flair = f'{aux_anat.strip("w")}-weighted' if aux else 'FLAIR'
         surface_recon_wf.__desc__ += f"""\
 A {aux_or_flair} image was used to improve pial surface refinement.
 """
@@ -1120,8 +1122,7 @@ A {aux_or_flair} image was used to improve pial surface refinement.
     fsnative_xfms = precomputed.get('transforms', {}).get('fsnative')
     if not fsnative_xfms:
         ds_fs_registration_wf = init_ds_fs_registration_wf(
-            output_dir=output_dir,
-            image_type=reference_anat
+            output_dir=output_dir, image_type=reference_anat
         )
         # fmt:off
         workflow.connect([
@@ -1141,7 +1142,8 @@ A {aux_or_flair} image was used to improve pial surface refinement.
         outputnode.inputs.fsnative2t1w_xfm = fsnative_xfms['reverse']
     else:
         raise RuntimeError(
-            f'Found a {reference_anat}-to-fsnative transform without the reverse. Time to handle this.'
+            f"""\
+Found a {reference_anat}-to-fsnative transform without the reverse. Time to handle this."""
         )
 
     if not have_mask:
