@@ -811,7 +811,7 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
 
         # fmt:off
         workflow.connect([
-            (inputnode, anat_template_wf, [('t1w', 'inputnode.anat_files')]),
+            (inputnode, anat_template_wf, [(anat, 'inputnode.anat_files')]),
             (anat_template_wf, anat_validate, [('outputnode.anat_ref', 'in_file')]),
             (anat_template_wf, sourcefile_buffer, [
                 ('outputnode.anat_valid_list', 'source_files'),
@@ -1212,7 +1212,7 @@ Found a {reference_anat}-to-fsnative transform without the reverse. Time to hand
         ds_t2w_preproc.inputs.SkullStripped = False
 
         workflow.connect([
-            (inputnode, t2w_template_wf, [('t2w', 'inputnode.anat_files')]),
+            (inputnode, t2w_template_wf, [(aux_anat.lower(), 'inputnode.anat_files')]),
             (t2w_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
             (surface_recon_wf, bbreg, [
                 ('outputnode.subject_id', 'subject_id'),
@@ -1224,7 +1224,7 @@ Found a {reference_anat}-to-fsnative transform without the reverse. Time to hand
             (t2w_template_wf, t2w_resample, [('outputnode.anat_ref', 'input_image')]),
             (t1w_buffer, t2w_resample, [('t1w_preproc', 'reference_image')]),
             (t2wtot1w_xfm, t2w_resample, [('out_xfm', 'transforms')]),
-            (inputnode, ds_t2w_preproc, [('t2w', 'source_file')]),
+            (inputnode, ds_t2w_preproc, [(aux_anat.lower(), 'source_file')]),
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
             (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
         ])  # fmt:skip
