@@ -622,11 +622,15 @@ def init_anat_fit_wf(
 
     """
     workflow = Workflow(name=name)
-    num_t1w = len(t1w)
+    if t1w:
+        num_t1w = len(t1w)
+    if t2w:
+        num_t2w = len(t2w)
+    num_prefer_anat = num_t1w if reference_anat == 'T1w' else num_t2w
     desc = f"""
 Anatomical data preprocessing
 
-: A total of {num_t1w} {reference_anat.strip('w')}-weighted ({reference_anat})
+: A total of {num_prefer_anat} {reference_anat.strip('w')}-weighted ({reference_anat})
 images were found within the input BIDS dataset."""
 
     have_t1w = 't1w_preproc' in precomputed
@@ -777,22 +781,22 @@ images were found within the input BIDS dataset."""
         LOGGER.info('ANAT Stage 1: Adding template workflow')
         ants_ver = ANTsInfo.version() or '(version unknown)'
         desc += f"""\
- {'Each' if num_t1w > 1 else 'The'} {reference_anat} image was corrected for intensity
+ {'Each' if num_prefer_anat > 1 else 'The'} {reference_anat} image was corrected for intensity
 non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
 [@ants, RRID:SCR_004757]"""
-        desc += '.\n' if num_t1w > 1 else (
+        desc += '.\n' if num_prefer_anat > 1 else (
             f', and used as {reference_anat}-reference throughout the workflow.\n'
         )
 
         anat_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
-            num_files=num_t1w,
+            num_files=num_prefer_anat,
             image_type=reference_anat,
             name='anat_template_wf',
         )
         ds_template_wf = init_ds_template_wf(
-            output_dir=output_dir, num_anat=num_t1w, image_type=reference_anat
+            output_dir=output_dir, num_anat=num_prefer_anat, image_type=reference_anat
         )
 
         # fmt:off
@@ -1164,7 +1168,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         t2w_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
-            num_files=len(t2w),
+            num_files=num_t2w,
             image_type='T2w',
             name='t2w_template_wf',
         )
