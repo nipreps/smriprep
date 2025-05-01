@@ -627,14 +627,21 @@ def init_anat_fit_wf(
     if t2w:
         num_t2w = len(t2w)
     num_prefer_anat = num_t1w if reference_anat == 'T1w' else num_t2w
+    anat = reference_anat.lower()
+    if t1w and t2w:
+        aux = t2w if reference_anat == 'T1w' else t1w
+        aux_anat = ({'T1w', 'T2w'} - {reference_anat}).pop()
+        num_aux_anat = ({num_t1w, num_t2w} - num_prefer_anat).pop()
+    else:
+        aux = None
     desc = f"""
 Anatomical data preprocessing
 
 : A total of {num_prefer_anat} {reference_anat.strip('w')}-weighted ({reference_anat})
 images were found within the input BIDS dataset."""
 
-    have_t1w = 't1w_preproc' in precomputed
-    have_t2w = 't2w_preproc' in precomputed
+    have_anat = f'{anat}_preproc' in precomputed
+    have_aux = f'{aux}_preproc' in precomputed if aux else False
     have_mask = 't1w_mask' in precomputed
     have_dseg = 't1w_dseg' in precomputed
     have_tpms = 't1w_tpms' in precomputed
@@ -777,7 +784,7 @@ images were found within the input BIDS dataset."""
     # Stage 1: Conform images and validate
     # If desc-preproc_T1w.nii.gz is provided, just validate it
     anat_validate = pe.Node(ValidateImage(), name='anat_validate', run_without_submitting=True)
-    if not have_t1w:
+    if not have_anat:
         LOGGER.info('ANAT Stage 1: Adding template workflow')
         ants_ver = ANTsInfo.version() or '(version unknown)'
         desc += f"""\
@@ -866,7 +873,7 @@ as target template.
                     ('outputnode.out_segm', 'ants_seg'),
                 ]),
             ])
-            if not have_t1w:
+            if not have_anat:
                 workflow.connect([
                     (brain_extraction_wf, t1w_buffer, [
                         (('outputnode.bias_corrected', _pop), 't1w_preproc'),
@@ -874,7 +881,7 @@ as target template.
                 ])
             # fmt:on
         # Determine mask from anat and uniformize
-        elif not have_t1w:
+        elif not have_anat:
             LOGGER.info('ANAT Stage 2: Skipping skull-strip, INU-correction only')
             desc += f"""\
 The provided {reference_anat} image was previously skull-stripped; a brain mask was
@@ -934,7 +941,7 @@ A pre-computed brain mask was provided as input and used throughout the workflow
         apply_mask = pe.Node(ApplyMask(in_mask=precomputed['t1w_mask']), name='apply_mask')
         workflow.connect([(anat_validate, apply_mask, [('out_file', 'in_file')])])
         # Run N4 if it hasn't been pre-run
-        if not have_t1w:
+        if not have_anat:
             LOGGER.info('ANAT Skipping skull-strip, INU-correction only')
             n4_only_wf = init_n4_only_wf(
                 omp_nthreads=omp_nthreads,
@@ -1083,10 +1090,10 @@ the brain-extracted {reference_anat} using `fast` [FSL {fsl_ver}, RRID:SCR_00282
         fs_no_resume=fs_no_resume,
         precomputed=precomputed,
     )
-    if t2w or flair:
-        t2w_or_flair = 'T2-weighted' if t2w else 'FLAIR'
+    if aux or flair:
+        aux_or_flair = f'{aux_anat.strip('w')}-weighted' if aux else 'FLAIR'
         surface_recon_wf.__desc__ += f"""\
-A {t2w_or_flair} image was used to improve pial surface refinement.
+A {aux_or_flair} image was used to improve pial surface refinement.
 """
 
     # fmt:off
@@ -1163,13 +1170,13 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
     else:
         LOGGER.info('ANAT Found brain mask - skipping Stage 6')
 
-    if t2w and not have_t2w:
-        LOGGER.info('ANAT Stage 7: Creating T2w template')
+    if aux and not have_aux:
+        LOGGER.info(f'ANAT Stage 7: Creating {aux_anat} template')
         t2w_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
-            num_files=num_t2w,
-            image_type='T2w',
+            num_files=num_aux_anat,
+            image_type=aux_anat,
             name='t2w_template_wf',
         )
         bbreg = pe.Node(
@@ -1219,9 +1226,9 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
         ])  # fmt:skip
     elif not t2w:
-        LOGGER.info('ANAT No T2w images provided - skipping Stage 7')
+        LOGGER.info(f'ANAT No {aux_anat} images provided - skipping Stage 7')
     else:
-        LOGGER.info('ANAT Found preprocessed T2w - skipping Stage 7')
+        LOGGER.info(f'ANAT Found preprocessed {aux_anat} - skipping Stage 7')
 
     # Stages 8-10: Surface conversion and registration
     # sphere_reg is needed to generate sphere_reg_fsLR
