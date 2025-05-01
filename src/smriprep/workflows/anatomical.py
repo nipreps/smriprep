@@ -634,6 +634,7 @@ def init_anat_fit_wf(
         num_aux_anat = num_t2w if reference_anat == 'T1w' else num_t1w
     else:
         aux = None
+        aux_anat = None
     desc = f"""
 Anatomical data preprocessing
 
