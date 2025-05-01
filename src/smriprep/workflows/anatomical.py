@@ -631,7 +631,7 @@ def init_anat_fit_wf(
     if t1w and t2w:
         aux = t2w if reference_anat == 'T1w' else t1w
         aux_anat = ({'T1w', 'T2w'} - {reference_anat}).pop()
-        num_aux_anat = ({num_t1w, num_t2w} - num_prefer_anat).pop()
+        num_aux_anat = num_t2w if reference_anat == 'T1w' else num_t1w
     else:
         aux = None
     desc = f"""
