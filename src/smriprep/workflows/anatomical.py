@@ -205,16 +205,16 @@ def init_anat_preproc_wf(
 
     Outputs
     -------
-    t1w_preproc
-        The T1w reference map, which is calculated as the average of bias-corrected
-        and preprocessed T1w images, defining the anatomical space.
-    t1w_mask
+    anat_preproc
+        The anatomical reference map, which is calculated as the average of bias-corrected
+        and preprocessed anatomical images, defining the anatomical space.
+    anat_mask
         Brain (binary) mask estimated by brain extraction.
-    t1w_dseg
+    anat_dseg
         Brain tissue segmentation of the preprocessed structural image, including
         gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
-    t1w_tpms
-        List of tissue probability maps corresponding to ``t1w_dseg``.
+    anat_tpms
+        List of tissue probability maps corresponding to ``anat_dseg``.
     template
         List of template names to which the structural image has been registered
     anat2std_xfm
@@ -229,8 +229,8 @@ def init_anat_preproc_wf(
     subject_id
         FreeSurfer subject ID; use as input to a node to ensure that it is run after
         FreeSurfer reconstruction is completed.
-    fsnative2t1w_xfm
-        ITK-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    fsnative2anat_xfm
+        ITK-style affine matrix translating from FreeSurfer-conformed subject space to anatomical
 
     """
     workflow = Workflow(name=name)
@@ -245,15 +245,15 @@ def init_anat_preproc_wf(
                 'template',
                 'subjects_dir',
                 'subject_id',
-                't1w_preproc',
-                't1w_mask',
-                't1w_dseg',
-                't1w_tpms',
+                'anat_preproc',
+                'anat_mask',
+                'anat_dseg',
+                'anat_tpms',
                 'anat2std_xfm',
                 'std2anat_xfm',
-                'fsnative2t1w_xfm',
-                't1w_aparc',
-                't1w_aseg',
+                'fsnative2anat_xfm',
+                'anat_aparc',
+                'anat_aseg',
                 'sphere_reg',
                 'sphere_reg_fsLR',
             ]
@@ -298,13 +298,13 @@ def init_anat_preproc_wf(
             ('outputnode.template', 'template'),
             ('outputnode.subjects_dir', 'subjects_dir'),
             ('outputnode.subject_id', 'subject_id'),
-            ('outputnode.t1w_preproc', 't1w_preproc'),
-            ('outputnode.t1w_mask', 't1w_mask'),
-            ('outputnode.t1w_dseg', 't1w_dseg'),
-            ('outputnode.t1w_tpms', 't1w_tpms'),
+            ('outputnode.anat_preproc', 'anat_preproc'),
+            ('outputnode.anat_mask', 'anat_mask'),
+            ('outputnode.anat_dseg', 'anat_dseg'),
+            ('outputnode.anat_tpms', 'anat_tpms'),
             ('outputnode.anat2std_xfm', 'anat2std_xfm'),
             ('outputnode.std2anat_xfm', 'std2anat_xfm'),
-            ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+            ('outputnode.fsnative2anat_xfm', 'fsnative2anat_xfm'),
             ('outputnode.sphere_reg', 'sphere_reg'),
             (f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}", 'sphere_reg_fsLR'),
             ('outputnode.anat_ribbon', 'anat_ribbon'),
@@ -314,14 +314,14 @@ def init_anat_preproc_wf(
             ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
         ]),
         (anat_fit_wf, ds_std_volumes_wf, [
-            ('outputnode.t1w_valid_list', 'inputnode.source_files'),
-            ('outputnode.t1w_preproc', 'inputnode.anat_preproc'),
-            ('outputnode.t1w_mask', 'inputnode.anat_mask'),
-            ('outputnode.t1w_dseg', 'inputnode.anat_dseg'),
-            ('outputnode.t1w_tpms', 'inputnode.anat_tpms'),
+            ('outputnode.anat_valid_list', 'inputnode.source_files'),
+            ('outputnode.anat_preproc', 'inputnode.anat_preproc'),
+            ('outputnode.anat_mask', 'inputnode.anat_mask'),
+            ('outputnode.anat_dseg', 'inputnode.anat_dseg'),
+            ('outputnode.anat_tpms', 'inputnode.anat_tpms'),
         ]),
         (template_iterator_wf, ds_std_volumes_wf, [
-            ('outputnode.std_t1w', 'inputnode.ref_file'),
+            ('outputnode.std_anat', 'inputnode.ref_file'),
             ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
             ('outputnode.space', 'inputnode.space'),
             ('outputnode.cohort', 'inputnode.cohort'),
@@ -342,33 +342,33 @@ def init_anat_preproc_wf(
 
         workflow.connect([
             (anat_fit_wf, surface_derivatives_wf, [
-                ('outputnode.t1w_preproc', 'inputnode.reference'),
+                ('outputnode.anat_preproc', 'inputnode.reference'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
+                ('outputnode.fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (anat_fit_wf, ds_surfaces_wf, [
-                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ('outputnode.anat_valid_list', 'inputnode.source_files'),
             ]),
             (surface_derivatives_wf, ds_surfaces_wf, [
                 ('outputnode.inflated', 'inputnode.inflated'),
             ]),
             (anat_fit_wf, ds_curv_wf, [
-                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ('outputnode.anat_valid_list', 'inputnode.source_files'),
             ]),
             (surface_derivatives_wf, ds_curv_wf, [
                 ('outputnode.curv', 'inputnode.curv'),
             ]),
             (anat_fit_wf, ds_fs_segs_wf, [
-                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ('outputnode.anat_valid_list', 'inputnode.source_files'),
             ]),
             (surface_derivatives_wf, ds_fs_segs_wf, [
                 ('outputnode.out_aseg', 'inputnode.anat_fs_aseg'),
                 ('outputnode.out_aparc', 'inputnode.anat_fs_aparc'),
             ]),
             (surface_derivatives_wf, outputnode, [
-                ('outputnode.out_aseg', 't1w_aseg'),
-                ('outputnode.out_aparc', 't1w_aparc'),
+                ('outputnode.out_aseg', 'anat_aseg'),
+                ('outputnode.out_aparc', 'anat_aparc'),
             ]),
         ])  # fmt:skip
 
@@ -434,10 +434,10 @@ def init_anat_preproc_wf(
                     ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
                 ]),
                 (anat_fit_wf, ds_fsLR_surfaces_wf, [
-                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                    ('outputnode.anat_valid_list', 'inputnode.source_files'),
                 ]),
                 (anat_fit_wf, ds_grayord_metrics_wf, [
-                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                    ('outputnode.anat_valid_list', 'inputnode.source_files'),
                 ]),
                 (resample_surfaces_wf, ds_fsLR_surfaces_wf, [
                     ('outputnode.white_fsLR', 'inputnode.white'),
@@ -482,7 +482,7 @@ def init_anat_fit_wf(
 
     This includes:
 
-      - T1w reference: realigning and then averaging T1w images.
+      - anatomical reference: realigning and then averaging reference anatomical images.
       - Brain extraction and INU (bias field) correction.
       - Brain tissue segmentation.
       - Spatial normalization to standard spaces.
@@ -574,18 +574,18 @@ def init_anat_fit_wf(
 
     Outputs
     -------
-    t1w_preproc
-        The T1w reference map, which is calculated as the average of bias-corrected
-        and preprocessed T1w images, defining the anatomical space.
-    t1w_mask
+    anat_preproc
+        The anatomical reference map, which is calculated as the average of bias-corrected
+        and preprocessed anatomical images, defining the anatomical space.
+    anat_mask
         Brain (binary) mask estimated by brain extraction.
-    t1w_dseg
+    anat_dseg
         Brain tissue segmentation of the preprocessed structural image, including
         gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).
-    t1w_tpms
-        List of tissue probability maps corresponding to ``t1w_dseg``.
-    t1w_valid_list
-        List of input T1w images accepted for preprocessing. If t1w_preproc is
+    anat_tpms
+        List of tissue probability maps corresponding to ``anat_dseg``.
+    anat_valid_list
+        List of input anatomical images accepted for preprocessing. If anat_preproc is
         precomputed, this is always a list containing that image.
     template
         List of template names to which the structural image has been registered
@@ -601,8 +601,8 @@ def init_anat_fit_wf(
     subject_id
         FreeSurfer subject ID; use as input to a node to ensure that it is run after
         FreeSurfer reconstruction is completed.
-    fsnative2t1w_xfm
-        ITK-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    fsnative2anat_xfm
+        ITK-style affine matrix translating from FreeSurfer-conformed subject space to anatomical
 
     See Also
     --------
@@ -646,13 +646,13 @@ Anatomical data preprocessing
         niu.IdentityInterface(
             fields=[
                 # Primary derivatives
-                't1w_preproc',
-                't2w_preproc',
-                't1w_mask',
-                't1w_dseg',
-                't1w_tpms',
+                'anat_preproc',
+                'aux_preproc',
+                'anat_mask',
+                'anat_dseg',
+                'anat_tpms',
                 'anat2std_xfm',
-                'fsnative2t1w_xfm',
+                'fsnative2anat_xfm',
                 # Surface and metric derivatives for fsLR resampling
                 'white',
                 'pial',
@@ -670,7 +670,7 @@ Anatomical data preprocessing
                 'template',
                 'subjects_dir',
                 'subject_id',
-                't1w_valid_list',
+                'anat_valid_list',
             ]
         ),
         name='outputnode',
@@ -685,13 +685,13 @@ Anatomical data preprocessing
     )
 
     # Stage 2 results
-    t1w_buffer = pe.Node(
-        niu.IdentityInterface(fields=['t1w_preproc', 't1w_mask', 't1w_brain', 'ants_seg']),
-        name='t1w_buffer',
+    anat_buffer = pe.Node(
+        niu.IdentityInterface(fields=['anat_preproc', 'anat_mask', 'anat_brain', 'ants_seg']),
+        name='anat_buffer',
     )
     # Stage 3 results
     seg_buffer = pe.Node(
-        niu.IdentityInterface(fields=['t1w_dseg', 't1w_tpms']),
+        niu.IdentityInterface(fields=['anat_dseg', 'anat_tpms']),
         name='seg_buffer',
     )
     # Stage 4 results: collated template names, forward and reverse transforms
@@ -701,7 +701,7 @@ Anatomical data preprocessing
 
     # Stage 6 results: Refined stage 2 results; may be direct copy if no refinement
     refined_buffer = pe.Node(
-        niu.IdentityInterface(fields=['t1w_mask', 't1w_brain']),
+        niu.IdentityInterface(fields=['anat_mask', 'anat_brain']),
         name='refined_buffer',
     )
 
@@ -720,13 +720,13 @@ Anatomical data preprocessing
     # fmt:off
     workflow.connect([
         (seg_buffer, outputnode, [
-            ('t1w_dseg', 't1w_dseg'),
-            ('t1w_tpms', 't1w_tpms'),
+            ('anat_dseg', 'anat_dseg'),
+            ('anat_tpms', 'anat_tpms'),
         ]),
         (anat2std_buffer, outputnode, [('out', 'anat2std_xfm')]),
         (std2anat_buffer, outputnode, [('out', 'std2anat_xfm')]),
         (template_buffer, outputnode, [('out', 'template')]),
-        (sourcefile_buffer, outputnode, [('source_files', 't1w_valid_list')]),
+        (sourcefile_buffer, outputnode, [('source_files', 'anat_valid_list')]),
         (surfaces_buffer, outputnode, [
             ('white', 'white'),
             ('pial', 'pial'),
@@ -751,10 +751,10 @@ Anatomical data preprocessing
     # fmt:off
     workflow.connect([
         (outputnode, anat_reports_wf, [
-            ('t1w_valid_list', 'inputnode.source_file'),
-            ('t1w_preproc', 'inputnode.t1w_preproc'),
-            ('t1w_mask', 'inputnode.t1w_mask'),
-            ('t1w_dseg', 'inputnode.t1w_dseg'),
+            ('anat_valid_list', 'inputnode.source_file'),
+            ('anat_preproc', 'inputnode.anat_preproc'),
+            ('anat_mask', 'inputnode.anat_mask'),
+            ('anat_dseg', 'inputnode.anat_dseg'),
             ('template', 'inputnode.template'),
             ('anat2std_xfm', 'inputnode.anat2std_xfm'),
             ('subjects_dir', 'inputnode.subjects_dir'),
@@ -790,7 +790,7 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
 
         # fmt:off
         workflow.connect([
-            (inputnode, anat_template_wf, [('t1w', 'inputnode.anat_files')]),
+            (inputnode, anat_template_wf, [(ref_anat, 'inputnode.anat_files')]),
             (anat_template_wf, anat_validate, [('outputnode.anat_ref', 'in_file')]),
             (anat_template_wf, sourcefile_buffer, [
                 ('outputnode.anat_valid_list', 'source_files'),
@@ -802,8 +802,8 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
                 ('outputnode.anat_realign_xfm', 'inputnode.anat_ref_xfms'),
             ]),
             (sourcefile_buffer, ds_template_wf, [('source_files', 'inputnode.source_files')]),
-            (t1w_buffer, ds_template_wf, [('t1w_preproc', 'inputnode.anat_preproc')]),
-            (ds_template_wf, outputnode, [('outputnode.anat_preproc', 't1w_preproc')]),
+            (anat_buffer, ds_template_wf, [('anat_preproc', 'inputnode.anat_preproc')]),
+            (ds_template_wf, outputnode, [('outputnode.anat_preproc', 'anat_preproc')]),
         ])
         # fmt:on
     else:
@@ -812,19 +812,19 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
 and used as {ref_string}-reference throughout the workflow.
 """
 
-        anat_validate.inputs.in_file = precomputed['t1w_preproc']
-        sourcefile_buffer.inputs.source_files = [precomputed['t1w_preproc']]
+        anat_validate.inputs.in_file = precomputed[f'{ref_anat}_preproc']
+        sourcefile_buffer.inputs.source_files = [precomputed[f'{ref_anat}_preproc']]
 
         # fmt:off
         workflow.connect([
-            (anat_validate, t1w_buffer, [('out_file', 't1w_preproc')]),
-            (t1w_buffer, outputnode, [('t1w_preproc', 't1w_preproc')]),
+            (anat_validate, anat_buffer, [('out_file', 'anat_preproc')]),
+            (anat_buffer, outputnode, [('anat_preproc', 'anat_preproc')]),
         ])
         # fmt:on
 
     # Stage 2: INU correction and masking
-    # We always need to generate t1w_brain; how to do that depends on whether we have
-    # a pre-corrected T1w or precomputed mask, or are given an already masked image
+    # We always need to generate anat_brain; how to do that depends on whether we have
+    # a pre-corrected anatomical or precomputed mask, or are given an already masked image
     if not have_mask:
         LOGGER.info('ANAT Stage 2: Preparing brain extraction workflow')
         if skull_strip_mode == 'auto':
@@ -849,20 +849,20 @@ as target template.
             # fmt:off
             workflow.connect([
                 (anat_validate, brain_extraction_wf, [('out_file', 'inputnode.in_files')]),
-                (brain_extraction_wf, t1w_buffer, [
-                    ('outputnode.out_mask', 't1w_mask'),
-                    (('outputnode.out_file', _pop), 't1w_brain'),
+                (brain_extraction_wf, anat_buffer, [
+                    ('outputnode.out_mask', 'anat_mask'),
+                    (('outputnode.out_file', _pop), 'anat_brain'),
                     ('outputnode.out_segm', 'ants_seg'),
                 ]),
             ])
             if not have_ref:
                 workflow.connect([
-                    (brain_extraction_wf, t1w_buffer, [
-                        (('outputnode.bias_corrected', _pop), 't1w_preproc'),
+                    (brain_extraction_wf, anat_buffer, [
+                        (('outputnode.bias_corrected', _pop), 'anat_preproc'),
                     ]),
                 ])
             # fmt:on
-        # Determine mask from T1w and uniformize
+        # Determine mask from anatomical and uniformize
         elif not have_ref:
             LOGGER.info('ANAT Stage 2: Skipping skull-strip, INU-correction only')
             desc += f"""\
@@ -876,10 +876,10 @@ derived from the input image.
             # fmt:off
             workflow.connect([
                 (anat_validate, n4_only_wf, [('out_file', 'inputnode.in_files')]),
-                (n4_only_wf, t1w_buffer, [
-                    (('outputnode.bias_corrected', _pop), 't1w_preproc'),
-                    ('outputnode.out_mask', 't1w_mask'),
-                    (('outputnode.out_file', _pop), 't1w_brain'),
+                (n4_only_wf, anat_buffer, [
+                    (('outputnode.bias_corrected', _pop), 'anat_preproc'),
+                    ('outputnode.out_mask', 'anat_mask'),
+                    (('outputnode.out_file', _pop), 'anat_brain'),
                     ('outputnode.out_segm', 'ants_seg'),
                 ]),
             ])
@@ -895,22 +895,22 @@ derived from the input image.
             # fmt:off
             workflow.connect([
                 (anat_validate, binarize, [('out_file', 'in_file')]),
-                (anat_validate, t1w_buffer, [('out_file', 't1w_brain')]),
-                (binarize, t1w_buffer, [('out_file', 't1w_mask')]),
+                (anat_validate, anat_buffer, [('out_file', 'anat_brain')]),
+                (binarize, anat_buffer, [('out_file', 'anat_mask')]),
             ])
             # fmt:on
 
-        ds_t1w_mask_wf = init_ds_mask_wf(
+        ds_anat_mask_wf = init_ds_mask_wf(
             bids_root=bids_root,
             output_dir=output_dir,
             mask_type='brain',
-            name='ds_t1w_mask_wf',
+            name='ds_anat_mask_wf',
         )
         # fmt:off
         workflow.connect([
-            (sourcefile_buffer, ds_t1w_mask_wf, [('source_files', 'inputnode.source_files')]),
-            (refined_buffer, ds_t1w_mask_wf, [('t1w_mask', 'inputnode.mask_file')]),
-            (ds_t1w_mask_wf, outputnode, [('outputnode.mask_file', 't1w_mask')]),
+            (sourcefile_buffer, ds_anat_mask_wf, [('source_files', 'inputnode.source_files')]),
+            (refined_buffer, ds_anat_mask_wf, [('anat_mask', 'inputnode.mask_file')]),
+            (ds_anat_mask_wf, outputnode, [('outputnode.mask_file', 'anat_mask')]),
         ])
         # fmt:on
     else:
@@ -918,9 +918,9 @@ derived from the input image.
         desc += """\
 A pre-computed brain mask was provided as input and used throughout the workflow.
 """
-        t1w_buffer.inputs.t1w_mask = precomputed['t1w_mask']
+        anat_buffer.inputs.anat_mask = precomputed[f'{ref_anat}_mask']
         # If we have a mask, always apply it
-        apply_mask = pe.Node(ApplyMask(in_mask=precomputed['t1w_mask']), name='apply_mask')
+        apply_mask = pe.Node(ApplyMask(in_mask=precomputed[f'{ref_anat}_mask']), name='apply_mask')
         workflow.connect([(anat_validate, apply_mask, [('out_file', 'in_file')])])
         # Run N4 if it hasn't been pre-run
         if not have_ref:
@@ -932,16 +932,16 @@ A pre-computed brain mask was provided as input and used throughout the workflow
             # fmt:off
             workflow.connect([
                 (apply_mask, n4_only_wf, [('out_file', 'inputnode.in_files')]),
-                (n4_only_wf, t1w_buffer, [
-                    (('outputnode.bias_corrected', _pop), 't1w_preproc'),
-                    (('outputnode.out_file', _pop), 't1w_brain'),
+                (n4_only_wf, anat_buffer, [
+                    (('outputnode.bias_corrected', _pop), 'anat_preproc'),
+                    (('outputnode.out_file', _pop), 'anat_brain'),
                 ]),
             ])
             # fmt:on
         else:
             LOGGER.info('ANAT Skipping Stage 2')
-            workflow.connect([(apply_mask, t1w_buffer, [('out_file', 't1w_brain')])])
-        workflow.connect([(refined_buffer, outputnode, [('t1w_mask', 't1w_mask')])])
+            workflow.connect([(apply_mask, anat_buffer, [('out_file', 'anat_brain')])])
+        workflow.connect([(refined_buffer, outputnode, [('anat_mask', 'anat_mask')])])
 
     # Stage 3: Segmentation
     if not (have_dseg and have_tpms):
@@ -957,23 +957,23 @@ the brain-extracted {ref_string} using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @
             name='fast',
             mem_gb=3,
         )
-        lut_t1w_dseg = pe.Node(niu.Function(function=_apply_bids_lut), name='lut_t1w_dseg')
-        lut_t1w_dseg.inputs.lut = (0, 3, 1, 2)  # Maps: 0 -> 0, 3 -> 1, 1 -> 2, 2 -> 3.
+        lut_anat_dseg = pe.Node(niu.Function(function=_apply_bids_lut), name='lut_anat_dseg')
+        lut_anat_dseg.inputs.lut = (0, 3, 1, 2)  # Maps: 0 -> 0, 3 -> 1, 1 -> 2, 2 -> 3.
         fast2bids = pe.Node(
             niu.Function(function=_probseg_fast2bids),
             name='fast2bids',
             run_without_submitting=True,
         )
-        workflow.connect([(refined_buffer, fast, [('t1w_brain', 'in_files')])])
+        workflow.connect([(refined_buffer, fast, [('anat_brain', 'in_files')])])
 
         # fmt:off
         if not have_dseg:
             ds_dseg_wf = init_ds_dseg_wf(output_dir=output_dir)
             workflow.connect([
-                (fast, lut_t1w_dseg, [('partial_volume_map', 'in_dseg')]),
+                (fast, lut_anat_dseg, [('partial_volume_map', 'in_dseg')]),
                 (sourcefile_buffer, ds_dseg_wf, [('source_files', 'inputnode.source_files')]),
-                (lut_t1w_dseg, ds_dseg_wf, [('out', 'inputnode.anat_dseg')]),
-                (ds_dseg_wf, seg_buffer, [('outputnode.anat_dseg', 't1w_dseg')]),
+                (lut_anat_dseg, ds_dseg_wf, [('out', 'inputnode.anat_dseg')]),
+                (ds_dseg_wf, seg_buffer, [('outputnode.anat_dseg', 'anat_dseg')]),
             ])
         if not have_tpms:
             ds_tpms_wf = init_ds_tpms_wf(output_dir=output_dir)
@@ -981,7 +981,7 @@ the brain-extracted {ref_string} using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @
                 (fast, fast2bids, [('partial_volume_files', 'inlist')]),
                 (sourcefile_buffer, ds_tpms_wf, [('source_files', 'inputnode.source_files')]),
                 (fast2bids, ds_tpms_wf, [('out', 'inputnode.anat_tpms')]),
-                (ds_tpms_wf, seg_buffer, [('outputnode.anat_tpms', 't1w_tpms')]),
+                (ds_tpms_wf, seg_buffer, [('outputnode.anat_tpms', 'anat_tpms')]),
             ])
         # fmt:on
     else:
@@ -989,11 +989,11 @@ the brain-extracted {ref_string} using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @
     if have_dseg:
         LOGGER.info('ANAT Found discrete segmentation')
         desc += 'Precomputed discrete tissue segmentations were provided as inputs.\n'
-        seg_buffer.inputs.t1w_dseg = precomputed['t1w_dseg']
+        seg_buffer.inputs.anat_dseg = precomputed[f'{ref_anat}_dseg']
     if have_tpms:
         LOGGER.info('ANAT Found tissue probability maps')
         desc += 'Precomputed tissue probabiilty maps were provided as inputs.\n'
-        seg_buffer.inputs.t1w_tpms = precomputed['t1w_tpms']
+        seg_buffer.inputs.anat_tpms = precomputed[f'{ref_anat}_tpms']
 
     # Stage 4: Normalization
     templates = []
@@ -1023,8 +1023,8 @@ the brain-extracted {ref_string} using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @
         # fmt:off
         workflow.connect([
             (inputnode, register_template_wf, [('roi', 'inputnode.lesion_mask')]),
-            (t1w_buffer, register_template_wf, [('t1w_preproc', 'inputnode.moving_image')]),
-            (refined_buffer, register_template_wf, [('t1w_mask', 'inputnode.moving_mask')]),
+            (anat_buffer, register_template_wf, [('anat_preproc', 'inputnode.moving_image')]),
+            (refined_buffer, register_template_wf, [('anat_mask', 'inputnode.moving_mask')]),
             (sourcefile_buffer, ds_template_registration_wf, [
                 ('source_files', 'inputnode.source_files')
             ]),
@@ -1045,9 +1045,9 @@ the brain-extracted {ref_string} using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @
     if have_mask or not freesurfer:
         # fmt:off
         workflow.connect([
-            (t1w_buffer, refined_buffer, [
-                ('t1w_mask', 't1w_mask'),
-                ('t1w_brain', 't1w_brain'),
+            (anat_buffer, refined_buffer, [
+                ('anat_mask', 'anat_mask'),
+                ('anat_brain', 'anat_brain'),
             ]),
         ])
         # fmt:on
@@ -1091,8 +1091,8 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
             ('subject_id', 'inputnode.subject_id'),
         ]),
         (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
-        (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
-        (t1w_buffer, surface_recon_wf, [('t1w_brain', 'inputnode.skullstripped_t1')]),
+        (anat_validate, surface_recon_wf, [('out_file', f'inputnode.{ref_anat}')]),
+        (anat_buffer, surface_recon_wf, [('anat_brain', 'inputnode.skullstripped_t1')]),
         (surface_recon_wf, outputnode, [
             ('outputnode.subjects_dir', 'subjects_dir'),
             ('outputnode.subject_id', 'subject_id'),
@@ -1109,16 +1109,16 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
                 ('source_files', 'inputnode.source_files'),
             ]),
             (surface_recon_wf, ds_fs_registration_wf, [
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
+                ('outputnode.fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (ds_fs_registration_wf, outputnode, [
-                ('outputnode.fsnative2anat_xfm', 'fsnative2t1w_xfm'),
+                ('outputnode.fsnative2anat_xfm', 'fsnative2anat_xfm'),
             ]),
         ])
         # fmt:on
     elif 'reverse' in fsnative_xfms:
         LOGGER.info(f'ANAT Found fsnative-{ref_string} transform - skipping registration')
-        outputnode.inputs.fsnative2t1w_xfm = fsnative_xfms['reverse']
+        outputnode.inputs.fsnative2anat_xfm = fsnative_xfms['reverse']
     else:
         raise RuntimeError(
             f'Found a {ref_string}-to-fsnative transform without the reverse. Time to handle this.'
@@ -1135,16 +1135,16 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, refinement_wf, [
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
+                ('outputnode.fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
-            (t1w_buffer, refinement_wf, [
-                ('t1w_preproc', 'inputnode.reference_image'),
+            (anat_buffer, refinement_wf, [
+                ('anat_preproc', 'inputnode.reference_image'),
                 ('ants_seg', 'inputnode.ants_segs'),
             ]),
-            (t1w_buffer, applyrefined, [('t1w_preproc', 'in_file')]),
+            (anat_buffer, applyrefined, [('anat_preproc', 'in_file')]),
             (refinement_wf, applyrefined, [('outputnode.out_brainmask', 'mask_file')]),
-            (refinement_wf, refined_buffer, [('outputnode.out_brainmask', 't1w_mask')]),
-            (applyrefined, refined_buffer, [('out_file', 't1w_brain')]),
+            (refinement_wf, refined_buffer, [('outputnode.out_brainmask', 'anat_mask')]),
+            (applyrefined, refined_buffer, [('out_file', 'anat_brain')]),
         ])
         # fmt:on
     else:
@@ -1153,12 +1153,12 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
     if aux_weighted and not have_aux:
         aux_str = aux_weighted[0]
         LOGGER.info('ANAT Stage 7: Creating aux template')
-        t2w_template_wf = init_anat_template_wf(
+        aux_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
             num_files=anat[aux_str]['n'],
             image_type=aux_str.capitalize(),
-            name='t2w_template_wf',
+            name='aux_template_wf',
         )
         bbreg = pe.Node(
             fs.BBRegister(
@@ -1171,40 +1171,40 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
             name='bbreg',
         )
         coreg_xfms = pe.Node(niu.Merge(2), name='merge_xfms', run_without_submitting=True)
-        t2wtot1w_xfm = pe.Node(ConcatenateXFMs(), name='t2wtot1w_xfm', run_without_submitting=True)
-        t2w_resample = pe.Node(
+        auxtoanat_xfm = pe.Node(ConcatenateXFMs(), name='auxtoanat_xfm', run_without_submitting=True)
+        aux_resample = pe.Node(
             ApplyTransforms(
                 dimension=3,
                 default_value=0,
                 float=True,
                 interpolation='LanczosWindowedSinc',
             ),
-            name='t2w_resample',
+            name='aux_resample',
         )
 
-        ds_t2w_preproc = pe.Node(
+        ds_aux_preproc = pe.Node(
             DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True),
-            name='ds_t2w_preproc',
+            name='ds_aux_preproc',
             run_without_submitting=True,
         )
-        ds_t2w_preproc.inputs.SkullStripped = False
+        ds_aux_preproc.inputs.SkullStripped = False
 
         workflow.connect([
-            (inputnode, t2w_template_wf, [('t2w', 'inputnode.anat_files')]),
-            (t2w_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
+            (inputnode, aux_template_wf, [(aux_str, 'inputnode.anat_files')]),
+            (aux_template_wf, bbreg, [('outputnode.anat_ref', 'source_file')]),
             (surface_recon_wf, bbreg, [
                 ('outputnode.subject_id', 'subject_id'),
                 ('outputnode.subjects_dir', 'subjects_dir'),
             ]),
             (bbreg, coreg_xfms, [('out_lta_file', 'in1')]),
-            (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
-            (coreg_xfms, t2wtot1w_xfm, [('out', 'in_xfms')]),
-            (t2w_template_wf, t2w_resample, [('outputnode.anat_ref', 'input_image')]),
-            (t1w_buffer, t2w_resample, [('t1w_preproc', 'reference_image')]),
-            (t2wtot1w_xfm, t2w_resample, [('out_xfm', 'transforms')]),
-            (inputnode, ds_t2w_preproc, [('t2w', 'source_file')]),
-            (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
-            (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
+            (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2anat_xfm', 'in2')]),
+            (coreg_xfms, auxtoanat_xfm, [('out', 'in_xfms')]),
+            (aux_template_wf, aux_resample, [('outputnode.anat_ref', 'input_image')]),
+            (anat_buffer, aux_resample, [('anat_preproc', 'reference_image')]),
+            (auxtoanat_xfm, aux_resample, [('out_xfm', 'transforms')]),
+            (inputnode, ds_aux_preproc, [('aux', 'source_file')]),
+            (aux_resample, ds_aux_preproc, [('output_image', 'in_file')]),
+            (ds_aux_preproc, outputnode, [('out_file', 'aux_preproc')]),
         ])  # fmt:skip
     elif not aux_weighted:
         LOGGER.info('ANAT No auxillary images provided - skipping Stage 7')
@@ -1244,7 +1244,7 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, gifti_surfaces_wf, [
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
+                ('outputnode.fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (gifti_surfaces_wf, surfaces_buffer, [
                 (f'outputnode.{surf}', surf) for surf in surfs
@@ -1313,8 +1313,8 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
         )
         # fmt:off
         workflow.connect([
-            (t1w_buffer, anat_ribbon_wf, [
-                ('t1w_preproc', 'inputnode.ref_file'),
+            (anat_buffer, anat_ribbon_wf, [
+                ('anat_preproc', 'inputnode.ref_file'),
             ]),
             (surfaces_buffer, anat_ribbon_wf, [
                 ('white', 'inputnode.white'),
@@ -1458,7 +1458,7 @@ An anatomical {image_type}-reference map was computed after registration of
         name='outputnode',
     )
 
-    # 0. Denoise and reorient T1w image(s) to RAS and resample to common voxel space
+    # 0. Denoise and reorient anat image(s) to RAS and resample to common voxel space
     anat_ref_dimensions = pe.Node(TemplateDimensions(), name='anat_ref_dimensions')
     denoise = pe.MapNode(
         DenoiseImage(noise_model='Rician', num_threads=omp_nthreads),
@@ -1501,11 +1501,11 @@ An anatomical {image_type}-reference map was computed after registration of
         name='anat_conform_xfm',
     )
 
-    # 1. Template (only if several T1w images)
+    # 1. Template (only if several anat images)
     # 1a. Correct for bias field: the bias field is an additive factor
     #     in log-transformed intensity units. Therefore, it is not a linear
     #     combination of fields and N4 fails with merged images.
-    # 1b. Align and merge if several T1w images are provided
+    # 1b. Align and merge if several anat images are provided
     n4_correct = pe.MapNode(
         N4BiasFieldCorrection(dimension=3, copy_header=True),
         iterfield='input_image',
@@ -1645,7 +1645,7 @@ def _probseg_fast2bids(inlist):
 
 
 def _is_skull_stripped(img):
-    """Check if T1w images are skull-stripped."""
+    """Check if anat images are skull-stripped."""
     import nibabel as nb
     import numpy as np
 
