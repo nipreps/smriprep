@@ -130,13 +130,13 @@ def collect_anat(
             'data': subject_data[modality],
             'n': len(subject_data[modality]),
             'precomputed': f'{modality}_preproc' in precomputed,
-            'role': 'reference' if modality == reference_anat else 'aux',
+            'role': 'reference' if modality.capitalize() == reference_anat else 'aux',
         } for modality in ['t1w', 't2w', 'flair']
         if modality in subject_data.keys()
     }
-    anat_inputs[reference_anat].update(
+    anat_inputs[reference_anat.lower()].update(
         {
-            f'have_{preproc}': f'{reference_anat}_{preproc}'
+            f'have_{preproc}': f'{reference_anat.lower()}_{preproc}'
             in precomputed for preproc in ['mask', 'tpms', 'dseg']
         }
     )
