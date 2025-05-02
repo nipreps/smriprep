@@ -82,11 +82,7 @@ def test_init_anat_preproc_wf(
         hires=False,
         longitudinal=False,
         msm_sulc=False,
-        anat=collect_anat(
-            collect_data(bids_root, '01')[0],
-            {},
-            'T1w'
-        ),
+        anat=collect_anat(collect_data(bids_root, '01')[0], {}, 'T1w'),
         skull_strip_mode='force',
         skull_strip_template=Reference('OASIS30ANTs'),
         spaces=SpatialReferences(
@@ -117,11 +113,7 @@ def test_anat_fit_wf(
         hires=False,
         longitudinal=False,
         msm_sulc=msm_sulc,
-        anat=collect_anat(
-            collect_data(bids_root, '01')[0],
-            {},
-            'T1w'
-        ),
+        anat=collect_anat(collect_data(bids_root, '01')[0], {}, 'T1w'),
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=Reference('OASIS30ANTs'),
         spaces=SpatialReferences(
@@ -161,7 +153,6 @@ def test_anat_fit_precomputes(
     configurations as possible."""
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
-
 
     # Construct precomputed files
     empty_img = nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4))

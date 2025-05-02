@@ -773,8 +773,10 @@ Anatomical data preprocessing
  {'Each' if num_ref > 1 else 'The'} {ref_string} image was corrected for intensity
 non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
 [@ants, RRID:SCR_004757]"""
-        desc += '.\n' if num_ref > 1 else (
-            f', and used as {ref_string}-reference throughout the workflow.\n'
+        desc += (
+            '.\n'
+            if num_ref > 1
+            else (f', and used as {ref_string}-reference throughout the workflow.\n')
         )
 
         anat_template_wf = init_anat_template_wf(
@@ -1073,8 +1075,9 @@ the brain-extracted {ref_string} using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @
         precomputed=precomputed,
     )
     if have_aux:
-        weighted_or_flair = aux_weighted[0].capitalize().replace('w', '-weighted') \
-            if aux_weighted else 'FLAIR'
+        weighted_or_flair = (
+            aux_weighted[0].capitalize().replace('w', '-weighted') if aux_weighted else 'FLAIR'
+        )
         surface_recon_wf.__desc__ += f"""\
 A {weighted_or_flair} image was used to improve pial surface refinement.
 """
@@ -1102,7 +1105,9 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
 
     fsnative_xfms = precomputed.get('transforms', {}).get('fsnative')
     if not fsnative_xfms:
-        ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir, image_type=ref_string)
+        ds_fs_registration_wf = init_ds_fs_registration_wf(
+            output_dir=output_dir, image_type=ref_string
+        )
         # fmt:off
         workflow.connect([
             (sourcefile_buffer, ds_fs_registration_wf, [
@@ -1171,7 +1176,9 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
             name='bbreg',
         )
         coreg_xfms = pe.Node(niu.Merge(2), name='merge_xfms', run_without_submitting=True)
-        auxtoanat_xfm = pe.Node(ConcatenateXFMs(), name='auxtoanat_xfm', run_without_submitting=True)
+        auxtoanat_xfm = pe.Node(
+            ConcatenateXFMs(), name='auxtoanat_xfm', run_without_submitting=True
+        )
         aux_resample = pe.Node(
             ApplyTransforms(
                 dimension=3,

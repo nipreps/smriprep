@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Self-contained utilities to be used within Function nodes."""
+
 import typing as ty
 
 
@@ -99,10 +100,8 @@ and proceed to delete the files listed above."""
 
 
 def collect_anat(
-        subject_data: dict,
-        precomputed: dict,
-        reference_anat: ty.Literal['T1w', 'T2w'] = 'T1w'
-    ):
+    subject_data: dict, precomputed: dict, reference_anat: ty.Literal['T1w', 'T2w'] = 'T1w'
+):
     """
     Collects the anatomical inputs for a given subject and organises the
     files and associated information into ``reference`` and ``aux`` keys
@@ -131,13 +130,14 @@ def collect_anat(
             'n': len(subject_data[modality]),
             'precomputed': f'{modality}_preproc' in precomputed,
             'role': 'reference' if modality.capitalize() == reference_anat else 'aux',
-        } for modality in ['t1w', 't2w', 'flair']
+        }
+        for modality in ['t1w', 't2w', 'flair']
         if modality in subject_data.keys()
     }
     anat_inputs[reference_anat.lower()].update(
         {
-            f'have_{preproc}': f'{reference_anat.lower()}_{preproc}'
-            in precomputed for preproc in ['mask', 'tpms', 'dseg']
+            f'have_{preproc}': f'{reference_anat.lower()}_{preproc}' in precomputed
+            for preproc in ['mask', 'tpms', 'dseg']
         }
     )
 
