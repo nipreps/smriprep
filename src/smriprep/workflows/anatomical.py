@@ -1073,7 +1073,7 @@ the brain-extracted {ref_string} using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @
         precomputed=precomputed,
     )
     if have_aux:
-        weighted_or_flair = aux_weighted[0].capitalize().replace('w', -'weighted') \
+        weighted_or_flair = aux_weighted[0].capitalize().replace('w', '-weighted') \
             if aux_weighted else 'FLAIR'
         surface_recon_wf.__desc__ += f"""\
 A {weighted_or_flair} image was used to improve pial surface refinement.
