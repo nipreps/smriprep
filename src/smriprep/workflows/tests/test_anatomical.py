@@ -163,13 +163,6 @@ def test_anat_fit_precomputes(
     output_dir.mkdir()
 
 
-    # Construct inputs
-    t1w_list = [
-        str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz'),
-        str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-2_T1w.nii.gz'),
-    ][:t1w]
-    t2w_list = [str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')][:t2w]
-
     # Construct precomputed files
     empty_img = nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4))
     precomputed = {}
