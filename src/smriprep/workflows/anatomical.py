@@ -1214,9 +1214,9 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
             (ds_aux_preproc, outputnode, [('out_file', 'aux_preproc')]),
         ])  # fmt:skip
     elif not aux_weighted:
-        LOGGER.info('ANAT No auxillary images provided - skipping Stage 7')
+        LOGGER.info('ANAT No auxiliary images provided - skipping Stage 7')
     else:
-        LOGGER.info('ANAT Found preprocessed auxillary - skipping Stage 7')
+        LOGGER.info('ANAT Found preprocessed auxiliary - skipping Stage 7')
 
     # Stages 8-10: Surface conversion and registration
     # sphere_reg is needed to generate sphere_reg_fsLR
