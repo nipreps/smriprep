@@ -36,6 +36,7 @@ from niworkflows.utils.misc import fix_multi_T1w_source_name
 
 from ..__about__ import __version__
 from ..interfaces import DerivativesDataSink
+from ..utils.misc import collect_anat
 from .anatomical import init_anat_preproc_wf
 
 
@@ -430,10 +431,8 @@ to workflows in *sMRIPrep*'s documentation]\
         fs_no_resume=fs_no_resume,
         longitudinal=longitudinal,
         msm_sulc=msm_sulc,
+        anat=collect_anat(subject_data, deriv_cache, 'T1w'),
         name='anat_preproc_wf',
-        t1w=subject_data['t1w'],
-        t2w=subject_data['t2w'],
-        flair=subject_data['flair'],
         omp_nthreads=omp_nthreads,
         output_dir=output_dir,
         skull_strip_fixed_seed=skull_strip_fixed_seed,

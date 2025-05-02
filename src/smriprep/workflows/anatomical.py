@@ -101,14 +101,12 @@ def init_anat_preproc_wf(
     hires: bool,
     longitudinal: bool,
     msm_sulc: bool,
-    t1w: list,
-    t2w: list,
+    anat: dict,
     skull_strip_mode: str,
     skull_strip_template: Reference,
     spaces: SpatialReferences,
     precomputed: dict,
     omp_nthreads: int,
-    flair: list = (),  # Remove default after callers start passing it
     debug: bool = False,
     sloppy: bool = False,
     cifti_output: ty.Literal['91k', '170k', False] = False,
@@ -162,8 +160,6 @@ def init_anat_preproc_wf(
     longitudinal : :obj:`bool`
         Create unbiased structural template, regardless of number of inputs
         (may increase runtime)
-    t1w : :obj:`list`
-        List of T1-weighted structural images.
     skull_strip_mode : :obj:`str`
         Determiner for T1-weighted skull stripping (`force` ensures skull stripping,
         `skip` ignores skull stripping, and `auto` automatically ignores skull stripping
@@ -275,9 +271,7 @@ def init_anat_preproc_wf(
         skull_strip_mode=skull_strip_mode,
         skull_strip_template=skull_strip_template,
         spaces=spaces,
-        t1w=t1w,
-        t2w=t2w,
-        flair=flair,
+        anat=anat,
         precomputed=precomputed,
         debug=debug,
         sloppy=sloppy,
@@ -471,14 +465,12 @@ def init_anat_fit_wf(
     hires: bool,
     longitudinal: bool,
     msm_sulc: bool,
-    t1w: list,
-    t2w: list,
+    anat: dict,
     skull_strip_mode: str,
     skull_strip_template: Reference,
     spaces: SpatialReferences,
     precomputed: dict,
     omp_nthreads: int,
-    flair: list = (),  # Remove default after callers start passing it
     debug: bool = False,
     sloppy: bool = False,
     name='anat_fit_wf',
@@ -619,18 +611,22 @@ def init_anat_fit_wf(
 
     """
     workflow = Workflow(name=name)
-    num_t1w = len(t1w)
+    ref_anat = [modality for modality in anat.keys() if anat[modality]['role'] == 'reference'][0]
+    aux_anat = [modality for modality in anat.keys() if anat[modality]['role'] == 'aux']
+    aux_weighted = [x for x in ['t1w', 't2w'] if x in aux_anat]
+    num_ref = anat[ref_anat]['n']
+    ref_string = ref_anat.capitalize()
     desc = f"""
 Anatomical data preprocessing
 
-: A total of {num_t1w} T1-weighted (T1w) images were found within the input
-BIDS dataset."""
+: A total of {num_ref} {ref_string.strip('w')}-weighted \
+({ref_string}) images were found within the input BIDS dataset."""
 
-    have_t1w = 't1w_preproc' in precomputed
-    have_t2w = 't2w_preproc' in precomputed
-    have_mask = 't1w_mask' in precomputed
-    have_dseg = 't1w_dseg' in precomputed
-    have_tpms = 't1w_tpms' in precomputed
+    have_ref = anat[ref_anat]['precomputed']
+    have_aux = any(anat[modality]['precomputed'] for modality in aux_anat)
+    have_mask = anat[ref_anat]['have_mask']
+    have_dseg = anat[ref_anat]['have_dseg']
+    have_tpms = anat[ref_anat]['have_tpms']
 
     # Organization
     # ------------
@@ -770,24 +766,26 @@ BIDS dataset."""
     # Stage 1: Conform images and validate
     # If desc-preproc_T1w.nii.gz is provided, just validate it
     anat_validate = pe.Node(ValidateImage(), name='anat_validate', run_without_submitting=True)
-    if not have_t1w:
+    if not have_ref:
         LOGGER.info('ANAT Stage 1: Adding template workflow')
         ants_ver = ANTsInfo.version() or '(version unknown)'
         desc += f"""\
- {'Each' if num_t1w > 1 else 'The'} T1w image was corrected for intensity
+ {'Each' if num_ref > 1 else 'The'} {ref_string} image was corrected for intensity
 non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
 [@ants, RRID:SCR_004757]"""
-        desc += '.\n' if num_t1w > 1 else ', and used as T1w-reference throughout the workflow.\n'
+        desc += '.\n' if num_ref > 1 else (
+            f', and used as {ref_string}-reference throughout the workflow.\n'
+        )
 
         anat_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
-            num_files=num_t1w,
-            image_type='T1w',
+            num_files=num_ref,
+            image_type=ref_string,
             name='anat_template_wf',
         )
         ds_template_wf = init_ds_template_wf(
-            output_dir=output_dir, num_anat=num_t1w, image_type='T1w'
+            output_dir=output_dir, num_anat=num_ref, image_type=ref_string
         )
 
         # fmt:off
@@ -809,9 +807,9 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
         ])
         # fmt:on
     else:
-        LOGGER.info('ANAT Found preprocessed T1w - skipping Stage 1')
-        desc += """ A preprocessed T1w image was provided as a precomputed input
-and used as T1w-reference throughout the workflow.
+        LOGGER.info(f'ANAT Found preprocessed {ref_string} - skipping Stage 1')
+        desc += f""" A preprocessed {ref_string} image was provided as a precomputed input
+and used as {ref_string}-reference throughout the workflow.
 """
 
         anat_validate.inputs.in_file = precomputed['t1w_preproc']
@@ -830,14 +828,14 @@ and used as T1w-reference throughout the workflow.
     if not have_mask:
         LOGGER.info('ANAT Stage 2: Preparing brain extraction workflow')
         if skull_strip_mode == 'auto':
-            run_skull_strip = not all(_is_skull_stripped(img) for img in t1w)
+            run_skull_strip = not all(_is_skull_stripped(img) for img in anat[ref_anat]['data'])
         else:
             run_skull_strip = {'force': True, 'skip': False}[skull_strip_mode]
 
         # Brain extraction
         if run_skull_strip:
             desc += f"""\
-The T1w-reference was then skull-stripped with a *Nipype* implementation of
+The {ref_string}-reference was then skull-stripped with a *Nipype* implementation of
 the `antsBrainExtraction.sh` workflow (from ANTs), using {skull_strip_template.fullname}
 as target template.
 """
@@ -857,7 +855,7 @@ as target template.
                     ('outputnode.out_segm', 'ants_seg'),
                 ]),
             ])
-            if not have_t1w:
+            if not have_ref:
                 workflow.connect([
                     (brain_extraction_wf, t1w_buffer, [
                         (('outputnode.bias_corrected', _pop), 't1w_preproc'),
@@ -865,10 +863,10 @@ as target template.
                 ])
             # fmt:on
         # Determine mask from T1w and uniformize
-        elif not have_t1w:
+        elif not have_ref:
             LOGGER.info('ANAT Stage 2: Skipping skull-strip, INU-correction only')
-            desc += """\
-The provided T1w image was previously skull-stripped; a brain mask was
+            desc += f"""\
+The provided {ref_string} image was previously skull-stripped; a brain mask was
 derived from the input image.
 """
             n4_only_wf = init_n4_only_wf(
@@ -889,8 +887,8 @@ derived from the input image.
         # Binarize the already uniformized image
         else:
             LOGGER.info('ANAT Stage 2: Skipping skull-strip, generating mask from input')
-            desc += """\
-The provided T1w image was previously skull-stripped; a brain mask was
+            desc += f"""\
+The provided {ref_string} image was previously skull-stripped; a brain mask was
 derived from the input image.
 """
             binarize = pe.Node(Binarize(thresh_low=2), name='binarize')
@@ -925,7 +923,7 @@ A pre-computed brain mask was provided as input and used throughout the workflow
         apply_mask = pe.Node(ApplyMask(in_mask=precomputed['t1w_mask']), name='apply_mask')
         workflow.connect([(anat_validate, apply_mask, [('out_file', 'in_file')])])
         # Run N4 if it hasn't been pre-run
-        if not have_t1w:
+        if not have_ref:
             LOGGER.info('ANAT Skipping skull-strip, INU-correction only')
             n4_only_wf = init_n4_only_wf(
                 omp_nthreads=omp_nthreads,
@@ -952,7 +950,7 @@ A pre-computed brain mask was provided as input and used throughout the workflow
         desc += f"""\
 Brain tissue segmentation of cerebrospinal fluid (CSF),
 white-matter (WM) and gray-matter (GM) was performed on
-the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast].
+the brain-extracted {ref_string} using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast].
 """
         fast = pe.Node(
             FAST(segments=True, no_bias=True, probability_maps=True, bias_iters=0),
@@ -1019,7 +1017,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             templates=templates,
         )
         ds_template_registration_wf = init_ds_template_registration_wf(
-            output_dir=output_dir, image_type='T1w'
+            output_dir=output_dir, image_type=ref_string
         )
 
         # fmt:off
@@ -1074,10 +1072,11 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         fs_no_resume=fs_no_resume,
         precomputed=precomputed,
     )
-    if t2w or flair:
-        t2w_or_flair = 'T2-weighted' if t2w else 'FLAIR'
+    if have_aux:
+        weighted_or_flair = aux_weighted[0].capitalize().replace('w', -'weighted') \
+            if aux_weighted else 'FLAIR'
         surface_recon_wf.__desc__ += f"""\
-A {t2w_or_flair} image was used to improve pial surface refinement.
+A {weighted_or_flair} image was used to improve pial surface refinement.
 """
 
     # fmt:off
@@ -1103,7 +1102,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
 
     fsnative_xfms = precomputed.get('transforms', {}).get('fsnative')
     if not fsnative_xfms:
-        ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir, image_type='T1w')
+        ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir, image_type=ref_string)
         # fmt:off
         workflow.connect([
             (sourcefile_buffer, ds_fs_registration_wf, [
@@ -1118,11 +1117,11 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         ])
         # fmt:on
     elif 'reverse' in fsnative_xfms:
-        LOGGER.info('ANAT Found fsnative-T1w transform - skipping registration')
+        LOGGER.info(f'ANAT Found fsnative-{ref_string} transform - skipping registration')
         outputnode.inputs.fsnative2t1w_xfm = fsnative_xfms['reverse']
     else:
         raise RuntimeError(
-            'Found a T1w-to-fsnative transform without the reverse. Time to handle this.'
+            f'Found a {ref_string}-to-fsnative transform without the reverse. Time to handle this.'
         )
 
     if not have_mask:
@@ -1151,18 +1150,19 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
     else:
         LOGGER.info('ANAT Found brain mask - skipping Stage 6')
 
-    if t2w and not have_t2w:
-        LOGGER.info('ANAT Stage 7: Creating T2w template')
+    if aux_weighted and not have_aux:
+        aux_str = aux_weighted[0]
+        LOGGER.info('ANAT Stage 7: Creating aux template')
         t2w_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
-            num_files=len(t2w),
-            image_type='T2w',
+            num_files=anat[aux_str]['n'],
+            image_type=aux_str.capitalize(),
             name='t2w_template_wf',
         )
         bbreg = pe.Node(
             fs.BBRegister(
-                contrast_type='t2',
+                contrast_type=aux_str.strip('w'),
                 init='coreg',
                 dof=6,
                 out_lta_file=True,
@@ -1206,10 +1206,10 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
             (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
         ])  # fmt:skip
-    elif not t2w:
-        LOGGER.info('ANAT No T2w images provided - skipping Stage 7')
+    elif not aux_weighted:
+        LOGGER.info('ANAT No auxillary images provided - skipping Stage 7')
     else:
-        LOGGER.info('ANAT Found preprocessed T2w - skipping Stage 7')
+        LOGGER.info('ANAT Found preprocessed auxillary - skipping Stage 7')
 
     # Stages 8-10: Surface conversion and registration
     # sphere_reg is needed to generate sphere_reg_fsLR
