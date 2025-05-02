@@ -21,6 +21,7 @@
 #     https://www.nipreps.org/community/licensing/
 #
 """Self-contained utilities to be used within Function nodes."""
+import typing as ty
 
 
 def apply_lut(in_dseg, lut, newpath=None):
@@ -95,3 +96,43 @@ and proceed to delete the files listed above."""
     if logger:
         logger.warn(f'Removed "IsRunning*" files found under {subj_dir}')
     return subjects_dir
+
+
+def collect_anat(
+        subject_data: dict,
+        precomputed: dict,
+        reference_anat: ty.Literal['T1w', 'T2w'] = 'T1w'
+    ):
+    """
+    Collects the anatomical inputs for a given subject and organises the
+    files and associated information into ``reference`` and ``aux`` keys
+    to pass to :py:func:`init_anat_fit_wf`
+
+    Parameters
+    ----------
+    subject_data: :obj:`dict`
+        lists of input data
+    precomputed: :obj:`dict`
+        cache of derivative files
+    reference_anat: :obj:`str`
+        MR image type (T1w, T2w, etc.) of primary anatomical scan
+
+    Returns
+    -------
+    anat_inputs: :obj:`dict`
+    """
+    ref_anat = reference_anat.lower()
+    if ref_anat not in subject_data.keys():
+        raise FileNotFoundError
+
+    anat_inputs = {
+        modality: {
+            'data': subject_data[modality],
+            'n': len(subject_data[modality]),
+            'precomputed': f'{modality}_preproc' in precomputed,
+            'role': 'reference' if modality == reference_anat else 'aux',
+        } for modality in ['t1w', 't2w', 'flair']
+        if modality in subject_data.keys()
+    }
+
+    return anat_inputs
