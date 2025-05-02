@@ -321,7 +321,7 @@ def init_anat_preproc_wf(
             ('outputnode.anat_tpms', 'inputnode.anat_tpms'),
         ]),
         (template_iterator_wf, ds_std_volumes_wf, [
-            ('outputnode.std_anat', 'inputnode.ref_file'),
+            ('outputnode.std_t1w', 'inputnode.ref_file'),
             ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
             ('outputnode.space', 'inputnode.space'),
             ('outputnode.cohort', 'inputnode.cohort'),
@@ -752,9 +752,9 @@ Anatomical data preprocessing
     workflow.connect([
         (outputnode, anat_reports_wf, [
             ('anat_valid_list', 'inputnode.source_file'),
-            ('anat_preproc', 'inputnode.anat_preproc'),
-            ('anat_mask', 'inputnode.anat_mask'),
-            ('anat_dseg', 'inputnode.anat_dseg'),
+            ('anat_preproc', 'inputnode.t1w_preproc'),
+            ('anat_mask', 'inputnode.t1w_mask'),
+            ('anat_dseg', 'inputnode.t1w_dseg'),
             ('template', 'inputnode.template'),
             ('anat2std_xfm', 'inputnode.anat2std_xfm'),
             ('subjects_dir', 'inputnode.subjects_dir'),
@@ -1114,7 +1114,7 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
                 ('source_files', 'inputnode.source_files'),
             ]),
             (surface_recon_wf, ds_fs_registration_wf, [
-                ('outputnode.fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (ds_fs_registration_wf, outputnode, [
                 ('outputnode.fsnative2anat_xfm', 'fsnative2anat_xfm'),
@@ -1140,7 +1140,7 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, refinement_wf, [
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (anat_buffer, refinement_wf, [
                 ('anat_preproc', 'inputnode.reference_image'),
@@ -1204,12 +1204,12 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
                 ('outputnode.subjects_dir', 'subjects_dir'),
             ]),
             (bbreg, coreg_xfms, [('out_lta_file', 'in1')]),
-            (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2anat_xfm', 'in2')]),
+            (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
             (coreg_xfms, auxtoanat_xfm, [('out', 'in_xfms')]),
             (aux_template_wf, aux_resample, [('outputnode.anat_ref', 'input_image')]),
             (anat_buffer, aux_resample, [('anat_preproc', 'reference_image')]),
             (auxtoanat_xfm, aux_resample, [('out_xfm', 'transforms')]),
-            (inputnode, ds_aux_preproc, [('aux', 'source_file')]),
+            (inputnode, ds_aux_preproc, [(aux_str, 'source_file')]),
             (aux_resample, ds_aux_preproc, [('output_image', 'in_file')]),
             (ds_aux_preproc, outputnode, [('out_file', 'aux_preproc')]),
         ])  # fmt:skip
@@ -1251,7 +1251,7 @@ A {weighted_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, gifti_surfaces_wf, [
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (gifti_surfaces_wf, surfaces_buffer, [
                 (f'outputnode.{surf}', surf) for surf in surfs
