@@ -134,5 +134,11 @@ def collect_anat(
         } for modality in ['t1w', 't2w', 'flair']
         if modality in subject_data.keys()
     }
+    anat_inputs[reference_anat].update(
+        {
+            f'have_{preproc}': f'{reference_anat}_{preproc}'
+            in precomputed for preproc in ['mask', 'tpms', 'dseg']
+        }
+    )
 
     return anat_inputs
