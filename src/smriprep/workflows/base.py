@@ -148,7 +148,7 @@ def init_smriprep_wf(
         Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
-    subworkflows_list : :obj:`list` or :obj:`tuple`
+    subworkflows_list : :obj:`list` of :obj:`tuple`
         List of subject-session label pairs
     work_dir : :obj:`str`
         Directory in which to store workflow execution state and
@@ -174,11 +174,15 @@ def init_smriprep_wf(
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
-    for subject_id, session_id in subworkflows_list:
+    for subject_id, session_ids in subworkflows_list:
+        ses_str = session_ids
+        if not isinstance(session_ids, (str, type(None))):
+            ses_str = '_'.join(session_ids)
+
         name = (
-            f"single_subject_{subject_id}_{session_id}_wf"
-            if session_id
-            else f"single_subject_{subject_id}_wf"
+            f'single_subject_{subject_id}_{ses_str}_wf'
+            if session_ids
+            else f'single_subject_{subject_id}_wf'
         )
 
         single_subject_wf = init_single_subject_wf(
@@ -200,7 +204,7 @@ def init_smriprep_wf(
             skull_strip_template=skull_strip_template,
             spaces=spaces,
             subject_id=subject_id,
-            session_id=session_id,
+            session_id=session_ids,
             bids_filters=bids_filters,
             cifti_output=cifti_output,
         )
