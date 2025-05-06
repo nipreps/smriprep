@@ -47,11 +47,17 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
     derivs_cache = {}
     for key, qry in spec['baseline'].items():
         qry['subject'] = subject_id
-        item = layout.get(return_type='filename', **qry)
+        item = layout.get(**qry)
         if not item:
             continue
 
-        derivs_cache[f't1w_{key}'] = item[0] if len(item) == 1 else item
+        # Respect label order in queries
+        if 'label' in qry:
+            item = sorted(item, key=lambda x: qry['label'].index(x.entities['label']))
+
+        paths = [item.path for item in item]
+
+        derivs_cache[f't1w_{key}'] = paths[0] if len(paths) == 1 else paths
 
     transforms = derivs_cache.setdefault('transforms', {})
     for _space in std_spaces:
