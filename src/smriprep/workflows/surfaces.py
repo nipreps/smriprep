@@ -839,7 +839,6 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     return workflow
 
 
-@tag('anat.gifti-surfaces')
 def init_gifti_surfaces_wf(
     *,
     surfaces: list[str] = ('pial', 'midthickness', 'inflated', 'white'),
@@ -937,7 +936,6 @@ def init_gifti_surfaces_wf(
     return workflow
 
 
-@tag('anat.gifti-morphs')
 def init_gifti_morphometrics_wf(
     *,
     morphometrics: list[str] = ('thickness', 'curv', 'sulc'),
@@ -1321,7 +1319,6 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
     return workflow
 
 
-@tag('anat.resample-surfs')
 def init_resample_surfaces_wf(
     surfaces: list[str],
     grayord_density: ty.Literal['91k', '170k'],
