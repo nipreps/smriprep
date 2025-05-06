@@ -1,3 +1,48 @@
+0.17.0 (December 19, 2024)
+==========================
+New feature release in the 0.17.x series.
+
+This release improves handling of datasets where T1w images are not
+the primary modality. It also supports the generation of fsLR meshes
+on the subject surface with the names:
+
+```
+sub-<label>/anat/sub-<label>_hemi-<L|R>_space-fsLR_den-<label>_<surface>.surf.gii
+```
+
+These are useful for plotting CIFTI results on subject anatomy.
+
+* FIX: Stop excluding FS minc_modify_header used during fallback registration (#453)
+* ENH: Output fsLR meshes on subject surfaces (#460)
+* ENH: Support spatial normalization to alternative modalities (#459)
+* ENH: Add `t2w_file` output to `TemplateFlowSelect` (#457)
+* MNT: Enable pre-release tests (#461)
+* MNT: Complete transition from flake8/black to ruff (#435)
+* MNT: Adopt src/ layout and tox (#458)
+
+0.16.1 (August 26, 2024)
+========================
+A bug-fix release that reworks selection within the
+FreeSurfer to native segmentation resampling workflow.
+
+* FIX: Select function in segmentation resampling workflow (#450)
+
+
+0.16.0 (July 31, 2024)
+======================
+Start of the 0.16.x minor series.
+
+This release decouples much of the hardcoded T1w behavior in favor of T1w/T2w options,
+to allow easier integration with tools less reliant on a single anatomical scan.
+
+* ENH: Use genericised "anat" input/output for TemplateDimensions (#443)
+* ENH: Remove much of the hardcoded `T1w` fields in favor of `anat` (#433)
+* RF: Load package data with acres (#448)
+* RF: `space-fsaverage` to `sphere_reg` output files (#446)
+* MNT: Unpin libitk 5.3 (ANTs 2.5.3 is built with 5.4) (#445)
+* MNT: Clean up doc builds, environment, style checks (#444)
+
+
 0.15.0 (March 22, 2024)
 =======================
 New feature release in the 0.15.x series.

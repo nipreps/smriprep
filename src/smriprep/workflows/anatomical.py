@@ -54,17 +54,19 @@ from niworkflows.interfaces.nitransforms import ConcatenateXFMs
 from niworkflows.utils.misc import add_suffix
 from niworkflows.utils.spaces import Reference, SpatialReferences
 
-from ..data import load_resource
+import smriprep
+
 from ..interfaces import DerivativesDataSink
+from ..interfaces.fsl import FAST
 from ..utils.misc import apply_lut as _apply_bids_lut
 from ..utils.misc import fs_isRunning as _fs_isRunning
 from .fit.registration import init_register_template_wf
 from .outputs import (
     init_anat_reports_wf,
-    init_anat_second_derivatives_wf,
     init_ds_anat_volumes_wf,
     init_ds_dseg_wf,
     init_ds_fs_registration_wf,
+    init_ds_fs_segs_wf,
     init_ds_grayord_metrics_wf,
     init_ds_mask_wf,
     init_ds_surface_metrics_wf,
@@ -83,7 +85,7 @@ from .surfaces import (
     init_morph_grayords_wf,
     init_msm_sulc_wf,
     init_refinement_wf,
-    init_resample_midthickness_wf,
+    init_resample_surfaces_wf,
     init_surface_derivatives_wf,
     init_surface_recon_wf,
 )
@@ -287,7 +289,6 @@ def init_anat_preproc_wf(
     ds_std_volumes_wf = init_ds_anat_volumes_wf(
         bids_root=bids_root,
         output_dir=output_dir,
-        name='ds_std_volumes_wf',
     )
 
     workflow.connect([
@@ -320,10 +321,10 @@ def init_anat_preproc_wf(
         ]),
         (anat_fit_wf, ds_std_volumes_wf, [
             ('outputnode.t1w_valid_list', 'inputnode.source_files'),
-            ('outputnode.t1w_preproc', 'inputnode.t1w_preproc'),
-            ('outputnode.t1w_mask', 'inputnode.t1w_mask'),
-            ('outputnode.t1w_dseg', 'inputnode.t1w_dseg'),
-            ('outputnode.t1w_tpms', 'inputnode.t1w_tpms'),
+            ('outputnode.t1w_preproc', 'inputnode.anat_preproc'),
+            ('outputnode.t1w_mask', 'inputnode.anat_mask'),
+            ('outputnode.t1w_dseg', 'inputnode.anat_dseg'),
+            ('outputnode.t1w_tpms', 'inputnode.anat_tpms'),
         ]),
         (template_iterator_wf, ds_std_volumes_wf, [
             ('outputnode.std_t1w', 'inputnode.ref_file'),
@@ -335,17 +336,12 @@ def init_anat_preproc_wf(
     ])  # fmt:skip
 
     if freesurfer:
-        anat_second_derivatives_wf = init_anat_second_derivatives_wf(
+        ds_fs_segs_wf = init_ds_fs_segs_wf(
             bids_root=bids_root,
             output_dir=output_dir,
-            cifti_output=cifti_output,
         )
-        surface_derivatives_wf = init_surface_derivatives_wf(
-            cifti_output=cifti_output,
-        )
-        ds_surfaces_wf = init_ds_surfaces_wf(
-            bids_root=bids_root, output_dir=output_dir, surfaces=['inflated']
-        )
+        surface_derivatives_wf = init_surface_derivatives_wf()
+        ds_surfaces_wf = init_ds_surfaces_wf(output_dir=output_dir, surfaces=['inflated'])
         ds_curv_wf = init_ds_surface_metrics_wf(
             bids_root=bids_root, output_dir=output_dir, metrics=['curv'], name='ds_curv_wf'
         )
@@ -355,7 +351,7 @@ def init_anat_preproc_wf(
                 ('outputnode.t1w_preproc', 'inputnode.reference'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (anat_fit_wf, ds_surfaces_wf, [
                 ('outputnode.t1w_valid_list', 'inputnode.source_files'),
@@ -369,12 +365,12 @@ def init_anat_preproc_wf(
             (surface_derivatives_wf, ds_curv_wf, [
                 ('outputnode.curv', 'inputnode.curv'),
             ]),
-            (anat_fit_wf, anat_second_derivatives_wf, [
+            (anat_fit_wf, ds_fs_segs_wf, [
                 ('outputnode.t1w_valid_list', 'inputnode.source_files'),
             ]),
-            (surface_derivatives_wf, anat_second_derivatives_wf, [
-                ('outputnode.out_aseg', 'inputnode.t1w_fs_aseg'),
-                ('outputnode.out_aparc', 'inputnode.t1w_fs_aparc'),
+            (surface_derivatives_wf, ds_fs_segs_wf, [
+                ('outputnode.out_aseg', 'inputnode.anat_fs_aseg'),
+                ('outputnode.out_aparc', 'inputnode.anat_fs_aparc'),
             ]),
             (surface_derivatives_wf, outputnode, [
                 ('outputnode.out_aseg', 't1w_aseg'),
@@ -384,11 +380,23 @@ def init_anat_preproc_wf(
 
         if cifti_output:
             hcp_morphometrics_wf = init_hcp_morphometrics_wf(omp_nthreads=omp_nthreads)
-            resample_midthickness_wf = init_resample_midthickness_wf(grayord_density=cifti_output)
+            resample_surfaces_wf = init_resample_surfaces_wf(
+                surfaces=['white', 'pial', 'midthickness'],
+                grayord_density=cifti_output,
+            )
             morph_grayords_wf = init_morph_grayords_wf(
                 grayord_density=cifti_output, omp_nthreads=omp_nthreads
             )
 
+            ds_fsLR_surfaces_wf = init_ds_surfaces_wf(
+                output_dir=output_dir,
+                surfaces=['white', 'pial', 'midthickness'],
+                entities={
+                    'space': 'fsLR',
+                    'density': '32k' if cifti_output == '91k' else '59k',
+                },
+                name='ds_fsLR_surfaces_wf',
+            )
             ds_grayord_metrics_wf = init_ds_grayord_metrics_wf(
                 bids_root=bids_root,
                 output_dir=output_dir,
@@ -406,7 +414,9 @@ def init_anat_preproc_wf(
                 (surface_derivatives_wf, hcp_morphometrics_wf, [
                     ('outputnode.curv', 'inputnode.curv'),
                 ]),
-                (anat_fit_wf, resample_midthickness_wf, [
+                (anat_fit_wf, resample_surfaces_wf, [
+                    ('outputnode.white', 'inputnode.white'),
+                    ('outputnode.pial', 'inputnode.pial'),
                     ('outputnode.midthickness', 'inputnode.midthickness'),
                     (
                         f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
@@ -426,11 +436,19 @@ def init_anat_preproc_wf(
                     ('outputnode.thickness', 'inputnode.thickness'),
                     ('outputnode.roi', 'inputnode.roi'),
                 ]),
-                (resample_midthickness_wf, morph_grayords_wf, [
+                (resample_surfaces_wf, morph_grayords_wf, [
                     ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
+                ]),
+                (anat_fit_wf, ds_fsLR_surfaces_wf, [
+                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
                 ]),
                 (anat_fit_wf, ds_grayord_metrics_wf, [
                     ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ]),
+                (resample_surfaces_wf, ds_fsLR_surfaces_wf, [
+                    ('outputnode.white_fsLR', 'inputnode.white'),
+                    ('outputnode.pial_fsLR', 'inputnode.pial'),
+                    ('outputnode.midthickness_fsLR', 'inputnode.midthickness'),
                 ]),
                 (morph_grayords_wf, ds_grayord_metrics_wf, [
                     ('outputnode.curv_fsLR', 'inputnode.curv'),
@@ -756,7 +774,7 @@ BIDS dataset."""
         LOGGER.info('ANAT Stage 1: Adding template workflow')
         ants_ver = ANTsInfo.version() or '(version unknown)'
         desc += f"""\
- {"Each" if num_t1w > 1 else "The"} T1w image was corrected for intensity
+ {'Each' if num_t1w > 1 else 'The'} T1w image was corrected for intensity
 non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {ants_ver}
 [@ants, RRID:SCR_004757]"""
         desc += '.\n' if num_t1w > 1 else ', and used as T1w-reference throughout the workflow.\n'
@@ -765,10 +783,12 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
             num_files=num_t1w,
-            contrast='T1w',
+            image_type='T1w',
             name='anat_template_wf',
         )
-        ds_template_wf = init_ds_template_wf(output_dir=output_dir, num_t1w=num_t1w)
+        ds_template_wf = init_ds_template_wf(
+            output_dir=output_dir, num_anat=num_t1w, image_type='T1w'
+        )
 
         # fmt:off
         workflow.connect([
@@ -781,11 +801,11 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
                 ('outputnode.out_report', 'inputnode.t1w_conform_report'),
             ]),
             (anat_template_wf, ds_template_wf, [
-                ('outputnode.anat_realign_xfm', 'inputnode.t1w_ref_xfms'),
+                ('outputnode.anat_realign_xfm', 'inputnode.anat_ref_xfms'),
             ]),
             (sourcefile_buffer, ds_template_wf, [('source_files', 'inputnode.source_files')]),
-            (t1w_buffer, ds_template_wf, [('t1w_preproc', 'inputnode.t1w_preproc')]),
-            (ds_template_wf, outputnode, [('outputnode.t1w_preproc', 't1w_preproc')]),
+            (t1w_buffer, ds_template_wf, [('t1w_preproc', 'inputnode.anat_preproc')]),
+            (ds_template_wf, outputnode, [('outputnode.anat_preproc', 't1w_preproc')]),
         ])
         # fmt:on
     else:
@@ -928,14 +948,14 @@ A pre-computed brain mask was provided as input and used throughout the workflow
     # Stage 3: Segmentation
     if not (have_dseg and have_tpms):
         LOGGER.info('ANAT Stage 3: Preparing segmentation workflow')
-        fsl_ver = fsl.FAST().version or '(version unknown)'
+        fsl_ver = FAST().version or '(version unknown)'
         desc += f"""\
 Brain tissue segmentation of cerebrospinal fluid (CSF),
 white-matter (WM) and gray-matter (GM) was performed on
 the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast].
 """
         fast = pe.Node(
-            fsl.FAST(segments=True, no_bias=True, probability_maps=True),
+            FAST(segments=True, no_bias=True, probability_maps=True, bias_iters=0),
             name='fast',
             mem_gb=3,
         )
@@ -954,16 +974,16 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             workflow.connect([
                 (fast, lut_t1w_dseg, [('partial_volume_map', 'in_dseg')]),
                 (sourcefile_buffer, ds_dseg_wf, [('source_files', 'inputnode.source_files')]),
-                (lut_t1w_dseg, ds_dseg_wf, [('out', 'inputnode.t1w_dseg')]),
-                (ds_dseg_wf, seg_buffer, [('outputnode.t1w_dseg', 't1w_dseg')]),
+                (lut_t1w_dseg, ds_dseg_wf, [('out', 'inputnode.anat_dseg')]),
+                (ds_dseg_wf, seg_buffer, [('outputnode.anat_dseg', 't1w_dseg')]),
             ])
         if not have_tpms:
             ds_tpms_wf = init_ds_tpms_wf(output_dir=output_dir)
             workflow.connect([
                 (fast, fast2bids, [('partial_volume_files', 'inlist')]),
                 (sourcefile_buffer, ds_tpms_wf, [('source_files', 'inputnode.source_files')]),
-                (fast2bids, ds_tpms_wf, [('out', 'inputnode.t1w_tpms')]),
-                (ds_tpms_wf, seg_buffer, [('outputnode.t1w_tpms', 't1w_tpms')]),
+                (fast2bids, ds_tpms_wf, [('out', 'inputnode.anat_tpms')]),
+                (ds_tpms_wf, seg_buffer, [('outputnode.anat_tpms', 't1w_tpms')]),
             ])
         # fmt:on
     else:
@@ -998,7 +1018,9 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             omp_nthreads=omp_nthreads,
             templates=templates,
         )
-        ds_template_registration_wf = init_ds_template_registration_wf(output_dir=output_dir)
+        ds_template_registration_wf = init_ds_template_registration_wf(
+            output_dir=output_dir, image_type='T1w'
+        )
 
         # fmt:off
         workflow.connect([
@@ -1081,17 +1103,17 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
 
     fsnative_xfms = precomputed.get('transforms', {}).get('fsnative')
     if not fsnative_xfms:
-        ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir)
+        ds_fs_registration_wf = init_ds_fs_registration_wf(output_dir=output_dir, image_type='T1w')
         # fmt:off
         workflow.connect([
             (sourcefile_buffer, ds_fs_registration_wf, [
                 ('source_files', 'inputnode.source_files'),
             ]),
             (surface_recon_wf, ds_fs_registration_wf, [
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (ds_fs_registration_wf, outputnode, [
-                ('outputnode.fsnative2t1w_xfm', 'fsnative2t1w_xfm'),
+                ('outputnode.fsnative2anat_xfm', 'fsnative2t1w_xfm'),
             ]),
         ])
         # fmt:on
@@ -1114,7 +1136,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, refinement_wf, [
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (t1w_buffer, refinement_wf, [
                 ('t1w_preproc', 'inputnode.reference_image'),
@@ -1135,7 +1157,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             longitudinal=longitudinal,
             omp_nthreads=omp_nthreads,
             num_files=len(t2w),
-            contrast='T2w',
+            image_type='T2w',
             name='t2w_template_wf',
         )
         bbreg = pe.Node(
@@ -1216,15 +1238,13 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         LOGGER.info(f'ANAT Stage 8: Creating GIFTI surfaces for {surfs + spheres}')
     if surfs:
         gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=surfs)
-        ds_surfaces_wf = init_ds_surfaces_wf(
-            bids_root=bids_root, output_dir=output_dir, surfaces=surfs
-        )
+        ds_surfaces_wf = init_ds_surfaces_wf(output_dir=output_dir, surfaces=surfs)
         # fmt:off
         workflow.connect([
             (surface_recon_wf, gifti_surfaces_wf, [
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (gifti_surfaces_wf, surfaces_buffer, [
                 (f'outputnode.{surf}', surf) for surf in surfs
@@ -1240,7 +1260,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             surfaces=spheres, to_scanner=False, name='gifti_spheres_wf'
         )
         ds_spheres_wf = init_ds_surfaces_wf(
-            bids_root=bids_root, output_dir=output_dir, surfaces=spheres, name='ds_spheres_wf'
+            output_dir=output_dir, surfaces=spheres, name='ds_spheres_wf'
         )
         # fmt:off
         workflow.connect([
@@ -1316,7 +1336,6 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         LOGGER.info('ANAT Stage 9: Creating fsLR registration sphere')
         fsLR_reg_wf = init_fsLR_reg_wf()
         ds_fsLR_reg_wf = init_ds_surfaces_wf(
-            bids_root=bids_root,
             output_dir=output_dir,
             surfaces=['sphere_reg_fsLR'],
             name='ds_fsLR_reg_wf',
@@ -1341,7 +1360,6 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         LOGGER.info('ANAT Stage 10: Creating MSM-Sulc registration sphere')
         msm_sulc_wf = init_msm_sulc_wf(sloppy=sloppy)
         ds_msmsulc_wf = init_ds_surfaces_wf(
-            bids_root=bids_root,
             output_dir=output_dir,
             surfaces=['sphere_reg_msm'],
             name='ds_msmsulc_wf',
@@ -1375,7 +1393,7 @@ def init_anat_template_wf(
     longitudinal: bool,
     omp_nthreads: int,
     num_files: int,
-    contrast: str,
+    image_type: ty.Literal['T1w', 'T2w'],
     name: str = 'anat_template_wf',
 ):
     """
@@ -1388,7 +1406,7 @@ def init_anat_template_wf(
 
             from smriprep.workflows.anatomical import init_anat_template_wf
             wf = init_anat_template_wf(
-                longitudinal=False, omp_nthreads=1, num_files=1, contrast="T1w"
+                longitudinal=False, omp_nthreads=1, num_files=1, image_type="T1w"
             )
 
     Parameters
@@ -1400,8 +1418,8 @@ def init_anat_template_wf(
         Maximum number of threads an individual process may use
     num_files : :obj:`int`
         Number of images
-    contrast : :obj:`str`
-        Name of contrast, for reporting purposes, e.g., T1w, T2w, PDw
+    image_type : :obj:`str`
+       MR image type (T1w, T2w, etc.)
     name : :obj:`str`, optional
         Workflow name (default: anat_template_wf)
 
@@ -1427,8 +1445,8 @@ def init_anat_template_wf(
     if num_files > 1:
         fs_ver = fs.Info().looseversion() or '(version unknown)'
         workflow.__desc__ = f"""\
-An anatomical {contrast}-reference map was computed after registration of
-{num_files} {contrast} images (after INU-correction) using
+An anatomical {image_type}-reference map was computed after registration of
+{num_files} {image} images (after INU-correction) using
 `mri_robust_template` [FreeSurfer {fs_ver}, @fs_template].
 """
 
@@ -1451,8 +1469,8 @@ An anatomical {contrast}-reference map was computed after registration of
 
     # fmt:off
     workflow.connect([
-        (inputnode, anat_ref_dimensions, [('anat_files', 't1w_list')]),
-        (anat_ref_dimensions, denoise, [('t1w_valid_list', 'input_image')]),
+        (inputnode, anat_ref_dimensions, [('anat_files', 'anat_list')]),
+        (anat_ref_dimensions, denoise, [('anat_valid_list', 'input_image')]),
         (anat_ref_dimensions, anat_conform, [
             ('target_zooms', 'target_zooms'),
             ('target_shape', 'target_shape'),
@@ -1460,14 +1478,14 @@ An anatomical {contrast}-reference map was computed after registration of
         (denoise, anat_conform, [('output_image', 'in_file')]),
         (anat_ref_dimensions, outputnode, [
             ('out_report', 'out_report'),
-            ('t1w_valid_list', 'anat_valid_list'),
+            ('anat_valid_list', 'anat_valid_list'),
         ]),
     ])
     # fmt:on
 
     if num_files == 1:
         get1st = pe.Node(niu.Select(index=[0]), name='get1st')
-        outputnode.inputs.anat_realign_xfm = [str(load_resource('itkIdentityTransform.txt'))]
+        outputnode.inputs.anat_realign_xfm = [str(smriprep.load_data('itkIdentityTransform.txt'))]
 
         # fmt:off
         workflow.connect([
@@ -1530,7 +1548,7 @@ An anatomical {contrast}-reference map was computed after registration of
 
     # fmt:off
     workflow.connect([
-        (anat_ref_dimensions, anat_conform_xfm, [('t1w_valid_list', 'source_file')]),
+        (anat_ref_dimensions, anat_conform_xfm, [('anat_valid_list', 'source_file')]),
         (anat_conform, anat_conform_xfm, [('out_file', 'target_file')]),
         (anat_conform, n4_correct, [('out_file', 'input_image')]),
         (anat_conform, anat_merge, [

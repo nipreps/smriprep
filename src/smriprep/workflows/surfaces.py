@@ -43,6 +43,7 @@ from niworkflows.interfaces.freesurfer import (
 )
 from niworkflows.interfaces.freesurfer import PatchedRobustRegister as RobustRegister
 from niworkflows.interfaces.nitransforms import ConcatenateXFMs
+from niworkflows.interfaces.patches import FreeSurferSource
 from niworkflows.interfaces.utility import KeySelect
 from niworkflows.interfaces.workbench import (
     MetricDilate,
@@ -52,10 +53,10 @@ from niworkflows.interfaces.workbench import (
     MetricResample,
 )
 
+import smriprep
 from smriprep.interfaces.surf import MakeRibbon
 from smriprep.interfaces.workbench import SurfaceResample
 
-from ..data import load_resource
 from ..interfaces.freesurfer import MakeMidthickness, ReconAll
 from ..interfaces.gifti import MetricMath
 from ..interfaces.workbench import CreateSignedDistanceVolume
@@ -228,7 +229,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
 
     autorecon_resume_wf = init_autorecon_resume_wf(omp_nthreads=omp_nthreads)
 
-    get_surfaces = pe.Node(nio.FreeSurferSource(), name='get_surfaces')
+    get_surfaces = pe.Node(FreeSurferSource(), name='get_surfaces')
 
     midthickness = pe.MapNode(
         MakeMidthickness(thickness=True, distance=0.5, out_name='midthickness'),
@@ -284,7 +285,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ])  # fmt:skip
     else:
         # Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
-        fs_base_inputs = autorecon1 = pe.Node(nio.FreeSurferSource(), name='fs_base_inputs')
+        fs_base_inputs = autorecon1 = pe.Node(FreeSurferSource(), name='fs_base_inputs')
 
         workflow.connect([
             (inputnode, fs_base_inputs, [
@@ -328,7 +329,9 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     return workflow
 
 
-def init_refinement_wf(*, name='refinement_wf'):
+def init_refinement_wf(
+    *, image_type: ty.Literal['T1w', 'T2w'] = 'T1w', name: str = 'refinement_wf'
+) -> Workflow:
     r"""
     Refine ANTs brain extraction with FreeSurfer segmentation
 
@@ -346,20 +349,12 @@ def init_refinement_wf(*, name='refinement_wf'):
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    fsnative2anat_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical
     reference_image
         Input
-    t2w
-        List of T2-weighted structural images (only first used)
-    flair
-        List of FLAIR images
-    skullstripped_t1
-        Skull-stripped T1-weighted image (or mask of image)
     ants_segs
         Brain tissue segmentation from ANTS ``antsBrainExtraction.sh``
-    corrected_t1
-        INU-corrected, merged T1-weighted image
     subjects_dir
         FreeSurfer SUBJECTS_DIR
     subject_id
@@ -367,14 +362,6 @@ def init_refinement_wf(*, name='refinement_wf'):
 
     Outputs
     -------
-    subjects_dir
-        FreeSurfer SUBJECTS_DIR
-    subject_id
-        FreeSurfer subject ID
-    t1w2fsnative_xfm
-        LTA-style affine matrix translating from T1w to FreeSurfer-conformed subject space
-    fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
     out_brainmask
         Refined brainmask, derived from FreeSurfer's ``aseg`` volume
 
@@ -397,7 +384,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             fields=[
                 'reference_image',
                 'ants_segs',
-                'fsnative2t1w_xfm',
+                'fsnative2anat_xfm',
                 'subjects_dir',
                 'subject_id',
             ]
@@ -413,24 +400,22 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         name='outputnode',
     )
 
-    aseg_to_native_wf = init_segs_to_native_wf()
+    aseg_to_native_wf = init_segs_to_native_wf(image_type=image_type)
     refine = pe.Node(RefineBrainMask(), name='refine')
 
-    # fmt:off
     workflow.connect([
         # Refine ANTs mask, deriving new mask from FS' aseg
         (inputnode, aseg_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('reference_image', 'inputnode.in_file'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
         (inputnode, refine, [('reference_image', 'in_anat'),
                              ('ants_segs', 'in_ants')]),
         (aseg_to_native_wf, refine, [('outputnode.out_file', 'in_aseg')]),
         (refine, outputnode, [('out_file', 'out_brainmask')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
 
     return workflow
 
@@ -610,8 +595,8 @@ def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
 
 def init_surface_derivatives_wf(
     *,
-    cifti_output: ty.Literal['91k', '170k', False] = False,
-    name='surface_derivatives_wf',
+    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
+    name: str = 'surface_derivatives_wf',
 ):
     r"""
     Generate sMRIPrep derivatives from FreeSurfer derivatives
@@ -627,9 +612,9 @@ def init_surface_derivatives_wf(
     Inputs
     ------
     reference
-        Reference image in native T1w space, for defining a resampling grid
-    fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+        Reference image in native anatomical space, for defining a resampling grid
+    fsnative2anat_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical
     subjects_dir
         FreeSurfer SUBJECTS_DIR
     subject_id
@@ -643,9 +628,9 @@ def init_surface_derivatives_wf(
     morphometrics
         GIFTIs of cortical thickness, curvature, and sulcal depth
     out_aseg
-        FreeSurfer's aseg segmentation, in native T1w space
+        FreeSurfer's aseg segmentation, in native anatomical space
     out_aparc
-        FreeSurfer's aparc+aseg segmentation, in native T1w space
+        FreeSurfer's aparc+aseg segmentation, in native anatomical space
 
     See also
     --------
@@ -659,7 +644,7 @@ def init_surface_derivatives_wf(
             fields=[
                 'subjects_dir',
                 'subject_id',
-                'fsnative2t1w_xfm',
+                'fsnative2anat_xfm',
                 'reference',
             ]
         ),
@@ -679,8 +664,8 @@ def init_surface_derivatives_wf(
 
     gifti_surfaces_wf = init_gifti_surfaces_wf(surfaces=['inflated'])
     gifti_morph_wf = init_gifti_morphometrics_wf(morphometrics=['curv'])
-    aseg_to_native_wf = init_segs_to_native_wf()
-    aparc_to_native_wf = init_segs_to_native_wf(segmentation='aparc_aseg')
+    aseg_to_native_wf = init_segs_to_native_wf(image_type=image_type)
+    aparc_to_native_wf = init_segs_to_native_wf(image_type=image_type, segmentation='aparc_aseg')
 
     # fmt:off
     workflow.connect([
@@ -688,7 +673,7 @@ def init_surface_derivatives_wf(
         (inputnode, gifti_surfaces_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
         (inputnode, gifti_morph_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
@@ -698,13 +683,13 @@ def init_surface_derivatives_wf(
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('reference', 'inputnode.in_file'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
         (inputnode, aparc_to_native_wf, [
             ('subjects_dir', 'inputnode.subjects_dir'),
             ('subject_id', 'inputnode.subject_id'),
             ('reference', 'inputnode.in_file'),
-            ('fsnative2t1w_xfm', 'inputnode.fsnative2t1w_xfm'),
+            ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
         ]),
 
         # Output
@@ -738,7 +723,7 @@ def init_fsLR_reg_wf(*, name='fsLR_reg_wf'):
         iterfield=['sphere_in', 'sphere_project_to', 'sphere_unproject_from'],
         name='project_unproject',
     )
-    atlases = load_resource('atlases')
+    atlases = smriprep.load_data('atlases')
     project_unproject.inputs.sphere_project_to = [
         atlases / 'fs_L' / 'fsaverage.L.sphere.164k_fs_L.surf.gii',
         atlases / 'fs_R' / 'fsaverage.R.sphere.164k_fs_R.surf.gii',
@@ -819,8 +804,8 @@ def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     # --indata=sub-${SUB}_ses-${SES}_hemi-${HEMI)_sulc.shape.gii \
     # --refdata=tpl-fsaverage_hemi-${HEMI}_den-164k_sulc.shape.gii \
     # --out=${HEMI}. --verbose
-    atlases = load_resource('atlases')
-    msm_conf = load_resource(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
+    atlases = smriprep.load_data('atlases')
+    msm_conf = smriprep.load_data(f'msm/MSMSulcStrain{"Sloppy" if sloppy else "Final"}conf')
     msmsulc = pe.MapNode(
         MSM(verbose=True, config_file=msm_conf),
         iterfield=['in_mesh', 'reference_mesh', 'in_data', 'reference_data', 'out_base'],
@@ -863,8 +848,8 @@ def init_gifti_surfaces_wf(
     ``lh/rh.inflated``, and ``lh/rh.white``.
 
     Vertex coordinates are :py:class:`transformed
-    <smriprep.interfaces.NormalizeSurf>` to align with native T1w space
-    when ``fsnative2t1w_xfm`` is provided.
+    <smriprep.interfaces.NormalizeSurf>` to align with native anatomical space
+    when ``fsnative2anat_xfm`` is provided.
 
     Workflow Graph
         .. workflow::
@@ -880,7 +865,7 @@ def init_gifti_surfaces_wf(
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
+    fsnative2anat_xfm
         LTA formatted affine transform file
 
     Outputs
@@ -896,7 +881,7 @@ def init_gifti_surfaces_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(['subjects_dir', 'subject_id', 'fsnative2t1w_xfm']),
+        niu.IdentityInterface(['subjects_dir', 'subject_id', 'fsnative2anat_xfm']),
         name='inputnode',
     )
     outputnode = pe.Node(niu.IdentityInterface(['surfaces', *surfaces]), name='outputnode')
@@ -931,7 +916,7 @@ def init_gifti_surfaces_wf(
             ('subject_id', 'subject_id'),
         ]),
         (inputnode, fix_surfs, [
-            ('fsnative2t1w_xfm', 'transform_file'),
+            ('fsnative2anat_xfm', 'transform_file'),
         ]),
         (get_surfaces, surface_list, [
             (surf, f'in{i}') for i, surf in enumerate(surfaces, start=1)
@@ -973,8 +958,6 @@ def init_gifti_morphometrics_wf(
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
-        LTA formatted affine transform file (inverse)
 
     Outputs
     -------
@@ -1002,7 +985,7 @@ def init_gifti_morphometrics_wf(
         name='outputnode',
     )
 
-    get_subject = pe.Node(nio.FreeSurferSource(), name='get_surfaces')
+    get_subject = pe.Node(FreeSurferSource(), name='get_surfaces')
 
     morphometry_list = pe.Node(
         niu.Merge(len(morphometrics), ravel_inputs=True),
@@ -1184,9 +1167,14 @@ def init_hcp_morphometrics_wf(
     return workflow
 
 
-def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
+def init_segs_to_native_wf(
+    *,
+    image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
+    segmentation: ty.Literal['aseg', 'aparc_aseg', 'aparc_a2009s', 'aparc_dkt'] | str = 'aseg',
+    name: str = 'segs_to_native_wf',
+) -> Workflow:
     """
-    Get a segmentation from FreeSurfer conformed space into native T1w space.
+    Get a segmentation from FreeSurfer conformed space into native anatomical space.
 
     Workflow Graph
         .. workflow::
@@ -1198,19 +1186,21 @@ def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
 
     Parameters
     ----------
+    image_type
+        MR anatomical image type ('T1w' or 'T2w')
     segmentation
         The name of a segmentation ('aseg' or 'aparc_aseg' or 'wmparc')
 
     Inputs
     ------
     in_file
-        Anatomical, merged T1w image after INU correction
+        Anatomical, merged anatomical image after INU correction
     subjects_dir
         FreeSurfer SUBJECTS_DIR
     subject_id
         FreeSurfer subject ID
-    fsnative2t1w_xfm
-        LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w
+    fsnative2anat_xfm
+        LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical
 
     Outputs
     -------
@@ -1220,54 +1210,40 @@ def init_segs_to_native_wf(*, name='segs_to_native', segmentation='aseg'):
     """
     workflow = Workflow(name=f'{name}_{segmentation}')
     inputnode = pe.Node(
-        niu.IdentityInterface(['in_file', 'subjects_dir', 'subject_id', 'fsnative2t1w_xfm']),
+        niu.IdentityInterface(['in_file', 'subjects_dir', 'subject_id', 'fsnative2anat_xfm']),
         name='inputnode',
     )
     outputnode = pe.Node(niu.IdentityInterface(['out_file']), name='outputnode')
     # Extract the aseg and aparc+aseg outputs
-    fssource = pe.Node(nio.FreeSurferSource(), name='fs_datasource')
+    fssource = pe.Node(FreeSurferSource(), name='fs_datasource')
 
     lta = pe.Node(ConcatenateXFMs(out_fmt='fs'), name='lta', run_without_submitting=True)
 
-    # Resample from T1.mgz to T1w.nii.gz, applying any offset in fsnative2t1w_xfm,
+    # Resample from Freesurfer anat to native anat, applying any offset in fsnative2anat_xfm,
     # and convert to NIfTI while we're at it
     resample = pe.Node(
         fs.ApplyVolTransform(transformed_file='seg.nii.gz', interp='nearest'),
         name='resample',
     )
 
-    if segmentation.startswith('aparc'):
-        if segmentation == 'aparc_aseg':
+    select_seg = pe.Node(niu.Function(function=_select_seg), name='select_seg')
+    select_seg.inputs.segmentation = segmentation
 
-            def _sel(x):
-                return [parc for parc in x if 'aparc+' in parc][0]  # noqa
+    anat = 'T2' if image_type == 'T2w' else 'T1'
 
-        elif segmentation == 'aparc_a2009s':
-
-            def _sel(x):
-                return [parc for parc in x if 'a2009s+' in parc][0]  # noqa
-
-        elif segmentation == 'aparc_dkt':
-
-            def _sel(x):
-                return [parc for parc in x if 'DKTatlas+' in parc][0]  # noqa
-
-        segmentation = (segmentation, _sel)
-
-    # fmt:off
     workflow.connect([
         (inputnode, fssource, [
             ('subjects_dir', 'subjects_dir'),
             ('subject_id', 'subject_id')]),
         (inputnode, lta, [('in_file', 'reference'),
-                          ('fsnative2t1w_xfm', 'in_xfms')]),
-        (fssource, lta, [('T1', 'moving')]),
+                          ('fsnative2anat_xfm', 'in_xfms')]),
+        (fssource, lta, [(anat, 'moving')]),
         (inputnode, resample, [('in_file', 'target_file')]),
-        (fssource, resample, [(segmentation, 'source_file')]),
+        (fssource, select_seg, [(segmentation, 'in_files')]),
+        (select_seg, resample, [('out', 'source_file')]),
         (lta, resample, [('out_xfm', 'lta_file')]),
         (resample, outputnode, [('transformed_file', 'out_file')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
     return workflow
 
 
@@ -1340,39 +1316,45 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
     return workflow
 
 
-def init_resample_midthickness_wf(
+def init_resample_surfaces_wf(
+    surfaces: list[str],
     grayord_density: ty.Literal['91k', '170k'],
-    name: str = 'resample_midthickness_wf',
+    name: str = 'resample_surfaces_wf',
 ):
     """
-    Resample subject midthickness surface to specified density.
+    Resample subject surfaces surface to specified density.
 
     Workflow Graph
         .. workflow::
             :graph2use: colored
             :simple_form: yes
 
-            from smriprep.workflows.surfaces import init_resample_midthickness_wf
-            wf = init_resample_midthickness_wf(grayord_density="91k")
+            from smriprep.workflows.surfaces import init_resample_surfaces_wf
+            wf = init_resample_surfaces_wf(
+                surfaces=['white', 'pial', 'midthickness'],
+                grayord_density='91k',
+            )
 
     Parameters
     ----------
-    grayord_density : :obj:`str`
+    surfaces : :class:`list` of :class:`str`
+        Names of surfaces (e.g., ``'white'``) to resample. Both hemispheres will be resampled.
+    grayord_density : :class:`str`
         Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
-    name : :obj:`str`
-        Unique name for the subworkflow (default: ``"resample_midthickness_wf"``)
+    name : :class:`str`
+        Unique name for the subworkflow (default: ``"resample_surfaces_wf"``)
 
     Inputs
     ------
-    midthickness
-        GIFTI surface mesh corresponding to the midthickness surface
+    ``<surface>``
+        Left and right GIFTIs for each surface name passed to ``surfaces``
     sphere_reg_fsLR
         GIFTI surface mesh corresponding to the subject's fsLR registration sphere
 
     Outputs
     -------
-    midthickness
-        GIFTI surface mesh corresponding to the midthickness surface, resampled to fsLR
+    ``<surface>``
+        Left and right GIFTI surface mesh corresponding to the input surface, resampled to fsLR
     """
     import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
@@ -1382,11 +1364,19 @@ def init_resample_midthickness_wf(
     fslr_density = '32k' if grayord_density == '91k' else '59k'
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=['midthickness', 'sphere_reg_fsLR']),
+        niu.IdentityInterface(fields=[*surfaces, 'sphere_reg_fsLR']),
         name='inputnode',
     )
 
-    outputnode = pe.Node(niu.IdentityInterface(fields=['midthickness_fsLR']), name='outputnode')
+    outputnode = pe.Node(
+        niu.IdentityInterface(fields=[f'{surf}_fsLR' for surf in surfaces]), name='outputnode'
+    )
+
+    surface_list = pe.Node(
+        niu.Merge(len(surfaces), ravel_inputs=True),
+        name='surface_list',
+        run_without_submitting=True,
+    )
 
     resampler = pe.MapNode(
         SurfaceResample(method='BARYCENTRIC'),
@@ -1404,15 +1394,30 @@ def init_resample_midthickness_wf(
                 extension='.surf.gii',
             )
         )
+        # Order matters. Iterate over surfaces, then hemis to get L R L R L R
+        for _surf in surfaces
         for hemi in ['L', 'R']
     ]
 
+    surface_groups = pe.Node(
+        niu.Split(splits=[2] * len(surfaces)),
+        name='surface_groups',
+        run_without_submitting=True,
+    )
+
     workflow.connect([
-        (inputnode, resampler, [
-            ('midthickness', 'surface_in'),
-            ('sphere_reg_fsLR', 'current_sphere'),
+        (inputnode, surface_list, [
+            ((surf, _sorted_by_basename), f'in{i}')
+            for i, surf in enumerate(surfaces, start=1)
         ]),
-        (resampler, outputnode, [('surface_out', 'midthickness_fsLR')]),
+        (inputnode, resampler, [
+            (('sphere_reg_fsLR', _repeat, len(surfaces)), 'current_sphere'),
+        ]),
+        (surface_list, resampler, [('out', 'surface_in')]),
+        (resampler, surface_groups, [('surface_out', 'inlist')]),
+        (surface_groups, outputnode, [
+            (f'out{i}', f'{surf}_fsLR') for i, surf in enumerate(surfaces, start=1)
+        ]),
     ])  # fmt:skip
 
     return workflow
@@ -1522,7 +1527,7 @@ resampled onto fsLR using the Connectome Workbench [@hcppipelines].
         name='outputnode',
     )
 
-    atlases = load_resource('atlases')
+    atlases = smriprep.load_data('atlases')
     select_surfaces = pe.Node(
         KeySelect(
             fields=[
@@ -1679,7 +1684,7 @@ def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> tu
 
     surf_dir = Path(subjects_dir) / subject_id / 'surf'
     all_surfs = {
-        surface: sorted(str(fn) for fn in surf_dir.glob(f"[lr]h.{surface.replace('_', '.')}"))
+        surface: sorted(str(fn) for fn in surf_dir.glob(f'[lr]h.{surface.replace("_", ".")}'))
         for surface in expanded_surfaces
     }
 
@@ -1688,3 +1693,21 @@ def _get_surfaces(subjects_dir: str, subject_id: str, surfaces: list[str]) -> tu
 
     ret = tuple(all_surfs[surface] for surface in surfaces)
     return ret if len(ret) > 1 else ret[0]
+
+
+def _select_seg(in_files, segmentation):
+    if isinstance(in_files, str):
+        return in_files
+
+    seg_mapping = {'aparc_aseg': 'aparc+', 'aparc_a2009s': 'a2009s+', 'aparc_dkt': 'DKTatlas+'}
+    if segmentation in seg_mapping:
+        segmentation = seg_mapping[segmentation]
+
+        for fl in in_files:
+            if segmentation in fl:
+                return fl
+    raise FileNotFoundError(f'No segmentation containing "{segmentation}" was found.')
+
+
+def _repeat(seq: list, count: int) -> list:
+    return seq * count

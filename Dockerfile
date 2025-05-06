@@ -28,12 +28,10 @@ ARG BASE_IMAGE=ubuntu:jammy-20240125
 #
 # Build wheel
 #
-FROM python:slim AS src
-RUN pip install build
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git
+FROM ghcr.io/astral-sh/uv:python3.13-alpine AS src
+RUN apk add --no-cache git
 COPY . /src
-RUN python -m build /src
+RUN uvx --from=build pyproject-build --installer=uv /src
 
 #
 # Download stages
@@ -57,15 +55,6 @@ FROM downloader as freesurfer
 COPY docker/files/freesurfer7.3.2-exclude.txt /usr/local/etc/freesurfer7.3.2-exclude.txt
 RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.3.2/freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz \
      | tar zxv --no-same-owner -C /opt --exclude-from=/usr/local/etc/freesurfer7.3.2-exclude.txt
-
-# Connectome Workbench 1.5.0
-FROM downloader as workbench
-RUN mkdir /opt/workbench && \
-    curl -sSLO https://www.humanconnectome.org/storage/app/media/workbench/workbench-linux64-v1.5.0.zip && \
-    unzip workbench-linux64-v1.5.0.zip -d /opt && \
-    rm workbench-linux64-v1.5.0.zip && \
-    rm -rf /opt/workbench/libs_linux64_software_opengl /opt/workbench/plugins_linux64 && \
-    strip --remove-section=.note.ABI-tag /opt/workbench/libs_linux64/libQt5Core.so.5
 
 # Micromamba
 FROM downloader as micromamba
@@ -124,7 +113,6 @@ RUN apt-get update && \
 
 # Install files from stages
 COPY --from=freesurfer /opt/freesurfer /opt/freesurfer
-COPY --from=workbench /opt/workbench /opt/workbench
 
 # Simulate SetUpFreeSurfer.sh
 ENV OS="Linux" \
@@ -142,10 +130,6 @@ ENV SUBJECTS_DIR="$FREESURFER_HOME/subjects" \
 ENV PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
     MNI_PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
     PATH="$FREESURFER_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH"
-
-# Workbench config
-ENV PATH="/opt/workbench/bin_linux64:$PATH" \
-    LD_LIBRARY_PATH="/opt/workbench/lib_linux64:$LD_LIBRARY_PATH"
 
 # Create a shared $HOME directory
 RUN useradd -m -s /bin/bash -G users smriprep

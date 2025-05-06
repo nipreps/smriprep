@@ -19,18 +19,19 @@ classifiers = [
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
 dependencies = [
-    "indexed_gzip >= 0.8.8",
-    "lockfile",
-    "looseversion",
-    "matplotlib >= 2.2.0",
+    "acres >= 0.2",
+    "indexed_gzip >= 1.7",
+    "lockfile >= 0.12.2",
+    "looseversion >= 1.3.0",
+    "matplotlib >= 3.5",
     "nibabel >= 4.0.1",
-    "nipype >= 1.7.0",
-    "niworkflows >= 1.10.1",
-    "numpy",
-    "packaging",
-    "pybids >= 0.11.1",
-    "pyyaml",
-    "templateflow >= 24.1",
+    "nipype >= 1.8.5",
+    "niworkflows >= 1.12.1",
+    "numpy >= 1.24",
+    "packaging >= 24",
+    "pybids >= 0.16",
+    "pyyaml >= 6.0",
+    "templateflow >= 24.2",
 ]
 dynamic = ["version"]
 
@@ -55,10 +56,11 @@ doc = [
 ]
 duecredit = ["duecredit"]
 test = [
-    "coverage",
-    "pytest",
-    "pytest-cov",
+    "coverage[toml] >= 5.2.1",
+    "pytest >= 8.1",
+    "pytest-cov >= 2.11",
     "pytest-env",
+    "pytest-xdist >= 2.5",
 ]
 style = ["flake8"]
 # Aliases
@@ -80,9 +82,9 @@ allow-direct-references = true
 exclude = [".git_archival.txt"]  # No longer needed in sdist
 
 [tool.hatch.build.targets.wheel]
-packages = ["smriprep"]
+packages = ["src/smriprep"]
 exclude = [
-    "smriprep/data/tests/work",  # Large test data directory
+    "src/smriprep/data/tests/work",  # Large test data directory
 ]
 
 ##  The following two sections configure setuptools_scm in the hatch way
@@ -91,35 +93,33 @@ exclude = [
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "smriprep/_version.py"
+version-file = "src/smriprep/_version.py"
 
 #
 # Developer tool configurations
 #
 
+# Disable black
 [tool.black]
-line-length = 99
-skip-string-normalization = true
-
-[tool.isort]
-profile = 'black'
-
-[tool.flake8]
-max-line-length = "99"
-doctests = "False"
-exclude = "*build/"
-ignore = ["W503", "E203"]
-per-file-ignores = [
-    "**/__init__.py : F401",
-    "docs/conf.py : E265",
-]
+exclude = ".*"
 
 [tool.pytest.ini_options]
-minversion = "7"
+minversion = "8"
+testpaths = ["src"]
 log_cli_level = "INFO"
 xfail_strict = true
 norecursedirs = [".git"]
-addopts = ["-svx", "--doctest-modules", "-ra", "--strict-config", "--strict-markers"]
+addopts = [
+  "-svx",
+  "-ra",
+  "--strict-config",
+  "--strict-markers",
+  "--doctest-modules",
+  # Config pytest-cov
+  "--cov=src/smriprep",
+  "--cov-report=xml",
+  "--cov-config=pyproject.toml",
+]
 doctest_optionflags = "ALLOW_UNICODE NORMALIZE_WHITESPACE ELLIPSIS"
 env = "PYTHONHASHSEED=0"
 filterwarnings = ["ignore::DeprecationWarning"]
@@ -141,6 +141,10 @@ source = [
 
 [tool.ruff]
 line-length = 99
+extend-exclude = [
+  "wrapper/*.py",
+  "docs/sphinxext/*",
+]
 
 [tool.ruff.lint]
 extend-select = [
@@ -177,6 +181,10 @@ inline-quotes = "single"
 
 [tool.ruff.lint.extend-per-file-ignores]
 "*/test_*.py" = ["S101"]
+"docs/conf.py" = ["A001"]
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.codespell]
+skip = "*/data/*,*/docs/_build/*,*.svg,*/docs/_static/*"

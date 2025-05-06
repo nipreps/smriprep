@@ -28,7 +28,7 @@ from pathlib import Path
 from bids.layout import BIDSLayout
 from niworkflows.data import load as nwf_load
 
-from ..data import load_resource
+import smriprep
 
 
 def collect_derivatives(
@@ -41,7 +41,7 @@ def collect_derivatives(
 ):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:
-        _spec, _patterns = tuple(loads(load_resource('io_spec.json').read_text()).values())
+        _spec, _patterns = tuple(loads(smriprep.load_data('io_spec.json').read_text()).values())
 
         if spec is None:
             spec = _spec
@@ -112,11 +112,11 @@ def write_derivative_description(bids_dir, deriv_dir):
 
     .. testsetup::
 
-    >>> from smriprep.data import load_resource
+    >>> from smriprep.data import load
     >>> from pathlib import Path
     >>> from tempfile import TemporaryDirectory
     >>> tmpdir = TemporaryDirectory()
-    >>> bids_dir = load_resource('tests')
+    >>> bids_dir = load('tests')
     >>> deriv_desc = Path(tmpdir.name) / 'dataset_description.json'
 
     .. doctest::
@@ -159,7 +159,7 @@ def write_derivative_description(bids_dir, deriv_dir):
     if 'SMRIPREP_DOCKER_TAG' in os.environ:
         desc['GeneratedBy'][0]['Container'] = {
             'Type': 'docker',
-            'Tag': f"poldracklab/smriprep:{os.environ['SMRIPREP_DOCKER_TAG']}",
+            'Tag': f'poldracklab/smriprep:{os.environ["SMRIPREP_DOCKER_TAG"]}',
         }
     if 'SMRIPREP_SINGULARITY_URL' in os.environ:
         desc['GeneratedBy'][0]['Container'] = {

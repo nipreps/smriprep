@@ -38,9 +38,10 @@ from ...interfaces.templateflow import TemplateDesc, TemplateFlowSelect
 
 def init_register_template_wf(
     *,
-    sloppy,
-    omp_nthreads,
-    templates,
+    sloppy: bool,
+    omp_nthreads: int,
+    templates: list[str],
+    image_type: str = 'T1w',
     name='register_template_wf',
 ):
     """
@@ -89,6 +90,8 @@ def init_register_template_wf(
         input domain to enable standardization of lesioned brains.
     template
         Template name and specification
+    image_type
+        Moving image modality
 
     Outputs
     -------
@@ -128,10 +131,10 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         # Append template citations to description
         for template in templates:
             template_meta = get_metadata(template.split(':')[0])
-            template_refs = ['@%s' % template.split(':')[0].lower()]
+            template_refs = ['@{}'.format(template.split(':')[0].lower())]
 
             if template_meta.get('RRID', None):
-                template_refs += ['RRID:%s' % template_meta['RRID']]
+                template_refs += [f'RRID:{template_meta["RRID"]}']
 
             workflow.__desc__ += """\
 *{template_name}* [{template_refs}; TemplateFlow ID: {template}]""".format(
@@ -170,6 +173,15 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         run_without_submitting=True,
     )
 
+    set_reference = pe.Node(
+        niu.Function(
+            function=_set_reference,
+            output_names=['reference_type', 'use_histogram_matching'],
+        ),
+        name='set_reference',
+    )
+    set_reference.inputs.image_type = image_type
+
     # With the improvements from nipreps/niworkflows#342 this truncation is now necessary
     trunc_mov = pe.Node(
         ants.ImageMath(operation='TruncateImageIntensity', op2='0.01 0.999 256'),
@@ -202,6 +214,14 @@ and accessed with *TemplateFlow* [{tf_ver}, @templateflow]:
         (split_desc, tf_select, [
             ('name', 'template'),
             ('spec', 'template_spec'),
+        ]),
+        (tf_select, set_reference, [
+            ('t1w_file', 'template_t1w'),
+            ('t2w_file', 'template_t2w'),
+        ]),
+        (set_reference, registration, [
+            ('reference_type', 'reference'),
+            ('use_histogram_matching', 'use_histogram_matching'),
         ]),
         (split_desc, registration, [
             ('name', 'template'),
@@ -243,3 +263,27 @@ def _fmt_cohort(template, spec):
     if cohort is not None:
         template = f'{template}:cohort-{cohort}'
     return template, spec
+
+
+def _set_reference(image_type, template_t1w, template_t2w=None):
+    """
+    Determine the normalization reference and whether histogram matching will be used.
+
+    Parameters
+    ----------
+    image_type : MR image type of anatomical reference (T1w, T2w)
+    template_t1w : T1w file
+    template_t2w : T2w file or undefined
+
+    Returns
+    -------
+    reference_type : modality of template reference (T1w, T2w)
+    histogram_matching : False when image_type does not match reference image, otherwise Undefined
+    """
+    from nipype.interfaces.base import Undefined
+
+    if image_type == 'T2w':
+        if template_t2w:
+            return 'T2w', Undefined
+        return 'T1w', False
+    return 'T1w', Undefined

@@ -1,8 +1,12 @@
+# 2025-02-18 - markiewicz@stanford.edu - sty: ruff format [ignore-rev]
+78f2667f5801fa96cecbfd0aafcddc5723b1d096
+# 2024-07-19 - effigies@gmail.com - chore(ruff): ruff check --fix && ruff format [git-blame-ignore-rev]
+6333f4735f341e556113325c7bc9d0f2e284e418
 # 2024-03-07 - mathiasg@stanford.edu - STY: ruff format smriprep [git-blame-ignore-rev]
 83a50d465145c6e8176c3f13d4673ed4e0bdb26f
 # 2023-11-21 - effigies@gmail.com - STY: ruff --fix smriprep [git-blame-ignore-rev]
-3a586cf46cb1bb963b93d9546f20273194d15de5
+5d4743142c43d415b761230d83a471cd5aae0314
 # 2023-11-20 - effigies@gmail.com - STY: ruff --fix smriprep [git-blame-ignore-rev]
-c5e8b6b8ddb69284a4cba58e2512b299f1e29464
+946f030e4409bd2fcc044e4a0716ba8af91df247
 # 2023-11-20 - effigies@gmail.com - STY: ruff format smriprep [git-blame-ignore-rev]
-8d62c0f3f3c6a911b1dfe2e9a2016b8de7da051a
+d14bcb0d65defd18affb6164867ab665c780637e

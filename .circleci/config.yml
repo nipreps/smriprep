@@ -346,64 +346,6 @@ jobs:
           file: /tmp/data/pytest_cov.xml
           flags: pytest
 
-  test_deploy_pypi:
-    <<: *python_defaults
-    steps:
-      - checkout
-      - run:
-          name: Update build tools
-          command: pip install --upgrade build twine hatch
-      - run:
-          name: Build sMRIPrep
-          command: python -m build
-      - run:
-          name: Twine check smriprep
-          command: twine check dist/*
-      - run:
-          name: Pre-run hatch version
-          command: hatch version
-      - store_artifacts:
-          path: /tmp/src/smriprep/dist
-      - run:
-          name: Check sdist distribution
-          command: |
-            THISVERSION=$( hatch version )
-            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
-            virtualenv --python=python sdist
-            source sdist/bin/activate
-            python -m pip install --upgrade pip
-            python -m pip install dist/smriprep*.tar.gz
-            which smriprep | grep sdist\\/bin
-            INSTALLED_VERSION=$(smriprep --version)
-            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
-            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep v"}
-            echo "VERSION: \"$THISVERSION\""
-            echo "INSTALLED: \"$INSTALLED_VERSION\""
-            test "$INSTALLED_VERSION" = "$THISVERSION"
-      - run:
-          name: Check wheel distribution
-          command: |
-            THISVERSION=$( hatch version )
-            THISVERSION=${CIRCLE_TAG:-$THISVERSION}
-            virtualenv --python=python wheel
-            source wheel/bin/activate
-            python -m pip install dist/smriprep*.whl
-            which smriprep | grep wheel\\/bin
-            INSTALLED_VERSION=$(smriprep --version)
-            INSTALLED_VERSION=${INSTALLED_VERSION%$'\r'}
-            INSTALLED_VERSION=${INSTALLED_VERSION#*"smriprep v"}
-            echo "VERSION: \"$THISVERSION\""
-            echo "INSTALLED: \"$INSTALLED_VERSION\""
-            test "$INSTALLED_VERSION" = "$THISVERSION"
-      - run:
-          name: Build smriprep-docker
-          command: python -m build wrapper
-      - run:
-          name: Twine check wrapper
-          command: twine check wrapper/dist/*
-      - store_artifacts:
-          path: /tmp/src/smriprep/wrapper/dist
-
   ds005:
     <<: *machine_defaults
     working_directory: /tmp/ds005
@@ -743,23 +685,6 @@ jobs:
           path: ./docs/_build/html
           destination: versioned
 
-  deploy_pypi:
-    <<: *python_defaults
-    steps:
-      - checkout
-      - run:
-          name: Update build tools
-          command: pip install --upgrade build twine
-      - run:
-          name: Build sMRIPrep
-          command: python -m build
-      - run:
-          name: Build smriprep-docker
-          command: python -m build wrapper/
-      - run:
-          name: Upload packages to PyPI
-          command: python -m twine upload dist/smriprep* wrapper/dist/smriprep*
-
   deploy_docker:
     <<: *machine_defaults
     working_directory: *src
@@ -823,17 +748,6 @@ workflows:
               ignore:
                 - /docs?\/.*/
                 - /tests?\/.*/
-            tags:
-              only: /.*/
-
-      - test_deploy_pypi:
-          context:
-            - nipreps-common
-          filters:
-            branches:
-              only:
-                - /rel\/.*/
-                - /maint\/.*/
             tags:
               only: /.*/
 
@@ -909,19 +823,7 @@ workflows:
             - build_docs
             - ds005
             - ds054
-            - test_deploy_pypi
             - test
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /.*/
-
-      - deploy_pypi:
-          context:
-            - nipreps-common
-          requires:
-            - deploy_docs_tag
           filters:
             branches:
               ignore: /.*/

@@ -51,7 +51,7 @@ def get_parser():
         SpatialReferences,
     )
 
-    from ..__about__ import __version__
+    import smriprep
 
     parser = ArgumentParser(
         description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -82,7 +82,11 @@ def get_parser():
     )
 
     # optional arguments
-    parser.add_argument('--version', action='version', version=f'smriprep v{__version__}')
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=f'smriprep v{smriprep.__version__}',
+    )
 
     g_bids = parser.add_argument_group('Options for filtering BIDS queries')
     g_bids.add_argument(
@@ -470,9 +474,8 @@ def build_workflow(opts, retval):
     from nipype import logging
     from niworkflows.utils.bids import collect_participants
 
-    from ..__about__ import __version__
-    from ..data import load_resource
-    from ..workflows.base import init_smriprep_wf
+    import smriprep
+    from smriprep.workflows.base import init_smriprep_wf
 
     logger = logging.getLogger('nipype.workflow')
 
@@ -596,7 +599,7 @@ def build_workflow(opts, retval):
     logger.log(
         25,
         INIT_MSG(
-            version=__version__,
+            version=smriprep.__version__,
             bids_dir=bids_dir,
             subject_list=subject_list,
             uuid=run_uuid,
@@ -651,7 +654,7 @@ def build_workflow(opts, retval):
         boilerplate,
     )
 
-    boilerplate_bib = load_resource('boilerplate.bib')
+    boilerplate_bib = smriprep.load_data('boilerplate.bib')
 
     # Generate HTML file resolving citations
     cmd = [
