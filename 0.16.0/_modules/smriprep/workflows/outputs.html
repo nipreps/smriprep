@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.outputs &mdash; smriprep 0.17.1.dev24 documentation</title>
+  <title>smriprep.workflows.outputs &mdash; smriprep 0.17.1.dev28 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -109,7 +109,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">utility</span> <span class="k">as</span> <span class="n">niu</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span><span class="p">,</span> <span class="n">tag</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.fixes</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixHeaderApplyTransforms</span> <span class="k">as</span> <span class="n">ApplyTransforms</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApplyMask</span><span class="p">,</span> <span class="n">GenerateSamplingReference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.space</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpaceDataSource</span>
@@ -126,6 +126,7 @@
 
 <div class="viewcode-block" id="init_anat_reports_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_anat_reports_wf">[docs]</a>
+<span class="nd">@tag</span><span class="p">(</span><span class="s1">&#39;anat.reports&#39;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">init_anat_reports_wf</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">spaces</span><span class="p">,</span> <span class="n">freesurfer</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">sloppy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;anat_reports_wf&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Set up a battery of datasinks to store reports in the right location.</span>

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.anatomical &mdash; smriprep 0.17.1.dev24 documentation</title>
+  <title>smriprep.workflows.anatomical &mdash; smriprep 0.17.1.dev28 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -122,7 +122,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.ants.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Info</span> <span class="k">as</span> <span class="n">ANTsInfo</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">engine</span> <span class="k">as</span> <span class="n">pe</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.anat.ants</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_brain_extraction_wf</span><span class="p">,</span> <span class="n">init_n4_only_wf</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine.workflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiterateWorkflow</span> <span class="k">as</span> <span class="n">Workflow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Workflow</span><span class="p">,</span> <span class="n">tag</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.fixes</span><span class="w"> </span><span class="kn">import</span> <span class="n">FixHeaderApplyTransforms</span> <span class="k">as</span> <span class="n">ApplyTransforms</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">PatchedLTAConvert</span> <span class="k">as</span> <span class="n">LTAConvert</span><span class="p">,</span>
@@ -551,6 +551,7 @@
 
 <div class="viewcode-block" id="init_anat_fit_wf">
 <a class="viewcode-back" href="../../../api/smriprep.workflows.anatomical.html#smriprep.workflows.anatomical.init_anat_fit_wf">[docs]</a>
+<span class="nd">@tag</span><span class="p">(</span><span class="s1">&#39;anat.fit&#39;</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">init_anat_fit_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">bids_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
