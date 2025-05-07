@@ -26,7 +26,7 @@ import typing as ty
 
 from nipype.interfaces import utility as niu
 from nipype.pipeline import engine as pe
-from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.engine import Workflow, tag
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.nibabel import ApplyMask, GenerateSamplingReference
 from niworkflows.interfaces.space import SpaceDataSource
@@ -41,6 +41,7 @@ if ty.TYPE_CHECKING:
 BIDS_TISSUE_ORDER = ('GM', 'WM', 'CSF')
 
 
+@tag('anat.reports')
 def init_anat_reports_wf(*, spaces, freesurfer, output_dir, sloppy=False, name='anat_reports_wf'):
     """
     Set up a battery of datasinks to store reports in the right location.

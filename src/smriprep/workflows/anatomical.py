@@ -39,7 +39,7 @@ from nipype.interfaces.ants import DenoiseImage, N4BiasFieldCorrection
 from nipype.interfaces.ants.base import Info as ANTsInfo
 from nipype.pipeline import engine as pe
 from niworkflows.anat.ants import init_brain_extraction_wf, init_n4_only_wf
-from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.engine import Workflow, tag
 from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransforms
 from niworkflows.interfaces.freesurfer import (
     PatchedLTAConvert as LTAConvert,
@@ -463,6 +463,7 @@ def init_anat_preproc_wf(
     return workflow
 
 
+@tag('anat.fit')
 def init_anat_fit_wf(
     *,
     bids_root: str,

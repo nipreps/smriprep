@@ -35,7 +35,7 @@ from nipype.interfaces import io as nio
 from nipype.interfaces import utility as niu
 from nipype.interfaces.base import Undefined
 from nipype.pipeline import engine as pe
-from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+from niworkflows.engine import Workflow, tag
 from niworkflows.interfaces.freesurfer import (
     FSDetectInputs,
     FSInjectBrainExtracted,
@@ -62,6 +62,7 @@ from ..interfaces.gifti import MetricMath
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
 
+@tag('anat.recon')
 def init_surface_recon_wf(
     *,
     omp_nthreads: int,
@@ -329,6 +330,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     return workflow
 
 
+@tag('anat.mask-refine')
 def init_refinement_wf(
     *, image_type: ty.Literal['T1w', 'T2w'] = 'T1w', name: str = 'refinement_wf'
 ) -> Workflow:
@@ -420,6 +422,7 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     return workflow
 
 
+@tag('anat.fs-autorecon-resume')
 def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
     r"""
     Resume recon-all execution, assuming the `-autorecon1` stage has been completed.
@@ -569,7 +572,6 @@ def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
             raise ValueError(f"Non-identical values can't be deduplicated:\n{in_list!r}")
         return vals.pop()
 
-    # fmt:off
     workflow.connect([
         (inputnode, cortribbon, [('use_T2', 'use_T2'),
                                  ('use_FLAIR', 'use_FLAIR')]),
@@ -587,12 +589,12 @@ def init_autorecon_resume_wf(*, omp_nthreads, name='autorecon_resume_wf'):
                                  (('subject_id', _dedup), 'subject_id')]),
         (autorecon3, outputnode, [('subjects_dir', 'subjects_dir'),
                                   ('subject_id', 'subject_id')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
 
     return workflow
 
 
+@tag('anat.surface-derivatives')
 def init_surface_derivatives_wf(
     *,
     image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
@@ -703,6 +705,7 @@ def init_surface_derivatives_wf(
     return workflow
 
 
+@tag('anat.fslr-reg')
 def init_fsLR_reg_wf(*, name='fsLR_reg_wf'):
     """Generate GIFTI registration files to fsLR space"""
     from ..interfaces.workbench import SurfaceSphereProjectUnproject
@@ -743,6 +746,7 @@ def init_fsLR_reg_wf(*, name='fsLR_reg_wf'):
     return workflow
 
 
+@tag('anat.msm-sulc')
 def init_msm_sulc_wf(*, sloppy: bool = False, name: str = 'msm_sulc_wf'):
     """Run MSMSulc registration to fsLR surfaces, per hemisphere."""
     from ..interfaces.msm import MSM
@@ -1024,6 +1028,7 @@ def init_gifti_morphometrics_wf(
     return workflow
 
 
+@tag('anat.hcp-morphs')
 def init_hcp_morphometrics_wf(
     *,
     omp_nthreads: int,
@@ -1167,6 +1172,7 @@ def init_hcp_morphometrics_wf(
     return workflow
 
 
+@tag('anat.segs-to-anat')
 def init_segs_to_native_wf(
     *,
     image_type: ty.Literal['T1w', 'T2w'] = 'T1w',
@@ -1247,6 +1253,7 @@ def init_segs_to_native_wf(
     return workflow
 
 
+@tag('anat.ribbon-mask')
 def init_anat_ribbon_wf(name='anat_ribbon_wf'):
     """Create anatomical ribbon mask
 
@@ -1296,23 +1303,19 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
 
     make_ribbon = pe.Node(MakeRibbon(), name='make_ribbon', mem_gb=DEFAULT_MEMORY_MIN_GB)
 
-    # fmt: off
-    workflow.connect(
-        [
-            (inputnode, create_wm_distvol, [
-                ('white', 'surf_file'),
-                ('ref_file', 'ref_file'),
-            ]),
-            (inputnode, create_pial_distvol, [
-                ('pial', 'surf_file'),
-                ('ref_file', 'ref_file'),
-            ]),
-            (create_wm_distvol, make_ribbon, [('out_file', 'white_distvols')]),
-            (create_pial_distvol, make_ribbon, [('out_file', 'pial_distvols')]),
-            (make_ribbon, outputnode, [('ribbon', 'anat_ribbon')]),
-        ]
-    )
-    # fmt: on
+    workflow.connect([
+        (inputnode, create_wm_distvol, [
+            ('white', 'surf_file'),
+            ('ref_file', 'ref_file'),
+        ]),
+        (inputnode, create_pial_distvol, [
+            ('pial', 'surf_file'),
+            ('ref_file', 'ref_file'),
+        ]),
+        (create_wm_distvol, make_ribbon, [('out_file', 'white_distvols')]),
+        (create_pial_distvol, make_ribbon, [('out_file', 'pial_distvols')]),
+        (make_ribbon, outputnode, [('ribbon', 'anat_ribbon')]),
+    ])  # fmt:skip
     return workflow
 
 
@@ -1423,6 +1426,7 @@ def init_resample_surfaces_wf(
     return workflow
 
 
+@tag('anat.resample-morphs-grayords')
 def init_morph_grayords_wf(
     grayord_density: ty.Literal['91k', '170k'],
     omp_nthreads: int,
@@ -1634,10 +1638,6 @@ def _sorted_by_basename(inlist):
     from os.path import basename
 
     return sorted(inlist, key=lambda x: str(basename(x)))
-
-
-def _collate(files):
-    return [files[i : i + 2] for i in range(0, len(files), 2)]
 
 
 def _extract_fs_fields(filenames: str | list[str]) -> tuple[str, str]:
