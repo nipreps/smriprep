@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>What’s new? &mdash; smriprep 0.17.1.dev28 documentation</title>
+  <title>What’s new? &mdash; smriprep 0.18.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
@@ -47,6 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#may-08-2025">0.18.0 (May 08, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#december-19-2024">0.17.0 (December 19, 2024)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#august-26-2024">0.16.1 (August 26, 2024)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#july-31-2024">0.16.0 (July 31, 2024)</a></li>
@@ -132,11 +133,26 @@
   
 
 
+    
+    
 
 
 
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="master/changes.html"><b>Warning:</b> This document is for an old version of smriprep. The main version is master.</a></p>
 <section id="what-s-new">
 <h1>What’s new?<a class="headerlink" href="#what-s-new" title="Link to this heading"></a></h1>
+<section id="may-08-2025">
+<h2>0.18.0 (May 08, 2025)<a class="headerlink" href="#may-08-2025" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.18.x series.</p>
+<p>This release patches the FSL FAST interface to disable bias field correction,
+which is redundant with N4 and can cause problems in some populations.</p>
+<ul class="simple">
+<li><p>FIX: Respect label order in precomputed derivatives (#478)</p></li>
+<li><p>FIX: Set FAST bias_iters parameter to 0 (#472)</p></li>
+<li><p>ENH: Tag structural workflows (#476)</p></li>
+<li><p>MNT: Update pinned environment, use conda-forge connectome-workbench (#468)</p></li>
+</ul>
+</section>
 <section id="december-19-2024">
 <h2>0.17.0 (December 19, 2024)<a class="headerlink" href="#december-19-2024" title="Link to this heading"></a></h2>
 <p>New feature release in the 0.17.x series.</p>
@@ -768,7 +784,7 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
 <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
         <span class="fa fa-book"> Other Versions</span>
-        v: master
+        v: 0.18.0
         <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -790,6 +806,7 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
             <dd><a href="0.16.0/changes.html">0.16.0</a></dd>
             <dd><a href="0.16.1/changes.html">0.16.1</a></dd>
             <dd><a href="0.17.0/changes.html">0.17.0</a></dd>
+            <dd><a href="0.18.0/changes.html">0.18.0</a></dd>
             <dd><a href="0.8.0/changes.html">0.8.0</a></dd>
             <dd><a href="0.8.0rc1/changes.html">0.8.0rc1</a></dd>
             <dd><a href="0.8.0rc2/changes.html">0.8.0rc2</a></dd>
@@ -814,6 +831,7 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
             <dd><a href="maint_0.15.x/changes.html">maint/0.15.x</a></dd>
             <dd><a href="maint_0.16.x/changes.html">maint/0.16.x</a></dd>
             <dd><a href="maint_0.17.x/changes.html">maint/0.17.x</a></dd>
+            <dd><a href="maint_0.18.x/changes.html">maint/0.18.x</a></dd>
             <dd><a href="maint_0.8.x/changes.html">maint/0.8.x</a></dd>
             <dd><a href="maint_0.9.x/changes.html">maint/0.9.x</a></dd>
             <dd><a href="master/changes.html">master</a></dd>
