@@ -1,3 +1,15 @@
+0.18.0 (May 08, 2025)
+=====================
+New feature release in the 0.18.x series.
+
+This release patches the FSL FAST interface to disable bias field correction,
+which is redundant with N4 and can cause problems in some populations.
+
+* FIX: Respect label order in precomputed derivatives (#478)
+* FIX: Set FAST bias_iters parameter to 0 (#472)
+* ENH: Tag structural workflows (#476)
+* MNT: Update pinned environment, use conda-forge connectome-workbench (#468)
+
 0.17.0 (December 19, 2024)
 ==========================
 New feature release in the 0.17.x series.

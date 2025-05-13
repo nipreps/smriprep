@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
@@ -26,7 +27,7 @@ dependencies = [
     "matplotlib >= 3.5",
     "nibabel >= 4.0.1",
     "nipype >= 1.8.5",
-    "niworkflows @ git+https://github.com/nipreps/niworkflows.git@master",
+    "niworkflows >= 1.13.1",
     "numpy >= 1.24",
     "packaging >= 24",
     "pybids >= 0.16",
