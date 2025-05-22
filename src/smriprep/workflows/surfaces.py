@@ -1319,11 +1319,11 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
     return workflow
 
 
-def init_resample_surfaces_wb_wf(
+def init_resample_surfaces_wf(
     surfaces: list[str],
     space: str,
     density: str,
-    name: str = 'resample_surfaces_wb_wf',
+    name: str = 'resample_surfaces_wf',
 ):
     """
     Resample subject surfaces surface to specified space and density.
@@ -1333,8 +1333,8 @@ def init_resample_surfaces_wb_wf(
             :graph2use: colored
             :simple_form: yes
 
-            from smriprep.workflows.surfaces import init_resample_surfaces_wb_wf
-            wf = init_resample_surfaces_wb_wf(
+            from smriprep.workflows.surfaces import init_resample_surfaces_wf
+            wf = init_resample_surfaces_wf(
                 surfaces=['white', 'pial', 'midthickness'],
                 space='onavg',
                 density='10k',
@@ -1349,7 +1349,7 @@ def init_resample_surfaces_wb_wf(
     density : :class:`str`
         The density to resample to, e.g., ``'10k'``, ``'41k'``. Number of vertices per hemisphere.
     name : :class:`str`
-        Unique name for the subworkflow (default: ``"resample_surfaces_wb_wf"``)
+        Unique name for the subworkflow (default: ``"resample_surfaces_wf"``)
 
     Inputs
     ------
@@ -1375,7 +1375,7 @@ def init_resample_surfaces_wb_wf(
     )
 
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=[f'{surf}_resampled' for surf in surfaces]), name='outputnode'
+        niu.IdentityInterface(fields=[f'{surf}_{space}' for surf in surfaces]), name='outputnode'
     )
 
     surface_list = pe.Node(
@@ -1422,84 +1422,7 @@ def init_resample_surfaces_wb_wf(
         (surface_list, resampler, [('out', 'surface_in')]),
         (resampler, surface_groups, [('surface_out', 'inlist')]),
         (surface_groups, outputnode, [
-            (f'out{i}', f'{surf}_resampled') for i, surf in enumerate(surfaces, start=1)
-        ]),
-    ])  # fmt:skip
-
-    return workflow
-
-
-def init_resample_surfaces_wf(
-    surfaces: list[str],
-    grayord_density: ty.Literal['91k', '170k'],
-    name: str = 'resample_surfaces_wf',
-):
-    """
-    Resample subject surfaces surface to specified density.
-
-    Workflow Graph
-        .. workflow::
-            :graph2use: colored
-            :simple_form: yes
-
-            from smriprep.workflows.surfaces import init_resample_surfaces_wf
-            wf = init_resample_surfaces_wf(
-                surfaces=['white', 'pial', 'midthickness'],
-                grayord_density='91k',
-            )
-
-    Parameters
-    ----------
-    surfaces : :class:`list` of :class:`str`
-        Names of surfaces (e.g., ``'white'``) to resample. Both hemispheres will be resampled.
-    grayord_density : :class:`str`
-        Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
-    name : :class:`str`
-        Unique name for the subworkflow (default: ``"resample_surfaces_wf"``)
-
-    Inputs
-    ------
-    ``<surface>``
-        Left and right GIFTIs for each surface name passed to ``surfaces``
-    sphere_reg_fsLR
-        GIFTI surface mesh corresponding to the subject's fsLR registration sphere
-
-    Outputs
-    -------
-    ``<surface>``
-        Left and right GIFTI surface mesh corresponding to the input surface, resampled to fsLR
-    """
-    # import templateflow.api as tf
-    from niworkflows.engine.workflows import LiterateWorkflow as Workflow
-
-    workflow = Workflow(name=name)
-
-    fslr_density = '32k' if grayord_density == '91k' else '59k'
-
-    inputnode = pe.Node(
-        niu.IdentityInterface(fields=[*surfaces, 'sphere_reg_fsLR']),
-        name='inputnode',
-    )
-
-    outputnode = pe.Node(
-        niu.IdentityInterface(fields=[f'{surf}_fsLR' for surf in surfaces]), name='outputnode'
-    )
-
-    resample_surfaces_wb_wf = init_resample_surfaces_wb_wf(
-        surfaces=surfaces,
-        space='fsLR',
-        density=fslr_density,
-        name='resample_surfaces_fslr_wb_wf',
-    )
-    workflow.connect([
-        (inputnode, resample_surfaces_wb_wf, [
-            (surf, 'inputnode.'+surf) for surf in surfaces
-        ]),
-        (inputnode, resample_surfaces_wb_wf, [
-            ('sphere_reg_fsLR', 'inputnode.sphere_reg_fsLR'),
-        ]),
-        (resample_surfaces_wb_wf, outputnode, [
-            (f'outputnode.{surf}_resampled', f'{surf}_fsLR') for surf in surfaces
+            (f'out{i}', f'{surf}_{space}') for i, surf in enumerate(surfaces, start=1)
         ]),
     ])  # fmt:skip
 

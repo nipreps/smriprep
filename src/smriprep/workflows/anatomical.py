@@ -382,7 +382,8 @@ def init_anat_preproc_wf(
             hcp_morphometrics_wf = init_hcp_morphometrics_wf(omp_nthreads=omp_nthreads)
             resample_surfaces_wf = init_resample_surfaces_wf(
                 surfaces=['white', 'pial', 'midthickness'],
-                grayord_density=cifti_output,
+                space='fsLR',
+                density='32k' if cifti_output == '91k' else '59k',
             )
             morph_grayords_wf = init_morph_grayords_wf(
                 grayord_density=cifti_output, omp_nthreads=omp_nthreads
