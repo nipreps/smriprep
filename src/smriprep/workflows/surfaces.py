@@ -29,6 +29,7 @@ structural images.
 """
 
 import typing as ty
+import warnings
 
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces import io as nio
@@ -1321,8 +1322,9 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
 
 def init_resample_surfaces_wf(
     surfaces: list[str],
-    space: str,
-    density: str,
+    density: str | None = None,
+    grayord_density: str | None = None,
+    space: str = 'fsLR',
     name: str = 'resample_surfaces_wf',
 ):
     """
@@ -1366,6 +1368,17 @@ def init_resample_surfaces_wf(
     """
     import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
+
+    if density is None:
+        if grayord_density is None:
+            raise ValueError('No density specified. Set density argument.')
+        density = '32k' if grayord_density == '91k' else '59k'
+        warnings.warn(
+            'Deprecated grayord_density passed. Replace with\n\t'
+            "density='32k' if grayord_density == '91k' else '59k'",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     workflow = Workflow(name=name)
 
