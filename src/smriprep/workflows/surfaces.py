@@ -29,6 +29,7 @@ structural images.
 """
 
 import typing as ty
+import warnings
 
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces import io as nio
@@ -1321,11 +1322,13 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
 
 def init_resample_surfaces_wf(
     surfaces: list[str],
-    grayord_density: ty.Literal['91k', '170k'],
+    density: str | None = None,
+    grayord_density: str | None = None,
+    space: str = 'fsLR',
     name: str = 'resample_surfaces_wf',
 ):
     """
-    Resample subject surfaces surface to specified density.
+    Resample subject surfaces surface to specified space and density.
 
     Workflow Graph
         .. workflow::
@@ -1335,36 +1338,49 @@ def init_resample_surfaces_wf(
             from smriprep.workflows.surfaces import init_resample_surfaces_wf
             wf = init_resample_surfaces_wf(
                 surfaces=['white', 'pial', 'midthickness'],
-                grayord_density='91k',
+                space='onavg',
+                density='10k',
             )
 
     Parameters
     ----------
     surfaces : :class:`list` of :class:`str`
         Names of surfaces (e.g., ``'white'``) to resample. Both hemispheres will be resampled.
-    grayord_density : :class:`str`
-        Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
+    space : :class:`str`
+        The space to resample to, e.g., ``'onavg'``, ``'fsLR'``.
+    density : :class:`str`
+        The density to resample to, e.g., ``'10k'``, ``'41k'``. Number of vertices per hemisphere.
     name : :class:`str`
         Unique name for the subworkflow (default: ``"resample_surfaces_wf"``)
 
     Inputs
     ------
     ``<surface>``
-        Left and right GIFTIs for each surface name passed to ``surfaces``
+        Left and right GIFTIs for each surface name passed to ``surfaces``.
     sphere_reg_fsLR
-        GIFTI surface mesh corresponding to the subject's fsLR registration sphere
+        GIFTI surface mesh corresponding to the subject's fsLR registration sphere.
 
     Outputs
     -------
     ``<surface>``
-        Left and right GIFTI surface mesh corresponding to the input surface, resampled to fsLR
+        Left and right GIFTI surface mesh corresponding to the input surface, resampled to the
+        specified space and density.
     """
     import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
-    workflow = Workflow(name=name)
+    if density is None:
+        if grayord_density is None:
+            raise ValueError('No density specified. Set density argument.')
+        density = '32k' if grayord_density == '91k' else '59k'
+        warnings.warn(
+            'Deprecated grayord_density passed. Replace with\n\t'
+            "density='32k' if grayord_density == '91k' else '59k'",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
-    fslr_density = '32k' if grayord_density == '91k' else '59k'
+    workflow = Workflow(name=name)
 
     inputnode = pe.Node(
         niu.IdentityInterface(fields=[*surfaces, 'sphere_reg_fsLR']),
@@ -1372,7 +1388,7 @@ def init_resample_surfaces_wf(
     )
 
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=[f'{surf}_fsLR' for surf in surfaces]), name='outputnode'
+        niu.IdentityInterface(fields=[f'{surf}_{space}' for surf in surfaces]), name='outputnode'
     )
 
     surface_list = pe.Node(
@@ -1389,11 +1405,11 @@ def init_resample_surfaces_wf(
     resampler.inputs.new_sphere = [
         str(
             tf.get(
-                template='fsLR',
-                density=fslr_density,
+                template=space,
+                density=density,
                 suffix='sphere',
                 hemi=hemi,
-                space=None,
+                space=(None if space == 'fsLR' else 'fsLR'),
                 extension='.surf.gii',
             )
         )
@@ -1419,7 +1435,7 @@ def init_resample_surfaces_wf(
         (surface_list, resampler, [('out', 'surface_in')]),
         (resampler, surface_groups, [('surface_out', 'inlist')]),
         (surface_groups, outputnode, [
-            (f'out{i}', f'{surf}_fsLR') for i, surf in enumerate(surfaces, start=1)
+            (f'out{i}', f'{surf}_{space}') for i, surf in enumerate(surfaces, start=1)
         ]),
     ])  # fmt:skip
 
