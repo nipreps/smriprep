@@ -52,9 +52,15 @@ def collect_derivatives(
     layout = BIDSLayout(derivatives_dir, config=deriv_config, validate=False)
 
     derivs_cache = {}
+
+    # Subject and session (if available) will be added to all queries
+    qry_base = {'subject': subject_id}
+    if session_id:
+        qry_base['session'] = session_id
+
     for key, qry in spec['baseline'].items():
-        qry['subject'] = subject_id
-        item = layout.get(**qry)
+        qry.update(qry_base)
+        item = layout.get(return_type='filename', **qry)
         if not item:
             continue
 
@@ -70,11 +76,7 @@ def collect_derivatives(
     for _space in std_spaces:
         space = _space.replace(':cohort-', '+')
         for key, qry in spec['transforms'].items():
-            qry = qry.copy()
-            qry['subject'] = subject_id
-            if session_id:
-                qry['session'] = session_id
-
+            qry.update(qry_base)
             qry['from'] = qry['from'] or space
             qry['to'] = qry['to'] or space
             item = layout.get(return_type='filename', **qry)
@@ -83,10 +85,7 @@ def collect_derivatives(
             transforms.setdefault(_space, {})[key] = item[0] if len(item) == 1 else item
 
     for key, qry in spec['surfaces'].items():
-        qry['subject'] = subject_id
-        if session_id:
-            qry['session'] = session_id
-
+        qry.update(qry_base)
         item = layout.get(return_type='filename', **qry)
         if not item or len(item) != 2:
             continue
