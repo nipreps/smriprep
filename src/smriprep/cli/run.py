@@ -26,6 +26,15 @@
 def main():
     """Set an entrypoint."""
     opts = get_parser().parse_args()
+    if opts.longitudinal:
+        opts.anat_reference_method = 'robust-template'
+        print(
+            'The "--longitudinal" flag is deprecated. Use '
+            '"--anat-reference-method robust-template" instead.'
+        )
+
+    if opts.anat_reference_method == 'robust-template':
+        opts.longitudinal = True
     return build_opts(opts)
 
 
@@ -127,11 +136,14 @@ def get_parser():
     )
     g_bids.add_argument(
         '--anat-reference-method',
-        choices=['robust-template', 'session'],
-        default='robust-template',
-        help='Method to produce the reference anatomical space. '
-        '"robust-template" will data across sessions.'
-        '"session" will process each session individually.',
+        choices=['first', 'robust-template', 'session'],
+        default='first',
+        help='Method to produce the reference anatomical space:'
+        '\t"first" will use the first alphabetically sorted image'
+        '\t"robust-template" will construct an unbiased template from all images '
+        '(previously "--longitudinal")'
+        '\t"session" will independently process each session. If multiple sessions are '
+        'found, the behavior will be similar to "first"',
     )
 
     g_perfm = parser.add_argument_group('Options to handle performance')
@@ -193,7 +205,7 @@ def get_parser():
     g_conf.add_argument(
         '--longitudinal',
         action='store_true',
-        help='treat dataset as longitudinal - may increase runtime',
+        help='DEPRECATED: use --anat-reference-method robust-template instead',
     )
 
     #  ANTs options
