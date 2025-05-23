@@ -53,6 +53,9 @@ def get_parser():
 
     import smriprep
 
+    def _drop_ses(value):
+        return value[4:] if value.startswith('ses-') else value
+
     parser = ArgumentParser(
         description='sMRIPrep: Structural MRI PREProcessing workflows',
         formatter_class=RawTextHelpFormatter,
@@ -98,6 +101,13 @@ def get_parser():
         'identifier (the sub- prefix can be removed)',
     )
     g_bids.add_argument(
+        '--session-id',
+        nargs='+',
+        type=_drop_ses,
+        help='A space delimited list of session identifiers or a single '
+        'identifier (the ses- prefix can be removed)',
+    )
+    g_bids.add_argument(
         '-d',
         '--derivatives',
         action='store',
@@ -114,6 +124,14 @@ def get_parser():
         help='a JSON file describing custom BIDS input filters using pybids '
         '{<suffix>:{<entity>:<filter>,...},...} '
         '(https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json)',
+    )
+    g_bids.add_argument(
+        '--anat-reference-method',
+        choices=['robust-template', 'session'],
+        default='robust-template',
+        help='Method to produce the reference anatomical space. '
+        '"robust-template" will data across sessions.'
+        '"session" will process each session individually.',
     )
 
     g_perfm = parser.add_argument_group('Options to handle performance')
@@ -389,7 +407,7 @@ def build_opts(opts):
         plugin_settings = retval['plugin_settings']
         bids_dir = retval['bids_dir']
         output_dir = retval['output_dir']
-        subject_list = retval['subject_list']
+        subject_session_list = retval['subject_session_list']
         run_uuid = retval['run_uuid']
         retcode = retval['return_code']
 
@@ -442,9 +460,13 @@ def build_opts(opts):
 
         from ..utils.bids import write_bidsignore, write_derivative_description
 
-        logger.log(25, 'Writing reports for participants: %s', ', '.join(subject_list))
+        logger.log(
+            25, 'Writing reports for participants: %s', _pprint_subses(subject_session_list)
+        )
         # Generate reports phase
-        errno += generate_reports(subject_list, output_dir, run_uuid, packagename='smriprep')
+        errno += generate_reports(
+            subject_session_list, output_dir, run_uuid, packagename='smriprep'
+        )
         write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
         write_bidsignore(Path(output_dir) / 'smriprep')
     sys.exit(int(errno > 0))
@@ -469,7 +491,7 @@ def build_workflow(opts, retval):
     from subprocess import CalledProcessError, TimeoutExpired, check_call
     from time import strftime
 
-    from bids import BIDSLayout
+    from bids.layout import BIDSLayout, Query
     from nipype import config as ncfg
     from nipype import logging
     from niworkflows.utils.bids import collect_participants
@@ -482,7 +504,7 @@ def build_workflow(opts, retval):
     INIT_MSG = """
     Running sMRIPrep version {version}:
       * BIDS dataset path: {bids_dir}.
-      * Participant list: {subject_list}.
+      * Participants & Sessions: {subject_session_list}.
       * Run identifier: {uuid}.
 
     {spaces}
@@ -495,6 +517,32 @@ def build_workflow(opts, retval):
     bids_dir = opts.bids_dir.resolve()
     layout = BIDSLayout(str(bids_dir), validate=False)
     subject_list = collect_participants(layout, participant_label=opts.participant_label)
+    session_list = opts.session_id or []
+
+    subject_session_list = []
+    for subject in subject_list:
+        sessions = layout.get_sessions(
+            scope='raw',
+            subject=subject,
+            session=session_list or Query.OPTIONAL,
+            suffix=['T1w', 'T2w'],  # TODO: Track supported modalities globally
+        )
+        if not sessions:
+            if opts.anat_reference_method == 'session':
+                logger.warning(
+                    '--anat-reference-method "session" was requested, but no sessions were found '
+                    f'for subject {subject}.'
+                )
+            subject_session_list.append((subject, None))
+            continue
+
+        if opts.anat_reference_method == 'session':
+            for session in sessions:
+                subject_session_list.append((subject, session))
+        else:
+            # This will use all sessions either found by layout or passed in via --session-id
+            # MG: Should session names be concatenated into a label to preserve provenance?
+            subject_session_list.append((subject, sessions))
 
     bids_filters = json.loads(opts.bids_filter_file.read_text()) if opts.bids_filter_file else None
 
@@ -576,7 +624,7 @@ def build_workflow(opts, retval):
     retval['bids_dir'] = str(bids_dir)
     retval['output_dir'] = str(output_dir)
     retval['work_dir'] = str(work_dir)
-    retval['subject_list'] = subject_list
+    retval['subject_session_list'] = subject_session_list
     retval['run_uuid'] = run_uuid
     retval['workflow'] = None
 
@@ -584,11 +632,13 @@ def build_workflow(opts, retval):
     if opts.reports_only:
         from niworkflows.reports import generate_reports
 
-        logger.log(25, 'Running --reports-only on participants %s', ', '.join(subject_list))
+        logger.log(
+            25, 'Running --reports-only on participants %s', _pprint_subses(subject_session_list)
+        )
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid
         retval['return_code'] = generate_reports(
-            subject_list, str(output_dir), run_uuid, packagename='smriprep'
+            subject_session_list, str(output_dir), run_uuid, packagename='smriprep'
         )
         return retval
 
@@ -601,7 +651,7 @@ def build_workflow(opts, retval):
         INIT_MSG(
             version=smriprep.__version__,
             bids_dir=bids_dir,
-            subject_list=subject_list,
+            subject_session_list=_pprint_subses(subject_session_list),
             uuid=run_uuid,
             spaces=output_spaces,
         ),
@@ -638,7 +688,7 @@ def build_workflow(opts, retval):
         skull_strip_mode=opts.skull_strip_mode,
         skull_strip_template=opts.skull_strip_template[0],
         spaces=output_spaces,
-        subject_list=subject_list,
+        subject_session_list=subject_session_list,
         work_dir=str(work_dir),
         bids_filters=bids_filters,
         cifti_output=opts.cifti_output,
@@ -692,6 +742,20 @@ def build_workflow(opts, retval):
     else:
         copyfile(str(boilerplate_bib), str(log_dir / 'CITATION.bib'))
     return retval
+
+
+def _pprint_subses(subses: list):
+    """Pretty print a list of subjects and sessions."""
+    output = []
+    for subject, session in subses:
+        if isinstance(session, list):
+            output.append(f'sub-{subject} ({len(session)} sessions')
+        elif session is None:
+            output.append(f'sub-{subject}')
+        else:
+            output.append(f'sub-{subject} ses-{session}')
+
+    return ', '.join(output)
 
 
 if __name__ == '__main__':

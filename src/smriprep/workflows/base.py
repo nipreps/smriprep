@@ -59,7 +59,7 @@ def init_smriprep_wf(
     skull_strip_fixed_seed,
     skull_strip_template,
     spaces,
-    subworkflows_list,
+    subject_session_list,
     work_dir,
     bids_filters,
     cifti_output,
@@ -102,7 +102,7 @@ def init_smriprep_wf(
                 skull_strip_mode='force',
                 skull_strip_template=Reference('OASIS30ANTs'),
                 spaces=spaces,
-                subworkflows_list=[('smripreptest', None)],
+                subject_session_list=[('smripreptest', None)],
                 work_dir='.',
                 bids_filters=None,
                 cifti_output=None,
@@ -148,8 +148,9 @@ def init_smriprep_wf(
         Spatial reference to use in atlas-based brain extraction.
     spaces : :py:class:`~niworkflows.utils.spaces.SpatialReferences`
         Object containing standard and nonstandard space specifications.
-    subworkflows_list : :obj:`list` of :obj:`tuple`
-        List of subject-session label pairs
+    subject_session_list : :obj:`list` of :obj:`tuple`
+        List of 2 element tuples containing subject identifier and session identifier(s).
+        A subworkflow will be created for each subject-session pair.
     work_dir : :obj:`str`
         Directory in which to store workflow execution state and
         temporary files
@@ -174,16 +175,17 @@ def init_smriprep_wf(
         if fs_subjects_dir is not None:
             fsdir.inputs.subjects_dir = str(fs_subjects_dir.absolute())
 
-    for subject_id, session_ids in subworkflows_list:
-        ses_str = session_ids
-        if not isinstance(session_ids, (str, type(None))):
-            ses_str = '_'.join(session_ids)
+    for subject_id, session_ids in subject_session_list:
+        # ('01', None) -> sub-01_wf
+        # ('01', 'pre') -> sub-01_ses-pre_wf
+        # ('01', ['pre', 'post']) -> sub-01_ses-pre+post_wf
 
-        name = (
-            f'single_subject_{subject_id}_{ses_str}_wf'
-            if session_ids
-            else f'single_subject_{subject_id}_wf'
-        )
+        name = f'sub-{subject_id}_wf'
+        if session_ids:
+            if isinstance(session_ids, str):
+                ses_str = session_ids
+
+            name = f'sub-{subject_id}_ses-{ses_str}_wf'
 
         single_subject_wf = init_single_subject_wf(
             sloppy=sloppy,
@@ -210,7 +212,7 @@ def init_smriprep_wf(
         )
 
         single_subject_wf.config['execution']['crashdump_dir'] = os.path.join(
-            output_dir, 'smriprep', 'sub-' + subject_id, 'log', run_uuid
+            output_dir, 'smriprep', f'sub-{subject_id}', 'log', run_uuid
         )
         for node in single_subject_wf._get_all_nodes():
             node.config = deepcopy(single_subject_wf.config)
@@ -348,7 +350,7 @@ def init_single_subject_wf(
     """
     from ..interfaces.reports import AboutSummary, SubjectSummary
 
-    if name in ('single_subject_wf', 'single_subject_smripreptest_wf'):
+    if name in ('single_subject_wf', 'sub-smripreptest_wf'):
         # for documentation purposes
         subject_data = {
             't1w': ['/completely/made/up/path/sub-01_T1w.nii.gz'],
@@ -465,7 +467,6 @@ to workflows in *sMRIPrep*'s documentation]\
         cifti_output=cifti_output,
     )
 
-    # fmt:off
     workflow.connect([
         (inputnode, anat_preproc_wf, [('subjects_dir', 'inputnode.subjects_dir')]),
         (bidssrc, bids_info, [(('t1w', fix_multi_T1w_source_name), 'in_file')]),
@@ -473,7 +474,7 @@ to workflows in *sMRIPrep*'s documentation]\
         (bidssrc, summary, [('t1w', 't1w'),
                             ('t2w', 't2w')]),
         (bids_info, summary, [('subject', 'subject_id')]),
-        (bids_info, anat_preproc_wf, [(('subject', _prefix), 'inputnode.subject_id')]),
+        (bids_info, anat_preproc_wf, [(('subject', _prefix, session_id), 'inputnode.subject_id')]),
         (bidssrc, anat_preproc_wf, [('t1w', 'inputnode.t1w'),
                                     ('t2w', 'inputnode.t2w'),
                                     ('roi', 'inputnode.roi'),
@@ -482,13 +483,18 @@ to workflows in *sMRIPrep*'s documentation]\
         (summary, ds_report_summary, [('out_report', 'in_file')]),
         (bidssrc, ds_report_about, [(('t1w', fix_multi_T1w_source_name), 'source_file')]),
         (about, ds_report_about, [('out_report', 'in_file')]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
 
     return workflow
 
 
-def _prefix(subid):
-    if subid.startswith('sub-'):
-        return subid
-    return '-'.join(('sub', subid))
+def _prefix(subject_id, session_id=None):
+    """Create FreeSurfer subject ID."""
+    if not subject_id.startswith('sub-'):
+        subject_id = f'sub-{subject_id}'
+    if session_id and not isinstance(session_id, list):
+        # For now, drop ses label if multiple sessions
+        if not session_id.startswith('ses-'):
+            session_id = f'ses-{session_id}'
+        subject_id = f'{subject_id}_{session_id}'
+    return subject_id

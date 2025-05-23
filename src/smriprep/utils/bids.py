@@ -60,7 +60,7 @@ def collect_derivatives(
 
     for key, qry in spec['baseline'].items():
         qry.update(qry_base)
-        item = layout.get(return_type='filename', **qry)
+        item = layout.get(**qry)
         if not item:
             continue
 
