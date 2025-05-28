@@ -468,7 +468,7 @@ def build_opts(opts):
             _copy_any(dseg_tsv, str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
-        from niworkflows.reports import generate_reports
+        from nireports.assembler.tools import generate_reports
 
         from ..utils.bids import write_bidsignore, write_derivative_description
 
@@ -476,11 +476,10 @@ def build_opts(opts):
             25, 'Writing reports for participants: %s', _pprint_subses(subject_session_list)
         )
         # Generate reports phase
-        errno += generate_reports(
-            subject_session_list, output_dir, run_uuid, packagename='smriprep'
-        )
-        write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
-        write_bidsignore(Path(output_dir) / 'smriprep')
+        smriprep_dir = Path(output_dir) / 'smriprep'
+        errno += generate_reports(subject_session_list, smriprep_dir, run_uuid)
+        write_derivative_description(bids_dir, smriprep_dir)
+        write_bidsignore(smriprep_dir)
     sys.exit(int(errno > 0))
 
 
@@ -642,16 +641,16 @@ def build_workflow(opts, retval):
 
     # Called with reports only
     if opts.reports_only:
-        from niworkflows.reports import generate_reports
+        from nireports.assembler.tools import generate_reports
 
         logger.log(
             25, 'Running --reports-only on participants %s', _pprint_subses(subject_session_list)
         )
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid
-        retval['return_code'] = generate_reports(
-            subject_session_list, str(output_dir), run_uuid, packagename='smriprep'
-        )
+
+        smriprep_dir = output_dir / 'smriprep'
+        retval['return_code'] = generate_reports(subject_session_list, smriprep_dir, run_uuid)
         return retval
 
     output_spaces = opts.output_spaces
