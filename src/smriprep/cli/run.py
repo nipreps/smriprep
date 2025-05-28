@@ -63,7 +63,7 @@ def get_parser():
     import smriprep
 
     def _drop_ses(value):
-        return value[4:] if value.startswith('ses-') else value
+        return value.removeprefix('ses-')
 
     parser = ArgumentParser(
         description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -110,7 +110,7 @@ def get_parser():
         'identifier (the sub- prefix can be removed)',
     )
     g_bids.add_argument(
-        '--session-id',
+        '--session-label',
         nargs='+',
         type=_drop_ses,
         help='A space delimited list of session identifiers or a single '
