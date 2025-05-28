@@ -756,12 +756,22 @@ def build_workflow(opts, retval):
 
 
 def _pprint_subses(subses: list):
-    """Pretty print a list of subjects and sessions."""
+    """
+    Pretty print a list of subjects and sessions.
+
+    Example
+    -------
+    >>> _pprint_subses([('01', 'A'), ('02', ['A', 'B']), ('03', None), ('04', ['A'])])
+    'sub-01 ses-A, sub-02 (2 sessions), sub-03, sub-04 ses-A'
+    """
     output = []
     for subject, session in subses:
         if isinstance(session, list):
-            output.append(f'sub-{subject} ({len(session)} sessions')
-        elif session is None:
+            if len(session) > 1:
+                output.append(f'sub-{subject} ({len(session)} sessions)')
+                continue
+            session = session[0]
+        if session is None:
             output.append(f'sub-{subject}')
         else:
             output.append(f'sub-{subject} ses-{session}')
