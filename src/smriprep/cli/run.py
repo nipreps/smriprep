@@ -27,14 +27,14 @@ def main():
     """Set an entrypoint."""
     opts = get_parser().parse_args()
     if opts.longitudinal:
-        opts.anat_reference_method = 'robust-template'
+        opts.subject_anatomical_reference = 'unbiased'
         print(
             'The "--longitudinal" flag is deprecated. Use '
-            '"--anat-reference-method robust-template" instead.'
+            '"--subject-anatomical-reference unbiased" instead.'
         )
 
-    if opts.anat_reference_method == 'robust-template':
-        opts.longitudinal = True
+    if opts.subject_anatomical_reference == 'unbiased':
+        opts['longitudinal'] = True
     return build_opts(opts)
 
 
@@ -135,14 +135,14 @@ def get_parser():
         '(https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json)',
     )
     g_bids.add_argument(
-        '--anat-reference-method',
-        choices=['first', 'robust-template', 'session'],
+        '--subject-anatomical-reference',
+        choices=['first-alpha', 'unbiased', 'sessionwise'],
         default='first',
         help='Method to produce the reference anatomical space:'
-        '\t"first" will use the first alphabetically sorted image'
-        '\t"robust-template" will construct an unbiased template from all images '
+        '\t"first-alpha" will use the first alphabetically sorted image'
+        '\t"unbiased" will construct an unbiased template from all images '
         '(previously "--longitudinal")'
-        '\t"session" will independently process each session. If multiple sessions are '
+        '\t"sessionwise" will independently process each session. If multiple sessions are '
         'found, the behavior will be similar to "first"',
     )
 
@@ -205,7 +205,7 @@ def get_parser():
     g_conf.add_argument(
         '--longitudinal',
         action='store_true',
-        help='DEPRECATED: use --anat-reference-method robust-template instead',
+        help='DEPRECATED: use "--subject-anatomical-reference unbiased" instead',
     )
 
     #  ANTs options
@@ -539,15 +539,15 @@ def build_workflow(opts, retval):
             suffix=['T1w', 'T2w'],  # TODO: Track supported modalities globally
         )
         if not sessions:
-            if opts.anat_reference_method == 'session':
+            if opts.subject_anatomical_reference == 'sessionwise':
                 logger.warning(
-                    '--anat-reference-method "session" was requested, but no sessions were found '
-                    f'for subject {subject}.'
+                    '--subject-anatomical-reference "sessionwise" was requested, but no sessions '
+                    f'were found for subject {subject}.'
                 )
             subject_session_list.append((subject, None))
             continue
 
-        if opts.anat_reference_method == 'session':
+        if opts.subject_anatomical_reference == 'sessionwise':
             for session in sessions:
                 subject_session_list.append((subject, session))
         else:
