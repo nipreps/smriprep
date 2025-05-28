@@ -142,8 +142,8 @@ def get_parser():
         '\t"first-alpha" will use the first alphabetically sorted image'
         '\t"unbiased" will construct an unbiased template from all images '
         '(previously "--longitudinal")'
-        '\t"sessionwise" will independently process each session. If multiple sessions are '
-        'found, the behavior will be similar to "first"',
+        '\t"sessionwise" will independently process each session. If multiple runs are '
+        'found, the behavior will be similar to "first-alpha"',
     )
 
     g_perfm = parser.add_argument_group('Options to handle performance')
