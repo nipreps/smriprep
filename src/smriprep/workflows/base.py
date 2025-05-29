@@ -424,10 +424,7 @@ to workflows in *sMRIPrep*'s documentation]\
         run_without_submitting=True,
     )
 
-    if session_id is not None:
-        dismiss_entities = None
-    else:
-        dismiss_entities = ('session',)
+    dismiss_entities = ('session',) if session_id else None
 
     ds_report_summary = pe.Node(
         DerivativesDataSink(
