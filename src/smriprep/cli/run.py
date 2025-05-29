@@ -528,7 +528,7 @@ def build_workflow(opts, retval):
     bids_dir = opts.bids_dir.resolve()
     layout = BIDSLayout(str(bids_dir), validate=False)
     subject_list = collect_participants(layout, participant_label=opts.participant_label)
-    session_list = opts.session_id or []
+    session_list = opts.session_label or []
 
     subject_session_list = []
     for subject in subject_list:
