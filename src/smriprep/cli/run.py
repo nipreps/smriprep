@@ -136,14 +136,14 @@ def get_parser():
     )
     g_bids.add_argument(
         '--subject-anatomical-reference',
-        choices=['first-alpha', 'unbiased', 'sessionwise'],
+        choices=['first-lex', 'unbiased', 'sessionwise'],
         default='first',
-        help='Method to produce the reference anatomical space:'
-        '\t"first-alpha" will use the first alphabetically sorted image'
+        help='Method to produce the reference anatomical space:\n'
+        '\t"first-lex" will use the first image in lexicographical order\n'
         '\t"unbiased" will construct an unbiased template from all images '
-        '(previously "--longitudinal")'
+        '(previously "--longitudinal")\n'
         '\t"sessionwise" will independently process each session. If multiple runs are '
-        'found, the behavior will be similar to "first-alpha"',
+        'found, the behavior will be similar to "first-lex"',
     )
 
     g_perfm = parser.add_argument_group('Options to handle performance')
