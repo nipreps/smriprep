@@ -182,8 +182,14 @@ def init_smriprep_wf(
 
         name = f'sub-{subject_id}_wf'
         if session_ids:
-            if isinstance(session_ids, str):
-                ses_str = session_ids
+            ses_str = session_ids
+            if isinstance(session_ids, list):
+                if len(session_ids) == 1:
+                    ses_str = session_ids[0]
+                else:
+                    from smriprep.utils.misc import hash_list
+
+                    ses_str = hash_list(session_ids, digest_size=2)
 
             name = f'sub-{subject_id}_ses-{ses_str}_wf'
 
@@ -358,7 +364,9 @@ def init_single_subject_wf(
             'flair': [],
         }
     else:
-        subject_data = collect_data(layout, subject_id, bids_filters=bids_filters)[0]
+        subject_data = collect_data(
+            layout, subject_id, session_id=session_id, bids_filters=bids_filters
+        )[0]
 
     if not subject_data['t1w']:
         raise Exception(
@@ -492,9 +500,17 @@ def _prefix(subject_id, session_id=None):
     """Create FreeSurfer subject ID."""
     if not subject_id.startswith('sub-'):
         subject_id = f'sub-{subject_id}'
-    if session_id and not isinstance(session_id, list):
-        # For now, drop ses label if multiple sessions
-        if not session_id.startswith('ses-'):
-            session_id = f'ses-{session_id}'
-        subject_id = f'{subject_id}_{session_id}'
+
+    if session_id:
+        ses_str = session_id
+        if isinstance(session_id, list):
+            if len(session_id) == 1:
+                ses_str = session_id[0]
+            else:
+                from smriprep.utils.misc import hash_list
+
+                ses_str = f'multi{hash_list(session_id, digest_size=2)}'
+        if not ses_str.startswith('ses-'):
+            ses_str = f'ses-{ses_str}'
+        subject_id += f'_{ses_str}'
     return subject_id

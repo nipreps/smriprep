@@ -95,3 +95,20 @@ and proceed to delete the files listed above."""
     if logger:
         logger.warn(f'Removed "IsRunning*" files found under {subj_dir}')
     return subjects_dir
+
+
+def hash_list(lst: list[str], digest_size: int = 2) -> str:
+    """
+    Hash a list of strings into a string.
+
+    Example
+    -------
+    >>> hash_list(['a', 'b', 'c'])
+    '1279'
+    >>> hash_list(['a', 'b', 'c'], digest_size=3)
+    'fb7bf6'
+
+    """
+    from hashlib import blake2b
+
+    return blake2b(','.join(lst).encode('utf-8'), digest_size=digest_size).hexdigest()
