@@ -184,12 +184,9 @@ def init_smriprep_wf(
         if session_ids:
             ses_str = session_ids
             if isinstance(session_ids, list):
-                if len(session_ids) == 1:
-                    ses_str = session_ids[0]
-                else:
-                    from smriprep.utils.misc import hash_list
+                from smriprep.utils.misc import stringify_sessions
 
-                    ses_str = hash_list(session_ids, digest_size=2)
+                ses_str = stringify_sessions(session_ids)
 
             name = f'sub-{subject_id}_ses-{ses_str}_wf'
 
@@ -501,12 +498,9 @@ def _prefix(subject_id, session_id=None):
     if session_id:
         ses_str = session_id
         if isinstance(session_id, list):
-            if len(session_id) == 1:
-                ses_str = session_id[0]
-            else:
-                from smriprep.utils.misc import hash_list
+            from smriprep.utils.misc import stringify_sessions
 
-                ses_str = f'multi{hash_list(session_id, digest_size=2)}'
+            ses_str = stringify_sessions(session_id)
         if not ses_str.startswith('ses-'):
             ses_str = f'ses-{ses_str}'
         subject_id += f'_{ses_str}'
