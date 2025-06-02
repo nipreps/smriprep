@@ -481,7 +481,8 @@ def build_opts(opts):
         bootstrap_file = data.load('reports-spec.yml')
         errno += generate_reports(
             subject_session_list,
-            smriprep_dir, run_uuid,
+            smriprep_dir,
+            run_uuid,
             bootstrap_file=bootstrap_file,
         )
         write_derivative_description(bids_dir, smriprep_dir)
@@ -538,27 +539,26 @@ def build_workflow(opts, retval):
 
     subject_session_list = []
     for subject in subject_list:
-        sessions = layout.get_sessions(
-            scope='raw',
-            subject=subject,
-            session=session_list or Query.OPTIONAL,
-            suffix=['T1w', 'T2w'],  # TODO: Track supported modalities globally
+        sessions = (
+            layout.get_sessions(
+                scope='raw',
+                subject=subject,
+                session=session_list or Query.OPTIONAL,
+                suffix=['T1w', 'T2w'],  # TODO: Track supported modalities globally
+            )
+            or None
         )
-        if not sessions:
-            if opts.subject_anatomical_reference == 'sessionwise':
-                logger.warning(
-                    '--subject-anatomical-reference "sessionwise" was requested, but no sessions '
-                    f'were found for subject {subject}.'
-                )
-            subject_session_list.append((subject, None))
-            continue
 
         if opts.subject_anatomical_reference == 'sessionwise':
+            if not sessions:
+                raise RuntimeError(
+                    '--subject-anatomical-reference "sessionwise" was requested, but no sessions '
+                    f'found for subject {subject}.'
+                )
             for session in sessions:
                 subject_session_list.append((subject, session))
         else:
             # This will use all sessions either found by layout or passed in via --session-id
-            # MG: Should session names be concatenated into a label to preserve provenance?
             subject_session_list.append((subject, sessions))
 
     bids_filters = json.loads(opts.bids_filter_file.read_text()) if opts.bids_filter_file else None

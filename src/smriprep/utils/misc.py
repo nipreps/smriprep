@@ -100,6 +100,7 @@ and proceed to delete the files listed above."""
 def stringify_sessions(lst: list[str], max_length: int = 10, digest_size: int = 2) -> str:
     """
     Convert a list of session into a string identifier.
+
     If the list has only one element, it returns that element.
     If the list has more than one element, it concatenates them with '+'.
     If the concatenated string exceeds `max_length`, it returns a
@@ -117,7 +118,6 @@ def stringify_sessions(lst: list[str], max_length: int = 10, digest_size: int = 
     'a+b+toolong'
     >>> stringify_sessions(['a', 'b', 'toolong'], digest_size=4)
     'multi+dd8bb349'
-    >>>
 
     """
     if len(lst) == 1:
