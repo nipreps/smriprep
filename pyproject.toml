@@ -27,7 +27,7 @@ dependencies = [
     "matplotlib >= 3.5",
     "nibabel >= 4.0.1",
     "nipype >= 1.8.5",
-    "nireports @ git+https://github.com/nipreps/nireports.git@main",
+    "nireports >= 25.2.0",
     "niworkflows >= 1.13.1",
     "numpy >= 1.24",
     "packaging >= 24",

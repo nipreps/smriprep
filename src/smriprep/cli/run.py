@@ -470,14 +470,20 @@ def build_opts(opts):
     finally:
         from nireports.assembler.tools import generate_reports
 
-        from ..utils.bids import write_bidsignore, write_derivative_description
+        from smriprep import data
+        from smriprep.utils.bids import write_bidsignore, write_derivative_description
 
         logger.log(
             25, 'Writing reports for participants: %s', _pprint_subses(subject_session_list)
         )
         # Generate reports phase
         smriprep_dir = Path(output_dir) / 'smriprep'
-        errno += generate_reports(subject_session_list, smriprep_dir, run_uuid)
+        bootstrap_file = data.load('reports-spec.yml')
+        errno += generate_reports(
+            subject_session_list,
+            smriprep_dir, run_uuid,
+            bootstrap_file=bootstrap_file,
+        )
         write_derivative_description(bids_dir, smriprep_dir)
         write_bidsignore(smriprep_dir)
     sys.exit(int(errno > 0))
@@ -643,6 +649,8 @@ def build_workflow(opts, retval):
     if opts.reports_only:
         from nireports.assembler.tools import generate_reports
 
+        from smriprep import data
+
         logger.log(
             25, 'Running --reports-only on participants %s', _pprint_subses(subject_session_list)
         )
@@ -650,7 +658,13 @@ def build_workflow(opts, retval):
             run_uuid = opts.run_uuid
 
         smriprep_dir = output_dir / 'smriprep'
-        retval['return_code'] = generate_reports(subject_session_list, smriprep_dir, run_uuid)
+        bootstrap_file = data.load('reports-spec.yml')
+        retval['return_code'] = generate_reports(
+            subject_session_list,
+            smriprep_dir,
+            run_uuid,
+            bootstrap_file=bootstrap_file,
+        )
         return retval
 
     output_spaces = opts.output_spaces
