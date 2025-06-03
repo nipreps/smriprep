@@ -28,7 +28,7 @@ dependencies = [
     "nibabel >= 4.0.1",
     "nipype >= 1.8.5",
     "nireports >= 25.2.0",
-    "niworkflows >= 1.13.1",
+    "niworkflows @ git+https://github.com/nipreps/niworkflows.git@fix/collect-data-sessions",
     "numpy >= 1.24",
     "packaging >= 24",
     "pybids >= 0.16",
