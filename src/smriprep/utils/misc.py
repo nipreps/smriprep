@@ -111,21 +111,21 @@ def stringify_sessions(lst: list[str], max_length: int = 10, digest_size: int = 
     >>> stringify_sessions(['a'])
     'a'
     >>> stringify_sessions(['a', 'b', 'c'])
-    'a+b+c'
+    'a-b-c'
     >>> stringify_sessions(['a', 'b', 'toolong'])
-    'multi+7c22'
+    'multi-32b3'
     >>> stringify_sessions(['a', 'b', 'toolong'], max_length=12)
-    'a+b+toolong'
+    'a-b-toolong'
     >>> stringify_sessions(['a', 'b', 'toolong'], digest_size=4)
-    'multi+dd8bb349'
+    'multi-f1edd4fd'
 
     """
     if len(lst) == 1:
         return lst[0]
 
-    ses_str = '+'.join(lst)
+    ses_str = '-'.join(lst)
     if len(ses_str) > max_length:
         from hashlib import blake2b
 
-        ses_str = f'multi+{blake2b(ses_str.encode(), digest_size=digest_size).hexdigest()}'
+        ses_str = f'multi-{blake2b(ses_str.encode(), digest_size=digest_size).hexdigest()}'
     return ses_str

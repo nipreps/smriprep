@@ -178,7 +178,7 @@ def init_smriprep_wf(
     for subject_id, session_ids in subject_session_list:
         # ('01', None) -> sub-01_wf
         # ('01', 'pre') -> sub-01_ses-pre_wf
-        # ('01', ['pre', 'post']) -> sub-01_ses-pre+post_wf
+        # ('01', ['pre', 'post']) -> sub-01_ses-pre-post_wf
 
         name = f'sub-{subject_id}_wf'
         if session_ids:
