@@ -95,3 +95,37 @@ and proceed to delete the files listed above."""
     if logger:
         logger.warn(f'Removed "IsRunning*" files found under {subj_dir}')
     return subjects_dir
+
+
+def stringify_sessions(lst: list[str], max_length: int = 10, digest_size: int = 2) -> str:
+    """
+    Convert a list of session into a string identifier.
+
+    If the list has only one element, it returns that element.
+    If the list has more than one element, it concatenates them with '+'.
+    If the concatenated string exceeds `max_length`, it returns a
+    string starting with 'multi+' followed by a BLAKE2b hash of the concatenated string.
+
+    Example
+    -------
+    >>> stringify_sessions(['a'])
+    'a'
+    >>> stringify_sessions(['a', 'b', 'c'])
+    'a-b-c'
+    >>> stringify_sessions(['a', 'b', 'toolong'])
+    'multi-32b3'
+    >>> stringify_sessions(['a', 'b', 'toolong'], max_length=12)
+    'a-b-toolong'
+    >>> stringify_sessions(['a', 'b', 'toolong'], digest_size=4)
+    'multi-f1edd4fd'
+
+    """
+    if len(lst) == 1:
+        return lst[0]
+
+    ses_str = '-'.join(lst)
+    if len(ses_str) > max_length:
+        from hashlib import blake2b
+
+        ses_str = f'multi-{blake2b(ses_str.encode(), digest_size=digest_size).hexdigest()}'
+    return ses_str

@@ -26,6 +26,15 @@
 def main():
     """Set an entrypoint."""
     opts = get_parser().parse_args()
+    if opts.longitudinal:
+        opts.subject_anatomical_reference = 'unbiased'
+        print(
+            'The "--longitudinal" flag is deprecated. Use '
+            '"--subject-anatomical-reference unbiased" instead.'
+        )
+
+    if opts.subject_anatomical_reference == 'unbiased':
+        opts['longitudinal'] = True
     return build_opts(opts)
 
 
@@ -52,6 +61,9 @@ def get_parser():
     )
 
     import smriprep
+
+    def _drop_ses(value):
+        return value.removeprefix('ses-')
 
     parser = ArgumentParser(
         description='sMRIPrep: Structural MRI PREProcessing workflows',
@@ -98,6 +110,13 @@ def get_parser():
         'identifier (the sub- prefix can be removed)',
     )
     g_bids.add_argument(
+        '--session-label',
+        nargs='+',
+        type=_drop_ses,
+        help='A space delimited list of session identifiers or a single '
+        'identifier (the ses- prefix can be removed)',
+    )
+    g_bids.add_argument(
         '-d',
         '--derivatives',
         action='store',
@@ -114,6 +133,17 @@ def get_parser():
         help='a JSON file describing custom BIDS input filters using pybids '
         '{<suffix>:{<entity>:<filter>,...},...} '
         '(https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json)',
+    )
+    g_bids.add_argument(
+        '--subject-anatomical-reference',
+        choices=['first-lex', 'unbiased', 'sessionwise'],
+        default='first',
+        help='Method to produce the reference anatomical space:\n'
+        '\t"first-lex" will use the first image in lexicographical order\n'
+        '\t"unbiased" will construct an unbiased template from all images '
+        '(previously "--longitudinal")\n'
+        '\t"sessionwise" will independently process each session. If multiple runs are '
+        'found, the behavior will be similar to "first-lex"',
     )
 
     g_perfm = parser.add_argument_group('Options to handle performance')
@@ -175,7 +205,7 @@ def get_parser():
     g_conf.add_argument(
         '--longitudinal',
         action='store_true',
-        help='treat dataset as longitudinal - may increase runtime',
+        help='DEPRECATED: use "--subject-anatomical-reference unbiased" instead',
     )
 
     #  ANTs options
@@ -389,7 +419,7 @@ def build_opts(opts):
         plugin_settings = retval['plugin_settings']
         bids_dir = retval['bids_dir']
         output_dir = retval['output_dir']
-        subject_list = retval['subject_list']
+        subject_session_list = retval['subject_session_list']
         run_uuid = retval['run_uuid']
         retcode = retval['return_code']
 
@@ -438,15 +468,25 @@ def build_opts(opts):
             _copy_any(dseg_tsv, str(Path(output_dir) / 'smriprep' / 'desc-aparcaseg_dseg.tsv'))
         logger.log(25, 'sMRIPrep finished without errors')
     finally:
-        from niworkflows.reports import generate_reports
+        from nireports.assembler.tools import generate_reports
 
-        from ..utils.bids import write_bidsignore, write_derivative_description
+        from smriprep import data
+        from smriprep.utils.bids import write_bidsignore, write_derivative_description
 
-        logger.log(25, 'Writing reports for participants: %s', ', '.join(subject_list))
+        logger.log(
+            25, 'Writing reports for participants: %s', _pprint_subses(subject_session_list)
+        )
         # Generate reports phase
-        errno += generate_reports(subject_list, output_dir, run_uuid, packagename='smriprep')
-        write_derivative_description(bids_dir, str(Path(output_dir) / 'smriprep'))
-        write_bidsignore(Path(output_dir) / 'smriprep')
+        smriprep_dir = Path(output_dir) / 'smriprep'
+        bootstrap_file = data.load('reports-spec.yml')
+        errno += generate_reports(
+            subject_session_list,
+            smriprep_dir,
+            run_uuid,
+            bootstrap_file=bootstrap_file,
+        )
+        write_derivative_description(bids_dir, smriprep_dir)
+        write_bidsignore(smriprep_dir)
     sys.exit(int(errno > 0))
 
 
@@ -469,7 +509,7 @@ def build_workflow(opts, retval):
     from subprocess import CalledProcessError, TimeoutExpired, check_call
     from time import strftime
 
-    from bids import BIDSLayout
+    from bids.layout import BIDSLayout, Query
     from nipype import config as ncfg
     from nipype import logging
     from niworkflows.utils.bids import collect_participants
@@ -482,7 +522,7 @@ def build_workflow(opts, retval):
     INIT_MSG = """
     Running sMRIPrep version {version}:
       * BIDS dataset path: {bids_dir}.
-      * Participant list: {subject_list}.
+      * Participants & Sessions: {subject_session_list}.
       * Run identifier: {uuid}.
 
     {spaces}
@@ -495,6 +535,31 @@ def build_workflow(opts, retval):
     bids_dir = opts.bids_dir.resolve()
     layout = BIDSLayout(str(bids_dir), validate=False)
     subject_list = collect_participants(layout, participant_label=opts.participant_label)
+    session_list = opts.session_label or []
+
+    subject_session_list = []
+    for subject in subject_list:
+        sessions = (
+            layout.get_sessions(
+                scope='raw',
+                subject=subject,
+                session=session_list or Query.OPTIONAL,
+                suffix=['T1w', 'T2w'],  # TODO: Track supported modalities globally
+            )
+            or None
+        )
+
+        if opts.subject_anatomical_reference == 'sessionwise':
+            if not sessions:
+                raise RuntimeError(
+                    '--subject-anatomical-reference "sessionwise" was requested, but no sessions '
+                    f'found for subject {subject}.'
+                )
+            for session in sessions:
+                subject_session_list.append((subject, session))
+        else:
+            # This will use all sessions either found by layout or passed in via --session-id
+            subject_session_list.append((subject, sessions))
 
     bids_filters = json.loads(opts.bids_filter_file.read_text()) if opts.bids_filter_file else None
 
@@ -576,19 +641,29 @@ def build_workflow(opts, retval):
     retval['bids_dir'] = str(bids_dir)
     retval['output_dir'] = str(output_dir)
     retval['work_dir'] = str(work_dir)
-    retval['subject_list'] = subject_list
+    retval['subject_session_list'] = subject_session_list
     retval['run_uuid'] = run_uuid
     retval['workflow'] = None
 
     # Called with reports only
     if opts.reports_only:
-        from niworkflows.reports import generate_reports
+        from nireports.assembler.tools import generate_reports
 
-        logger.log(25, 'Running --reports-only on participants %s', ', '.join(subject_list))
+        from smriprep import data
+
+        logger.log(
+            25, 'Running --reports-only on participants %s', _pprint_subses(subject_session_list)
+        )
         if opts.run_uuid is not None:
             run_uuid = opts.run_uuid
+
+        smriprep_dir = output_dir / 'smriprep'
+        bootstrap_file = data.load('reports-spec.yml')
         retval['return_code'] = generate_reports(
-            subject_list, str(output_dir), run_uuid, packagename='smriprep'
+            subject_session_list,
+            smriprep_dir,
+            run_uuid,
+            bootstrap_file=bootstrap_file,
         )
         return retval
 
@@ -601,7 +676,7 @@ def build_workflow(opts, retval):
         INIT_MSG(
             version=smriprep.__version__,
             bids_dir=bids_dir,
-            subject_list=subject_list,
+            subject_session_list=_pprint_subses(subject_session_list),
             uuid=run_uuid,
             spaces=output_spaces,
         ),
@@ -612,7 +687,6 @@ def build_workflow(opts, retval):
         # XXX Makes strong assumption of legacy layout
         smriprep_dir = str(output_dir / 'smriprep')
         warnings.warn(
-            f'Received DEPRECATED --fast-track flag. Adding {smriprep_dir} to --derivatives list.'
             f'Received DEPRECATED --fast-track flag. Adding {smriprep_dir} to --derivatives list.',
             stacklevel=1,
         )
@@ -638,7 +712,7 @@ def build_workflow(opts, retval):
         skull_strip_mode=opts.skull_strip_mode,
         skull_strip_template=opts.skull_strip_template[0],
         spaces=output_spaces,
-        subject_list=subject_list,
+        subject_session_list=subject_session_list,
         work_dir=str(work_dir),
         bids_filters=bids_filters,
         cifti_output=opts.cifti_output,
@@ -692,6 +766,30 @@ def build_workflow(opts, retval):
     else:
         copyfile(str(boilerplate_bib), str(log_dir / 'CITATION.bib'))
     return retval
+
+
+def _pprint_subses(subses: list):
+    """
+    Pretty print a list of subjects and sessions.
+
+    Example
+    -------
+    >>> _pprint_subses([('01', 'A'), ('02', ['A', 'B']), ('03', None), ('04', ['A'])])
+    'sub-01 ses-A, sub-02 (2 sessions), sub-03, sub-04 ses-A'
+    """
+    output = []
+    for subject, session in subses:
+        if isinstance(session, list):
+            if len(session) > 1:
+                output.append(f'sub-{subject} ({len(session)} sessions)')
+                continue
+            session = session[0]
+        if session is None:
+            output.append(f'sub-{subject}')
+        else:
+            output.append(f'sub-{subject} ses-{session}')
+
+    return ', '.join(output)
 
 
 if __name__ == '__main__':

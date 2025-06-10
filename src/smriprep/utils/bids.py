@@ -31,7 +31,14 @@ from niworkflows.data import load as nwf_load
 import smriprep
 
 
-def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patterns=None):
+def collect_derivatives(
+    derivatives_dir,
+    subject_id,
+    std_spaces,
+    spec=None,
+    patterns=None,
+    session_id=None,
+):
     """Gather existing derivatives and compose a cache."""
     if spec is None or patterns is None:
         _spec, _patterns = tuple(loads(smriprep.load_data('io_spec.json').read_text()).values())
@@ -45,8 +52,14 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
     layout = BIDSLayout(derivatives_dir, config=deriv_config, validate=False)
 
     derivs_cache = {}
+
+    # Subject and session (if available) will be added to all queries
+    qry_base = {'subject': subject_id}
+    if session_id:
+        qry_base['session'] = session_id
+
     for key, qry in spec['baseline'].items():
-        qry['subject'] = subject_id
+        qry |= qry_base
         item = layout.get(**qry)
         if not item:
             continue
@@ -63,8 +76,7 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
     for _space in std_spaces:
         space = _space.replace(':cohort-', '+')
         for key, qry in spec['transforms'].items():
-            qry = qry.copy()
-            qry['subject'] = subject_id
+            qry |= qry_base
             qry['from'] = qry['from'] or space
             qry['to'] = qry['to'] or space
             item = layout.get(return_type='filename', **qry)
@@ -73,7 +85,7 @@ def collect_derivatives(derivatives_dir, subject_id, std_spaces, spec=None, patt
             transforms.setdefault(_space, {})[key] = item[0] if len(item) == 1 else item
 
     for key, qry in spec['surfaces'].items():
-        qry['subject'] = subject_id
+        qry |= qry_base
         item = layout.get(return_type='filename', **qry)
         if not item or len(item) != 2:
             continue
