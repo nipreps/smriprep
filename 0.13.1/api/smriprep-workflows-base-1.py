@@ -23,6 +23,7 @@ wf = init_single_subject_wf(
     skull_strip_template=Reference('OASIS30ANTs'),
     spaces=spaces,
     subject_id='test',
+    session_id=None,
     bids_filters=None,
     cifti_output=None,
 )

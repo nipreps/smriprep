@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.misc &mdash; smriprep 0.18.1.dev1 documentation</title>
+  <title>smriprep.utils.misc &mdash; smriprep 0.18.1.dev23 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -183,6 +183,43 @@
     <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Removed &quot;IsRunning*&quot; files found under </span><span class="si">{</span><span class="n">subj_dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subjects_dir</span></div>
+
+
+
+<div class="viewcode-block" id="stringify_sessions">
+<a class="viewcode-back" href="../../../api/smriprep.utils.misc.html#smriprep.utils.misc.stringify_sessions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stringify_sessions</span><span class="p">(</span><span class="n">lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">digest_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a list of session into a string identifier.</span>
+
+<span class="sd">    If the list has only one element, it returns that element.</span>
+<span class="sd">    If the list has more than one element, it concatenates them with &#39;+&#39;.</span>
+<span class="sd">    If the concatenated string exceeds `max_length`, it returns a</span>
+<span class="sd">    string starting with &#39;multi+&#39; followed by a BLAKE2b hash of the concatenated string.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;])</span>
+<span class="sd">    &#39;a&#39;</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;])</span>
+<span class="sd">    &#39;a-b-c&#39;</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;, &#39;b&#39;, &#39;toolong&#39;])</span>
+<span class="sd">    &#39;multi-32b3&#39;</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;, &#39;b&#39;, &#39;toolong&#39;], max_length=12)</span>
+<span class="sd">    &#39;a-b-toolong&#39;</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;, &#39;b&#39;, &#39;toolong&#39;], digest_size=4)</span>
+<span class="sd">    &#39;multi-f1edd4fd&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">ses_str</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ses_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_length</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">hashlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">blake2b</span>
+
+        <span class="n">ses_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;multi-</span><span class="si">{</span><span class="n">blake2b</span><span class="p">(</span><span class="n">ses_str</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span><span class="w"> </span><span class="n">digest_size</span><span class="o">=</span><span class="n">digest_size</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">ses_str</span></div>
 
 </pre></div>
 

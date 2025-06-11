@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.misc module &mdash; smriprep 0.18.1.dev1 documentation</title>
+  <title>smriprep.utils.misc module &mdash; smriprep 0.18.1.dev23 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -127,6 +127,29 @@ and optionally removes any based on the modification time.</p>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.13)">os.PathLike</a> or None</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.utils.misc.stringify_sessions">
+<span class="sig-prename descclassname"><span class="pre">smriprep.utils.misc.</span></span><span class="sig-name descname"><span class="pre">stringify_sessions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">digest_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../_modules/smriprep/utils/misc.html#stringify_sessions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.utils.misc.stringify_sessions" title="Link to this definition"></a></dt>
+<dd><p>Convert a list of session into a string identifier.</p>
+<p>If the list has only one element, it returns that element.
+If the list has more than one element, it concatenates them with ‘+’.
+If the concatenated string exceeds <cite>max_length</cite>, it returns a
+string starting with ‘multi+’ followed by a BLAKE2b hash of the concatenated string.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">])</span>
+<span class="go">&#39;a&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">])</span>
+<span class="go">&#39;a-b-c&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;toolong&#39;</span><span class="p">])</span>
+<span class="go">&#39;multi-32b3&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;toolong&#39;</span><span class="p">],</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="go">&#39;a-b-toolong&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;toolong&#39;</span><span class="p">],</span> <span class="n">digest_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">&#39;multi-f1edd4fd&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.bids &mdash; smriprep 0.18.1.dev1 documentation</title>
+  <title>smriprep.utils.bids &mdash; smriprep 0.18.1.dev23 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -116,7 +116,14 @@
 
 <div class="viewcode-block" id="collect_derivatives">
 <a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.collect_derivatives">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">collect_derivatives</span><span class="p">(</span><span class="n">derivatives_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">std_spaces</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">patterns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">collect_derivatives</span><span class="p">(</span>
+    <span class="n">derivatives_dir</span><span class="p">,</span>
+    <span class="n">subject_id</span><span class="p">,</span>
+    <span class="n">std_spaces</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">patterns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">session_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Gather existing derivatives and compose a cache.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">patterns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_spec</span><span class="p">,</span> <span class="n">_patterns</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">loads</span><span class="p">(</span><span class="n">smriprep</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="s1">&#39;io_spec.json&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
@@ -130,8 +137,14 @@
     <span class="n">layout</span> <span class="o">=</span> <span class="n">BIDSLayout</span><span class="p">(</span><span class="n">derivatives_dir</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">deriv_config</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="n">derivs_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Subject and session (if available) will be added to all queries</span>
+    <span class="n">qry_base</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;subject&#39;</span><span class="p">:</span> <span class="n">subject_id</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">session_id</span><span class="p">:</span>
+        <span class="n">qry_base</span><span class="p">[</span><span class="s1">&#39;session&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">session_id</span>
+
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">&#39;baseline&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject_id</span>
+        <span class="n">qry</span> <span class="o">|=</span> <span class="n">qry_base</span>
         <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">qry</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="p">:</span>
             <span class="k">continue</span>
@@ -148,8 +161,7 @@
     <span class="k">for</span> <span class="n">_space</span> <span class="ow">in</span> <span class="n">std_spaces</span><span class="p">:</span>
         <span class="n">space</span> <span class="o">=</span> <span class="n">_space</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:cohort-&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">&#39;transforms&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">qry</span> <span class="o">=</span> <span class="n">qry</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject_id</span>
+            <span class="n">qry</span> <span class="o">|=</span> <span class="n">qry_base</span>
             <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;from&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;from&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">space</span>
             <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;to&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">space</span>
             <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">qry</span><span class="p">)</span>
@@ -158,7 +170,7 @@
             <span class="n">transforms</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">_space</span><span class="p">,</span> <span class="p">{})[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">item</span>
 
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">&#39;surfaces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject_id</span>
+        <span class="n">qry</span> <span class="o">|=</span> <span class="n">qry_base</span>
         <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">qry</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">continue</span>
