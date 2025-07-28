@@ -55,14 +55,20 @@ jobs:
       # If 2.9 is required, then we will need to pin to hatchling 1.26.x to avoid
       # incompatibilities with twine and the package metadata emitted by hatchiling.
       - uses: hynek/build-and-inspect-python-package@v2
+        id: build-smriprep
         with:
           upload-name-suffix: -main
           attest-build-provenance-github: ${{ github.event_name != 'pull_request' }}
+      - name: Clean up package build
+        run: rm -r ${{ steps.build-smriprep.outputs.dist }}
       - uses: hynek/build-and-inspect-python-package@v2
+        id: build-wrapper
         with:
           path: wrapper
           upload-name-suffix: -wrapper
           attest-build-provenance-github: ${{ github.event_name != 'pull_request' }}
+      - name: Clean up wrapper build
+        run: rm -r ${{ steps.build-wrapper.outputs.dist }}
 
   test:
     runs-on: ${{ matrix.os }}
