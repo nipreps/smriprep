@@ -1216,12 +1216,12 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
-            (gifti_surfaces_wf, surfaces_buffer, [
-                (f'outputnode.{surf}', surf) for surf in surfs
-            ]),
             (sourcefile_buffer, ds_surfaces_wf, [('source_files', 'inputnode.source_files')]),
             (gifti_surfaces_wf, ds_surfaces_wf, [
                 (f'outputnode.{surf}', f'inputnode.{surf}') for surf in surfs
+            ]),
+            (ds_surfaces_wf, surfaces_buffer, [
+                (f'outputnode.{surf}', surf) for surf in surfs
             ]),
         ])  # fmt:skip
     if spheres:
@@ -1237,12 +1237,12 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 # No transform for spheres, following HCP pipelines' lead
             ]),
-            (gifti_spheres_wf, surfaces_buffer, [
-                (f'outputnode.{sphere}', sphere) for sphere in spheres
-            ]),
             (sourcefile_buffer, ds_spheres_wf, [('source_files', 'inputnode.source_files')]),
             (gifti_spheres_wf, ds_spheres_wf, [
                 (f'outputnode.{sphere}', f'inputnode.{sphere}') for sphere in spheres
+            ]),
+            (ds_spheres_wf, surfaces_buffer, [
+                (f'outputnode.{sphere}', sphere) for sphere in spheres
             ]),
         ])  # fmt:skip
     metrics = [metric for metric in needed_metrics if metric not in found_surfs]
@@ -1258,12 +1258,12 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
             ]),
-            (gifti_morph_wf, surfaces_buffer, [
-                (f'outputnode.{metric}', metric) for metric in metrics
-            ]),
             (sourcefile_buffer, ds_morph_wf, [('source_files', 'inputnode.source_files')]),
             (gifti_morph_wf, ds_morph_wf, [
                 (f'outputnode.{metric}', f'inputnode.{metric}') for metric in metrics
+            ]),
+            (ds_morph_wf, surfaces_buffer, [
+                (f'outputnode.{metric}', metric) for metric in metrics
             ]),
         ])  # fmt:skip
 
