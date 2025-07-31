@@ -78,6 +78,7 @@ from .outputs import (
 )
 from .surfaces import (
     init_anat_ribbon_wf,
+    init_cortex_mask_wf,
     init_fsLR_reg_wf,
     init_gifti_morphometrics_wf,
     init_gifti_surfaces_wf,
@@ -668,6 +669,7 @@ BIDS dataset."""
                 'sphere_reg',
                 'sphere_reg_fsLR',
                 'sphere_reg_msm',
+                'cortex_mask',
                 'anat_ribbon',
                 # Reverse transform; not computable from forward transform
                 'std2anat_xfm',
@@ -1385,6 +1387,35 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         msm_buffer.inputs.sphere_reg_msm = sorted(precomputed['sphere_reg_msm'])
     else:
         LOGGER.info('ANAT Stage 10: MSM-Sulc disabled')
+
+    # Stage 11: Cortical surface mask
+    if len(precomputed.get('cortex_mask', [])) < 2:
+        LOGGER.info('ANAT Stage 11: Creating cortical surface mask')
+        anat_cortex_mask_wf = init_cortex_mask_wf()
+        ds_cortex_mask_wf = init_ds_mask_wf(
+            bids_root=bids_root,
+            output_dir=output_dir,
+            mask_type='roi',
+            name='ds_cortex_mask_wf',
+            extra_entities={'extension': '.label.gii'},
+        )
+        workflow.connect([
+            (surfaces_buffer, anat_cortex_mask_wf, [
+                ('midthickness', 'inputnode.midthickness'),
+                ('thickness', 'inputnode.thickness'),
+            ]),
+            (anat_cortex_mask_wf, ds_cortex_mask_wf, [
+                ('outputnode.cortex_mask', 'inputnode.mask_file'),
+            ]),
+            (surfaces_buffer, ds_cortex_mask_wf, [
+                ('midthickness', 'inputnode.source_files'),
+                ('thickness', 'inputnode.source_files'),
+            ]),
+            (ds_cortex_mask_wf, outputnode, [('outputnode.mask_file', 'cortex_mask')]),
+        ])  # fmt:skip
+    else:
+        LOGGER.info('ANAT Stage 11: Found pre-computed cortical surface mask')
+        outputnode.inputs.cortex_mask = sorted(precomputed['cortex_mask'])
 
     return workflow
 

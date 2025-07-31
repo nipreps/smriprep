@@ -1071,8 +1071,6 @@ def init_hcp_morphometrics_wf(
         HCP-style curvature file in GIFTI format
     sulc
         HCP-style sulcal depth file in GIFTI format
-    roi
-        HCP-style cortical ROI file in GIFTI format
     """
     DEFAULT_MEMORY_MIN_GB = 0.01
 
@@ -1090,7 +1088,7 @@ def init_hcp_morphometrics_wf(
     )
 
     outputnode = pe.JoinNode(
-        niu.IdentityInterface(fields=['thickness', 'curv', 'sulc', 'roi']),
+        niu.IdentityInterface(fields=['thickness', 'curv', 'sulc']),
         name='outputnode',
         joinsource='itersource',
     )
@@ -1114,11 +1112,6 @@ def init_hcp_morphometrics_wf(
     invert_sulc = pe.Node(MetricMath(metric='sulc', operation='invert'), name='invert_sulc')
     # Thickness is presumably already positive, but HCP uses abs(-thickness)
     abs_thickness = pe.Node(MetricMath(metric='thickness', operation='abs'), name='abs_thickness')
-
-    # Native ROI is thickness > 0, with holes and islands filled
-    initial_roi = pe.Node(MetricMath(metric='roi', operation='bin'), name='initial_roi')
-    fill_holes = pe.Node(MetricFillHoles(), name='fill_holes', mem_gb=DEFAULT_MEMORY_MIN_GB)
-    native_roi = pe.Node(MetricRemoveIslands(), name='native_roi', mem_gb=DEFAULT_MEMORY_MIN_GB)
 
     # Dilation happens separately from ROI creation
     dilate_curv = pe.Node(
@@ -1158,8 +1151,77 @@ def init_hcp_morphometrics_wf(
         (dilate_curv, outputnode, [('out_file', 'curv')]),
         (dilate_thickness, outputnode, [('out_file', 'thickness')]),
         (invert_sulc, outputnode, [('metric_file', 'sulc')]),
-        # Native ROI file from thickness
-        (inputnode, initial_roi, [('subject_id', 'subject_id')]),
+    ])  # fmt:skip
+
+    return workflow
+
+
+def init_cortex_mask_wf(
+    *,
+    name: str = 'cortex_mask_wf',
+):
+    """Create a cortical surface mask from a surface file.
+
+    Workflow Graph
+        .. workflow::
+            :graph2use: orig
+            :simple_form: yes
+
+            from smriprep.workflows.surfaces import init_cortex_mask_wf
+            wf = init_cortex_mask_wf()
+
+    Inputs
+    ------
+    midthickness
+        FreeSurfer midthickness surface file in GIFTI format
+    thickness
+        FreeSurfer thickness file in GIFTI format
+
+    Outputs
+    -------
+    roi
+        Cortical surface mask in GIFTI format
+    """
+    DEFAULT_MEMORY_MIN_GB = 0.01
+
+    workflow = Workflow(name=name)
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['midthickness', 'thickness']),
+        name='inputnode',
+    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=['roi']), name='outputnode')
+
+    itersource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='itersource',
+        iterables=[('hemi', ['L', 'R'])],
+    )
+    select_surfaces = pe.Node(
+        KeySelect(
+            fields=['midthickness', 'thickness'],
+            keys=['L', 'R'],
+        ),
+        name='select_surfaces',
+        run_without_submitting=True,
+    )
+
+    # Thickness is presumably already positive, but HCP uses abs(-thickness)
+    abs_thickness = pe.Node(MetricMath(metric='thickness', operation='abs'), name='abs_thickness')
+
+    # Native ROI is thickness > 0, with holes and islands filled
+    initial_roi = pe.Node(MetricMath(metric='roi', operation='bin'), name='initial_roi')
+    fill_holes = pe.Node(MetricFillHoles(), name='fill_holes', mem_gb=DEFAULT_MEMORY_MIN_GB)
+    native_roi = pe.Node(MetricRemoveIslands(), name='native_roi', mem_gb=DEFAULT_MEMORY_MIN_GB)
+
+    workflow.connect([
+        (inputnode, select_surfaces, [
+            ('thickness', 'thickness'),
+            ('midthickness', 'midthickness'),
+        ]),
+        (itersource, select_surfaces, [('hemi', 'key')]),
+        (itersource, abs_thickness, [('hemi', 'hemisphere')]),
+        (select_surfaces, abs_thickness, [('thickness', 'metric_file')]),
         (itersource, initial_roi, [('hemi', 'hemisphere')]),
         (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
         (select_surfaces, fill_holes, [('midthickness', 'surface_file')]),
