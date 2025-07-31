@@ -1179,7 +1179,7 @@ def init_cortex_mask_wf(
 
     Outputs
     -------
-    roi
+    roi : list of two strings
         Cortical surface mask in GIFTI format
     """
     DEFAULT_MEMORY_MIN_GB = 0.01
