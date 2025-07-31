@@ -430,12 +430,12 @@ def init_anat_preproc_wf(
                         f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
                         'inputnode.sphere_reg_fsLR',
                     ),
+                    ('outputnode.cortex_mask', 'inputnode.roi'),
                 ]),
                 (hcp_morphometrics_wf, morph_grayords_wf, [
                     ('outputnode.curv', 'inputnode.curv'),
                     ('outputnode.sulc', 'inputnode.sulc'),
                     ('outputnode.thickness', 'inputnode.thickness'),
-                    ('outputnode.roi', 'inputnode.roi'),
                 ]),
                 (resample_surfaces_wf, morph_grayords_wf, [
                     ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
