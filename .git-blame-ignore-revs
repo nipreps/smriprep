@@ -1,12 +1,14 @@
-# 2025-02-18 - markiewicz@stanford.edu - sty: ruff format [ignore-rev]
+# 2025-07-31 19:32:41 -0400 - markiewicz@stanford.edu - sty: Use fmt:skip in workflows.anatomical [ignore-rev]
+01b2db1b4285e263e13b1ce4ce46b90b0c29500a
+# 2025-02-18 11:30:08 -0500 - markiewicz@stanford.edu - sty: ruff format [ignore-rev]
 78f2667f5801fa96cecbfd0aafcddc5723b1d096
-# 2024-07-19 - effigies@gmail.com - chore(ruff): ruff check --fix && ruff format [git-blame-ignore-rev]
+# 2024-07-19 11:59:08 -0400 - effigies@gmail.com - chore(ruff): ruff check --fix && ruff format [git-blame-ignore-rev]
 6333f4735f341e556113325c7bc9d0f2e284e418
-# 2024-03-07 - mathiasg@stanford.edu - STY: ruff format smriprep [git-blame-ignore-rev]
+# 2024-03-07 14:40:13 -0500 - mathiasg@stanford.edu - STY: ruff format smriprep [git-blame-ignore-rev]
 83a50d465145c6e8176c3f13d4673ed4e0bdb26f
-# 2023-11-21 - effigies@gmail.com - STY: ruff --fix smriprep [git-blame-ignore-rev]
+# 2023-11-21 10:43:00 -0500 - effigies@gmail.com - STY: ruff --fix smriprep [git-blame-ignore-rev]
 5d4743142c43d415b761230d83a471cd5aae0314
-# 2023-11-20 - effigies@gmail.com - STY: ruff --fix smriprep [git-blame-ignore-rev]
+# 2023-11-20 20:18:39 -0500 - effigies@gmail.com - STY: ruff --fix smriprep [git-blame-ignore-rev]
 946f030e4409bd2fcc044e4a0716ba8af91df247
-# 2023-11-20 - effigies@gmail.com - STY: ruff format smriprep [git-blame-ignore-rev]
+# 2023-11-20 20:17:37 -0500 - effigies@gmail.com - STY: ruff format smriprep [git-blame-ignore-rev]
 d14bcb0d65defd18affb6164867ab665c780637e
