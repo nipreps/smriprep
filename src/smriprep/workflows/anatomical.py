@@ -1379,7 +1379,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             # Combine the inputs into a list
             combine_inputs = pe.Node(
                 niu.Merge(2),
-                name='combine_inputs',
+                name=f'combine_inputs_{hemi}',
             )
             workflow.connect([
                 (select_midthickness, combine_inputs, [('out', 'in1')]),
