@@ -1172,14 +1172,16 @@ def init_cortex_mask_wf(
 
     Inputs
     ------
-    midthickness
-        FreeSurfer midthickness surface file in GIFTI format
-    thickness
-        FreeSurfer thickness file in GIFTI format
+    midthickness : str
+        One hemisphere's FreeSurfer midthickness surface file in GIFTI format
+    thickness : str
+        One hemisphere's FreeSurfer thickness file in GIFTI format
+    hemi : {'L', 'R'}
+        Hemisphere indicator
 
     Outputs
     -------
-    roi : list of two strings
+    roi : str
         Cortical surface mask in GIFTI format
     """
     DEFAULT_MEMORY_MIN_GB = 0.01
@@ -1187,24 +1189,10 @@ def init_cortex_mask_wf(
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=['midthickness', 'thickness']),
+        niu.IdentityInterface(fields=['midthickness', 'thickness', 'hemi']),
         name='inputnode',
     )
     outputnode = pe.Node(niu.IdentityInterface(fields=['roi']), name='outputnode')
-
-    itersource = pe.Node(
-        niu.IdentityInterface(fields=['hemi']),
-        name='itersource',
-        iterables=[('hemi', ['L', 'R'])],
-    )
-    select_surfaces = pe.Node(
-        KeySelect(
-            fields=['midthickness', 'thickness'],
-            keys=['L', 'R'],
-        ),
-        name='select_surfaces',
-        run_without_submitting=True,
-    )
 
     # Thickness is presumably already positive, but HCP uses abs(-thickness)
     abs_thickness = pe.Node(MetricMath(metric='thickness', operation='abs'), name='abs_thickness')
@@ -1215,17 +1203,14 @@ def init_cortex_mask_wf(
     native_roi = pe.Node(MetricRemoveIslands(), name='native_roi', mem_gb=DEFAULT_MEMORY_MIN_GB)
 
     workflow.connect([
-        (inputnode, select_surfaces, [
-            ('thickness', 'thickness'),
-            ('midthickness', 'midthickness'),
+        (inputnode, abs_thickness, [
+            ('hemi', 'hemisphere'),
+            ('thickness', 'metric_file'),
         ]),
-        (itersource, select_surfaces, [('hemi', 'key')]),
-        (itersource, abs_thickness, [('hemi', 'hemisphere')]),
-        (select_surfaces, abs_thickness, [('thickness', 'metric_file')]),
-        (itersource, initial_roi, [('hemi', 'hemisphere')]),
+        (inputnode, initial_roi, [('hemi', 'hemisphere')]),
         (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
-        (select_surfaces, fill_holes, [('midthickness', 'surface_file')]),
-        (select_surfaces, native_roi, [('midthickness', 'surface_file')]),
+        (inputnode, fill_holes, [('midthickness', 'surface_file')]),
+        (inputnode, native_roi, [('midthickness', 'surface_file')]),
         (initial_roi, fill_holes, [('metric_file', 'metric_file')]),
         (fill_holes, native_roi, [('out_file', 'metric_file')]),
         (native_roi, outputnode, [('out_file', 'roi')]),
