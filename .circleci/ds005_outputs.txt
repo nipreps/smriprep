@@ -22,7 +22,7 @@ smriprep/sub-01/anat/sub-01_dseg.nii.gz
 smriprep/sub-01/anat/sub-01_from-fsnative_to-T1w_mode-image_xfm.txt
 smriprep/sub-01/anat/sub-01_from-T1w_to-fsnative_mode-image_xfm.txt
 smriprep/sub-01/anat/sub-01_hemi-L_curv.shape.gii
-smriprep/sub-01/anat/sub-01_hemi-L_desc-cortex_mask.label.gii
+smriprep/sub-01/anat/sub-01_hemi-L_desc-roi_mask.label.gii
 smriprep/sub-01/anat/sub-01_hemi-L_inflated.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_midthickness.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-L_pial.surf.gii
@@ -37,7 +37,7 @@ smriprep/sub-01/anat/sub-01_hemi-L_sulc.shape.gii
 smriprep/sub-01/anat/sub-01_hemi-L_thickness.shape.gii
 smriprep/sub-01/anat/sub-01_hemi-L_white.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_curv.shape.gii
-smriprep/sub-01/anat/sub-01_hemi-R_desc-cortex_mask.label.gii
+smriprep/sub-01/anat/sub-01_hemi-R_desc-roi_mask.label.gii
 smriprep/sub-01/anat/sub-01_hemi-R_inflated.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_midthickness.surf.gii
 smriprep/sub-01/anat/sub-01_hemi-R_pial.surf.gii

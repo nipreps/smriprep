@@ -149,7 +149,7 @@
         "datatype": "anat",
         "hemi": ["L", "R"],
         "space": null,
-        "desc": "cortex",
+        "desc": "roi",
         "suffix": "mask",
         "extension": ".label.gii"
       }
