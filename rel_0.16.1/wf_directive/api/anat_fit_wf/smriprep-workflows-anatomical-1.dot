@@ -96,6 +96,9 @@ strict digraph {
 "ds_template_registration_wf" -> "std2anat_buffer (utility)";
 "ds_template_registration_wf" -> "anat2std_buffer (utility)";
 "ds_fs_registration_wf" -> "outputnode (utility)";
+"ds_surfaces_wf" -> "surfaces_buffer (utility)";
+"ds_spheres_wf" -> "surfaces_buffer (utility)";
+"ds_morph_wf" -> "surfaces_buffer (utility)";
 "ds_ribbon_mask_wf" -> "outputnode (utility)";
 "ds_fsLR_reg_wf" -> "fsLR_buffer (utility)";
 "ds_msmsulc_wf" -> "msm_buffer (utility)";
@@ -132,11 +135,8 @@ strict digraph {
 "fast2bids (utility)" -> "ds_tpms_wf";
 "bbreg (freesurfer)" -> "merge_xfms (utility)";
 "merge_xfms (utility)" -> "t2wtot1w_xfm (nitransforms)";
-"gifti_surface_wf" -> "surfaces_buffer (utility)";
 "gifti_surface_wf" -> "ds_surfaces_wf";
-"gifti_spheres_wf" -> "surfaces_buffer (utility)";
 "gifti_spheres_wf" -> "ds_spheres_wf";
-"gifti_morphometrics_wf" -> "surfaces_buffer (utility)";
 "gifti_morphometrics_wf" -> "ds_morph_wf";
 "t2wtot1w_xfm (nitransforms)" -> "t2w_resample (fixes)";
 }
