@@ -1370,8 +1370,8 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             cortex_mask_wf.inputs.inputnode.hemi = hemi
 
             workflow.connect([
-                (surfaces_buffer, select_midthickness, [('midthickness', 'midthickness')]),
-                (surfaces_buffer, select_thickness, [('thickness', 'thickness')]),
+                (surfaces_buffer, select_midthickness, [('midthickness', 'inlist')]),
+                (surfaces_buffer, select_thickness, [('thickness', 'inlist')]),
                 (select_midthickness, cortex_mask_wf, [('out', 'inputnode.midthickness')]),
                 (select_thickness, cortex_mask_wf, [('out', 'inputnode.thickness')]),
             ])  # fmt:skip
