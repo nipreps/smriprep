@@ -1230,7 +1230,7 @@ def init_cortex_masks_wf(
 
         # Thickness is presumably already positive, but HCP uses abs(-thickness)
         abs_thickness = pe.Node(
-            MetricMath(metric='thickness', operation='abs'),
+            MetricMath(metric='thickness', operation='abs', hemisphere=hemi),
             name=f'abs_thickness_{hemi}',
         )
 
@@ -1245,7 +1245,7 @@ def init_cortex_masks_wf(
             mem_gb=DEFAULT_MEMORY_MIN_GB,
         )
         native_roi = pe.Node(
-            MetricRemoveIslands(hemisphere=hemi),
+            MetricRemoveIslands(),
             name=f'native_roi_{hemi}',
             mem_gb=DEFAULT_MEMORY_MIN_GB,
         )
