@@ -325,7 +325,7 @@ def init_ds_mask_wf(
     *,
     bids_root: str,
     output_dir: str,
-    mask_type: ty.Literal['brain', 'roi', 'ribbon'],
+    mask_type: ty.Literal['brain', 'roi', 'ribbon', 'cortex'],
     extra_entities: dict | None = None,
     name='ds_mask_wf',
 ):

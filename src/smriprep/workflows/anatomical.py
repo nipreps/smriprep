@@ -1389,7 +1389,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             ds_cortex_mask_wf = init_ds_mask_wf(
                 bids_root=bids_root,
                 output_dir=output_dir,
-                mask_type='roi',
+                mask_type='cortex',
                 name=f'ds_cortex_mask_wf_{hemi}',
                 extra_entities={'extension': '.label.gii', 'hemi': hemi},
             )
