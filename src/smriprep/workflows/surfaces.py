@@ -1190,7 +1190,10 @@ def init_cortex_masks_wf(
         niu.IdentityInterface(fields=['midthickness', 'thickness']),
         name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=['cortex_masks']), name='outputnode')
+    outputnode = pe.Node(
+        niu.IdentityInterface(fields=['cortex_masks', 'source_files']),
+        name='outputnode',
+    )
 
     # Combine the inputs into a list
     combine_sources = pe.Node(
