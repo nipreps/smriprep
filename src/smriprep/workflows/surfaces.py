@@ -1251,10 +1251,10 @@ def init_cortex_masks_wf(
         )
 
         workflow.connect([
-            (inputnode, abs_thickness, [('thickness', 'metric_file')]),
+            (select_thickness, abs_thickness, [('out', 'metric_file')]),
             (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
-            (inputnode, fill_holes, [('midthickness', 'surface_file')]),
-            (inputnode, native_roi, [('midthickness', 'surface_file')]),
+            (select_midthickness, fill_holes, [('out', 'surface_file')]),
+            (select_midthickness, native_roi, [('out', 'surface_file')]),
             (initial_roi, fill_holes, [('metric_file', 'metric_file')]),
             (fill_holes, native_roi, [('out_file', 'metric_file')]),
             (native_roi, combine_masks, [('out_file', f'in{i_hemi + 1}')]),
