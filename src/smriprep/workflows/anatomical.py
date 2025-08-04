@@ -69,6 +69,7 @@ from .outputs import (
     init_ds_fs_segs_wf,
     init_ds_grayord_metrics_wf,
     init_ds_mask_wf,
+    init_ds_surface_masks_wf,
     init_ds_surface_metrics_wf,
     init_ds_surfaces_wf,
     init_ds_template_registration_wf,
@@ -78,7 +79,7 @@ from .outputs import (
 )
 from .surfaces import (
     init_anat_ribbon_wf,
-    init_cortex_mask_wf,
+    init_cortex_masks_wf,
     init_fsLR_reg_wf,
     init_gifti_morphometrics_wf,
     init_gifti_surfaces_wf,
@@ -1350,57 +1351,27 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
     if len(precomputed.get('cortex_mask', [])) < 2:
         LOGGER.info('ANAT Stage 11: Creating cortical surface mask')
 
-        # Merge outputs into a single list
-        merge_cortex_masks = pe.Node(
-            niu.Merge(2),
-            name='merge_cortex_masks',
+        cortex_masks_wf = init_cortex_masks_wf()
+        workflow.connect([
+            (surfaces_buffer, cortex_masks_wf, [
+                ('midthickness', 'inputnode.midthickness'),
+                ('thickness', 'inputnode.thickness'),
+            ]),
+        ])  # fmt:skip
+
+        ds_cortex_masks_wf = init_ds_surface_masks_wf(
+            output_dir=output_dir,
+            mask_type='cortex',
+            name='ds_cortex_masks_wf',
+            entities={'extension': '.label.gii'},
         )
-        workflow.connect([(merge_cortex_masks, outputnode, [('out', 'cortex_mask')])])
-
-        for i_hemi, hemi in enumerate(['L', 'R']):
-            select_midthickness = pe.Node(
-                niu.Select(index=i_hemi),
-                name=f'select_midthickness_{hemi}',
-            )
-            select_thickness = pe.Node(
-                niu.Select(index=i_hemi),
-                name=f'select_thickness_{hemi}',
-            )
-            cortex_mask_wf = init_cortex_mask_wf(name=f'cortex_mask_wf_{hemi}')
-            cortex_mask_wf.inputs.inputnode.hemi = hemi
-
-            workflow.connect([
-                (surfaces_buffer, select_midthickness, [('midthickness', 'inlist')]),
-                (surfaces_buffer, select_thickness, [('thickness', 'inlist')]),
-                (select_midthickness, cortex_mask_wf, [('out', 'inputnode.midthickness')]),
-                (select_thickness, cortex_mask_wf, [('out', 'inputnode.thickness')]),
-            ])  # fmt:skip
-
-            # Combine the inputs into a list
-            combine_inputs = pe.Node(
-                niu.Merge(2),
-                name=f'combine_inputs_{hemi}',
-            )
-            workflow.connect([
-                (select_midthickness, combine_inputs, [('out', 'in1')]),
-                (select_thickness, combine_inputs, [('out', 'in2')]),
-            ])  # fmt:skip
-
-            ds_cortex_mask_wf = init_ds_mask_wf(
-                bids_root=bids_root,
-                output_dir=output_dir,
-                mask_type='cortex',
-                name=f'ds_cortex_mask_wf_{hemi}',
-                extra_entities={'extension': '.label.gii', 'hemi': hemi},
-            )
-
-            workflow.connect([
-                (cortex_mask_wf, ds_cortex_mask_wf, [('outputnode.roi', 'inputnode.mask_file')]),
-                (combine_inputs, ds_cortex_mask_wf, [('out', 'inputnode.source_files')]),
-                (ds_cortex_mask_wf, merge_cortex_masks, [
-                    ('outputnode.mask_file', f'in{i_hemi + 1}'),
-                ]),
-            ])  # fmt:skip
+        workflow.connect([
+            (cortex_masks_wf, ds_cortex_masks_wf, [
+                ('outputnode.cortex_masks', 'inputnode.mask_files'),
+                ('outputnode.source_files', 'inputnode.source_files'),
+            ]),
+            (ds_cortex_masks_wf, outputnode, [('outputnode.mask_files', 'cortex_mask')]),
+        ])  # fmt:skip
     else:
         LOGGER.info('ANAT Stage 11: Found pre-computed cortical surface mask')
         outputnode.inputs.cortex_mask = sorted(precomputed['cortex_mask'])

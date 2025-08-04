@@ -1156,9 +1156,9 @@ def init_hcp_morphometrics_wf(
     return workflow
 
 
-def init_cortex_mask_wf(
+def init_cortex_masks_wf(
     *,
-    name: str = 'cortex_mask_wf',
+    name: str = 'cortex_masks_wf',
 ):
     """Create a cortical surface mask from a surface file.
 
@@ -1167,54 +1167,99 @@ def init_cortex_mask_wf(
             :graph2use: orig
             :simple_form: yes
 
-            from smriprep.workflows.surfaces import init_cortex_mask_wf
-            wf = init_cortex_mask_wf()
+            from smriprep.workflows.surfaces import init_cortex_masks_wf
+            wf = init_cortex_masks_wf()
 
     Inputs
     ------
-    midthickness : str
-        One hemisphere's FreeSurfer midthickness surface file in GIFTI format
-    thickness : str
-        One hemisphere's FreeSurfer thickness file in GIFTI format
-    hemi : {'L', 'R'}
-        Hemisphere indicator
+    midthickness : list of str
+        Each hemisphere's FreeSurfer midthickness surface file in GIFTI format
+    thickness : list of str
+        Each hemisphere's FreeSurfer thickness file in GIFTI format
 
     Outputs
     -------
-    roi : str
-        Cortical surface mask in GIFTI format
+    cortex_masks : list of str
+        Cortical surface mask in GIFTI format for each hemisphere
     """
     DEFAULT_MEMORY_MIN_GB = 0.01
 
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=['midthickness', 'thickness', 'hemi']),
+        niu.IdentityInterface(fields=['midthickness', 'thickness']),
         name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=['roi']), name='outputnode')
+    outputnode = pe.Node(niu.IdentityInterface(fields=['cortex_masks']), name='outputnode')
 
-    # Thickness is presumably already positive, but HCP uses abs(-thickness)
-    abs_thickness = pe.Node(MetricMath(metric='thickness', operation='abs'), name='abs_thickness')
-
-    # Native ROI is thickness > 0, with holes and islands filled
-    initial_roi = pe.Node(MetricMath(metric='roi', operation='bin'), name='initial_roi')
-    fill_holes = pe.Node(MetricFillHoles(), name='fill_holes', mem_gb=DEFAULT_MEMORY_MIN_GB)
-    native_roi = pe.Node(MetricRemoveIslands(), name='native_roi', mem_gb=DEFAULT_MEMORY_MIN_GB)
-
+    # Combine the inputs into a list
+    combine_sources = pe.Node(
+        niu.Merge(2, no_flatten=True),
+        name='combine_sources',
+    )
     workflow.connect([
-        (inputnode, abs_thickness, [
-            ('hemi', 'hemisphere'),
-            ('thickness', 'metric_file'),
+        (inputnode, combine_sources, [
+            ('midthickness', 'in1'),
+            ('thickness', 'in2'),
         ]),
-        (inputnode, initial_roi, [('hemi', 'hemisphere')]),
-        (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
-        (inputnode, fill_holes, [('midthickness', 'surface_file')]),
-        (inputnode, native_roi, [('midthickness', 'surface_file')]),
-        (initial_roi, fill_holes, [('metric_file', 'metric_file')]),
-        (fill_holes, native_roi, [('out_file', 'metric_file')]),
-        (native_roi, outputnode, [('out_file', 'roi')]),
+        (combine_sources, outputnode, [(('out', _transpose_lol), 'source_files')]),
     ])  # fmt:skip
+
+    combine_masks = pe.Node(
+        niu.Merge(2),
+        name='combine_masks',
+    )
+    workflow.connect([(combine_masks, outputnode, [('out', 'cortex_masks')])])
+
+    for i_hemi, hemi in enumerate(['L', 'R']):
+        select_midthickness = pe.Node(
+            niu.Select(index=i_hemi),
+            name=f'select_midthickness_{hemi}',
+        )
+        select_thickness = pe.Node(
+            niu.Select(index=i_hemi),
+            name=f'select_thickness_{hemi}',
+        )
+        workflow.connect([
+            (inputnode, select_midthickness, [('midthickness', 'inlist')]),
+            (inputnode, select_thickness, [('thickness', 'inlist')]),
+        ])  # fmt:skip
+
+         # Thickness is presumably already positive, but HCP uses abs(-thickness)
+        abs_thickness = pe.Node(
+            MetricMath(metric='thickness', operation='abs'),
+            name=f'abs_thickness_{hemi}',
+        )
+
+        # Native ROI is thickness > 0, with holes and islands filled
+        initial_roi = pe.Node(
+            MetricMath(metric='roi', operation='bin'),
+            name=f'initial_roi_{hemi}',
+        )
+        fill_holes = pe.Node(
+            MetricFillHoles(),
+            name=f'fill_holes_{hemi}',
+            mem_gb=DEFAULT_MEMORY_MIN_GB,
+        )
+        native_roi = pe.Node(
+            MetricRemoveIslands(),
+            name=f'native_roi_{hemi}',
+            mem_gb=DEFAULT_MEMORY_MIN_GB,
+        )
+
+        workflow.connect([
+            (inputnode, abs_thickness, [
+                ('hemi', 'hemisphere'),
+                ('thickness', 'metric_file'),
+            ]),
+            (inputnode, initial_roi, [('hemi', 'hemisphere')]),
+            (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
+            (inputnode, fill_holes, [('midthickness', 'surface_file')]),
+            (inputnode, native_roi, [('midthickness', 'surface_file')]),
+            (initial_roi, fill_holes, [('metric_file', 'metric_file')]),
+            (fill_holes, native_roi, [('out_file', 'metric_file')]),
+            (native_roi, combine_masks, [('out_file', f'in{i_hemi + 1}')]),
+        ])  # fmt:skip
 
     return workflow
 
@@ -1758,3 +1803,8 @@ def _select_seg(in_files, segmentation):
 
 def _repeat(seq: list, count: int) -> list:
     return seq * count
+
+
+def _transpose_lol(inlist):
+    """Transpose a list of lists."""
+    return list(map(list, zip(*inlist, strict=False)))

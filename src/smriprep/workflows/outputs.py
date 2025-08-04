@@ -1231,6 +1231,85 @@ def init_template_iterator_wf(
     return workflow
 
 
+def init_ds_surface_masks_wf(
+    *,
+    output_dir: str,
+    mask_type: ty.Literal['cortex', 'roi', 'ribbon', 'brain'],
+    entities: dict[str, str] | None = None,
+    name='ds_surface_masks_wf',
+) -> Workflow:
+    """Save GIFTI surface masks.
+
+    Parameters
+    ----------
+    output_dir : :class:`str`
+        Directory in which to save derivatives
+    mask_type : :class:`str`
+        Type of mask to save
+    entities : :class:`dict` of :class:`str`
+        Entities to include in outputs
+    name : :class:`str`
+        Workflow name (default: ds_surface_masks_wf)
+
+    Inputs
+    ------
+    source_files : list of lists of str
+        List of lists of source files.
+        Left hemisphere sources first, then right hemisphere sources.
+    mask_files : list of str
+        List of input mask files.
+        Left hemisphere mask first, then right hemisphere mask.
+
+    Outputs
+    -------
+    mask_files : list of str
+        List of output mask files.
+        Left hemisphere mask first, then right hemisphere mask.
+    """
+    workflow = Workflow(name=name)
+
+    if entities is None:
+        entities = {}
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['mask_files', 'source_files']),
+        name='inputnode',
+    )
+    outputnode = pe.Node(niu.IdentityInterface(fields=['mask_files']), name='outputnode')
+
+    sources = pe.MapNode(
+        niu.Function(function=_bids_relative),
+        name='sources',
+        iterfield='in_files',
+    )
+    sources.inputs.bids_root = output_dir
+
+    ds_mask = pe.MapNode(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            hemi=['L', 'R'],
+            desc=mask_type,
+            **entities,
+        ),
+        iterfield=('in_file', 'hemi', 'source_file'),
+        name='ds_mask',
+        run_without_submitting=True,
+    )
+    if mask_type == 'brain':
+        ds_mask.inputs.Type = 'Brain'
+    else:
+        ds_mask.inputs.Type = 'ROI'
+
+    workflow.connect([
+        (inputnode, ds_mask, [('mask_files', 'in_file')]),
+        (inputnode, sources, [('source_files', 'in_files')]),
+        (sources, ds_mask, [('out', 'source_file')]),
+        (ds_mask, outputnode, [('out_file', 'mask_files')]),
+    ])  # fmt:skip
+
+    return workflow
+
+
 def _bids_relative(in_files, bids_root):
     from pathlib import Path
 
