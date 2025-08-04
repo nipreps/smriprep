@@ -1236,7 +1236,7 @@ def init_cortex_masks_wf(
 
         # Native ROI is thickness > 0, with holes and islands filled
         initial_roi = pe.Node(
-            MetricMath(metric='roi', operation='bin'),
+            MetricMath(metric='roi', operation='bin', hemisphere=hemi),
             name=f'initial_roi_{hemi}',
         )
         fill_holes = pe.Node(
@@ -1245,17 +1245,13 @@ def init_cortex_masks_wf(
             mem_gb=DEFAULT_MEMORY_MIN_GB,
         )
         native_roi = pe.Node(
-            MetricRemoveIslands(),
+            MetricRemoveIslands(hemisphere=hemi),
             name=f'native_roi_{hemi}',
             mem_gb=DEFAULT_MEMORY_MIN_GB,
         )
 
         workflow.connect([
-            (inputnode, abs_thickness, [
-                ('hemi', 'hemisphere'),
-                ('thickness', 'metric_file'),
-            ]),
-            (inputnode, initial_roi, [('hemi', 'hemisphere')]),
+            (inputnode, abs_thickness, [('thickness', 'metric_file')]),
             (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
             (inputnode, fill_holes, [('midthickness', 'surface_file')]),
             (inputnode, native_roi, [('midthickness', 'surface_file')]),
