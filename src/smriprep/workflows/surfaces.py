@@ -1225,7 +1225,7 @@ def init_cortex_masks_wf(
             (inputnode, select_thickness, [('thickness', 'inlist')]),
         ])  # fmt:skip
 
-         # Thickness is presumably already positive, but HCP uses abs(-thickness)
+        # Thickness is presumably already positive, but HCP uses abs(-thickness)
         abs_thickness = pe.Node(
             MetricMath(metric='thickness', operation='abs'),
             name=f'abs_thickness_{hemi}',
