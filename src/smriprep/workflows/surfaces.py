@@ -1160,7 +1160,7 @@ def init_cortex_masks_wf(
     *,
     name: str = 'cortex_masks_wf',
 ):
-    """Create a cortical surface mask from a surface file.
+    """Create cortical surface masks from surface files.
 
     Workflow Graph
         .. workflow::
@@ -1172,15 +1172,17 @@ def init_cortex_masks_wf(
 
     Inputs
     ------
-    midthickness : list of str
+    midthickness : len-2 list of str
         Each hemisphere's FreeSurfer midthickness surface file in GIFTI format
-    thickness : list of str
+    thickness : len-2 list of str
         Each hemisphere's FreeSurfer thickness file in GIFTI format
 
     Outputs
     -------
-    cortex_masks : list of str
+    cortex_masks : len-2 list of str
         Cortical surface mask in GIFTI format for each hemisphere
+    source_files : len-2 list of lists of str
+        Each hemisphere's source files, which are used to create the mask
     """
     DEFAULT_MEMORY_MIN_GB = 0.01
 
