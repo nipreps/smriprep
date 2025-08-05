@@ -1277,35 +1277,55 @@ def init_ds_surface_masks_wf(
     )
     outputnode = pe.Node(niu.IdentityInterface(fields=['mask_files']), name='outputnode')
 
-    sources = pe.MapNode(
-        niu.Function(function=_bids_relative),
-        name='sources',
-        iterfield='in_files',
+    combine_masks = pe.Node(
+        niu.Merge(2),
+        name='combine_masks',
     )
-    sources.inputs.bids_root = output_dir
+    workflow.connect(combine_masks, outputnode, [('out', 'mask_files')])
 
-    ds_mask = pe.MapNode(
-        DerivativesDataSink(
-            base_directory=output_dir,
-            hemi=['L', 'R'],
-            desc=mask_type,
-            **entities,
-        ),
-        iterfield=('in_file', 'hemi', 'source_file'),
-        name='ds_mask',
-        run_without_submitting=True,
-    )
-    if mask_type == 'brain':
-        ds_mask.inputs.Type = 'Brain'
-    else:
-        ds_mask.inputs.Type = 'ROI'
+    for i_hemi, hemi in enumerate(['L', 'R']):
+        select_mask = pe.Node(
+            niu.Select(index=i_hemi),
+            name=f'select_mask_{hemi}',
+            run_without_submitting=True,
+        )
+        workflow.connect(inputnode, select_mask, [('mask_files', 'inlist')])
 
-    workflow.connect([
-        (inputnode, ds_mask, [('mask_files', 'in_file')]),
-        (inputnode, sources, [('source_files', 'in_files')]),
-        (sources, ds_mask, [('out', 'source_file')]),
-        (ds_mask, outputnode, [('out_file', 'mask_files')]),
-    ])  # fmt:skip
+        select_source = pe.Node(
+            niu.Select(index=i_hemi),
+            name=f'select_source_{hemi}',
+            run_without_submitting=True,
+        )
+        workflow.connect(inputnode, select_source, [('source_files', 'inlist')])
+
+        sources = pe.Node(
+            niu.Function(function=_bids_relative),
+            name=f'sources_{hemi}',
+        )
+        sources.inputs.bids_root = output_dir
+
+        ds_mask = pe.Node(
+            DerivativesDataSink(
+                base_directory=output_dir,
+                hemi=hemi,
+                desc=mask_type,
+                **entities,
+            ),
+            name=f'ds_mask_{hemi}',
+            run_without_submitting=True,
+        )
+        if mask_type == 'brain':
+            ds_mask.inputs.Type = 'Brain'
+        else:
+            ds_mask.inputs.Type = 'ROI'
+
+        workflow.connect([
+            (select_mask, ds_mask, [('out', 'in_file')]),
+            (select_source, sources, [('out', 'in_files')]),
+            (select_source, ds_mask, [('out', 'source_file')]),
+            (sources, ds_mask, [('out', 'Sources')]),
+            (ds_mask, combine_masks, [('out_file', f'in{i_hemi + 1}')]),
+        ])  # fmt:skip
 
     return workflow
 
