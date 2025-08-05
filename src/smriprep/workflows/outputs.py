@@ -1281,7 +1281,7 @@ def init_ds_surface_masks_wf(
         niu.Merge(2),
         name='combine_masks',
     )
-    workflow.connect(combine_masks, outputnode, [('out', 'mask_files')])
+    workflow.connect([(combine_masks, outputnode, [('out', 'mask_files')])])
 
     for i_hemi, hemi in enumerate(['L', 'R']):
         select_mask = pe.Node(
@@ -1289,14 +1289,14 @@ def init_ds_surface_masks_wf(
             name=f'select_mask_{hemi}',
             run_without_submitting=True,
         )
-        workflow.connect(inputnode, select_mask, [('mask_files', 'inlist')])
+        workflow.connect([(inputnode, select_mask, [('mask_files', 'inlist')])])
 
         select_source = pe.Node(
             niu.Select(index=i_hemi),
             name=f'select_source_{hemi}',
             run_without_submitting=True,
         )
-        workflow.connect(inputnode, select_source, [('source_files', 'inlist')])
+        workflow.connect([(inputnode, select_source, [('source_files', 'inlist')])])
 
         sources = pe.Node(
             niu.Function(function=_bids_relative),
