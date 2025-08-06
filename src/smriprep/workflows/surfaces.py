@@ -1192,75 +1192,59 @@ def init_cortex_masks_wf(
         niu.IdentityInterface(fields=['midthickness', 'thickness']),
         name='inputnode',
     )
-    outputnode = pe.Node(
-        niu.IdentityInterface(fields=['cortex_masks', 'source_files']),
-        name='outputnode',
+
+    itersource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='itersource',
+        iterables=[('hemi', ['L', 'R'])],
     )
 
-    # Combine the inputs into a list
-    combine_sources = pe.Node(
-        niu.Merge(2, no_flatten=True),
-        name='combine_sources',
+    outputnode = pe.JoinNode(
+        niu.IdentityInterface(fields=['cortex_masks', 'source_files']),
+        name='outputnode',
+        joinsource='itersource',
     )
+
+    select_surfaces = pe.Node(
+        KeySelect(fields=['thickness', 'midthickness'], keys=['L', 'R']),
+        name='select_surfaces',
+        run_without_submitting=True,
+    )
+
+    combine_sources = pe.Node(niu.Merge(2), name='combine_sources', run_without_submitting=True)
+
+    abs_thickness = pe.Node(
+        MetricMath(metric='thickness', operation='abs'),
+        name='abs_thickness',
+        mem_gb=DEFAULT_MEMORY_MIN_GB,
+    )
+    initial_roi = pe.Node(
+        MetricMath(metric='roi', operation='bin'), name='initial_roi', mem_gb=DEFAULT_MEMORY_MIN_GB
+    )
+    fill_holes = pe.Node(MetricFillHoles(), name='fill_holes', mem_gb=DEFAULT_MEMORY_MIN_GB)
+    native_roi = pe.Node(MetricRemoveIslands(), name='native_roi', mem_gb=DEFAULT_MEMORY_MIN_GB)
+
     workflow.connect([
-        (inputnode, combine_sources, [
+        (inputnode, select_surfaces, [
+            ('thickness', 'thickness'),
+            ('midthickness', 'midthickness'),
+        ]),
+        (itersource, select_surfaces, [('hemi', 'key')]),
+        (itersource, abs_thickness, [('hemi', 'hemisphere')]),
+        (itersource, initial_roi, [('hemi', 'hemisphere')]),
+        (select_surfaces, abs_thickness, [('thickness', 'metric_file')]),
+        (select_surfaces, fill_holes, [('midthickness', 'surface_file')]),
+        (select_surfaces, native_roi, [('midthickness', 'surface_file')]),
+        (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
+        (initial_roi, fill_holes, [('metric_file', 'metric_file')]),
+        (fill_holes, native_roi, [('out_file', 'metric_file')]),
+        (native_roi, outputnode, [('out_file', 'cortex_masks')]),
+        (select_surfaces, combine_sources, [
             ('midthickness', 'in1'),
             ('thickness', 'in2'),
         ]),
-        (combine_sources, outputnode, [(('out', _transpose_lol), 'source_files')]),
+        (combine_sources, outputnode, [('out', 'source_files')]),
     ])  # fmt:skip
-
-    combine_masks = pe.Node(
-        niu.Merge(2),
-        name='combine_masks',
-    )
-    workflow.connect([(combine_masks, outputnode, [('out', 'cortex_masks')])])
-
-    for i_hemi, hemi in enumerate(['L', 'R']):
-        select_midthickness = pe.Node(
-            niu.Select(index=i_hemi),
-            name=f'select_midthickness_{hemi}',
-        )
-        select_thickness = pe.Node(
-            niu.Select(index=i_hemi),
-            name=f'select_thickness_{hemi}',
-        )
-        workflow.connect([
-            (inputnode, select_midthickness, [('midthickness', 'inlist')]),
-            (inputnode, select_thickness, [('thickness', 'inlist')]),
-        ])  # fmt:skip
-
-        # Thickness is presumably already positive, but HCP uses abs(-thickness)
-        abs_thickness = pe.Node(
-            MetricMath(metric='thickness', operation='abs', hemisphere=hemi),
-            name=f'abs_thickness_{hemi}',
-        )
-
-        # Native ROI is thickness > 0, with holes and islands filled
-        initial_roi = pe.Node(
-            MetricMath(metric='roi', operation='bin', hemisphere=hemi),
-            name=f'initial_roi_{hemi}',
-        )
-        fill_holes = pe.Node(
-            MetricFillHoles(),
-            name=f'fill_holes_{hemi}',
-            mem_gb=DEFAULT_MEMORY_MIN_GB,
-        )
-        native_roi = pe.Node(
-            MetricRemoveIslands(),
-            name=f'native_roi_{hemi}',
-            mem_gb=DEFAULT_MEMORY_MIN_GB,
-        )
-
-        workflow.connect([
-            (select_thickness, abs_thickness, [('out', 'metric_file')]),
-            (abs_thickness, initial_roi, [('metric_file', 'metric_file')]),
-            (select_midthickness, fill_holes, [('out', 'surface_file')]),
-            (select_midthickness, native_roi, [('out', 'surface_file')]),
-            (initial_roi, fill_holes, [('metric_file', 'metric_file')]),
-            (fill_holes, native_roi, [('out_file', 'metric_file')]),
-            (native_roi, combine_masks, [('out_file', f'in{i_hemi + 1}')]),
-        ])  # fmt:skip
 
     return workflow
 
@@ -1804,8 +1788,3 @@ def _select_seg(in_files, segmentation):
 
 def _repeat(seq: list, count: int) -> list:
     return seq * count
-
-
-def _transpose_lol(inlist):
-    """Transpose a list of lists."""
-    return list(map(list, zip(*inlist, strict=False)))
