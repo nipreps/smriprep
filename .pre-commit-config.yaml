@@ -11,13 +11,11 @@ repos:
       - id: check-toml
       - id: check-json
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.2
+    rev: v0.12.7
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
-      - id: ruff
-        args: [--select, ISC001, --fix]
   - repo: https://github.com/woodruffw/zizmor-pre-commit
     rev: v0.8.0
     hooks:
