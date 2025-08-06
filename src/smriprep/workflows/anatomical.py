@@ -1352,20 +1352,18 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         LOGGER.info('ANAT Stage 11: Creating cortical surface mask')
 
         cortex_masks_wf = init_cortex_masks_wf()
-        workflow.connect([
-            (surfaces_buffer, cortex_masks_wf, [
-                ('midthickness', 'inputnode.midthickness'),
-                ('thickness', 'inputnode.thickness'),
-            ]),
-        ])  # fmt:skip
-
         ds_cortex_masks_wf = init_ds_surface_masks_wf(
             output_dir=output_dir,
             mask_type='cortex',
             name='ds_cortex_masks_wf',
             entities={'extension': '.label.gii'},
         )
+
         workflow.connect([
+            (surfaces_buffer, cortex_masks_wf, [
+                ('midthickness', 'inputnode.midthickness'),
+                ('thickness', 'inputnode.thickness'),
+            ]),
             (cortex_masks_wf, ds_cortex_masks_wf, [
                 ('outputnode.cortex_masks', 'inputnode.mask_files'),
                 ('outputnode.source_files', 'inputnode.source_files'),
