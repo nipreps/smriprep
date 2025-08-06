@@ -144,6 +144,14 @@
         "desc": "msmsulc",
         "suffix": "sphere",
         "extension": ".surf.gii"
+      },
+      "cortex_mask": {
+        "datatype": "anat",
+        "hemi": ["L", "R"],
+        "space": null,
+        "desc": "cortex",
+        "suffix": "mask",
+        "extension": ".label.gii"
       }
     },
     "masks": {

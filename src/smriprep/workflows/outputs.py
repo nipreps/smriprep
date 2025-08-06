@@ -1231,6 +1231,101 @@ def init_template_iterator_wf(
     return workflow
 
 
+def init_ds_surface_masks_wf(
+    *,
+    output_dir: str,
+    mask_type: ty.Literal['cortex', 'roi', 'ribbon', 'brain'],
+    entities: dict[str, str] | None = None,
+    name='ds_surface_masks_wf',
+) -> Workflow:
+    """Save GIFTI surface masks.
+
+    Parameters
+    ----------
+    output_dir : :class:`str`
+        Directory in which to save derivatives
+    mask_type : :class:`str`
+        Type of mask to save
+    entities : :class:`dict` of :class:`str`
+        Entities to include in outputs
+    name : :class:`str`
+        Workflow name (default: ds_surface_masks_wf)
+
+    Inputs
+    ------
+    source_files : list of lists of str
+        List of lists of source files.
+        Left hemisphere sources first, then right hemisphere sources.
+    mask_files : list of str
+        List of input mask files.
+        Left hemisphere mask first, then right hemisphere mask.
+
+    Outputs
+    -------
+    mask_files : list of str
+        List of output mask files.
+        Left hemisphere mask first, then right hemisphere mask.
+    """
+    workflow = Workflow(name=name)
+
+    if entities is None:
+        entities = {}
+
+    inputnode = pe.Node(
+        niu.IdentityInterface(fields=['mask_files', 'source_files']),
+        name='inputnode',
+    )
+    outputnode = pe.JoinNode(
+        niu.IdentityInterface(fields=['mask_files']), name='outputnode', joinsource='ds_itersource'
+    )
+
+    ds_itersource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='ds_itersource',
+        iterables=[('hemi', ['L', 'R'])],
+    )
+
+    sources = pe.Node(niu.Function(function=_bids_relative), name='sources')
+    sources.inputs.bids_root = output_dir
+
+    select_files = pe.Node(
+        KeySelect(fields=['mask_file', 'sources'], keys=['L', 'R']),
+        name='select_files',
+        run_without_submitting=True,
+    )
+
+    ds_surf_mask = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            suffix='mask',
+            desc=mask_type,
+            extension='.label.gii',
+            Type='Brain' if mask_type == 'brain' else 'ROI',
+            **entities,
+        ),
+        name='ds_surf_mask',
+        run_without_submitting=True,
+    )
+
+    workflow.connect([
+        (inputnode, select_files, [
+            ('mask_files', 'mask_file'),
+            ('source_files', 'sources'),
+        ]),
+        (select_files, sources, [('sources', 'in_files')]),
+        (ds_itersource, select_files, [('hemi', 'key')]),
+        (ds_itersource, ds_surf_mask, [('hemi', 'hemi')]),
+        (select_files, ds_surf_mask, [
+            ('mask_file', 'in_file'),
+            (('sources', _pop), 'source_file'),
+        ]),
+        (sources, ds_surf_mask, [('out', 'Sources')]),
+        (ds_surf_mask, outputnode, [('out_file', 'mask_files')]),
+    ])  # fmt: skip
+
+    return workflow
+
+
 def _bids_relative(in_files, bids_root):
     from pathlib import Path
 
@@ -1335,3 +1430,7 @@ def _read_json(in_file):
     from pathlib import Path
 
     return loads(Path(in_file).read_text())
+
+
+def _pop(in_list):
+    return in_list[0]

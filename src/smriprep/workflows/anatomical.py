@@ -69,6 +69,7 @@ from .outputs import (
     init_ds_fs_segs_wf,
     init_ds_grayord_metrics_wf,
     init_ds_mask_wf,
+    init_ds_surface_masks_wf,
     init_ds_surface_metrics_wf,
     init_ds_surfaces_wf,
     init_ds_template_registration_wf,
@@ -78,6 +79,7 @@ from .outputs import (
 )
 from .surfaces import (
     init_anat_ribbon_wf,
+    init_cortex_masks_wf,
     init_fsLR_reg_wf,
     init_gifti_morphometrics_wf,
     init_gifti_surfaces_wf,
@@ -429,12 +431,12 @@ def init_anat_preproc_wf(
                         f"outputnode.sphere_reg_{'msm' if msm_sulc else 'fsLR'}",
                         'inputnode.sphere_reg_fsLR',
                     ),
+                    ('outputnode.cortex_mask', 'inputnode.roi'),
                 ]),
                 (hcp_morphometrics_wf, morph_grayords_wf, [
                     ('outputnode.curv', 'inputnode.curv'),
                     ('outputnode.sulc', 'inputnode.sulc'),
                     ('outputnode.thickness', 'inputnode.thickness'),
-                    ('outputnode.roi', 'inputnode.roi'),
                 ]),
                 (resample_surfaces_wf, morph_grayords_wf, [
                     ('outputnode.midthickness_fsLR', 'inputnode.midthickness_fsLR'),
@@ -668,6 +670,7 @@ BIDS dataset."""
                 'sphere_reg',
                 'sphere_reg_fsLR',
                 'sphere_reg_msm',
+                'cortex_mask',
                 'anat_ribbon',
                 # Reverse transform; not computable from forward transform
                 'std2anat_xfm',
@@ -1343,6 +1346,32 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         msm_buffer.inputs.sphere_reg_msm = sorted(precomputed['sphere_reg_msm'])
     else:
         LOGGER.info('ANAT Stage 10: MSM-Sulc disabled')
+
+    # Stage 11: Cortical surface mask
+    if len(precomputed.get('cortex_mask', [])) < 2:
+        LOGGER.info('ANAT Stage 11: Creating cortical surface mask')
+
+        cortex_masks_wf = init_cortex_masks_wf()
+        ds_cortex_masks_wf = init_ds_surface_masks_wf(
+            output_dir=output_dir,
+            mask_type='cortex',
+            name='ds_cortex_masks_wf',
+        )
+
+        workflow.connect([
+            (surfaces_buffer, cortex_masks_wf, [
+                ('midthickness', 'inputnode.midthickness'),
+                ('thickness', 'inputnode.thickness'),
+            ]),
+            (cortex_masks_wf, ds_cortex_masks_wf, [
+                ('outputnode.cortex_masks', 'inputnode.mask_files'),
+                ('outputnode.source_files', 'inputnode.source_files'),
+            ]),
+            (ds_cortex_masks_wf, outputnode, [('outputnode.mask_files', 'cortex_mask')]),
+        ])  # fmt:skip
+    else:
+        LOGGER.info('ANAT Stage 11: Found pre-computed cortical surface mask')
+        outputnode.inputs.cortex_mask = sorted(precomputed['cortex_mask'])
 
     return workflow
 
