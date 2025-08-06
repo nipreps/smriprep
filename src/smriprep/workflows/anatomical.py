@@ -1356,7 +1356,6 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             output_dir=output_dir,
             mask_type='cortex',
             name='ds_cortex_masks_wf',
-            entities={'extension': '.label.gii'},
         )
 
         workflow.connect([

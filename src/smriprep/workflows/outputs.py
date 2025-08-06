@@ -1275,57 +1275,53 @@ def init_ds_surface_masks_wf(
         niu.IdentityInterface(fields=['mask_files', 'source_files']),
         name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=['mask_files']), name='outputnode')
-
-    combine_masks = pe.Node(
-        niu.Merge(2),
-        name='combine_masks',
+    outputnode = pe.JoinNode(
+        niu.IdentityInterface(fields=['mask_files']), name='outputnode', joinsource='ds_itersource'
     )
-    workflow.connect([(combine_masks, outputnode, [('out', 'mask_files')])])
 
-    for i_hemi, hemi in enumerate(['L', 'R']):
-        select_mask = pe.Node(
-            niu.Select(index=i_hemi),
-            name=f'select_mask_{hemi}',
-            run_without_submitting=True,
-        )
-        workflow.connect([(inputnode, select_mask, [('mask_files', 'inlist')])])
+    ds_itersource = pe.Node(
+        niu.IdentityInterface(fields=['hemi']),
+        name='ds_itersource',
+        iterables=[('hemi', ['L', 'R'])],
+    )
 
-        select_source = pe.Node(
-            niu.Select(index=i_hemi),
-            name=f'select_source_{hemi}',
-            run_without_submitting=True,
-        )
-        workflow.connect([(inputnode, select_source, [('source_files', 'inlist')])])
+    sources = pe.Node(niu.Function(function=_bids_relative), name='sources')
+    sources.inputs.bids_root = output_dir
 
-        sources = pe.Node(
-            niu.Function(function=_bids_relative),
-            name=f'sources_{hemi}',
-        )
-        sources.inputs.bids_root = output_dir
+    select_files = pe.Node(
+        KeySelect(fields=['mask_file', 'sources'], keys=['L', 'R']),
+        name='select_files',
+        run_without_submitting=True,
+    )
 
-        ds_mask = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir,
-                hemi=hemi,
-                desc=mask_type,
-                **entities,
-            ),
-            name=f'ds_mask_{hemi}',
-            run_without_submitting=True,
-        )
-        if mask_type == 'brain':
-            ds_mask.inputs.Type = 'Brain'
-        else:
-            ds_mask.inputs.Type = 'ROI'
+    ds_surf_mask = pe.Node(
+        DerivativesDataSink(
+            base_directory=output_dir,
+            suffix='mask',
+            desc=mask_type,
+            extension='.label.gii',
+            Type='Brain' if mask_type == 'brain' else 'ROI',
+            **entities,
+        ),
+        name='ds_surf_mask',
+        run_without_submitting=True,
+    )
 
-        workflow.connect([
-            (select_mask, ds_mask, [('out', 'in_file')]),
-            (select_source, sources, [('out', 'in_files')]),
-            (select_source, ds_mask, [('out', 'source_file')]),
-            (sources, ds_mask, [('out', 'Sources')]),
-            (ds_mask, combine_masks, [('out_file', f'in{i_hemi + 1}')]),
-        ])  # fmt:skip
+    workflow.connect([
+        (inputnode, select_files, [
+            ('mask_files', 'mask_file'),
+            ('source_files', 'sources'),
+        ]),
+        (select_files, sources, [('sources', 'in_files')]),
+        (ds_itersource, select_files, [('hemi', 'key')]),
+        (ds_itersource, ds_surf_mask, [('hemi', 'hemi')]),
+        (select_files, ds_surf_mask, [
+            ('mask_file', 'in_file'),
+            (('sources', _pop), 'source_file'),
+        ]),
+        (sources, ds_surf_mask, [('out', 'Sources')]),
+        (ds_surf_mask, outputnode, [('out_file', 'mask_files')]),
+    ])  # fmt: skip
 
     return workflow
 
@@ -1434,3 +1430,7 @@ def _read_json(in_file):
     from pathlib import Path
 
     return loads(Path(in_file).read_text())
+
+
+def _pop(in_list):
+    return in_list[0]
