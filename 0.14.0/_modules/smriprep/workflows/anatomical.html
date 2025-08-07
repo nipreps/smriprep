@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.anatomical &mdash; smriprep 0.18.1.dev31 documentation</title>
+  <title>smriprep.workflows.anatomical &mdash; smriprep 0.18.1.dev66 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -152,6 +152,7 @@
     <span class="n">init_ds_fs_segs_wf</span><span class="p">,</span>
     <span class="n">init_ds_grayord_metrics_wf</span><span class="p">,</span>
     <span class="n">init_ds_mask_wf</span><span class="p">,</span>
+    <span class="n">init_ds_surface_masks_wf</span><span class="p">,</span>
     <span class="n">init_ds_surface_metrics_wf</span><span class="p">,</span>
     <span class="n">init_ds_surfaces_wf</span><span class="p">,</span>
     <span class="n">init_ds_template_registration_wf</span><span class="p">,</span>
@@ -161,6 +162,7 @@
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.surfaces</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">init_anat_ribbon_wf</span><span class="p">,</span>
+    <span class="n">init_cortex_masks_wf</span><span class="p">,</span>
     <span class="n">init_fsLR_reg_wf</span><span class="p">,</span>
     <span class="n">init_gifti_morphometrics_wf</span><span class="p">,</span>
     <span class="n">init_gifti_surfaces_wf</span><span class="p">,</span>
@@ -514,12 +516,12 @@
                         <span class="sa">f</span><span class="s2">&quot;outputnode.sphere_reg_</span><span class="si">{</span><span class="s1">&#39;msm&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">msm_sulc</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;fsLR&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                         <span class="s1">&#39;inputnode.sphere_reg_fsLR&#39;</span><span class="p">,</span>
                     <span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;outputnode.cortex_mask&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.roi&#39;</span><span class="p">),</span>
                 <span class="p">]),</span>
                 <span class="p">(</span><span class="n">hcp_morphometrics_wf</span><span class="p">,</span> <span class="n">morph_grayords_wf</span><span class="p">,</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.curv&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.curv&#39;</span><span class="p">),</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.sulc&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.sulc&#39;</span><span class="p">),</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.thickness&#39;</span><span class="p">),</span>
-                    <span class="p">(</span><span class="s1">&#39;outputnode.roi&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.roi&#39;</span><span class="p">),</span>
                 <span class="p">]),</span>
                 <span class="p">(</span><span class="n">resample_surfaces_wf</span><span class="p">,</span> <span class="n">morph_grayords_wf</span><span class="p">,</span> <span class="p">[</span>
                     <span class="p">(</span><span class="s1">&#39;outputnode.midthickness_fsLR&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.midthickness_fsLR&#39;</span><span class="p">),</span>
@@ -756,6 +758,7 @@
                 <span class="s1">&#39;sphere_reg&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;sphere_reg_fsLR&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;sphere_reg_msm&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;cortex_mask&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;anat_ribbon&#39;</span><span class="p">,</span>
                 <span class="c1"># Reverse transform; not computable from forward transform</span>
                 <span class="s1">&#39;std2anat_xfm&#39;</span><span class="p">,</span>
@@ -1431,6 +1434,32 @@
         <span class="n">msm_buffer</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">sphere_reg_msm</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">precomputed</span><span class="p">[</span><span class="s1">&#39;sphere_reg_msm&#39;</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ANAT Stage 10: MSM-Sulc disabled&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Stage 11: Cortical surface mask</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">precomputed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cortex_mask&#39;</span><span class="p">,</span> <span class="p">[]))</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ANAT Stage 11: Creating cortical surface mask&#39;</span><span class="p">)</span>
+
+        <span class="n">cortex_masks_wf</span> <span class="o">=</span> <span class="n">init_cortex_masks_wf</span><span class="p">()</span>
+        <span class="n">ds_cortex_masks_wf</span> <span class="o">=</span> <span class="n">init_ds_surface_masks_wf</span><span class="p">(</span>
+            <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+            <span class="n">mask_type</span><span class="o">=</span><span class="s1">&#39;cortex&#39;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_cortex_masks_wf&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
+            <span class="p">(</span><span class="n">surfaces_buffer</span><span class="p">,</span> <span class="n">cortex_masks_wf</span><span class="p">,</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s1">&#39;midthickness&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.midthickness&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.thickness&#39;</span><span class="p">),</span>
+            <span class="p">]),</span>
+            <span class="p">(</span><span class="n">cortex_masks_wf</span><span class="p">,</span> <span class="n">ds_cortex_masks_wf</span><span class="p">,</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s1">&#39;outputnode.cortex_masks&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.mask_files&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;outputnode.source_files&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.source_files&#39;</span><span class="p">),</span>
+            <span class="p">]),</span>
+            <span class="p">(</span><span class="n">ds_cortex_masks_wf</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;outputnode.mask_files&#39;</span><span class="p">,</span> <span class="s1">&#39;cortex_mask&#39;</span><span class="p">)]),</span>
+        <span class="p">])</span>  <span class="c1"># fmt:skip</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ANAT Stage 11: Found pre-computed cortical surface mask&#39;</span><span class="p">)</span>
+        <span class="n">outputnode</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">cortex_mask</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">precomputed</span><span class="p">[</span><span class="s1">&#39;cortex_mask&#39;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">workflow</span></div>
 

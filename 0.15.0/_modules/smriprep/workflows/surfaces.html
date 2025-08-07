@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.surfaces &mdash; smriprep 0.18.1.dev31 documentation</title>
+  <title>smriprep.workflows.surfaces &mdash; smriprep 0.18.1.dev66 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -1180,8 +1180,6 @@
 <span class="sd">        HCP-style curvature file in GIFTI format</span>
 <span class="sd">    sulc</span>
 <span class="sd">        HCP-style sulcal depth file in GIFTI format</span>
-<span class="sd">    roi</span>
-<span class="sd">        HCP-style cortical ROI file in GIFTI format</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">DEFAULT_MEMORY_MIN_GB</span> <span class="o">=</span> <span class="mf">0.01</span>
 
@@ -1199,7 +1197,7 @@
     <span class="p">)</span>
 
     <span class="n">outputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">JoinNode</span><span class="p">(</span>
-        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;curv&#39;</span><span class="p">,</span> <span class="s1">&#39;sulc&#39;</span><span class="p">,</span> <span class="s1">&#39;roi&#39;</span><span class="p">]),</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;curv&#39;</span><span class="p">,</span> <span class="s1">&#39;sulc&#39;</span><span class="p">]),</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputnode&#39;</span><span class="p">,</span>
         <span class="n">joinsource</span><span class="o">=</span><span class="s1">&#39;itersource&#39;</span><span class="p">,</span>
     <span class="p">)</span>
@@ -1223,11 +1221,6 @@
     <span class="n">invert_sulc</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">MetricMath</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;sulc&#39;</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s1">&#39;invert&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;invert_sulc&#39;</span><span class="p">)</span>
     <span class="c1"># Thickness is presumably already positive, but HCP uses abs(-thickness)</span>
     <span class="n">abs_thickness</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">MetricMath</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s1">&#39;abs&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;abs_thickness&#39;</span><span class="p">)</span>
-
-    <span class="c1"># Native ROI is thickness &gt; 0, with holes and islands filled</span>
-    <span class="n">initial_roi</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">MetricMath</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;roi&#39;</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s1">&#39;bin&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;initial_roi&#39;</span><span class="p">)</span>
-    <span class="n">fill_holes</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">MetricFillHoles</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fill_holes&#39;</span><span class="p">,</span> <span class="n">mem_gb</span><span class="o">=</span><span class="n">DEFAULT_MEMORY_MIN_GB</span><span class="p">)</span>
-    <span class="n">native_roi</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">MetricRemoveIslands</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;native_roi&#39;</span><span class="p">,</span> <span class="n">mem_gb</span><span class="o">=</span><span class="n">DEFAULT_MEMORY_MIN_GB</span><span class="p">)</span>
 
     <span class="c1"># Dilation happens separately from ROI creation</span>
     <span class="n">dilate_curv</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
@@ -1267,15 +1260,102 @@
         <span class="p">(</span><span class="n">dilate_curv</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="s1">&#39;curv&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">dilate_thickness</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="s1">&#39;thickness&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">invert_sulc</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;metric_file&#39;</span><span class="p">,</span> <span class="s1">&#39;sulc&#39;</span><span class="p">)]),</span>
-        <span class="c1"># Native ROI file from thickness</span>
-        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">initial_roi</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;subject_id&#39;</span><span class="p">,</span> <span class="s1">&#39;subject_id&#39;</span><span class="p">)]),</span>
+    <span class="p">])</span>  <span class="c1"># fmt:skip</span>
+
+    <span class="k">return</span> <span class="n">workflow</span></div>
+
+
+
+<div class="viewcode-block" id="init_cortex_masks_wf">
+<a class="viewcode-back" href="../../../api/smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_cortex_masks_wf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_cortex_masks_wf</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;cortex_masks_wf&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create cortical surface masks from surface files.</span>
+
+<span class="sd">    Workflow Graph</span>
+<span class="sd">        .. workflow::</span>
+<span class="sd">            :graph2use: orig</span>
+<span class="sd">            :simple_form: yes</span>
+
+<span class="sd">            from smriprep.workflows.surfaces import init_cortex_masks_wf</span>
+<span class="sd">            wf = init_cortex_masks_wf()</span>
+
+<span class="sd">    Inputs</span>
+<span class="sd">    ------</span>
+<span class="sd">    midthickness : len-2 list of str</span>
+<span class="sd">        Each hemisphere&#39;s FreeSurfer midthickness surface file in GIFTI format</span>
+<span class="sd">    thickness : len-2 list of str</span>
+<span class="sd">        Each hemisphere&#39;s FreeSurfer thickness file in GIFTI format</span>
+
+<span class="sd">    Outputs</span>
+<span class="sd">    -------</span>
+<span class="sd">    cortex_masks : len-2 list of str</span>
+<span class="sd">        Cortical surface mask in GIFTI format for each hemisphere</span>
+<span class="sd">    source_files : len-2 list of lists of str</span>
+<span class="sd">        Each hemisphere&#39;s source files, which are used to create the mask</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">DEFAULT_MEMORY_MIN_GB</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+    <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">inputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;midthickness&#39;</span><span class="p">,</span> <span class="s1">&#39;thickness&#39;</span><span class="p">]),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputnode&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">itersource</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;hemi&#39;</span><span class="p">]),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;itersource&#39;</span><span class="p">,</span>
+        <span class="n">iterables</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;hemi&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">])],</span>
+    <span class="p">)</span>
+
+    <span class="n">outputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">JoinNode</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;cortex_masks&#39;</span><span class="p">,</span> <span class="s1">&#39;source_files&#39;</span><span class="p">]),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputnode&#39;</span><span class="p">,</span>
+        <span class="n">joinsource</span><span class="o">=</span><span class="s1">&#39;itersource&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">select_surfaces</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">KeySelect</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;midthickness&#39;</span><span class="p">],</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">]),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;select_surfaces&#39;</span><span class="p">,</span>
+        <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">combine_sources</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">Merge</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;combine_sources&#39;</span><span class="p">,</span> <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">abs_thickness</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">MetricMath</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s1">&#39;abs&#39;</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;abs_thickness&#39;</span><span class="p">,</span>
+        <span class="n">mem_gb</span><span class="o">=</span><span class="n">DEFAULT_MEMORY_MIN_GB</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">initial_roi</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">MetricMath</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;roi&#39;</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s1">&#39;bin&#39;</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;initial_roi&#39;</span><span class="p">,</span> <span class="n">mem_gb</span><span class="o">=</span><span class="n">DEFAULT_MEMORY_MIN_GB</span>
+    <span class="p">)</span>
+    <span class="n">fill_holes</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">MetricFillHoles</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fill_holes&#39;</span><span class="p">,</span> <span class="n">mem_gb</span><span class="o">=</span><span class="n">DEFAULT_MEMORY_MIN_GB</span><span class="p">)</span>
+    <span class="n">native_roi</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">MetricRemoveIslands</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;native_roi&#39;</span><span class="p">,</span> <span class="n">mem_gb</span><span class="o">=</span><span class="n">DEFAULT_MEMORY_MIN_GB</span><span class="p">)</span>
+
+    <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
+        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">select_surfaces</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;thickness&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;midthickness&#39;</span><span class="p">,</span> <span class="s1">&#39;midthickness&#39;</span><span class="p">),</span>
+        <span class="p">]),</span>
+        <span class="p">(</span><span class="n">itersource</span><span class="p">,</span> <span class="n">select_surfaces</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;hemi&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">itersource</span><span class="p">,</span> <span class="n">abs_thickness</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;hemi&#39;</span><span class="p">,</span> <span class="s1">&#39;hemisphere&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">itersource</span><span class="p">,</span> <span class="n">initial_roi</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;hemi&#39;</span><span class="p">,</span> <span class="s1">&#39;hemisphere&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">abs_thickness</span><span class="p">,</span> <span class="n">initial_roi</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;metric_file&#39;</span><span class="p">,</span> <span class="s1">&#39;metric_file&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">select_surfaces</span><span class="p">,</span> <span class="n">abs_thickness</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;metric_file&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">select_surfaces</span><span class="p">,</span> <span class="n">fill_holes</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;midthickness&#39;</span><span class="p">,</span> <span class="s1">&#39;surface_file&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">select_surfaces</span><span class="p">,</span> <span class="n">native_roi</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;midthickness&#39;</span><span class="p">,</span> <span class="s1">&#39;surface_file&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">abs_thickness</span><span class="p">,</span> <span class="n">initial_roi</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;metric_file&#39;</span><span class="p">,</span> <span class="s1">&#39;metric_file&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">initial_roi</span><span class="p">,</span> <span class="n">fill_holes</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;metric_file&#39;</span><span class="p">,</span> <span class="s1">&#39;metric_file&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">fill_holes</span><span class="p">,</span> <span class="n">native_roi</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="s1">&#39;metric_file&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">native_roi</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="s1">&#39;roi&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">native_roi</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="s1">&#39;cortex_masks&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">select_surfaces</span><span class="p">,</span> <span class="n">combine_sources</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;midthickness&#39;</span><span class="p">,</span> <span class="s1">&#39;in1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="s1">&#39;in2&#39;</span><span class="p">),</span>
+        <span class="p">]),</span>
+        <span class="p">(</span><span class="n">combine_sources</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="s1">&#39;source_files&#39;</span><span class="p">)]),</span>
     <span class="p">])</span>  <span class="c1"># fmt:skip</span>
 
     <span class="k">return</span> <span class="n">workflow</span></div>

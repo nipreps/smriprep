@@ -1,0 +1,17 @@
+strict digraph {
+"inputnode (utility)";
+"get_surfaces (utility)";
+"fix_surfs (surf)";
+"surface_list (utility)";
+"outputnode (utility)";
+"surface_groups (utility)";
+"fs2gii (freesurfer)";
+"inputnode (utility)" -> "get_surfaces (utility)";
+"inputnode (utility)" -> "fix_surfs (surf)";
+"get_surfaces (utility)" -> "surface_list (utility)";
+"fix_surfs (surf)" -> "outputnode (utility)";
+"fix_surfs (surf)" -> "surface_groups (utility)";
+"surface_list (utility)" -> "fs2gii (freesurfer)";
+"surface_groups (utility)" -> "outputnode (utility)";
+"fs2gii (freesurfer)" -> "fix_surfs (surf)";
+}

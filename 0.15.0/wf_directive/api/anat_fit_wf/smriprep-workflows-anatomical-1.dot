@@ -29,6 +29,7 @@ strict digraph {
 "anat_ribbon_wf";
 "fsLR_reg_wf";
 "msm_sulc_wf";
+"cortex_masks_wf";
 "fsLR_buffer (utility)";
 "msm_buffer (utility)";
 "anat_validate (header)";
@@ -47,6 +48,7 @@ strict digraph {
 "gifti_spheres_wf";
 "gifti_morphometrics_wf";
 "t2wtot1w_xfm (nitransforms)";
+"ds_cortex_masks_wf";
 "inputnode (utility)" -> "anat_template_wf";
 "inputnode (utility)" -> "register_template_wf";
 "inputnode (utility)" -> "fs_isrunning (utility)";
@@ -106,9 +108,11 @@ strict digraph {
 "surfaces_buffer (utility)" -> "anat_ribbon_wf";
 "surfaces_buffer (utility)" -> "fsLR_reg_wf";
 "surfaces_buffer (utility)" -> "msm_sulc_wf";
+"surfaces_buffer (utility)" -> "cortex_masks_wf";
 "anat_ribbon_wf" -> "ds_ribbon_mask_wf";
 "fsLR_reg_wf" -> "ds_fsLR_reg_wf";
 "msm_sulc_wf" -> "ds_msmsulc_wf";
+"cortex_masks_wf" -> "ds_cortex_masks_wf";
 "fsLR_buffer (utility)" -> "outputnode (utility)";
 "fsLR_buffer (utility)" -> "msm_sulc_wf";
 "msm_buffer (utility)" -> "outputnode (utility)";
@@ -139,4 +143,5 @@ strict digraph {
 "gifti_spheres_wf" -> "ds_spheres_wf";
 "gifti_morphometrics_wf" -> "ds_morph_wf";
 "t2wtot1w_xfm (nitransforms)" -> "t2w_resample (fixes)";
+"ds_cortex_masks_wf" -> "outputnode (utility)";
 }

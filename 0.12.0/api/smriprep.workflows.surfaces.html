@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.surfaces module &mdash; smriprep 0.18.1.dev31 documentation</title>
+  <title>smriprep.workflows.surfaces module &mdash; smriprep 0.18.1.dev66 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -189,6 +189,33 @@ race conditions, as it is a volumetric operation.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_cortex_masks_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_cortex_masks_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cortex_masks_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_cortex_masks_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_cortex_masks_wf" title="Link to this definition"></a></dt>
+<dd><p>Create cortical surface masks from surface files.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-3.png" src="../_images/smriprep-workflows-surfaces-3.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-3.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>midthickness</strong> (<em>len-2 list of str</em>) – Each hemisphere’s FreeSurfer midthickness surface file in GIFTI format</p></li>
+<li><p><strong>thickness</strong> (<em>len-2 list of str</em>) – Each hemisphere’s FreeSurfer thickness file in GIFTI format</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>cortex_masks</strong> (<em>len-2 list of str</em>) – Cortical surface mask in GIFTI format for each hemisphere</p></li>
+<li><p><strong>source_files</strong> (<em>len-2 list of lists of str</em>) – Each hemisphere’s source files, which are used to create the mask</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_fsLR_reg_wf">
 <span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_fsLR_reg_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fsLR_reg_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_fsLR_reg_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_fsLR_reg_wf" title="Link to this definition"></a></dt>
 <dd><p>Generate GIFTI registration files to fsLR space</p>
@@ -203,9 +230,9 @@ directory.</p>
 <code class="docutils literal notranslate"><span class="pre">lh/rh.sulc</span></code>.</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-3.png" src="../_images/smriprep-workflows-surfaces-3.png" />
+<img alt="../_images/smriprep-workflows-surfaces-4.png" src="../_images/smriprep-workflows-surfaces-4.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-3.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-4.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.pdf">pdf</a>)</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -234,9 +261,9 @@ directory.</p>
 when <code class="docutils literal notranslate"><span class="pre">fsnative2anat_xfm</span></code> is provided.</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-4.png" src="../_images/smriprep-workflows-surfaces-4.png" />
+<img alt="../_images/smriprep-workflows-surfaces-5.png" src="../_images/smriprep-workflows-surfaces-5.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-4.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-5.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.pdf">pdf</a>)</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -265,9 +292,9 @@ and performs some geometric preprocessing steps to get final metrics and a
 subject-specific cortical ROI.</p>
 <p>Workflow Graph</p>
 <figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-5.png" src="../_images/smriprep-workflows-surfaces-5.png" />
+<img alt="../_images/smriprep-workflows-surfaces-6.png" src="../_images/smriprep-workflows-surfaces-6.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-5.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-6.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.pdf">pdf</a>)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>omp_nthreads</strong> – Maximum number of threads an individual process may use</p>
@@ -285,7 +312,6 @@ subject-specific cortical ROI.</p>
 <li><p><strong>thickness</strong> – HCP-style thickness file in GIFTI format</p></li>
 <li><p><strong>curv</strong> – HCP-style curvature file in GIFTI format</p></li>
 <li><p><strong>sulc</strong> – HCP-style sulcal depth file in GIFTI format</p></li>
-<li><p><strong>roi</strong> – HCP-style cortical ROI file in GIFTI format</p></li>
 </ul>
 </dd>
 </dl>
@@ -298,9 +324,9 @@ subject-specific cortical ROI.</p>
 <p>Outputs are in CIFTI2 format.</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-6.png" src="../_images/smriprep-workflows-surfaces-6.png" />
+<img alt="../_images/smriprep-workflows-surfaces-7.png" src="../_images/smriprep-workflows-surfaces-7.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-6.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-7.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.pdf">pdf</a>)</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -344,9 +370,9 @@ subject-specific cortical ROI.</p>
 <dd><p>Refine ANTs brain extraction with FreeSurfer segmentation</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-7.png" src="../_images/smriprep-workflows-surfaces-7.png" />
+<img alt="../_images/smriprep-workflows-surfaces-8.png" src="../_images/smriprep-workflows-surfaces-8.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-7.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-8.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.pdf">pdf</a>)</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -379,9 +405,9 @@ subject-specific cortical ROI.</p>
 <dd><p>Resample subject surfaces surface to specified density.</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-8.png" src="../_images/smriprep-workflows-surfaces-8.png" />
+<img alt="../_images/smriprep-workflows-surfaces-9.png" src="../_images/smriprep-workflows-surfaces-9.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-8.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-9.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.pdf">pdf</a>)</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -410,9 +436,9 @@ subject-specific cortical ROI.</p>
 <dd><p>Get a segmentation from FreeSurfer conformed space into native anatomical space.</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-9.png" src="../_images/smriprep-workflows-surfaces-9.png" />
+<img alt="../_images/smriprep-workflows-surfaces-10.png" src="../_images/smriprep-workflows-surfaces-10.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-9.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-10.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.pdf">pdf</a>)</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -442,9 +468,9 @@ subject-specific cortical ROI.</p>
 <dd><p>Generate sMRIPrep derivatives from FreeSurfer derivatives</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-10.png" src="../_images/smriprep-workflows-surfaces-10.png" />
+<img alt="../_images/smriprep-workflows-surfaces-11.png" src="../_images/smriprep-workflows-surfaces-11.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-10.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-11.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.pdf">pdf</a>)</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -529,9 +555,9 @@ They specify an allocation of 4GB per subject. Here we define 5GB
 to have a certain margin.</p>
 <dl>
 <dt>Workflow Graph</dt><dd><figure class="align-default">
-<img alt="../_images/smriprep-workflows-surfaces-11.png" src="../_images/smriprep-workflows-surfaces-11.png" />
+<img alt="../_images/smriprep-workflows-surfaces-12.png" src="../_images/smriprep-workflows-surfaces-12.png" />
 </figure>
-<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-11.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.pdf">pdf</a>)</p>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-12.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-12.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-12.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-12.pdf">pdf</a>)</p>
 </dd>
 </dl>
 <dl class="field-list simple">

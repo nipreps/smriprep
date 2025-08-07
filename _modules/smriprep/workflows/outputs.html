@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.outputs &mdash; smriprep 0.18.1.dev31 documentation</title>
+  <title>smriprep.workflows.outputs &mdash; smriprep 0.18.1.dev66 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -1350,6 +1350,104 @@
 
 
 
+<div class="viewcode-block" id="init_ds_surface_masks_wf">
+<a class="viewcode-back" href="../../../api/smriprep.workflows.outputs.html#smriprep.workflows.outputs.init_ds_surface_masks_wf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_ds_surface_masks_wf</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">mask_type</span><span class="p">:</span> <span class="n">ty</span><span class="o">.</span><span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;cortex&#39;</span><span class="p">,</span> <span class="s1">&#39;roi&#39;</span><span class="p">,</span> <span class="s1">&#39;ribbon&#39;</span><span class="p">,</span> <span class="s1">&#39;brain&#39;</span><span class="p">],</span>
+    <span class="n">entities</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_surface_masks_wf&#39;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Workflow</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save GIFTI surface masks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    output_dir : :class:`str`</span>
+<span class="sd">        Directory in which to save derivatives</span>
+<span class="sd">    mask_type : :class:`str`</span>
+<span class="sd">        Type of mask to save</span>
+<span class="sd">    entities : :class:`dict` of :class:`str`</span>
+<span class="sd">        Entities to include in outputs</span>
+<span class="sd">    name : :class:`str`</span>
+<span class="sd">        Workflow name (default: ds_surface_masks_wf)</span>
+
+<span class="sd">    Inputs</span>
+<span class="sd">    ------</span>
+<span class="sd">    source_files : list of lists of str</span>
+<span class="sd">        List of lists of source files.</span>
+<span class="sd">        Left hemisphere sources first, then right hemisphere sources.</span>
+<span class="sd">    mask_files : list of str</span>
+<span class="sd">        List of input mask files.</span>
+<span class="sd">        Left hemisphere mask first, then right hemisphere mask.</span>
+
+<span class="sd">    Outputs</span>
+<span class="sd">    -------</span>
+<span class="sd">    mask_files : list of str</span>
+<span class="sd">        List of output mask files.</span>
+<span class="sd">        Left hemisphere mask first, then right hemisphere mask.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">entities</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">entities</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">inputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mask_files&#39;</span><span class="p">,</span> <span class="s1">&#39;source_files&#39;</span><span class="p">]),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputnode&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">outputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">JoinNode</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mask_files&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputnode&#39;</span><span class="p">,</span> <span class="n">joinsource</span><span class="o">=</span><span class="s1">&#39;ds_itersource&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">ds_itersource</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;hemi&#39;</span><span class="p">]),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_itersource&#39;</span><span class="p">,</span>
+        <span class="n">iterables</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;hemi&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">])],</span>
+    <span class="p">)</span>
+
+    <span class="n">sources</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">_bids_relative</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sources&#39;</span><span class="p">)</span>
+    <span class="n">sources</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">bids_root</span> <span class="o">=</span> <span class="n">output_dir</span>
+
+    <span class="n">select_files</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">KeySelect</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mask_file&#39;</span><span class="p">,</span> <span class="s1">&#39;sources&#39;</span><span class="p">],</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">]),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;select_files&#39;</span><span class="p">,</span>
+        <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ds_surf_mask</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">DerivativesDataSink</span><span class="p">(</span>
+            <span class="n">base_directory</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+            <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;mask&#39;</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="n">mask_type</span><span class="p">,</span>
+            <span class="n">extension</span><span class="o">=</span><span class="s1">&#39;.label.gii&#39;</span><span class="p">,</span>
+            <span class="n">Type</span><span class="o">=</span><span class="s1">&#39;Brain&#39;</span> <span class="k">if</span> <span class="n">mask_type</span> <span class="o">==</span> <span class="s1">&#39;brain&#39;</span> <span class="k">else</span> <span class="s1">&#39;ROI&#39;</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">entities</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_surf_mask&#39;</span><span class="p">,</span>
+        <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
+        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">select_files</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;mask_files&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_file&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;source_files&#39;</span><span class="p">,</span> <span class="s1">&#39;sources&#39;</span><span class="p">),</span>
+        <span class="p">]),</span>
+        <span class="p">(</span><span class="n">select_files</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;sources&#39;</span><span class="p">,</span> <span class="s1">&#39;in_files&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">ds_itersource</span><span class="p">,</span> <span class="n">select_files</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;hemi&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">ds_itersource</span><span class="p">,</span> <span class="n">ds_surf_mask</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;hemi&#39;</span><span class="p">,</span> <span class="s1">&#39;hemi&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">select_files</span><span class="p">,</span> <span class="n">ds_surf_mask</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;mask_file&#39;</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">),</span>
+            <span class="p">((</span><span class="s1">&#39;sources&#39;</span><span class="p">,</span> <span class="n">_pop</span><span class="p">),</span> <span class="s1">&#39;source_file&#39;</span><span class="p">),</span>
+        <span class="p">]),</span>
+        <span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">ds_surf_mask</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="s1">&#39;Sources&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">ds_surf_mask</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_files&#39;</span><span class="p">)]),</span>
+    <span class="p">])</span>  <span class="c1"># fmt: skip</span>
+
+    <span class="k">return</span> <span class="n">workflow</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_bids_relative</span><span class="p">(</span><span class="n">in_files</span><span class="p">,</span> <span class="n">bids_root</span><span class="p">):</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
@@ -1454,6 +1552,10 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
     <span class="k">return</span> <span class="n">loads</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pop</span><span class="p">(</span><span class="n">in_list</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">in_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 
            </div>

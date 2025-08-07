@@ -30,6 +30,7 @@ anat_fit_wfregister_template_wf [label="{IN|<ininputnodelesionmask> inputnode.le
 anat_fit_wft2w_resample [label="{IN|<ininputimage> input_image|<inreferenceimage> reference_image|<intransforms> transforms}|{ t2w_resample | fixes |  }|{OUT|<outoutputimage> output_image}"];
 anat_fit_wfanat_ribbon_wf [label="{IN|<ininputnodepial> inputnode.pial|<ininputnodereffile> inputnode.ref_file|<ininputnodewhite> inputnode.white}|{ anat_ribbon_wf |  |  }|{OUT|<outoutputnodeanatribbon> outputnode.anat_ribbon}"];
 anat_fit_wffsLR_reg_wf [label="{IN|<ininputnodespherereg> inputnode.sphere_reg}|{ fsLR_reg_wf |  |  }|{OUT|<outoutputnodesphereregfsLR> outputnode.sphere_reg_fsLR}"];
+anat_fit_wfcortex_masks_wf [label="{IN|<ininputnodemidthickness> inputnode.midthickness|<ininputnodethickness> inputnode.thickness}|{ cortex_masks_wf |  |  }|{OUT|<outoutputnodecortexmasks> outputnode.cortex_masks|<outoutputnodesourcefiles> outputnode.source_files}"];
 anat_fit_wflut_t1w_dseg [label="{IN|<inindseg> in_dseg}|{ lut_t1w_dseg | utility |  }|{OUT|<outout> out}"];
 anat_fit_wffast2bids [label="{IN|<ininlist> inlist}|{ fast2bids | utility |  }|{OUT|<outout> out}"];
 anat_fit_wfds_template_registration_wf [label="{IN|<ininputnodeanat2stdxfm> inputnode.anat2std_xfm|<ininputnodesourcefiles> inputnode.source_files|<ininputnodestd2anatxfm> inputnode.std2anat_xfm|<ininputnodetemplate> inputnode.template}|{ ds_template_registration_wf |  |  }|{OUT|<outoutputnodeanat2stdxfm> outputnode.anat2std_xfm|<outoutputnodestd2anatxfm> outputnode.std2anat_xfm}"];
@@ -37,6 +38,7 @@ anat_fit_wftemplate_buffer [label="{IN|<inin2> in2}|{ template_buffer | utility 
 anat_fit_wfds_t2w_preproc [label="{IN|<ininfile> in_file|<insourcefile> source_file}|{ ds_t2w_preproc |  |  }|{OUT|<outoutfile> out_file}"];
 anat_fit_wfds_ribbon_mask_wf [label="{IN|<ininputnodemaskfile> inputnode.mask_file|<ininputnodesourcefiles> inputnode.source_files}|{ ds_ribbon_mask_wf |  |  }|{OUT|<outoutputnodemaskfile> outputnode.mask_file}"];
 anat_fit_wfds_fsLR_reg_wf [label="{IN|<ininputnodesourcefiles> inputnode.source_files|<ininputnodesphereregfsLR> inputnode.sphere_reg_fsLR}|{ ds_fsLR_reg_wf |  |  }|{OUT|<outoutputnodesphereregfsLR> outputnode.sphere_reg_fsLR}"];
+anat_fit_wfds_cortex_masks_wf [label="{IN|<ininputnodemaskfiles> inputnode.mask_files|<ininputnodesourcefiles> inputnode.source_files}|{ ds_cortex_masks_wf |  |  }|{OUT|<outoutputnodemaskfiles> outputnode.mask_files}"];
 anat_fit_wfds_dseg_wf [label="{IN|<ininputnodeanatdseg> inputnode.anat_dseg|<ininputnodesourcefiles> inputnode.source_files}|{ ds_dseg_wf |  |  }|{OUT|<outoutputnodeanatdseg> outputnode.anat_dseg}"];
 anat_fit_wfds_tpms_wf [label="{IN|<ininputnodeanattpms> inputnode.anat_tpms|<ininputnodesourcefiles> inputnode.source_files}|{ ds_tpms_wf |  |  }|{OUT|<outoutputnodeanattpms> outputnode.anat_tpms}"];
 anat_fit_wfstd2anat_buffer [label="{IN|<inin2> in2}|{ std2anat_buffer | utility |  }|{OUT|<outout> out}"];
@@ -46,7 +48,7 @@ anat_fit_wfseg_buffer [label="{IN|<int1wdseg> t1w_dseg|<int1wtpms> t1w_tpms}|{ s
 anat_fit_wfmsm_sulc_wf [label="{IN|<ininputnodesphere> inputnode.sphere|<ininputnodesphereregfsLR> inputnode.sphere_reg_fsLR|<ininputnodesulc> inputnode.sulc}|{ msm_sulc_wf |  |  }|{OUT|<outoutputnodesphereregfsLR> outputnode.sphere_reg_fsLR}"];
 anat_fit_wfds_msmsulc_wf [label="{IN|<ininputnodesourcefiles> inputnode.source_files|<ininputnodesphereregmsm> inputnode.sphere_reg_msm}|{ ds_msmsulc_wf |  |  }|{OUT|<outoutputnodesphereregmsm> outputnode.sphere_reg_msm}"];
 anat_fit_wfmsm_buffer [label="{IN|<insphereregmsm> sphere_reg_msm}|{ msm_buffer | utility |  }|{OUT|<outsphereregmsm> sphere_reg_msm}"];
-anat_fit_wfoutputnode [label="{IN|<inanat2stdxfm> anat2std_xfm|<inanatribbon> anat_ribbon|<infsnative2t1wxfm> fsnative2t1w_xfm|<inmidthickness> midthickness|<inpial> pial|<insphere> sphere|<inspherereg> sphere_reg|<insphereregfsLR> sphere_reg_fsLR|<insphereregmsm> sphere_reg_msm|<instd2anatxfm> std2anat_xfm|<insubjectid> subject_id|<insubjectsdir> subjects_dir|<insulc> sulc|<int1wdseg> t1w_dseg|<int1wmask> t1w_mask|<int1wpreproc> t1w_preproc|<int1wtpms> t1w_tpms|<int1wvalidlist> t1w_valid_list|<int2wpreproc> t2w_preproc|<intemplate> template|<inthickness> thickness|<inwhite> white}|{ outputnode | utility |  }|{OUT|<outanat2stdxfm> anat2std_xfm|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir|<outt1wdseg> t1w_dseg|<outt1wmask> t1w_mask|<outt1wpreproc> t1w_preproc|<outt1wvalidlist> t1w_valid_list|<outtemplate> template}"];
+anat_fit_wfoutputnode [label="{IN|<inanat2stdxfm> anat2std_xfm|<inanatribbon> anat_ribbon|<incortexmask> cortex_mask|<infsnative2t1wxfm> fsnative2t1w_xfm|<inmidthickness> midthickness|<inpial> pial|<insphere> sphere|<inspherereg> sphere_reg|<insphereregfsLR> sphere_reg_fsLR|<insphereregmsm> sphere_reg_msm|<instd2anatxfm> std2anat_xfm|<insubjectid> subject_id|<insubjectsdir> subjects_dir|<insulc> sulc|<int1wdseg> t1w_dseg|<int1wmask> t1w_mask|<int1wpreproc> t1w_preproc|<int1wtpms> t1w_tpms|<int1wvalidlist> t1w_valid_list|<int2wpreproc> t2w_preproc|<intemplate> template|<inthickness> thickness|<inwhite> white}|{ outputnode | utility |  }|{OUT|<outanat2stdxfm> anat2std_xfm|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir|<outt1wdseg> t1w_dseg|<outt1wmask> t1w_mask|<outt1wpreproc> t1w_preproc|<outt1wvalidlist> t1w_valid_list|<outtemplate> template}"];
 anat_fit_wfanat_reports_wf [label="{IN|<ininputnodeanat2stdxfm> inputnode.anat2std_xfm|<ininputnodesourcefile> inputnode.source_file|<ininputnodesubjectid> inputnode.subject_id|<ininputnodesubjectsdir> inputnode.subjects_dir|<ininputnodet1wconformreport> inputnode.t1w_conform_report|<ininputnodet1wdseg> inputnode.t1w_dseg|<ininputnodet1wmask> inputnode.t1w_mask|<ininputnodet1wpreproc> inputnode.t1w_preproc|<ininputnodetemplate> inputnode.template}|{ anat_reports_wf |  |  }|{OUT}"];
 anat_fit_wfanat2std_buffer:outout:e -> anat_fit_wfoutputnode:inanat2stdxfm:w;
 anat_fit_wfanat_ribbon_wf:outoutputnodeanatribbon:e -> anat_fit_wfds_ribbon_mask_wf:ininputnodemaskfile:w;
@@ -62,6 +64,9 @@ anat_fit_wfbrain_extraction_wf:outoutputnodebiascorrected:e -> anat_fit_wft1w_bu
 anat_fit_wfbrain_extraction_wf:outoutputnodeoutfile:e -> anat_fit_wft1w_buffer:int1wbrain:w;
 anat_fit_wfbrain_extraction_wf:outoutputnodeoutmask:e -> anat_fit_wft1w_buffer:int1wmask:w;
 anat_fit_wfbrain_extraction_wf:outoutputnodeoutsegm:e -> anat_fit_wft1w_buffer:inantsseg:w;
+anat_fit_wfcortex_masks_wf:outoutputnodecortexmasks:e -> anat_fit_wfds_cortex_masks_wf:ininputnodemaskfiles:w;
+anat_fit_wfcortex_masks_wf:outoutputnodesourcefiles:e -> anat_fit_wfds_cortex_masks_wf:ininputnodesourcefiles:w;
+anat_fit_wfds_cortex_masks_wf:outoutputnodemaskfiles:e -> anat_fit_wfoutputnode:incortexmask:w;
 anat_fit_wfds_dseg_wf:outoutputnodeanatdseg:e -> anat_fit_wfseg_buffer:int1wdseg:w;
 anat_fit_wfds_fsLR_reg_wf:outoutputnodesphereregfsLR:e -> anat_fit_wffsLR_buffer:insphereregfsLR:w;
 anat_fit_wfds_fs_registration_wf:outoutputnodefsnative2anatxfm:e -> anat_fit_wfoutputnode:infsnative2t1wxfm:w;
@@ -156,6 +161,7 @@ anat_fit_wfsurface_recon_wf:outoutputnodesubjectsdir:e -> anat_fit_wfgifti_spher
 anat_fit_wfsurface_recon_wf:outoutputnodesubjectsdir:e -> anat_fit_wfgifti_surface_wf:ininputnodesubjectsdir:w;
 anat_fit_wfsurface_recon_wf:outoutputnodesubjectsdir:e -> anat_fit_wfoutputnode:insubjectsdir:w;
 anat_fit_wfsurface_recon_wf:outoutputnodesubjectsdir:e -> anat_fit_wfrefinement_wf:ininputnodesubjectsdir:w;
+anat_fit_wfsurfaces_buffer:outmidthickness:e -> anat_fit_wfcortex_masks_wf:ininputnodemidthickness:w;
 anat_fit_wfsurfaces_buffer:outmidthickness:e -> anat_fit_wfoutputnode:inmidthickness:w;
 anat_fit_wfsurfaces_buffer:outpial:e -> anat_fit_wfanat_ribbon_wf:ininputnodepial:w;
 anat_fit_wfsurfaces_buffer:outpial:e -> anat_fit_wfoutputnode:inpial:w;
@@ -165,6 +171,7 @@ anat_fit_wfsurfaces_buffer:outspherereg:e -> anat_fit_wffsLR_reg_wf:ininputnodes
 anat_fit_wfsurfaces_buffer:outspherereg:e -> anat_fit_wfoutputnode:inspherereg:w;
 anat_fit_wfsurfaces_buffer:outsulc:e -> anat_fit_wfmsm_sulc_wf:ininputnodesulc:w;
 anat_fit_wfsurfaces_buffer:outsulc:e -> anat_fit_wfoutputnode:insulc:w;
+anat_fit_wfsurfaces_buffer:outthickness:e -> anat_fit_wfcortex_masks_wf:ininputnodethickness:w;
 anat_fit_wfsurfaces_buffer:outthickness:e -> anat_fit_wfoutputnode:inthickness:w;
 anat_fit_wfsurfaces_buffer:outwhite:e -> anat_fit_wfanat_ribbon_wf:ininputnodewhite:w;
 anat_fit_wfsurfaces_buffer:outwhite:e -> anat_fit_wfoutputnode:inwhite:w;
