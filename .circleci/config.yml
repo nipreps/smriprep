@@ -341,7 +341,7 @@ jobs:
           name: Run Pytest
           no_output_timeout: 2h
           command: |
-            bash /tmp/src/smriprep/.circleci/pytest.sh
+            bash /tmp/src/smriprep/.circleci/pytest.sh -n auto
       - codecov/upload:
           file: /tmp/data/pytest_cov.xml
           flags: pytest
