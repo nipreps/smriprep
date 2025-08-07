@@ -76,8 +76,7 @@ def collect_derivatives(
     for _space in std_spaces:
         space = _space.replace(':cohort-', '+')
         for key, qry in spec['transforms'].items():
-            qry = qry.copy()
-            qry |= qry_base
+            qry = {**qry, **qry_base}
             qry['from'] = qry['from'] or space
             qry['to'] = qry['to'] or space
             item = layout.get(return_type='filename', **qry)
