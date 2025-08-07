@@ -37,6 +37,7 @@ def test_collect_derivatives(deriv_dset):
 
 
 def test_collect_derivatives_transforms(deriv_dset):
+    """Ensure transforms are collected for the right spaces."""
     output_spaces = ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3']
     collected = collect_derivatives(deriv_dset, '01', output_spaces)
     xfms = collected['transforms']
