@@ -29,6 +29,7 @@ structural images.
 """
 
 import typing as ty
+import warnings
 
 from nipype.interfaces import freesurfer as fs
 from nipype.interfaces import io as nio
@@ -1398,11 +1399,16 @@ def init_anat_ribbon_wf(name='anat_ribbon_wf'):
 
 def init_resample_surfaces_wf(
     surfaces: list[str],
-    grayord_density: ty.Literal['91k', '170k'],
+    template: str = 'fsLR',
+    cohort: str | None = None,
+    space: str | None = 'fsLR',
+    density: str | None = None,
+    grayord_density: str | None = None,
     name: str = 'resample_surfaces_wf',
 ):
     """
-    Resample subject surfaces surface to specified density.
+    Resample subject surfaces surface to specified template space and density,
+    using a given registration space.
 
     Workflow Graph
         .. workflow::
@@ -1412,44 +1418,64 @@ def init_resample_surfaces_wf(
             from smriprep.workflows.surfaces import init_resample_surfaces_wf
             wf = init_resample_surfaces_wf(
                 surfaces=['white', 'pial', 'midthickness'],
-                grayord_density='91k',
+                template='onavg',
+                density='10k',
             )
 
     Parameters
     ----------
     surfaces : :class:`list` of :class:`str`
         Names of surfaces (e.g., ``'white'``) to resample. Both hemispheres will be resampled.
-    grayord_density : :class:`str`
-        Either `91k` or `170k`, representing the total of vertices or *grayordinates*.
+    template : :class:`str`
+        The template space to resample to, e.g., ``'onavg'``, ``'fsLR'``.
+    cohort : :class:`str` or :obj:`None`
+        The template cohort to use, if the template provides multiple.
+    space : :class:`str` or :obj:`None`
+        The registration space for which there are both subject and template
+        registration spheres.
+        If ``None``, the template space is used.
+    density : :class:`str`
+        The density to resample to, e.g., ``'10k'``, ``'41k'``. Number of vertices per hemisphere.
     name : :class:`str`
         Unique name for the subworkflow (default: ``"resample_surfaces_wf"``)
 
     Inputs
     ------
     ``<surface>``
-        Left and right GIFTIs for each surface name passed to ``surfaces``
-    sphere_reg_fsLR
-        GIFTI surface mesh corresponding to the subject's fsLR registration sphere
+        Left and right GIFTIs for each surface name passed to ``surfaces``.
+    ``sphere_reg_<space>``
+        GIFTI surface mesh corresponding to the subject's registration sphere to ``space``.
 
     Outputs
     -------
-    ``<surface>``
-        Left and right GIFTI surface mesh corresponding to the input surface, resampled to fsLR
+    ``<surface>_<template>``
+        Left and right GIFTI surface mesh corresponding to the input surface, resampled to the
+        specified space and density.
     """
     import templateflow.api as tf
     from niworkflows.engine.workflows import LiterateWorkflow as Workflow
 
+    if density is None:
+        if grayord_density is None:
+            raise ValueError('No density specified. Set density argument.')
+        density = '32k' if grayord_density == '91k' else '59k'
+        warnings.warn(
+            'Deprecated grayord_density passed. Replace with\n\t'
+            "density='32k' if grayord_density == '91k' else '59k'",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     workflow = Workflow(name=name)
 
-    fslr_density = '32k' if grayord_density == '91k' else '59k'
-
     inputnode = pe.Node(
-        niu.IdentityInterface(fields=[*surfaces, 'sphere_reg_fsLR']),
+        niu.IdentityInterface(fields=[*surfaces, f'sphere_reg_{space}']),
         name='inputnode',
     )
 
     outputnode = pe.Node(
-        niu.IdentityInterface(fields=[f'{surf}_fsLR' for surf in surfaces]), name='outputnode'
+        niu.IdentityInterface(fields=[f'{surf}_{template}' for surf in surfaces]),
+        name='outputnode',
     )
 
     surface_list = pe.Node(
@@ -1466,11 +1492,12 @@ def init_resample_surfaces_wf(
     resampler.inputs.new_sphere = [
         str(
             tf.get(
-                template='fsLR',
-                density=fslr_density,
-                suffix='sphere',
+                template=template,
+                cohort=cohort,
+                space=space if space != template else None,
                 hemi=hemi,
-                space=None,
+                density=density,
+                suffix='sphere',
                 extension='.surf.gii',
             )
         )
@@ -1491,12 +1518,12 @@ def init_resample_surfaces_wf(
             for i, surf in enumerate(surfaces, start=1)
         ]),
         (inputnode, resampler, [
-            (('sphere_reg_fsLR', _repeat, len(surfaces)), 'current_sphere'),
+            ((f'sphere_reg_{space}', _repeat, len(surfaces)), 'current_sphere'),
         ]),
         (surface_list, resampler, [('out', 'surface_in')]),
         (resampler, surface_groups, [('surface_out', 'inlist')]),
         (surface_groups, outputnode, [
-            (f'out{i}', f'{surf}_fsLR') for i, surf in enumerate(surfaces, start=1)
+            (f'out{i}', f'{surf}_{template}') for i, surf in enumerate(surfaces, start=1)
         ]),
     ])  # fmt:skip
 
