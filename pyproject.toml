@@ -33,7 +33,7 @@ dependencies = [
     "packaging >= 24",
     "pybids >= 0.16",
     "pyyaml >= 6.0",
-    "templateflow >= 24.2",
+    "templateflow >= 25.0",
 ]
 dynamic = ["version"]
 
