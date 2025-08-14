@@ -1,0 +1,7 @@
+smriprep.interfaces.cifti module
+================================
+
+.. automodule:: smriprep.interfaces.cifti
+   :members:
+   :undoc-members:
+   :show-inheritance:

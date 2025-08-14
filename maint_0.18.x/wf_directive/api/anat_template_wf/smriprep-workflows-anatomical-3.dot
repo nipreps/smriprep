@@ -1,0 +1,15 @@
+strict digraph {
+"inputnode (utility)";
+"anat_ref_dimensions (images)";
+"denoise (ants)";
+"anat_conform (images)";
+"outputnode (utility)";
+"get1st (utility)";
+"inputnode (utility)" -> "anat_ref_dimensions (images)";
+"anat_ref_dimensions (images)" -> "denoise (ants)";
+"anat_ref_dimensions (images)" -> "anat_conform (images)";
+"anat_ref_dimensions (images)" -> "outputnode (utility)";
+"denoise (ants)" -> "anat_conform (images)";
+"anat_conform (images)" -> "get1st (utility)";
+"get1st (utility)" -> "outputnode (utility)";
+}

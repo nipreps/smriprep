@@ -1,0 +1,7 @@
+smriprep.interfaces.conftest module
+===================================
+
+.. automodule:: smriprep.interfaces.conftest
+   :members:
+   :undoc-members:
+   :show-inheritance:

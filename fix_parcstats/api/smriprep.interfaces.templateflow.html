@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.interfaces.templateflow module &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../_static/jquery.js?v=1413ff29"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="smriprep.utils package" href="smriprep.utils.html" />
+    <link rel="prev" title="smriprep.interfaces.surf module" href="smriprep.interfaces.surf.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Library API (application program interface)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="smriprep.cli.html">smriprep.cli package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="smriprep.interfaces.html">smriprep.interfaces package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="smriprep.interfaces.html#smriprep.interfaces.DerivativesDataSink"><code class="docutils literal notranslate"><span class="pre">DerivativesDataSink</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="smriprep.interfaces.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.freesurfer.html">smriprep.interfaces.freesurfer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.reports.html">smriprep.interfaces.reports module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.surf.html">smriprep.interfaces.surf module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">smriprep.interfaces.templateflow module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.utils.html">smriprep.utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.workflows.html">smriprep.workflows package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">Library API (application program interface)</a></li>
+          <li class="breadcrumb-item"><a href="smriprep.interfaces.html">smriprep.interfaces package</a></li>
+      <li class="breadcrumb-item active">smriprep.interfaces.templateflow module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/smriprep.interfaces.templateflow.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../../master/api/smriprep.interfaces.templateflow.html"><b>Warning:</b> This document is for the development version of smriprep. The main version is master.</a></p>
+<section id="module-smriprep.interfaces.templateflow">
+<span id="smriprep-interfaces-templateflow-module"></span><h1>smriprep.interfaces.templateflow module<a class="headerlink" href="#module-smriprep.interfaces.templateflow" title="Link to this heading"></a></h1>
+<p>Interfaces to get templates from TemplateFlow.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.templateflow.TemplateDesc">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.templateflow.</span></span><span class="sig-name descname"><span class="pre">TemplateDesc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/templateflow.html#TemplateDesc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.templateflow.TemplateDesc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterface</span></code></p>
+<p>Select template description and name pairs.</p>
+<p>This interface is necessary to ensure the good functioning
+with iterables and JoinNodes.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">select</span> <span class="o">=</span> <span class="n">TemplateDesc</span><span class="p">(</span><span class="n">template</span><span class="o">=</span><span class="s1">&#39;MNI152NLin2009cAsym&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;MNI152NLin2009cAsym&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">spec</span>
+<span class="go">{}</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">select</span> <span class="o">=</span> <span class="n">TemplateDesc</span><span class="p">(</span><span class="n">template</span><span class="o">=</span><span class="s1">&#39;MNIPediatricAsym:cohort-2&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;MNIPediatricAsym&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">spec</span>
+<span class="go">{&#39;cohort&#39;: &#39;2&#39;}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Mandatory Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>template</strong> (<em>a string</em>) – Univocal template identifier.</p>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>name</strong> (<em>a string</em>) – Template identifier.</p></li>
+<li><p><strong>spec</strong> (<em>a dictionary with keys which are any value and with values which are any value</em>) – Template arguments.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.templateflow.TemplateFlowSelect">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.templateflow.</span></span><span class="sig-name descname"><span class="pre">TemplateFlowSelect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/templateflow.html#TemplateFlowSelect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.templateflow.TemplateFlowSelect" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterface</span></code></p>
+<p>Select TemplateFlow elements.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">select</span> <span class="o">=</span> <span class="n">TemplateFlowSelect</span><span class="p">(</span><span class="n">resolution</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;MNI152NLin2009cAsym&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">t1w_file</span>  
+<span class="go">&#39;.../tpl-MNI152NLin2009cAsym_res-01_T1w.nii.gz&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">brain_mask</span>  
+<span class="go">&#39;.../tpl-MNI152NLin2009cAsym_res-01_desc-brain_mask.nii.gz&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">select</span> <span class="o">=</span> <span class="n">TemplateFlowSelect</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;MNIPediatricAsym&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template_spec</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;cohort&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;resolution&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">t1w_file</span>  
+<span class="go">&#39;.../tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">t2w_file</span>  
+<span class="go">&#39;.../tpl-MNIPediatricAsym_cohort-5_res-1_T2w.nii.gz&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">select</span> <span class="o">=</span> <span class="n">TemplateFlowSelect</span><span class="p">(</span><span class="n">resolution</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;MNIPediatricAsym:cohort-5&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template_spec</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;resolution&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">t1w_file</span>  
+<span class="go">&#39;.../tpl-MNIPediatricAsym_cohort-5_res-2_T1w.nii.gz&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">select</span> <span class="o">=</span> <span class="n">TemplateFlowSelect</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;MNIPediatricAsym:cohort-2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template_spec</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;cohort&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;resolution&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">t1w_file</span>  
+<span class="go">&#39;.../tpl-MNIPediatricAsym_cohort-5_res-1_T1w.nii.gz&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">select</span> <span class="o">=</span> <span class="n">TemplateFlowSelect</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="s1">&#39;MNI305&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">select</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">template_spec</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;resolution&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">t1w_file</span>  
+<span class="go">&#39;.../tpl-MNI305_T1w.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">t2w_file</span>
+<span class="go">&lt;undefined&gt;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Mandatory Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>template</strong> (<em>a string</em>) – Template ID.</p>
+</dd>
+<dt class="field-even">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>atlas</strong> (<em>a list of items which are a string</em>) – Specify an atlas.</p></li>
+<li><p><strong>cohort</strong> (<em>a list of items which are a string or an integer</em>) – Specify a cohort.</p></li>
+<li><p><strong>resolution</strong> (<em>a list of items which are an integer</em>) – Specify a template resolution index.</p></li>
+<li><p><strong>template_spec</strong> (<em>a dictionary with keys which are a string and with values which are any value</em>) – Template specifications.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">{'atlas':</span> <span class="pre">None,</span> <span class="pre">'cohort':</span> <span class="pre">None}</span></code>)</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>brain_mask</strong> (<em>a pathlike object or string representing an existing file</em>) – Template’s brain mask.</p></li>
+<li><p><strong>t1w_file</strong> (<em>a pathlike object or string representing an existing file</em>) – T1w template.</p></li>
+<li><p><strong>t2w_file</strong> (<em>a pathlike object or string representing a file</em>) – T2w template.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.interfaces.templateflow.fetch_template_files">
+<span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.templateflow.</span></span><span class="sig-name descname"><span class="pre">fetch_template_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">specs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sloppy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/smriprep/interfaces/templateflow.html#fetch_template_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.templateflow.fetch_template_files" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="smriprep.interfaces.surf.html" class="btn btn-neutral float-left" title="smriprep.interfaces.surf module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="smriprep.utils.html" class="btn btn-neutral float-right" title="smriprep.utils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: fix/parcstats
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../0.10.0/api/smriprep.interfaces.templateflow.html">0.10.0</a></dd>
+            <dd><a href="../../0.11.0/api/smriprep.interfaces.templateflow.html">0.11.0</a></dd>
+            <dd><a href="../../0.11.0rc0/api/smriprep.interfaces.templateflow.html">0.11.0rc0</a></dd>
+            <dd><a href="../../0.11.0rc1/api/smriprep.interfaces.templateflow.html">0.11.0rc1</a></dd>
+            <dd><a href="../../0.11.1/api/smriprep.interfaces.templateflow.html">0.11.1</a></dd>
+            <dd><a href="../../0.12.0/api/smriprep.interfaces.templateflow.html">0.12.0</a></dd>
+            <dd><a href="../../0.12.1/api/smriprep.interfaces.templateflow.html">0.12.1</a></dd>
+            <dd><a href="../../0.12.2/api/smriprep.interfaces.templateflow.html">0.12.2</a></dd>
+            <dd><a href="../../0.13.0/api/smriprep.interfaces.templateflow.html">0.13.0</a></dd>
+            <dd><a href="../../0.13.1/api/smriprep.interfaces.templateflow.html">0.13.1</a></dd>
+            <dd><a href="../../0.13.2/api/smriprep.interfaces.templateflow.html">0.13.2</a></dd>
+            <dd><a href="../../0.14.0/api/smriprep.interfaces.templateflow.html">0.14.0</a></dd>
+            <dd><a href="../../0.15.0/api/smriprep.interfaces.templateflow.html">0.15.0</a></dd>
+            <dd><a href="../../0.16.0/api/smriprep.interfaces.templateflow.html">0.16.0</a></dd>
+            <dd><a href="../../0.16.1/api/smriprep.interfaces.templateflow.html">0.16.1</a></dd>
+            <dd><a href="../../0.17.0/api/smriprep.interfaces.templateflow.html">0.17.0</a></dd>
+            <dd><a href="../../0.18.0/api/smriprep.interfaces.templateflow.html">0.18.0</a></dd>
+            <dd><a href="../../0.8.0/api/smriprep.interfaces.templateflow.html">0.8.0</a></dd>
+            <dd><a href="../../0.8.0rc1/api/smriprep.interfaces.templateflow.html">0.8.0rc1</a></dd>
+            <dd><a href="../../0.8.0rc2/api/smriprep.interfaces.templateflow.html">0.8.0rc2</a></dd>
+            <dd><a href="../../0.8.0rc3/api/smriprep.interfaces.templateflow.html">0.8.0rc3</a></dd>
+            <dd><a href="../../0.8.1/api/smriprep.interfaces.templateflow.html">0.8.1</a></dd>
+            <dd><a href="../../0.8.2/api/smriprep.interfaces.templateflow.html">0.8.2</a></dd>
+            <dd><a href="../../0.8.3/api/smriprep.interfaces.templateflow.html">0.8.3</a></dd>
+            <dd><a href="../../0.9.0/api/smriprep.interfaces.templateflow.html">0.9.0</a></dd>
+            <dd><a href="../../0.9.1/api/smriprep.interfaces.templateflow.html">0.9.1</a></dd>
+            <dd><a href="../../0.9.2/api/smriprep.interfaces.templateflow.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../dev-nibabies/api/smriprep.interfaces.templateflow.html">dev-nibabies</a></dd>
+            <dd><a href="../../enh_calabel/api/smriprep.interfaces.templateflow.html">enh/calabel</a></dd>
+            <dd><a href="../../enh_split-surfaces/api/smriprep.interfaces.templateflow.html">enh/split-surfaces</a></dd>
+            <dd><a href="smriprep.interfaces.templateflow.html">fix/parcstats</a></dd>
+            <dd><a href="../../fix_recon-report/api/smriprep.interfaces.templateflow.html">fix/recon-report</a></dd>
+            <dd><a href="../../fix_tfselect-resless/api/smriprep.interfaces.templateflow.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../maint_0.12.x/api/smriprep.interfaces.templateflow.html">maint/0.12.x</a></dd>
+            <dd><a href="../../maint_0.13.x/api/smriprep.interfaces.templateflow.html">maint/0.13.x</a></dd>
+            <dd><a href="../../maint_0.15.x/api/smriprep.interfaces.templateflow.html">maint/0.15.x</a></dd>
+            <dd><a href="../../maint_0.16.x/api/smriprep.interfaces.templateflow.html">maint/0.16.x</a></dd>
+            <dd><a href="../../maint_0.17.x/api/smriprep.interfaces.templateflow.html">maint/0.17.x</a></dd>
+            <dd><a href="../../maint_0.18.x/api/smriprep.interfaces.templateflow.html">maint/0.18.x</a></dd>
+            <dd><a href="../../maint_0.8.x/api/smriprep.interfaces.templateflow.html">maint/0.8.x</a></dd>
+            <dd><a href="../../maint_0.9.x/api/smriprep.interfaces.templateflow.html">maint/0.9.x</a></dd>
+            <dd><a href="../../master/api/smriprep.interfaces.templateflow.html">master</a></dd>
+            <dd><a href="../../rel_0.16.1/api/smriprep.interfaces.templateflow.html">rel/0.16.1</a></dd>
+            <dd><a href="../../rel_0.8.0rc1/api/smriprep.interfaces.templateflow.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

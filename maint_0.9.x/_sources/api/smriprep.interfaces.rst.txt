@@ -1,0 +1,18 @@
+smriprep.interfaces package
+===========================
+
+.. automodule:: smriprep.interfaces
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   smriprep.interfaces.freesurfer
+   smriprep.interfaces.reports
+   smriprep.interfaces.surf
+   smriprep.interfaces.templateflow

@@ -1,0 +1,19 @@
+digraph structs {
+node [shape=record];
+segs_to_native_wf_aseginputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outfsnative2anatxfm> fsnative2anat_xfm|<outinfile> in_file|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+segs_to_native_wf_asegfs_datasource [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ fs_datasource | patches |  }|{OUT|<outT1> T1|<outaseg> aseg}"];
+segs_to_native_wf_aseglta [label="{IN|<ininxfms> in_xfms|<inmoving> moving|<inreference> reference}|{ lta | nitransforms |  }|{OUT|<outoutxfm> out_xfm}"];
+segs_to_native_wf_asegselect_seg [label="{IN|<ininfiles> in_files}|{ select_seg | utility |  }|{OUT|<outout> out}"];
+segs_to_native_wf_asegresample [label="{IN|<inltafile> lta_file|<insourcefile> source_file|<intargetfile> target_file}|{ resample | freesurfer |  }|{OUT|<outtransformedfile> transformed_file}"];
+segs_to_native_wf_asegoutputnode [label="{IN|<inoutfile> out_file}|{ outputnode | utility |  }|{OUT}"];
+segs_to_native_wf_asegfs_datasource:outT1:e -> segs_to_native_wf_aseglta:inmoving:w;
+segs_to_native_wf_asegfs_datasource:outaseg:e -> segs_to_native_wf_asegselect_seg:ininfiles:w;
+segs_to_native_wf_aseginputnode:outfsnative2anatxfm:e -> segs_to_native_wf_aseglta:ininxfms:w;
+segs_to_native_wf_aseginputnode:outinfile:e -> segs_to_native_wf_aseglta:inreference:w;
+segs_to_native_wf_aseginputnode:outinfile:e -> segs_to_native_wf_asegresample:intargetfile:w;
+segs_to_native_wf_aseginputnode:outsubjectid:e -> segs_to_native_wf_asegfs_datasource:insubjectid:w;
+segs_to_native_wf_aseginputnode:outsubjectsdir:e -> segs_to_native_wf_asegfs_datasource:insubjectsdir:w;
+segs_to_native_wf_aseglta:outoutxfm:e -> segs_to_native_wf_asegresample:inltafile:w;
+segs_to_native_wf_asegresample:outtransformedfile:e -> segs_to_native_wf_asegoutputnode:inoutfile:w;
+segs_to_native_wf_asegselect_seg:outout:e -> segs_to_native_wf_asegresample:insourcefile:w;
+}

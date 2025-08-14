@@ -1,0 +1,26 @@
+digraph structs {
+node [shape=record];
+surface_derivatives_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outfsnative2anatxfm> fsnative2anat_xfm|<outreference> reference|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+surface_derivatives_wfgifti_surface_wf [label="{IN|<ininputnodefsnative2anatxfm> inputnode.fsnative2anat_xfm|<ininputnodesubjectid> inputnode.subject_id|<ininputnodesubjectsdir> inputnode.subjects_dir}|{ gifti_surface_wf |  |  }|{OUT|<outoutputnodeinflated> outputnode.inflated}"];
+surface_derivatives_wfgifti_morphometrics_wf [label="{IN|<ininputnodesubjectid> inputnode.subject_id|<ininputnodesubjectsdir> inputnode.subjects_dir}|{ gifti_morphometrics_wf |  |  }|{OUT|<outoutputnodecurv> outputnode.curv}"];
+surface_derivatives_wfsegs_to_native_wf_aseg [label="{IN|<ininputnodefsnative2anatxfm> inputnode.fsnative2anat_xfm|<ininputnodeinfile> inputnode.in_file|<ininputnodesubjectid> inputnode.subject_id|<ininputnodesubjectsdir> inputnode.subjects_dir}|{ segs_to_native_wf_aseg |  |  }|{OUT|<outoutputnodeoutfile> outputnode.out_file}"];
+surface_derivatives_wfsegs_to_native_wf_aparc_aseg [label="{IN|<ininputnodefsnative2anatxfm> inputnode.fsnative2anat_xfm|<ininputnodeinfile> inputnode.in_file|<ininputnodesubjectid> inputnode.subject_id|<ininputnodesubjectsdir> inputnode.subjects_dir}|{ segs_to_native_wf_aparc_aseg |  |  }|{OUT|<outoutputnodeoutfile> outputnode.out_file}"];
+surface_derivatives_wfoutputnode [label="{IN|<incurv> curv|<ininflated> inflated|<inoutaparc> out_aparc|<inoutaseg> out_aseg}|{ outputnode | utility |  }|{OUT}"];
+surface_derivatives_wfgifti_morphometrics_wf:outoutputnodecurv:e -> surface_derivatives_wfoutputnode:incurv:w;
+surface_derivatives_wfgifti_surface_wf:outoutputnodeinflated:e -> surface_derivatives_wfoutputnode:ininflated:w;
+surface_derivatives_wfinputnode:outfsnative2anatxfm:e -> surface_derivatives_wfgifti_surface_wf:ininputnodefsnative2anatxfm:w;
+surface_derivatives_wfinputnode:outfsnative2anatxfm:e -> surface_derivatives_wfsegs_to_native_wf_aparc_aseg:ininputnodefsnative2anatxfm:w;
+surface_derivatives_wfinputnode:outfsnative2anatxfm:e -> surface_derivatives_wfsegs_to_native_wf_aseg:ininputnodefsnative2anatxfm:w;
+surface_derivatives_wfinputnode:outreference:e -> surface_derivatives_wfsegs_to_native_wf_aparc_aseg:ininputnodeinfile:w;
+surface_derivatives_wfinputnode:outreference:e -> surface_derivatives_wfsegs_to_native_wf_aseg:ininputnodeinfile:w;
+surface_derivatives_wfinputnode:outsubjectid:e -> surface_derivatives_wfgifti_morphometrics_wf:ininputnodesubjectid:w;
+surface_derivatives_wfinputnode:outsubjectid:e -> surface_derivatives_wfgifti_surface_wf:ininputnodesubjectid:w;
+surface_derivatives_wfinputnode:outsubjectid:e -> surface_derivatives_wfsegs_to_native_wf_aparc_aseg:ininputnodesubjectid:w;
+surface_derivatives_wfinputnode:outsubjectid:e -> surface_derivatives_wfsegs_to_native_wf_aseg:ininputnodesubjectid:w;
+surface_derivatives_wfinputnode:outsubjectsdir:e -> surface_derivatives_wfgifti_morphometrics_wf:ininputnodesubjectsdir:w;
+surface_derivatives_wfinputnode:outsubjectsdir:e -> surface_derivatives_wfgifti_surface_wf:ininputnodesubjectsdir:w;
+surface_derivatives_wfinputnode:outsubjectsdir:e -> surface_derivatives_wfsegs_to_native_wf_aparc_aseg:ininputnodesubjectsdir:w;
+surface_derivatives_wfinputnode:outsubjectsdir:e -> surface_derivatives_wfsegs_to_native_wf_aseg:ininputnodesubjectsdir:w;
+surface_derivatives_wfsegs_to_native_wf_aparc_aseg:outoutputnodeoutfile:e -> surface_derivatives_wfoutputnode:inoutaparc:w;
+surface_derivatives_wfsegs_to_native_wf_aseg:outoutputnodeoutfile:e -> surface_derivatives_wfoutputnode:inoutaseg:w;
+}

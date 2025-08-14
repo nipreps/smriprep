@@ -1,0 +1,987 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.cli.run &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../../../_static/jquery.js?v=1413ff29"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../../../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smriprep.cli.run</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><b>Warning:</b> This document is for the development version of smriprep.</p>
+<h1>Source code for smriprep.cli.run</h1><div class="highlight"><pre>
+<span></span><span class="c1"># emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-</span>
+<span class="c1"># vi: set ft=python sts=4 ts=4 sw=4 et:</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2021 The NiPreps Developers &lt;nipreps@gmail.com&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="c1"># We support and encourage derived works from this project, please read</span>
+<span class="c1"># about our expectations at</span>
+<span class="c1">#</span>
+<span class="c1">#     https://www.nipreps.org/community/licensing/</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;sMRIPrep: Structural MRI PREProcessing workflow.&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../api/smriprep.cli.run.html#smriprep.cli.run.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set an entrypoint.&quot;&quot;&quot;</span>
+    <span class="n">opts</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">longitudinal</span><span class="p">:</span>
+        <span class="n">opts</span><span class="o">.</span><span class="n">subject_anatomical_reference</span> <span class="o">=</span> <span class="s1">&#39;unbiased&#39;</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s1">&#39;The &quot;--longitudinal&quot; flag is deprecated. Use &#39;</span>
+            <span class="s1">&#39;&quot;--subject-anatomical-reference unbiased&quot; instead.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">subject_anatomical_reference</span> <span class="o">==</span> <span class="s1">&#39;unbiased&#39;</span><span class="p">:</span>
+        <span class="n">opts</span><span class="p">[</span><span class="s1">&#39;longitudinal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">build_opts</span><span class="p">(</span><span class="n">opts</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="check_deps">
+<a class="viewcode-back" href="../../../api/smriprep.cli.run.html#smriprep.cli.run.check_deps">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_deps</span><span class="p">(</span><span class="n">workflow</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make sure all dependencies are installed.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.utils.filemanip</span><span class="w"> </span><span class="kn">import</span> <span class="n">which</span>
+
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">_cmd</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">workflow</span><span class="o">.</span><span class="n">_get_all_nodes</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">interface</span><span class="p">,</span> <span class="s1">&#39;_cmd&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">which</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">_cmd</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_parser">
+<a class="viewcode-back" href="../../../api/smriprep.cli.run.html#smriprep.cli.run.get_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build parser object.&quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">argparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArgumentParser</span><span class="p">,</span> <span class="n">RawTextHelpFormatter</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">OutputReferencesAction</span><span class="p">,</span>
+        <span class="n">Reference</span><span class="p">,</span>
+        <span class="n">SpatialReferences</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="kn">import</span><span class="w"> </span><span class="nn">smriprep</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_drop_ses</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s1">&#39;ses-&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;sMRIPrep: Structural MRI PREProcessing workflows&#39;</span><span class="p">,</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">RawTextHelpFormatter</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Arguments as specified by BIDS-Apps</span>
+    <span class="c1"># required, positional arguments</span>
+    <span class="c1"># IMPORTANT: they must go directly with the parser object</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;bids_dir&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the root folder of a BIDS valid dataset (sub-XXXXX folders should &#39;</span>
+        <span class="s1">&#39;be found at the top level in this folder).&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;output_dir&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the output path for the outcomes of preprocessing and visual reports&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;analysis_level&#39;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;participant&#39;</span><span class="p">],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;processing stage to be run, only &quot;participant&quot; in the case of &#39;</span>
+        <span class="s1">&#39;sMRIPrep (see BIDS-Apps specification).&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># optional arguments</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--version&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;version&#39;</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;smriprep v</span><span class="si">{</span><span class="n">smriprep</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">g_bids</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s1">&#39;Options for filtering BIDS queries&#39;</span><span class="p">)</span>
+    <span class="n">g_bids</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--participant-label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--participant_label&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;a space delimited list of participant identifiers or a single &#39;</span>
+        <span class="s1">&#39;identifier (the sub- prefix can be removed)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_bids</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--session-label&#39;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">_drop_ses</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A space delimited list of session identifiers or a single &#39;</span>
+        <span class="s1">&#39;identifier (the ses- prefix can be removed)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_bids</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-d&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--derivatives&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PATH&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Search PATH(s) for pre-computed derivatives.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_bids</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--bids-filter-file&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PATH&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;a JSON file describing custom BIDS input filters using pybids &#39;</span>
+        <span class="s1">&#39;{&lt;suffix&gt;:{&lt;entity&gt;:&lt;filter&gt;,...},...} &#39;</span>
+        <span class="s1">&#39;(https://github.com/bids-standard/pybids/blob/master/bids/layout/config/bids.json)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_bids</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--subject-anatomical-reference&#39;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;first-lex&#39;</span><span class="p">,</span> <span class="s1">&#39;unbiased&#39;</span><span class="p">,</span> <span class="s1">&#39;sessionwise&#39;</span><span class="p">],</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;first&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Method to produce the reference anatomical space:</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&quot;first-lex&quot; will use the first image in lexicographical order</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&quot;unbiased&quot; will construct an unbiased template from all images &#39;</span>
+        <span class="s1">&#39;(previously &quot;--longitudinal&quot;)</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&quot;sessionwise&quot; will independently process each session. If multiple runs are &#39;</span>
+        <span class="s1">&#39;found, the behavior will be similar to &quot;first-lex&quot;&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">g_perfm</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s1">&#39;Options to handle performance&#39;</span><span class="p">)</span>
+    <span class="n">g_perfm</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--nprocs&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--ncpus&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--nthreads&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--n_cpus&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;-n-cpus&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;number of CPUs to be used.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_perfm</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--omp-nthreads&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;maximum number of threads per-process&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_perfm</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--mem-gb&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--mem_gb&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;upper bound memory limit for sMRIPrep processes (in GB).&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_perfm</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--low-mem&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;attempt to reduce memory usage (will increase disk usage in working directory)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_perfm</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--use-plugin&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;nipype plugin configuration file&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_perfm</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--boilerplate&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;generate boilerplate only&#39;</span><span class="p">)</span>
+    <span class="n">g_perfm</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-v&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--verbose&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;verbose_count&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;count&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;increases log verbosity for each occurrence, debug level is -vvv&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">g_conf</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s1">&#39;Workflow configuration&#39;</span><span class="p">)</span>
+    <span class="n">g_conf</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--output-spaces&#39;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="n">OutputReferencesAction</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">SpatialReferences</span><span class="p">(),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;paths or keywords prescribing output spaces - &#39;</span>
+        <span class="s1">&#39;standard spaces will be extracted for spatial normalization.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_conf</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--longitudinal&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;DEPRECATED: use &quot;--subject-anatomical-reference unbiased&quot; instead&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1">#  ANTs options</span>
+    <span class="n">g_ants</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s1">&#39;Specific options for ANTs registrations&#39;</span><span class="p">)</span>
+    <span class="n">g_ants</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--skull-strip-template&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;OASIS30ANTs&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Reference</span><span class="o">.</span><span class="n">from_string</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;select a template for skull-stripping with antsBrainExtraction&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_ants</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--skull-strip-fixed-seed&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;do not use a random seed for skull-stripping - will ensure &#39;</span>
+        <span class="s1">&#39;run-to-run replicability when used with --omp-nthreads 1&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_ants</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--skull-strip-mode&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;skip&#39;</span><span class="p">,</span> <span class="s1">&#39;force&#39;</span><span class="p">),</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;determiner for T1-weighted skull stripping (force ensures skull &#39;</span>
+        <span class="s1">&#39;stripping, skip ignores skull stripping, and auto automatically &#39;</span>
+        <span class="s1">&#39;ignores skull stripping if pre-stripped brains are detected).&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># FreeSurfer options</span>
+    <span class="n">g_fs</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s1">&#39;Specific options for FreeSurfer preprocessing&#39;</span><span class="p">)</span>
+    <span class="n">g_fs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--fs-license-file&#39;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PATH&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to FreeSurfer license key file. Get it (for free) by registering&#39;</span>
+        <span class="s1">&#39; at https://surfer.nmr.mgh.harvard.edu/registration.html&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_fs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--fs-subjects-dir&#39;</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PATH&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to existing FreeSurfer subjects directory to reuse. &#39;</span>
+        <span class="s1">&#39;(default: OUTPUT_DIR/freesurfer)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_fs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--fs-no-resume&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;fs_no_resume&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;EXPERT: Import pre-computed FreeSurfer reconstruction without resuming. &#39;</span>
+        <span class="s1">&#39;The user is responsible for ensuring that all necessary files are present.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_fs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--cifti-output&#39;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span>
+        <span class="n">const</span><span class="o">=</span><span class="s1">&#39;91k&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;91k&#39;</span><span class="p">,</span> <span class="s1">&#39;170k&#39;</span><span class="p">),</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output morphometry as CIFTI dense scalars. &#39;</span>
+        <span class="s1">&#39;Optionally, the number of grayordinate can be specified &#39;</span>
+        <span class="s1">&#39;(default is 91k, which equates to 2mm resolution)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Surface generation xor</span>
+    <span class="n">g_surfs</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s1">&#39;Surface preprocessing options&#39;</span><span class="p">)</span>
+    <span class="n">g_surfs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--no-submm-recon&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;hires&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;disable sub-millimeter (hires) reconstruction&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_surfs</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--no-msm&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;msm_sulc&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Disable Multimodal Surface Matching surface registration.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_surfs_xor</span> <span class="o">=</span> <span class="n">g_surfs</span><span class="o">.</span><span class="n">add_mutually_exclusive_group</span><span class="p">()</span>
+
+    <span class="n">g_surfs_xor</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--fs-no-reconall&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;run_reconall&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;disable FreeSurfer surface preprocessing.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">g_other</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument_group</span><span class="p">(</span><span class="s1">&#39;Other options&#39;</span><span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-w&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--work-dir&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;work&#39;</span><span class="p">),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;path where intermediate results should be stored&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--fast-track&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;fast-track the workflow by searching for existing derivatives. &#39;</span>
+        <span class="s1">&#39;(DEPRECATED for --derivatives).&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--resource-monitor&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;enable Nipype&#39;s resource monitoring to keep track of memory and CPU usage&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--reports-only&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;only generate reports, don&#39;t run workflows. This will only rerun report &quot;</span>
+        <span class="s1">&#39;aggregation, not reportlet generation for specific nodes.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--run-uuid&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify UUID of previous run, to include error logs in report. &#39;</span>
+        <span class="s1">&#39;No effect without --reports-only.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--write-graph&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Write workflow graph.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--stop-on-first-crash&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Force stopping on first crash, even if a work directory was specified.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--notrack&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Opt-out of sending tracking information of this run to &#39;</span>
+        <span class="s1">&#39;the sMRIPrep developers. This information helps to &#39;</span>
+        <span class="s1">&#39;improve sMRIPrep and provides an indicator of real &#39;</span>
+        <span class="s1">&#39;world usage crucial for obtaining funding.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">g_other</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--sloppy&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use low-quality tools for speed - TESTING ONLY&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parser</span></div>
+
+
+
+<div class="viewcode-block" id="build_opts">
+<a class="viewcode-back" href="../../../api/smriprep.cli.run.html#smriprep.cli.run.build_opts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_opts</span><span class="p">(</span><span class="n">opts</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Trigger a new process that builds the workflow graph, based on the input options.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Manager</span><span class="p">,</span> <span class="n">Process</span><span class="p">,</span> <span class="n">set_start_method</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span> <span class="k">as</span> <span class="n">nlogging</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_valid_fs_license</span>
+
+    <span class="n">set_start_method</span><span class="p">(</span><span class="s1">&#39;forkserver&#39;</span><span class="p">)</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">addLevelName</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;IMPORTANT&#39;</span><span class="p">)</span>  <span class="c1"># Add a new level between INFO and WARNING</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">addLevelName</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="s1">&#39;VERBOSE&#39;</span><span class="p">)</span>  <span class="c1"># Add a new level between INFO and DEBUG</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;cli&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_warn_redirect</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">lineno</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Captured warning (</span><span class="si">%s</span><span class="s1">): </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+    <span class="n">warnings</span><span class="o">.</span><span class="n">showwarning</span> <span class="o">=</span> <span class="n">_warn_redirect</span>
+
+    <span class="c1"># Precedence: --fs-license-file, $FS_LICENSE, default_license</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">fs_license_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;FS_LICENSE&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">fs_license_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">check_valid_fs_license</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s1">&#39;ERROR: a valid license file is required for FreeSurfer to run. &#39;</span>
+            <span class="s1">&#39;sMRIPrep looked for an existing license file at several paths, in this &#39;</span>
+            <span class="s1">&#39;order: 1) command line argument ``--fs-license-file``; 2) ``$FS_LICENSE`` &#39;</span>
+            <span class="s1">&#39;environment variable; and 3) the ``$FREESURFER_HOME/license.txt`` path. &#39;</span>
+            <span class="s1">&#39;Get it (for free) by registering at https://&#39;</span>
+            <span class="s1">&#39;surfer.nmr.mgh.harvard.edu/registration.html&#39;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Retrieve logging level</span>
+    <span class="n">log_level</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">25</span> <span class="o">-</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">opts</span><span class="o">.</span><span class="n">verbose_count</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">))</span>
+    <span class="c1"># Set logging</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+    <span class="n">nlogging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;nipype.workflow&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+    <span class="n">nlogging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;nipype.interface&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+    <span class="n">nlogging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;nipype.utils&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
+
+    <span class="n">errno</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Call build_workflow(opts, retval)</span>
+    <span class="k">with</span> <span class="n">Manager</span><span class="p">()</span> <span class="k">as</span> <span class="n">mgr</span><span class="p">:</span>
+        <span class="n">retval</span> <span class="o">=</span> <span class="n">mgr</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">build_workflow</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">opts</span><span class="p">,</span> <span class="n">retval</span><span class="p">))</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">exitcode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">exitcode</span><span class="p">)</span>
+
+        <span class="n">smriprep_wf</span> <span class="o">=</span> <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;workflow&#39;</span><span class="p">]</span>
+        <span class="n">plugin_settings</span> <span class="o">=</span> <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;plugin_settings&#39;</span><span class="p">]</span>
+        <span class="n">bids_dir</span> <span class="o">=</span> <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;bids_dir&#39;</span><span class="p">]</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span>
+        <span class="n">subject_session_list</span> <span class="o">=</span> <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;subject_session_list&#39;</span><span class="p">]</span>
+        <span class="n">run_uuid</span> <span class="o">=</span> <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;run_uuid&#39;</span><span class="p">]</span>
+        <span class="n">retcode</span> <span class="o">=</span> <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;return_code&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">smriprep_wf</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">write_graph</span><span class="p">:</span>
+        <span class="n">smriprep_wf</span><span class="o">.</span><span class="n">write_graph</span><span class="p">(</span><span class="n">graph2use</span><span class="o">=</span><span class="s1">&#39;colored&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">,</span> <span class="n">simple_form</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">reports_only</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">retcode</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">boilerplate</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">retcode</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="c1"># Check workflow for missing commands</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="n">check_deps</span><span class="p">(</span><span class="n">smriprep_wf</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cannot run sMRIPrep. Missing dependencies:&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">iface</span><span class="p">,</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\t</span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s1"> (Interface: </span><span class="si">{</span><span class="n">iface</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Clean up master process before running workflow, which may create forks</span>
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">smriprep_wf</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">plugin_settings</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+        <span class="n">errno</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">run_reconall</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">_copy_any</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">templateflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">api</span>
+
+            <span class="n">dseg_tsv</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+                <span class="n">api</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="s1">&#39;fsaverage&#39;</span><span class="p">,</span>
+                    <span class="n">hemi</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">atlas</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">segmentation</span><span class="o">=</span><span class="s1">&#39;aparc&#39;</span><span class="p">,</span>
+                    <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;dseg&#39;</span><span class="p">,</span>
+                    <span class="n">extension</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;.tsv&#39;</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">_copy_any</span><span class="p">(</span><span class="n">dseg_tsv</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;smriprep&#39;</span> <span class="o">/</span> <span class="s1">&#39;desc-aseg_dseg.tsv&#39;</span><span class="p">))</span>
+            <span class="n">_copy_any</span><span class="p">(</span><span class="n">dseg_tsv</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;smriprep&#39;</span> <span class="o">/</span> <span class="s1">&#39;desc-aparcaseg_dseg.tsv&#39;</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;sMRIPrep finished without errors&#39;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">nireports.assembler.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_reports</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">smriprep</span><span class="w"> </span><span class="kn">import</span> <span class="n">data</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.utils.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_bidsignore</span><span class="p">,</span> <span class="n">write_derivative_description</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;Writing reports for participants: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">_pprint_subses</span><span class="p">(</span><span class="n">subject_session_list</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># Generate reports phase</span>
+        <span class="n">smriprep_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;smriprep&#39;</span>
+        <span class="n">bootstrap_file</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;reports-spec.yml&#39;</span><span class="p">)</span>
+        <span class="n">errno</span> <span class="o">+=</span> <span class="n">generate_reports</span><span class="p">(</span>
+            <span class="n">subject_session_list</span><span class="p">,</span>
+            <span class="n">smriprep_dir</span><span class="p">,</span>
+            <span class="n">run_uuid</span><span class="p">,</span>
+            <span class="n">bootstrap_file</span><span class="o">=</span><span class="n">bootstrap_file</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">write_derivative_description</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">,</span> <span class="n">smriprep_dir</span><span class="p">)</span>
+        <span class="n">write_bidsignore</span><span class="p">(</span><span class="n">smriprep_dir</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">errno</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="build_workflow">
+<a class="viewcode-back" href="../../../api/smriprep.cli.run.html#smriprep.cli.run.build_workflow">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_workflow</span><span class="p">(</span><span class="n">opts</span><span class="p">,</span> <span class="n">retval</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create the Nipype Workflow that supports the whole execution graph, given the inputs.</span>
+
+<span class="sd">    All the checks and the construction of the workflow are done</span>
+<span class="sd">    inside this function that has pickleable inputs and output</span>
+<span class="sd">    dictionary (``retval``) to allow isolation using a</span>
+<span class="sd">    ``multiprocessing.Process`` that allows smriprep to enforce</span>
+<span class="sd">    a hard-limited memory-scope.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">os</span><span class="w"> </span><span class="kn">import</span> <span class="n">cpu_count</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">shutil</span><span class="w"> </span><span class="kn">import</span> <span class="n">copyfile</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="kn">import</span> <span class="n">CalledProcessError</span><span class="p">,</span> <span class="n">TimeoutExpired</span><span class="p">,</span> <span class="n">check_call</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">time</span><span class="w"> </span><span class="kn">import</span> <span class="n">strftime</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">bids.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">BIDSLayout</span><span class="p">,</span> <span class="n">Query</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span> <span class="k">as</span> <span class="n">ncfg</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.utils.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_participants</span>
+
+    <span class="kn">import</span><span class="w"> </span><span class="nn">smriprep</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.workflows.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_smriprep_wf</span>
+
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;nipype.workflow&#39;</span><span class="p">)</span>
+
+    <span class="n">INIT_MSG</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    Running sMRIPrep version </span><span class="si">{version}</span><span class="s2">:</span>
+<span class="s2">      * BIDS dataset path: </span><span class="si">{bids_dir}</span><span class="s2">.</span>
+<span class="s2">      * Participants &amp; Sessions: </span><span class="si">{subject_session_list}</span><span class="s2">.</span>
+<span class="s2">      * Run identifier: </span><span class="si">{uuid}</span><span class="s2">.</span>
+
+<span class="s2">    </span><span class="si">{spaces}</span>
+<span class="s2">    &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span>
+
+    <span class="c1"># Set up some instrumental utilities</span>
+    <span class="n">run_uuid</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">-%H%M%S&#39;</span><span class="p">),</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+
+    <span class="c1"># First check that bids_dir looks like a BIDS folder</span>
+    <span class="n">bids_dir</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">bids_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">BIDSLayout</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">),</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">subject_list</span> <span class="o">=</span> <span class="n">collect_participants</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">participant_label</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">participant_label</span><span class="p">)</span>
+    <span class="n">session_list</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">session_label</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="n">subject_session_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">subject</span> <span class="ow">in</span> <span class="n">subject_list</span><span class="p">:</span>
+        <span class="n">sessions</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">layout</span><span class="o">.</span><span class="n">get_sessions</span><span class="p">(</span>
+                <span class="n">scope</span><span class="o">=</span><span class="s1">&#39;raw&#39;</span><span class="p">,</span>
+                <span class="n">subject</span><span class="o">=</span><span class="n">subject</span><span class="p">,</span>
+                <span class="n">session</span><span class="o">=</span><span class="n">session_list</span> <span class="ow">or</span> <span class="n">Query</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">,</span>
+                <span class="n">suffix</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="s1">&#39;T2w&#39;</span><span class="p">],</span>  <span class="c1"># TODO: Track supported modalities globally</span>
+            <span class="p">)</span>
+            <span class="ow">or</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">subject_anatomical_reference</span> <span class="o">==</span> <span class="s1">&#39;sessionwise&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">sessions</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s1">&#39;--subject-anatomical-reference &quot;sessionwise&quot; was requested, but no sessions &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;found for subject </span><span class="si">{</span><span class="n">subject</span><span class="si">}</span><span class="s1">.&#39;</span>
+                <span class="p">)</span>
+            <span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">sessions</span><span class="p">:</span>
+                <span class="n">subject_session_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">subject</span><span class="p">,</span> <span class="n">session</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># This will use all sessions either found by layout or passed in via --session-id</span>
+            <span class="n">subject_session_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">subject</span><span class="p">,</span> <span class="n">sessions</span><span class="p">))</span>
+
+    <span class="n">bids_filters</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">bids_filter_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span> <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">bids_filter_file</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="c1"># Load base plugin_settings from file if --use-plugin</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">use_plugin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">safe_load</span> <span class="k">as</span> <span class="n">loadyml</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">use_plugin</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">plugin_settings</span> <span class="o">=</span> <span class="n">loadyml</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">plugin_settings</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;plugin_args&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Defaults</span>
+        <span class="n">plugin_settings</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;plugin&#39;</span><span class="p">:</span> <span class="s1">&#39;MultiProc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;plugin_args&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;raise_insufficient&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;maxtasksperchild&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Resource management options</span>
+    <span class="c1"># Note that we&#39;re making strong assumptions about valid plugin args</span>
+    <span class="c1"># This may need to be revisited if people try to use batch plugins</span>
+    <span class="n">nprocs</span> <span class="o">=</span> <span class="n">plugin_settings</span><span class="p">[</span><span class="s1">&#39;plugin_args&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;n_procs&#39;</span><span class="p">)</span>
+    <span class="c1"># Permit overriding plugin config with specific CLI options</span>
+    <span class="k">if</span> <span class="n">nprocs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">opts</span><span class="o">.</span><span class="n">nprocs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nprocs</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">nprocs</span>
+        <span class="k">if</span> <span class="n">nprocs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">nprocs</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">nprocs</span> <span class="o">=</span> <span class="n">cpu_count</span><span class="p">()</span>
+        <span class="n">plugin_settings</span><span class="p">[</span><span class="s1">&#39;plugin_args&#39;</span><span class="p">][</span><span class="s1">&#39;n_procs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nprocs</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">mem_gb</span><span class="p">:</span>
+        <span class="n">plugin_settings</span><span class="p">[</span><span class="s1">&#39;plugin_args&#39;</span><span class="p">][</span><span class="s1">&#39;memory_gb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">mem_gb</span>
+
+    <span class="n">omp_nthreads</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">omp_nthreads</span>
+    <span class="k">if</span> <span class="n">omp_nthreads</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">omp_nthreads</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">nprocs</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">nprocs</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">cpu_count</span><span class="p">(),</span> <span class="mi">8</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">nprocs</span> <span class="o">&lt;</span> <span class="n">omp_nthreads</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s1">&#39;Per-process threads (--omp-nthreads=</span><span class="si">%d</span><span class="s1">) exceed total &#39;</span>
+            <span class="s1">&#39;available CPUs (--nprocs/--ncpus=</span><span class="si">%d</span><span class="s1">)&#39;</span><span class="p">,</span>
+            <span class="n">omp_nthreads</span><span class="p">,</span>
+            <span class="n">nprocs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Set up directories</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">output_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="n">log_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;smriprep&#39;</span> <span class="o">/</span> <span class="s1">&#39;logs&#39;</span>
+    <span class="n">work_dir</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">work_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+
+    <span class="c1"># Check and create output and working directories</span>
+    <span class="n">log_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">work_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Nipype config (logs and execution)</span>
+    <span class="n">ncfg</span><span class="o">.</span><span class="n">update_config</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s1">&#39;logging&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;log_directory&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">log_dir</span><span class="p">),</span> <span class="s1">&#39;log_to_file&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="s1">&#39;execution&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;crashdump_dir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">log_dir</span><span class="p">),</span>
+                <span class="s1">&#39;crashfile_format&#39;</span><span class="p">:</span> <span class="s1">&#39;txt&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;get_linked_libs&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;stop_on_first_crash&#39;</span><span class="p">:</span> <span class="n">opts</span><span class="o">.</span><span class="n">stop_on_first_crash</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;monitoring&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;enabled&#39;</span><span class="p">:</span> <span class="n">opts</span><span class="o">.</span><span class="n">resource_monitor</span><span class="p">,</span>
+                <span class="s1">&#39;sample_frequency&#39;</span><span class="p">:</span> <span class="s1">&#39;0.5&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;summary_append&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">resource_monitor</span><span class="p">:</span>
+        <span class="n">ncfg</span><span class="o">.</span><span class="n">enable_resource_monitor</span><span class="p">()</span>
+
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;return_code&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;plugin_settings&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin_settings</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;bids_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">)</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;output_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;work_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;subject_session_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject_session_list</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;run_uuid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_uuid</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;workflow&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Called with reports only</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">reports_only</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">nireports.assembler.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_reports</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">smriprep</span><span class="w"> </span><span class="kn">import</span> <span class="n">data</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;Running --reports-only on participants </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">_pprint_subses</span><span class="p">(</span><span class="n">subject_session_list</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">run_uuid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">run_uuid</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">run_uuid</span>
+
+        <span class="n">smriprep_dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;smriprep&#39;</span>
+        <span class="n">bootstrap_file</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;reports-spec.yml&#39;</span><span class="p">)</span>
+        <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;return_code&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generate_reports</span><span class="p">(</span>
+            <span class="n">subject_session_list</span><span class="p">,</span>
+            <span class="n">smriprep_dir</span><span class="p">,</span>
+            <span class="n">run_uuid</span><span class="p">,</span>
+            <span class="n">bootstrap_file</span><span class="o">=</span><span class="n">bootstrap_file</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">retval</span>
+
+    <span class="n">output_spaces</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">output_spaces</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">output_spaces</span><span class="o">.</span><span class="n">is_cached</span><span class="p">():</span>
+        <span class="n">output_spaces</span><span class="o">.</span><span class="n">checkpoint</span><span class="p">()</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+        <span class="mi">25</span><span class="p">,</span>
+        <span class="n">INIT_MSG</span><span class="p">(</span>
+            <span class="n">version</span><span class="o">=</span><span class="n">smriprep</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+            <span class="n">bids_dir</span><span class="o">=</span><span class="n">bids_dir</span><span class="p">,</span>
+            <span class="n">subject_session_list</span><span class="o">=</span><span class="n">_pprint_subses</span><span class="p">(</span><span class="n">subject_session_list</span><span class="p">),</span>
+            <span class="n">uuid</span><span class="o">=</span><span class="n">run_uuid</span><span class="p">,</span>
+            <span class="n">spaces</span><span class="o">=</span><span class="n">output_spaces</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">derivatives</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">derivatives</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">opts</span><span class="o">.</span><span class="n">fast_track</span><span class="p">:</span>
+        <span class="c1"># XXX Makes strong assumption of legacy layout</span>
+        <span class="n">smriprep_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_dir</span> <span class="o">/</span> <span class="s1">&#39;smriprep&#39;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Received DEPRECATED --fast-track flag. Adding </span><span class="si">{</span><span class="n">smriprep_dir</span><span class="si">}</span><span class="s1"> to --derivatives list.&#39;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">derivatives</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smriprep_dir</span><span class="p">)</span>
+
+    <span class="c1"># Build main workflow</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;workflow&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_smriprep_wf</span><span class="p">(</span>
+        <span class="n">sloppy</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">sloppy</span><span class="p">,</span>
+        <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">derivatives</span><span class="o">=</span><span class="n">derivatives</span><span class="p">,</span>
+        <span class="n">freesurfer</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">run_reconall</span><span class="p">,</span>
+        <span class="n">fs_subjects_dir</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">fs_subjects_dir</span><span class="p">,</span>
+        <span class="n">hires</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">hires</span><span class="p">,</span>
+        <span class="n">fs_no_resume</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">fs_no_resume</span><span class="p">,</span>
+        <span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span>
+        <span class="n">longitudinal</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">longitudinal</span><span class="p">,</span>
+        <span class="n">low_mem</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">low_mem</span><span class="p">,</span>
+        <span class="n">msm_sulc</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">msm_sulc</span><span class="p">,</span>
+        <span class="n">omp_nthreads</span><span class="o">=</span><span class="n">omp_nthreads</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">output_dir</span><span class="p">),</span>
+        <span class="n">run_uuid</span><span class="o">=</span><span class="n">run_uuid</span><span class="p">,</span>
+        <span class="n">skull_strip_fixed_seed</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">skull_strip_fixed_seed</span><span class="p">,</span>
+        <span class="n">skull_strip_mode</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">skull_strip_mode</span><span class="p">,</span>
+        <span class="n">skull_strip_template</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">skull_strip_template</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">spaces</span><span class="o">=</span><span class="n">output_spaces</span><span class="p">,</span>
+        <span class="n">subject_session_list</span><span class="o">=</span><span class="n">subject_session_list</span><span class="p">,</span>
+        <span class="n">work_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">work_dir</span><span class="p">),</span>
+        <span class="n">bids_filters</span><span class="o">=</span><span class="n">bids_filters</span><span class="p">,</span>
+        <span class="n">cifti_output</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">cifti_output</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;return_code&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">boilerplate</span> <span class="o">=</span> <span class="n">retval</span><span class="p">[</span><span class="s1">&#39;workflow&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">visit_desc</span><span class="p">()</span>
+    <span class="p">(</span><span class="n">log_dir</span> <span class="o">/</span> <span class="s1">&#39;CITATION.md&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">boilerplate</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+        <span class="mi">25</span><span class="p">,</span>
+        <span class="s1">&#39;Works derived from this sMRIPrep execution should &#39;</span>
+        <span class="s1">&#39;include the following boilerplate:</span><span class="se">\n\n</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">boilerplate</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">boilerplate_bib</span> <span class="o">=</span> <span class="n">smriprep</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="s1">&#39;boilerplate.bib&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Generate HTML file resolving citations</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;pandoc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;-s&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--bibliography&#39;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">boilerplate_bib</span><span class="p">),</span>
+        <span class="s1">&#39;--citeproc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--metadata&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;pagetitle=&quot;sMRIPrep citation boilerplate&quot;&#39;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">log_dir</span> <span class="o">/</span> <span class="s1">&#39;CITATION.md&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">log_dir</span> <span class="o">/</span> <span class="s1">&#39;CITATION.html&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">check_call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># noqa: S603</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="n">CalledProcessError</span><span class="p">,</span> <span class="n">TimeoutExpired</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not generate CITATION.html file:</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+
+    <span class="c1"># Generate LaTex file resolving citations</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;pandoc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;-s&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--bibliography&#39;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">boilerplate_bib</span><span class="p">),</span>
+        <span class="s1">&#39;--natbib&#39;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">log_dir</span> <span class="o">/</span> <span class="s1">&#39;CITATION.md&#39;</span><span class="p">),</span>
+        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">log_dir</span> <span class="o">/</span> <span class="s1">&#39;CITATION.tex&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">check_call</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># noqa: S603</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="n">CalledProcessError</span><span class="p">,</span> <span class="n">TimeoutExpired</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not generate CITATION.tex file:</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">copyfile</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">boilerplate_bib</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">log_dir</span> <span class="o">/</span> <span class="s1">&#39;CITATION.bib&#39;</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">retval</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pprint_subses</span><span class="p">(</span><span class="n">subses</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pretty print a list of subjects and sessions.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; _pprint_subses([(&#39;01&#39;, &#39;A&#39;), (&#39;02&#39;, [&#39;A&#39;, &#39;B&#39;]), (&#39;03&#39;, None), (&#39;04&#39;, [&#39;A&#39;])])</span>
+<span class="sd">    &#39;sub-01 ses-A, sub-02 (2 sessions), sub-03, sub-04 ses-A&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">subject</span><span class="p">,</span> <span class="n">session</span> <span class="ow">in</span> <span class="n">subses</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">session</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sub-</span><span class="si">{</span><span class="n">subject</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">session</span><span class="p">)</span><span class="si">}</span><span class="s1"> sessions)&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">session</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">session</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sub-</span><span class="si">{</span><span class="n">subject</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sub-</span><span class="si">{</span><span class="n">subject</span><span class="si">}</span><span class="s1"> ses-</span><span class="si">{</span><span class="n">session</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+        <span class="s1">&#39;smriprep/cli/run.py should not be run directly;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;Please `pip install` smriprep and use the `smriprep` command&#39;</span>
+    <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: maint/0.12.x
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../../../0.10.0/index.html">0.10.0</a></dd>
+            <dd><a href="../../../../0.11.0/index.html">0.11.0</a></dd>
+            <dd><a href="../../../../0.11.0rc0/index.html">0.11.0rc0</a></dd>
+            <dd><a href="../../../../0.11.0rc1/index.html">0.11.0rc1</a></dd>
+            <dd><a href="../../../../0.11.1/index.html">0.11.1</a></dd>
+            <dd><a href="../../../../0.12.0/index.html">0.12.0</a></dd>
+            <dd><a href="../../../../0.12.1/index.html">0.12.1</a></dd>
+            <dd><a href="../../../../0.12.2/index.html">0.12.2</a></dd>
+            <dd><a href="../../../../0.13.0/index.html">0.13.0</a></dd>
+            <dd><a href="../../../../0.13.1/index.html">0.13.1</a></dd>
+            <dd><a href="../../../../0.13.2/index.html">0.13.2</a></dd>
+            <dd><a href="../../../../0.14.0/index.html">0.14.0</a></dd>
+            <dd><a href="../../../../0.15.0/index.html">0.15.0</a></dd>
+            <dd><a href="../../../../0.16.0/index.html">0.16.0</a></dd>
+            <dd><a href="../../../../0.16.1/index.html">0.16.1</a></dd>
+            <dd><a href="../../../../0.17.0/index.html">0.17.0</a></dd>
+            <dd><a href="../../../../0.18.0/index.html">0.18.0</a></dd>
+            <dd><a href="../../../../0.8.0/index.html">0.8.0</a></dd>
+            <dd><a href="../../../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
+            <dd><a href="../../../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
+            <dd><a href="../../../../0.8.0rc3/index.html">0.8.0rc3</a></dd>
+            <dd><a href="../../../../0.8.1/index.html">0.8.1</a></dd>
+            <dd><a href="../../../../0.8.2/index.html">0.8.2</a></dd>
+            <dd><a href="../../../../0.8.3/index.html">0.8.3</a></dd>
+            <dd><a href="../../../../0.9.0/index.html">0.9.0</a></dd>
+            <dd><a href="../../../../0.9.1/index.html">0.9.1</a></dd>
+            <dd><a href="../../../../0.9.2/index.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../../../dev-nibabies/index.html">dev-nibabies</a></dd>
+            <dd><a href="../../../../enh_calabel/index.html">enh/calabel</a></dd>
+            <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
+            <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
+            <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
+            <dd><a href="run.html">maint/0.12.x</a></dd>
+            <dd><a href="../../../../maint_0.13.x/index.html">maint/0.13.x</a></dd>
+            <dd><a href="../../../../maint_0.15.x/index.html">maint/0.15.x</a></dd>
+            <dd><a href="../../../../maint_0.16.x/index.html">maint/0.16.x</a></dd>
+            <dd><a href="../../../../maint_0.17.x/index.html">maint/0.17.x</a></dd>
+            <dd><a href="../../../../maint_0.18.x/index.html">maint/0.18.x</a></dd>
+            <dd><a href="../../../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
+            <dd><a href="../../../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
+            <dd><a href="../../../../master/index.html">master</a></dd>
+            <dd><a href="../../../../rel_0.16.1/index.html">rel/0.16.1</a></dd>
+            <dd><a href="../../../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

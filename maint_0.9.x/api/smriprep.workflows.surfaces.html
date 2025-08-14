@@ -1,0 +1,698 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.workflows.surfaces module &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../_static/jquery.js?v=1413ff29"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="What’s new?" href="../changes.html" />
+    <link rel="prev" title="smriprep.workflows.outputs module" href="smriprep.workflows.outputs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Library API (application program interface)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="smriprep.cli.html">smriprep.cli package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.interfaces.html">smriprep.interfaces package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.utils.html">smriprep.utils package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="smriprep.workflows.html">smriprep.workflows package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="smriprep.workflows.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="smriprep.workflows.anatomical.html">smriprep.workflows.anatomical module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.workflows.base.html">smriprep.workflows.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.workflows.norm.html">smriprep.workflows.norm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.workflows.outputs.html">smriprep.workflows.outputs module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">smriprep.workflows.surfaces module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">Library API (application program interface)</a></li>
+          <li class="breadcrumb-item"><a href="smriprep.workflows.html">smriprep.workflows package</a></li>
+      <li class="breadcrumb-item active">smriprep.workflows.surfaces module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/smriprep.workflows.surfaces.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../../master/api/smriprep.workflows.surfaces.html"><b>Warning:</b> This document is for the development version of smriprep. The main version is master.</a></p>
+<section id="module-smriprep.workflows.surfaces">
+<span id="smriprep-workflows-surfaces-module"></span><h1>smriprep.workflows.surfaces module<a class="headerlink" href="#module-smriprep.workflows.surfaces" title="Link to this heading"></a></h1>
+<p>Surface preprocessing workflows.</p>
+<p><strong>sMRIPrep</strong> uses FreeSurfer to reconstruct surfaces from T1w/T2w
+structural images.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_anat_ribbon_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_anat_ribbon_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'anat_ribbon_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_anat_ribbon_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_anat_ribbon_wf" title="Link to this definition"></a></dt>
+<dd><p>Create anatomical ribbon mask</p>
+<p>Workflow Graph</p>
+<blockquote>
+<div><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-1.png" src="../_images/smriprep-workflows-surfaces-1.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-1.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-1.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-1.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-1.pdf">pdf</a>)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>white</strong> – Left and right gray/white surfaces (as GIFTI files)</p></li>
+<li><p><strong>pial</strong> – Left and right pial surfaces (as GIFTI files)</p></li>
+<li><p><strong>ref_file</strong> – Reference image (one 3D volume) to define the target space</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>anat_ribbon</strong> – Cortical gray matter mask, sampled into <code class="docutils literal notranslate"><span class="pre">ref_file</span></code> space</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_autorecon_resume_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_autorecon_resume_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'autorecon_resume_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_autorecon_resume_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_autorecon_resume_wf" title="Link to this definition"></a></dt>
+<dd><p>Resume recon-all execution, assuming the <cite>-autorecon1</cite> stage has been completed.</p>
+<p>In order to utilize resources efficiently, this is broken down into seven
+sub-stages; after the first stage, the second and third stages may be run
+simultaneously, and the fifth and sixth stages may be run simultaneously,
+if resources permit; the fourth stage must be run prior to the fifth and
+sixth, and the seventh must be run after:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ recon-all -sd &lt;output dir&gt;/freesurfer -subjid sub-&lt;subject_label&gt; \
+    -autorecon2-volonly
+$ recon-all -sd &lt;output dir&gt;/freesurfer -subjid sub-&lt;subject_label&gt; \
+    -autorecon-hemi lh -T2pial \
+    -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
+$ recon-all -sd &lt;output dir&gt;/freesurfer -subjid sub-&lt;subject_label&gt; \
+    -autorecon-hemi rh -T2pial \
+    -noparcstats -noparcstats2 -noparcstats3 -nohyporelabel -nobalabels
+$ recon-all -sd &lt;output dir&gt;/freesurfer -subjid sub-&lt;subject_label&gt; \
+    -cortribbon
+$ recon-all -sd &lt;output dir&gt;/freesurfer -subjid sub-&lt;subject_label&gt; \
+    -autorecon-hemi lh -nohyporelabel
+$ recon-all -sd &lt;output dir&gt;/freesurfer -subjid sub-&lt;subject_label&gt; \
+    -autorecon-hemi rh -nohyporelabel
+$ recon-all -sd &lt;output dir&gt;/freesurfer -subjid sub-&lt;subject_label&gt; \
+    -autorecon3
+</pre></div>
+</div>
+<p>The parcellation statistics steps are excluded from the second and third
+stages, because they require calculation of the cortical ribbon volume
+(the fourth stage).
+Hypointensity relabeling is excluded from hemisphere-specific steps to avoid
+race conditions, as it is a volumetric operation.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-2.png" src="../_images/smriprep-workflows-surfaces-2.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-2.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-2.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-2.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-2.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+<li><p><strong>use_T2</strong> – Refine pial surface using T2w image</p></li>
+<li><p><strong>use_FLAIR</strong> – Refine pial surface using FLAIR image</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_cortex_masks_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_cortex_masks_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cortex_masks_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_cortex_masks_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_cortex_masks_wf" title="Link to this definition"></a></dt>
+<dd><p>Create cortical surface masks from surface files.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-3.png" src="../_images/smriprep-workflows-surfaces-3.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-3.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-3.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>midthickness</strong> (<em>len-2 list of str</em>) – Each hemisphere’s FreeSurfer midthickness surface file in GIFTI format</p></li>
+<li><p><strong>thickness</strong> (<em>len-2 list of str</em>) – Each hemisphere’s FreeSurfer thickness file in GIFTI format</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>cortex_masks</strong> (<em>len-2 list of str</em>) – Cortical surface mask in GIFTI format for each hemisphere</p></li>
+<li><p><strong>source_files</strong> (<em>len-2 list of lists of str</em>) – Each hemisphere’s source files, which are used to create the mask</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_fsLR_reg_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_fsLR_reg_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fsLR_reg_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_fsLR_reg_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_fsLR_reg_wf" title="Link to this definition"></a></dt>
+<dd><p>Generate GIFTI registration files to fsLR space</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_gifti_morphometrics_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_gifti_morphometrics_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">morphometrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">('thickness',</span> <span class="pre">'curv',</span> <span class="pre">'sulc')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gifti_morphometrics_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_gifti_morphometrics_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_gifti_morphometrics_wf" title="Link to this definition"></a></dt>
+<dd><p>Prepare GIFTI shape files from morphometrics found in a FreeSurfer subjects
+directory.</p>
+<p>The default morphometrics are <code class="docutils literal notranslate"><span class="pre">lh/rh.thickness</span></code>, <code class="docutils literal notranslate"><span class="pre">lh/rh.curv</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">lh/rh.sulc</span></code>.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-4.png" src="../_images/smriprep-workflows-surfaces-4.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-4.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-4.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>morphometrics</strong> – GIFTI shape files for all requested morphometrics</p></li>
+<li><p><strong>``&lt;morphometric&gt;``</strong> – Left and right GIFTIs for each morphometry type passed to <code class="docutils literal notranslate"><span class="pre">morphometrics</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_gifti_surfaces_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_gifti_surfaces_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surfaces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">('pial',</span> <span class="pre">'midthickness',</span> <span class="pre">'inflated',</span> <span class="pre">'white')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_scanner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gifti_surface_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_gifti_surfaces_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_gifti_surfaces_wf" title="Link to this definition"></a></dt>
+<dd><p>Prepare GIFTI surfaces from a FreeSurfer subjects directory.</p>
+<p>The default surfaces are <code class="docutils literal notranslate"><span class="pre">lh/rh.pial</span></code>, <code class="docutils literal notranslate"><span class="pre">lh/rh.midthickness</span></code>,
+<code class="docutils literal notranslate"><span class="pre">lh/rh.inflated</span></code>, and <code class="docutils literal notranslate"><span class="pre">lh/rh.white</span></code>.</p>
+<p>Vertex coordinates are <code class="xref py py-class docutils literal notranslate"><span class="pre">transformed</span></code> to align with native anatomical space
+when <code class="docutils literal notranslate"><span class="pre">fsnative2anat_xfm</span></code> is provided.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-5.png" src="../_images/smriprep-workflows-surfaces-5.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-5.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-5.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+<li><p><strong>fsnative2anat_xfm</strong> – LTA formatted affine transform file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>surfaces</strong> – GIFTI surfaces for all requested surfaces</p></li>
+<li><p><strong>``&lt;surface&gt;``</strong> – Left and right GIFTIs for each surface passed to <code class="docutils literal notranslate"><span class="pre">surfaces</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_hcp_morphometrics_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_hcp_morphometrics_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_nthreads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'hcp_morphometrics_wf'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.engine.workflows.html#niworkflows.engine.workflows.LiterateWorkflow" title="(in niworkflows v0)"><span class="pre">LiterateWorkflow</span></a></span></span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_hcp_morphometrics_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_hcp_morphometrics_wf" title="Link to this definition"></a></dt>
+<dd><p>Convert FreeSurfer-style morphometrics to HCP-style.</p>
+<p>The HCP uses different conventions for curvature and sulcal depth from FreeSurfer,
+and performs some geometric preprocessing steps to get final metrics and a
+subject-specific cortical ROI.</p>
+<p>Workflow Graph</p>
+<figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-6.png" src="../_images/smriprep-workflows-surfaces-6.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-6.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-6.pdf">pdf</a>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>omp_nthreads</strong> – Maximum number of threads an individual process may use</p>
+</dd>
+<dt class="field-even">Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+<li><p><strong>thickness</strong> – FreeSurfer thickness file in GIFTI format</p></li>
+<li><p><strong>curv</strong> – FreeSurfer curvature file in GIFTI format</p></li>
+<li><p><strong>sulc</strong> – FreeSurfer sulcal depth file in GIFTI format</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>thickness</strong> – HCP-style thickness file in GIFTI format</p></li>
+<li><p><strong>curv</strong> – HCP-style curvature file in GIFTI format</p></li>
+<li><p><strong>sulc</strong> – HCP-style sulcal depth file in GIFTI format</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_morph_grayords_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_morph_grayords_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grayord_density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'91k'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'170k'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_nthreads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'morph_grayords_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_morph_grayords_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_morph_grayords_wf" title="Link to this definition"></a></dt>
+<dd><p>Sample Grayordinates files onto the fsLR atlas.</p>
+<p>Outputs are in CIFTI2 format.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-7.png" src="../_images/smriprep-workflows-surfaces-7.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-7.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-7.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grayord_density</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Either <cite>91k</cite> or <cite>170k</cite>, representing the total of vertices or <em>grayordinates</em>.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Unique name for the subworkflow (default: <code class="docutils literal notranslate"><span class="pre">&quot;morph_grayords_wf&quot;</span></code>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>curv</strong> – HCP-style curvature file in GIFTI format</p></li>
+<li><p><strong>sulc</strong> – HCP-style sulcal depth file in GIFTI format</p></li>
+<li><p><strong>thickness</strong> – HCP-style thickness file in GIFTI format</p></li>
+<li><p><strong>roi</strong> – HCP-style cortical ROI file in GIFTI format</p></li>
+<li><p><strong>midthickness</strong> – GIFTI surface mesh corresponding to the midthickness surface</p></li>
+<li><p><strong>sphere_reg_fsLR</strong> – GIFTI surface mesh corresponding to the subject’s fsLR registration sphere</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>curv_fsLR</strong> – HCP-style curvature file in CIFTI-2 format, resampled to fsLR</p></li>
+<li><p><strong>curv_metadata</strong> – Path to JSON file containing metadata corresponding to <code class="docutils literal notranslate"><span class="pre">curv_fsLR</span></code></p></li>
+<li><p><strong>sulc_fsLR</strong> – HCP-style sulcal depth file in CIFTI-2 format, resampled to fsLR</p></li>
+<li><p><strong>sulc_metadata</strong> – Path to JSON file containing metadata corresponding to <code class="docutils literal notranslate"><span class="pre">sulc_fsLR</span></code></p></li>
+<li><p><strong>thickness_fsLR</strong> – HCP-style thickness file in CIFTI-2 format, resampled to fsLR</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_msm_sulc_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_msm_sulc_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sloppy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'msm_sulc_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_msm_sulc_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_msm_sulc_wf" title="Link to this definition"></a></dt>
+<dd><p>Run MSMSulc registration to fsLR surfaces, per hemisphere.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_refinement_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_refinement_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'T1w'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'T2w'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'T1w'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'refinement_wf'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.engine.workflows.html#niworkflows.engine.workflows.LiterateWorkflow" title="(in niworkflows v0)"><span class="pre">LiterateWorkflow</span></a></span></span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_refinement_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_refinement_wf" title="Link to this definition"></a></dt>
+<dd><p>Refine ANTs brain extraction with FreeSurfer segmentation</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-8.png" src="../_images/smriprep-workflows-surfaces-8.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-8.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-8.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+<li><p><strong>fsnative2anat_xfm</strong> – LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical</p></li>
+<li><p><strong>reference_image</strong> – Input</p></li>
+<li><p><strong>ants_segs</strong> – Brain tissue segmentation from ANTS <code class="docutils literal notranslate"><span class="pre">antsBrainExtraction.sh</span></code></p></li>
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out_brainmask</strong> – Refined brainmask, derived from FreeSurfer’s <code class="docutils literal notranslate"><span class="pre">aseg</span></code> volume</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#smriprep.workflows.surfaces.init_autorecon_resume_wf" title="smriprep.workflows.surfaces.init_autorecon_resume_wf"><code class="xref py py-func docutils literal notranslate"><span class="pre">init_autorecon_resume_wf()</span></code></a></p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_resample_surfaces_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_resample_surfaces_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surfaces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fsLR'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cohort</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fsLR'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grayord_density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'resample_surfaces_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_resample_surfaces_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_resample_surfaces_wf" title="Link to this definition"></a></dt>
+<dd><p>Resample subject surfaces surface to specified template space and density,
+using a given registration space.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-9.png" src="../_images/smriprep-workflows-surfaces-9.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-9.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-9.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>surfaces</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Names of surfaces (e.g., <code class="docutils literal notranslate"><span class="pre">'white'</span></code>) to resample. Both hemispheres will be resampled.</p></li>
+<li><p><strong>template</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – The template space to resample to, e.g., <code class="docutils literal notranslate"><span class="pre">'onavg'</span></code>, <code class="docutils literal notranslate"><span class="pre">'fsLR'</span></code>.</p></li>
+<li><p><strong>cohort</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – The template cohort to use, if the template provides multiple.</p></li>
+<li><p><strong>space</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – The registration space for which there are both subject and template
+registration spheres.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the template space is used.</p></li>
+<li><p><strong>density</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – The density to resample to, e.g., <code class="docutils literal notranslate"><span class="pre">'10k'</span></code>, <code class="docutils literal notranslate"><span class="pre">'41k'</span></code>. Number of vertices per hemisphere.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – Unique name for the subworkflow (default: <code class="docutils literal notranslate"><span class="pre">&quot;resample_surfaces_wf&quot;</span></code>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>``&lt;surface&gt;``</strong> – Left and right GIFTIs for each surface name passed to <code class="docutils literal notranslate"><span class="pre">surfaces</span></code>.</p></li>
+<li><p><strong>``sphere_reg_&lt;space&gt;``</strong> – GIFTI surface mesh corresponding to the subject’s registration sphere to <code class="docutils literal notranslate"><span class="pre">space</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>``&lt;surface&gt;_&lt;template&gt;``</strong> – Left and right GIFTI surface mesh corresponding to the input surface, resampled to the
+specified space and density.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_segs_to_native_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_segs_to_native_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'T1w'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'T2w'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'T1w'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'aseg'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'aparc_aseg'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'aparc_a2009s'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'aparc_dkt'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'aseg'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'segs_to_native_wf'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.engine.workflows.html#niworkflows.engine.workflows.LiterateWorkflow" title="(in niworkflows v0)"><span class="pre">LiterateWorkflow</span></a></span></span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_segs_to_native_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_segs_to_native_wf" title="Link to this definition"></a></dt>
+<dd><p>Get a segmentation from FreeSurfer conformed space into native anatomical space.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-10.png" src="../_images/smriprep-workflows-surfaces-10.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-10.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-10.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_type</strong> – MR anatomical image type (‘T1w’ or ‘T2w’)</p></li>
+<li><p><strong>segmentation</strong> – The name of a segmentation (‘aseg’ or ‘aparc_aseg’ or ‘wmparc’)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>in_file</strong> – Anatomical, merged anatomical image after INU correction</p></li>
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+<li><p><strong>fsnative2anat_xfm</strong> – LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out_file</strong> – The selected segmentation, after resampling in native space</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_surface_derivatives_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_surface_derivatives_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'T1w'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'T2w'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'T1w'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'surface_derivatives_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_surface_derivatives_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_surface_derivatives_wf" title="Link to this definition"></a></dt>
+<dd><p>Generate sMRIPrep derivatives from FreeSurfer derivatives</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-11.png" src="../_images/smriprep-workflows-surfaces-11.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-11.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-11.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference</strong> – Reference image in native anatomical space, for defining a resampling grid</p></li>
+<li><p><strong>fsnative2anat_xfm</strong> – LTA-style affine matrix translating from FreeSurfer-conformed subject space to anatomical</p></li>
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>surfaces</strong> – GIFTI surfaces for gray/white matter boundary, pial surface,
+midthickness (or graymid) surface, and inflated surfaces</p></li>
+<li><p><strong>morphometrics</strong> – GIFTIs of cortical thickness, curvature, and sulcal depth</p></li>
+<li><p><strong>out_aseg</strong> – FreeSurfer’s aseg segmentation, in native anatomical space</p></li>
+<li><p><strong>out_aparc</strong> – FreeSurfer’s aparc+aseg segmentation, in native anatomical space</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<ul class="simple">
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">init_gifti_surface_wf()</span></code></p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.surfaces.init_surface_recon_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.surfaces.</span></span><span class="sig-name descname"><span class="pre">init_surface_recon_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_nthreads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hires</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_no_resume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomputed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'surface_recon_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/surfaces.html#init_surface_recon_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.surfaces.init_surface_recon_wf" title="Link to this definition"></a></dt>
+<dd><p>Reconstruct anatomical surfaces using FreeSurfer’s <code class="docutils literal notranslate"><span class="pre">recon-all</span></code>.</p>
+<p>Reconstruction is performed in three phases.
+The first phase initializes the subject with T1w and T2w (if available)
+structural images and performs basic reconstruction (<code class="docutils literal notranslate"><span class="pre">autorecon1</span></code>) with the
+exception of skull-stripping.
+For example, a subject with only one session with T1w and T2w images
+would be processed by the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ recon-all -sd &lt;output dir&gt;/freesurfer -subjid sub-&lt;subject_label&gt; \
+    -i &lt;bids-root&gt;/sub-&lt;subject_label&gt;/anat/sub-&lt;subject_label&gt;_T1w.nii.gz \
+    -T2 &lt;bids-root&gt;/sub-&lt;subject_label&gt;/anat/sub-&lt;subject_label&gt;_T2w.nii.gz \
+    -autorecon1 \
+    -noskullstrip -noT2pial -noFLAIRpial
+</pre></div>
+</div>
+<p>The second phase imports an externally computed skull-stripping mask.
+This workflow refines the external brainmask using the internal mask
+implicit the the FreeSurfer’s <code class="docutils literal notranslate"><span class="pre">aseg.mgz</span></code> segmentation,
+to reconcile ANTs’ and FreeSurfer’s brain masks.</p>
+<p>First, the <code class="docutils literal notranslate"><span class="pre">aseg.mgz</span></code> mask from FreeSurfer is refined in two
+steps, using binary morphological operations:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>With a binary closing operation the sulci are included
+into the mask. This results in a smoother brain mask
+that does not exclude deep, wide sulci.</p></li>
+<li><p>Fill any holes (typically, there could be a hole next to
+the pineal gland and the corpora quadrigemina if the great
+cerebral brain is segmented out).</p></li>
+</ol>
+</div></blockquote>
+<p>Second, the brain mask is grown, including pixels that have a high likelihood
+to the GM tissue distribution:</p>
+<blockquote>
+<div><ol class="arabic simple" start="3">
+<li><p>Dilate and subtract the brain mask, defining the region to search for candidate
+pixels that likely belong to cortical GM.</p></li>
+<li><p>Pixels found in the search region that are labeled as GM by ANTs
+(during <code class="docutils literal notranslate"><span class="pre">antsBrainExtraction.sh</span></code>) are directly added to the new mask.</p></li>
+<li><p>Otherwise, estimate GM tissue parameters locally in  patches of <code class="docutils literal notranslate"><span class="pre">ww</span></code> size,
+and test the likelihood of the pixel to belong in the GM distribution.</p></li>
+</ol>
+</div></blockquote>
+<p>This procedure is inspired on mindboggle’s solution to the problem:
+<a class="reference external" href="https://github.com/nipy/mindboggle/blob/7f91faaa7664d820fe12ccc52ebaf21d679795e2/mindboggle/guts/segment.py#L1660">https://github.com/nipy/mindboggle/blob/7f91faaa7664d820fe12ccc52ebaf21d679795e2/mindboggle/guts/segment.py#L1660</a></p>
+<p>The final phase resumes reconstruction, using the T2w image to assist
+in finding the pial surface, if available.
+See <a class="reference internal" href="#smriprep.workflows.surfaces.init_autorecon_resume_wf" title="smriprep.workflows.surfaces.init_autorecon_resume_wf"><code class="xref py py-func docutils literal notranslate"><span class="pre">init_autorecon_resume_wf()</span></code></a> for details.</p>
+<p>Memory annotations for FreeSurfer are based off <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/fswiki/SystemRequirements">their documentation</a>.
+They specify an allocation of 4GB per subject. Here we define 5GB
+to have a certain margin.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-surfaces-12.png" src="../_images/smriprep-workflows-surfaces-12.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-surfaces-12.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-12.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-12.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-surfaces-12.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>omp_nthreads</strong> (<em>int</em>) – Maximum number of threads an individual process may use</p></li>
+<li><p><strong>hires</strong> (<em>bool</em>) – Enable sub-millimeter preprocessing in FreeSurfer</p></li>
+<li><p><strong>fs_no_resume</strong> (<em>bool</em>) – use precomputed freesurfer without attempting to resume
+(eg. for longitudinal base or fastsurfer)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>t1w</strong> – List of T1-weighted structural images</p></li>
+<li><p><strong>t2w</strong> – List of T2-weighted structural images (only first used)</p></li>
+<li><p><strong>flair</strong> – List of FLAIR images</p></li>
+<li><p><strong>skullstripped_t1</strong> – Skull-stripped T1-weighted image (or mask of image)</p></li>
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+<li><p><strong>fsnative2t1w_xfm</strong> – LTA-style affine matrix translating from FreeSurfer-conformed subject space to T1w</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#smriprep.workflows.surfaces.init_autorecon_resume_wf" title="smriprep.workflows.surfaces.init_autorecon_resume_wf"><code class="xref py py-func docutils literal notranslate"><span class="pre">init_autorecon_resume_wf()</span></code></a></p></li>
+</ul>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="smriprep.workflows.outputs.html" class="btn btn-neutral float-left" title="smriprep.workflows.outputs module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../changes.html" class="btn btn-neutral float-right" title="What’s new?" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: maint/0.9.x
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../0.10.0/api/smriprep.workflows.surfaces.html">0.10.0</a></dd>
+            <dd><a href="../../0.11.0/api/smriprep.workflows.surfaces.html">0.11.0</a></dd>
+            <dd><a href="../../0.11.0rc0/api/smriprep.workflows.surfaces.html">0.11.0rc0</a></dd>
+            <dd><a href="../../0.11.0rc1/api/smriprep.workflows.surfaces.html">0.11.0rc1</a></dd>
+            <dd><a href="../../0.11.1/api/smriprep.workflows.surfaces.html">0.11.1</a></dd>
+            <dd><a href="../../0.12.0/api/smriprep.workflows.surfaces.html">0.12.0</a></dd>
+            <dd><a href="../../0.12.1/api/smriprep.workflows.surfaces.html">0.12.1</a></dd>
+            <dd><a href="../../0.12.2/api/smriprep.workflows.surfaces.html">0.12.2</a></dd>
+            <dd><a href="../../0.13.0/api/smriprep.workflows.surfaces.html">0.13.0</a></dd>
+            <dd><a href="../../0.13.1/api/smriprep.workflows.surfaces.html">0.13.1</a></dd>
+            <dd><a href="../../0.13.2/api/smriprep.workflows.surfaces.html">0.13.2</a></dd>
+            <dd><a href="../../0.14.0/api/smriprep.workflows.surfaces.html">0.14.0</a></dd>
+            <dd><a href="../../0.15.0/api/smriprep.workflows.surfaces.html">0.15.0</a></dd>
+            <dd><a href="../../0.16.0/api/smriprep.workflows.surfaces.html">0.16.0</a></dd>
+            <dd><a href="../../0.16.1/api/smriprep.workflows.surfaces.html">0.16.1</a></dd>
+            <dd><a href="../../0.17.0/api/smriprep.workflows.surfaces.html">0.17.0</a></dd>
+            <dd><a href="../../0.18.0/api/smriprep.workflows.surfaces.html">0.18.0</a></dd>
+            <dd><a href="../../0.8.0/api/smriprep.workflows.surfaces.html">0.8.0</a></dd>
+            <dd><a href="../../0.8.0rc1/api/smriprep.workflows.surfaces.html">0.8.0rc1</a></dd>
+            <dd><a href="../../0.8.0rc2/api/smriprep.workflows.surfaces.html">0.8.0rc2</a></dd>
+            <dd><a href="../../0.8.0rc3/api/smriprep.workflows.surfaces.html">0.8.0rc3</a></dd>
+            <dd><a href="../../0.8.1/api/smriprep.workflows.surfaces.html">0.8.1</a></dd>
+            <dd><a href="../../0.8.2/api/smriprep.workflows.surfaces.html">0.8.2</a></dd>
+            <dd><a href="../../0.8.3/api/smriprep.workflows.surfaces.html">0.8.3</a></dd>
+            <dd><a href="../../0.9.0/api/smriprep.workflows.surfaces.html">0.9.0</a></dd>
+            <dd><a href="../../0.9.1/api/smriprep.workflows.surfaces.html">0.9.1</a></dd>
+            <dd><a href="../../0.9.2/api/smriprep.workflows.surfaces.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../dev-nibabies/api/smriprep.workflows.surfaces.html">dev-nibabies</a></dd>
+            <dd><a href="../../enh_calabel/api/smriprep.workflows.surfaces.html">enh/calabel</a></dd>
+            <dd><a href="../../enh_split-surfaces/api/smriprep.workflows.surfaces.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../fix_parcstats/api/smriprep.workflows.surfaces.html">fix/parcstats</a></dd>
+            <dd><a href="../../fix_recon-report/api/smriprep.workflows.surfaces.html">fix/recon-report</a></dd>
+            <dd><a href="../../fix_tfselect-resless/api/smriprep.workflows.surfaces.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../maint_0.12.x/api/smriprep.workflows.surfaces.html">maint/0.12.x</a></dd>
+            <dd><a href="../../maint_0.13.x/api/smriprep.workflows.surfaces.html">maint/0.13.x</a></dd>
+            <dd><a href="../../maint_0.15.x/api/smriprep.workflows.surfaces.html">maint/0.15.x</a></dd>
+            <dd><a href="../../maint_0.16.x/api/smriprep.workflows.surfaces.html">maint/0.16.x</a></dd>
+            <dd><a href="../../maint_0.17.x/api/smriprep.workflows.surfaces.html">maint/0.17.x</a></dd>
+            <dd><a href="../../maint_0.18.x/api/smriprep.workflows.surfaces.html">maint/0.18.x</a></dd>
+            <dd><a href="../../maint_0.8.x/api/smriprep.workflows.surfaces.html">maint/0.8.x</a></dd>
+            <dd><a href="smriprep.workflows.surfaces.html">maint/0.9.x</a></dd>
+            <dd><a href="../../master/api/smriprep.workflows.surfaces.html">master</a></dd>
+            <dd><a href="../../rel_0.16.1/api/smriprep.workflows.surfaces.html">rel/0.16.1</a></dd>
+            <dd><a href="../../rel_0.8.0rc1/api/smriprep.workflows.surfaces.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,282 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.interfaces.msm module &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../_static/jquery.js?v=1413ff29"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d9a209d6"></script>
+      <script src="../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="smriprep.interfaces.reports module" href="smriprep.interfaces.reports.html" />
+    <link rel="prev" title="smriprep.interfaces.gifti module" href="smriprep.interfaces.gifti.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Library API (application program interface)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="smriprep.cli.html">smriprep.cli package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="smriprep.interfaces.html">smriprep.interfaces package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="smriprep.interfaces.html#smriprep.interfaces.DerivativesDataSink"><code class="docutils literal notranslate"><span class="pre">DerivativesDataSink</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="smriprep.interfaces.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.cifti.html">smriprep.interfaces.cifti module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.freesurfer.html">smriprep.interfaces.freesurfer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.fsl.html">smriprep.interfaces.fsl module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.gifti.html">smriprep.interfaces.gifti module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">smriprep.interfaces.msm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.reports.html">smriprep.interfaces.reports module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.surf.html">smriprep.interfaces.surf module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.templateflow.html">smriprep.interfaces.templateflow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.workbench.html">smriprep.interfaces.workbench module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.utils.html">smriprep.utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.workflows.html">smriprep.workflows package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">Library API (application program interface)</a></li>
+          <li class="breadcrumb-item"><a href="smriprep.interfaces.html">smriprep.interfaces package</a></li>
+      <li class="breadcrumb-item active">smriprep.interfaces.msm module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/smriprep.interfaces.msm.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../../master/api/smriprep.interfaces.msm.html"><b>Warning:</b> This document is for the development version of smriprep. The main version is master.</a></p>
+<section id="module-smriprep.interfaces.msm">
+<span id="smriprep-interfaces-msm-module"></span><h1>smriprep.interfaces.msm module<a class="headerlink" href="#module-smriprep.interfaces.msm" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.msm.MSM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.msm.</span></span><span class="sig-name descname"><span class="pre">MSM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cmdline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/msm.html#MSM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.msm.MSM" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">CommandLine</span></code></p>
+<p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">msm</span></code>.</p>
+<p>MSM (Multimodal Surface Matching) is a tool for registering cortical surfaces.
+The tool has been developed and tested using FreeSurfer extracted surfaces.
+However, in principle the tool with work with any cortical surface extraction method provided
+the surfaces can be mapped to the sphere.
+The key advantage of the method is that alignment may be driven using a wide variety of
+univariate (sulcal depth, curvature, myelin), multivariate (Task fMRI, or Resting State
+Networks) or multimodal (combinations of folding, myelin and fMRI) feature sets.</p>
+<p>The main MSM tool is currently run from the command line using the program <code class="docutils literal notranslate"><span class="pre">msm</span></code>.
+This enables fast alignment of spherical cortical surfaces by utilising a fast discrete
+optimisation framework (FastPD Komodakis 2007), which significantly reduces the search
+space of possible deformations for each vertex, and allows flexibility with regards to the
+choice of similarity metric used to match the images.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">msm</span> <span class="o">=</span> <span class="n">MSM</span><span class="p">(</span>
+<span class="gp">... </span>  <span class="n">config_file</span><span class="o">=</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;msm/MSMSulcStrainFinalconf&#39;</span><span class="p">),</span>
+<span class="gp">... </span>  <span class="n">in_mesh</span><span class="o">=</span><span class="s1">&#39;sub-01_hemi-L_sphere.surf.gii&#39;</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">reference_mesh</span><span class="o">=</span><span class="s1">&#39;tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii&#39;</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">in_data</span><span class="o">=</span><span class="s1">&#39;sub-01_hemi-L_sulc.shape.gii&#39;</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">reference_data</span><span class="o">=</span><span class="s1">&#39;tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii&#39;</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">out_base</span><span class="o">=</span><span class="s1">&#39;L.&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msm</span><span class="o">.</span><span class="n">cmdline</span>  
+<span class="go">&#39;msm --conf=.../MSMSulcStrainFinalconf     --indata=sub-01_hemi-L_sulc.shape.gii     --inmesh=sub-01_hemi-L_sphere.surf.gii     --out=L.     --refdata=tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii     --refmesh=tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii&#39;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Mandatory Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>in_mesh</strong> (<em>a pathlike object or string representing an existing file</em>) – Input mesh (available formats: VTK, ASCII, GIFTI). Needs to be a sphere.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--inmesh=%s</span></code>.</p>
+</dd>
+<dt class="field-even">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>args</strong> (<em>a string</em>) – Additional parameters to the command.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code>.</p></li>
+<li><p><strong>config_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Configuration file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--conf=%s</span></code>.</p></li>
+<li><p><strong>environ</strong> (<em>a dictionary with keys which are a bytes or None or a value of class ‘str’ and with values which are a bytes or None or a value of class ‘str’</em>) – Environment variables.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">{}</span></code>)</p></li>
+<li><p><strong>in_data</strong> (<em>a pathlike object or string representing an existing file</em>) – Scalar or multivariate data for input - can be ASCII (.asc,.dpv,.txt) or GIFTI (.func.gii or .shape.gii).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--indata=%s</span></code>.</p></li>
+<li><p><strong>in_register</strong> (<em>a pathlike object or string representing an existing file</em>) – Input mesh at data resolution. Used to resample data onto input mesh if data is supplied at a different resolution. Note this mesh HAS to be in alignment with either the input_mesh of (if supplied) the transformed source mesh. Use with supreme caution.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--in_register=%s</span></code>.</p></li>
+<li><p><strong>in_weight</strong> (<em>a pathlike object or string representing an existing file</em>) – Cost function weighting for input - weights data in these vertices when calculating similarity (ASCII or GIFTI). Can be multivariate provided dimension equals that of data.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--inweight=%s</span></code>.</p></li>
+<li><p><strong>levels</strong> (<em>an integer</em>) – Number of resolution levels (default = number of resolution levels specified by –opt in config file).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--levels=%d</span></code>.</p></li>
+<li><p><strong>out_base</strong> (<em>a pathlike object or string representing a file</em>) – Output basename.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--out=%s</span></code>.</p></li>
+<li><p><strong>output_format</strong> (<em>‘GIFTI’ or ‘VTK’ or ‘ASCII’ or ‘ASCII_MAT’</em>) – Format of output files.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--format=%s</span></code>.</p></li>
+<li><p><strong>reference_data</strong> (<em>a pathlike object or string representing an existing file</em>) – Scalar or multivariate data for reference - can be ASCII (.asc,.dpv,.txt) or GIFTI (.func.gii or .shape.gii).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--refdata=%s</span></code>.</p></li>
+<li><p><strong>reference_mesh</strong> (<em>a pathlike object or string representing an existing file</em>) – Reference mesh (available formats: VTK, ASCII, GIFTI). Needs to be a sphere.If not included algorithm assumes reference mesh is equivalent input.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--refmesh=%s</span></code>.</p></li>
+<li><p><strong>reference_weight</strong> (<em>a pathlike object or string representing an existing file</em>) – Cost function weighting for reference - weights data in these vertices when calculating similarity (ASCII or GIFTI). Can be multivariate provided dimension equals that of data.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--refweight=%s</span></code>.</p></li>
+<li><p><strong>smooth_output_sigma</strong> (<em>an integer</em>) – Smooth transformed output with this sigma (default=0).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--smoothout=%d</span></code>.</p></li>
+<li><p><strong>transformed_mesh</strong> (<em>a pathlike object or string representing an existing file</em>) – Transformed source mesh (output of a previous registration). Use this to initialise the current registration.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--trans=%s</span></code>.</p></li>
+<li><p><strong>verbose</strong> (<em>a boolean</em>) – Switch on diagnostic messages.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--verbose</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>downsampled_warped_mesh</strong> (<em>a pathlike object or string representing a file</em>) – A downsampled version of the warped_mesh where the resolution of this mesh will be equivalent to the resolution of the final datamesh.</p></li>
+<li><p><strong>warped_data</strong> (<em>a pathlike object or string representing a file</em>) – The input data passed through the MSM warp and projected onto the target surface.</p></li>
+<li><p><strong>warped_mesh</strong> (<em>a pathlike object or string representing a file</em>) – The warped input mesh (i.e., new vertex locations - this capture the warp field, much like a _warp.nii.gz file would for volumetric warps created by FNIRT).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="smriprep.interfaces.gifti.html" class="btn btn-neutral float-left" title="smriprep.interfaces.gifti module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="smriprep.interfaces.reports.html" class="btn btn-neutral float-right" title="smriprep.interfaces.reports module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: maint/0.18.x
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../0.10.0/index.html">0.10.0</a></dd>
+            <dd><a href="../../0.11.0/index.html">0.11.0</a></dd>
+            <dd><a href="../../0.11.0rc0/index.html">0.11.0rc0</a></dd>
+            <dd><a href="../../0.11.0rc1/index.html">0.11.0rc1</a></dd>
+            <dd><a href="../../0.11.1/index.html">0.11.1</a></dd>
+            <dd><a href="../../0.12.0/index.html">0.12.0</a></dd>
+            <dd><a href="../../0.12.1/index.html">0.12.1</a></dd>
+            <dd><a href="../../0.12.2/index.html">0.12.2</a></dd>
+            <dd><a href="../../0.13.0/api/smriprep.interfaces.msm.html">0.13.0</a></dd>
+            <dd><a href="../../0.13.1/api/smriprep.interfaces.msm.html">0.13.1</a></dd>
+            <dd><a href="../../0.13.2/api/smriprep.interfaces.msm.html">0.13.2</a></dd>
+            <dd><a href="../../0.14.0/api/smriprep.interfaces.msm.html">0.14.0</a></dd>
+            <dd><a href="../../0.15.0/api/smriprep.interfaces.msm.html">0.15.0</a></dd>
+            <dd><a href="../../0.16.0/api/smriprep.interfaces.msm.html">0.16.0</a></dd>
+            <dd><a href="../../0.16.1/api/smriprep.interfaces.msm.html">0.16.1</a></dd>
+            <dd><a href="../../0.17.0/api/smriprep.interfaces.msm.html">0.17.0</a></dd>
+            <dd><a href="../../0.18.0/api/smriprep.interfaces.msm.html">0.18.0</a></dd>
+            <dd><a href="../../0.8.0/index.html">0.8.0</a></dd>
+            <dd><a href="../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
+            <dd><a href="../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
+            <dd><a href="../../0.8.0rc3/index.html">0.8.0rc3</a></dd>
+            <dd><a href="../../0.8.1/index.html">0.8.1</a></dd>
+            <dd><a href="../../0.8.2/index.html">0.8.2</a></dd>
+            <dd><a href="../../0.8.3/index.html">0.8.3</a></dd>
+            <dd><a href="../../0.9.0/index.html">0.9.0</a></dd>
+            <dd><a href="../../0.9.1/index.html">0.9.1</a></dd>
+            <dd><a href="../../0.9.2/index.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../dev-nibabies/api/smriprep.interfaces.msm.html">dev-nibabies</a></dd>
+            <dd><a href="../../enh_calabel/index.html">enh/calabel</a></dd>
+            <dd><a href="../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../fix_parcstats/index.html">fix/parcstats</a></dd>
+            <dd><a href="../../fix_recon-report/index.html">fix/recon-report</a></dd>
+            <dd><a href="../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
+            <dd><a href="../../maint_0.13.x/api/smriprep.interfaces.msm.html">maint/0.13.x</a></dd>
+            <dd><a href="../../maint_0.15.x/api/smriprep.interfaces.msm.html">maint/0.15.x</a></dd>
+            <dd><a href="../../maint_0.16.x/api/smriprep.interfaces.msm.html">maint/0.16.x</a></dd>
+            <dd><a href="../../maint_0.17.x/api/smriprep.interfaces.msm.html">maint/0.17.x</a></dd>
+            <dd><a href="smriprep.interfaces.msm.html">maint/0.18.x</a></dd>
+            <dd><a href="../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
+            <dd><a href="../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
+            <dd><a href="../../master/api/smriprep.interfaces.msm.html">master</a></dd>
+            <dd><a href="../../rel_0.16.1/api/smriprep.interfaces.msm.html">rel/0.16.1</a></dd>
+            <dd><a href="../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

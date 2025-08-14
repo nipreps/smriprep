@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sMRIPrep: Structural MRI PREProcessing pipeline &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e08756c3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="_static/jquery.js?v=1413ff29"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d9a209d6"></script>
+      <script src="_static/doctools.js?v=6afcdcd2"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">sMRIPrep: Structural MRI PREProcessing pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../master/index.html"><b>Warning:</b> This document is for an old version of smriprep. The main version is master.</a></p>
+<section id="smriprep-structural-mri-preprocessing-pipeline">
+<h1>sMRIPrep: Structural MRI PREProcessing pipeline<a class="headerlink" href="#smriprep-structural-mri-preprocessing-pipeline" title="Link to this heading"></a></h1>
+<a class="reference external image-reference" href="https://hub.docker.com/r/nipreps/smriprep/tags/"><img alt="Docker image available!" src="https://img.shields.io/badge/docker-nipreps/smriprep-brightgreen.svg?logo=docker&amp;style=flat" />
+</a>
+<a class="reference external image-reference" href="https://circleci.com/gh/nipreps/smriprep/tree/master"><img alt="https://circleci.com/gh/nipreps/smriprep/tree/master.svg?style=shield" src="https://circleci.com/gh/nipreps/smriprep/tree/master.svg?style=shield" />
+</a>
+<a class="reference external image-reference" href="https://codecov.io/gh/nipreps/smriprep"><img alt="Coverage report" src="https://codecov.io/gh/nipreps/smriprep/branch/master/graph/badge.svg" />
+</a>
+<a class="reference external image-reference" href="https://pypi.python.org/pypi/smriprep/"><img alt="Latest Version" src="https://img.shields.io/pypi/v/smriprep.svg" />
+</a>
+<a class="reference external image-reference" href="https://doi.org/10.1038/s41592-018-0235-4"><img alt="Published in Nature Methods" src="https://img.shields.io/badge/doi-10.1038%2Fs41592--018--0235--4-blue.svg" />
+</a>
+<p><em>sMRIPrep</em> is a structural magnetic resonance imaging (sMRI) data
+preprocessing pipeline that is designed to provide an easily accessible,
+state-of-the-art interface that is robust to variations in scan acquisition
+protocols and that requires minimal user input, while providing easily
+interpretable and comprehensive error and output reporting.
+It performs basic processing steps (subject-wise averaging, B1 field correction,
+spatial normalization, segmentation, skullstripping etc.) providing
+outputs that can be easily connected to subsequent tools such as
+<a class="reference external" href="https://github.com/nipreps/fmriprep">fMRIPrep</a> or
+<a class="reference external" href="https://github.com/nipreps/dmriprep">dMRIPrep</a>.</p>
+<img alt="https://github.com/oesteban/smriprep/raw/033a6b4a54ecbd9051c45df979619cda69847cd1/docs/_resources/workflow.png" src="https://github.com/oesteban/smriprep/raw/033a6b4a54ecbd9051c45df979619cda69847cd1/docs/_resources/workflow.png" />
+<p>The workflow is based on <a class="reference external" href="https://nipype.readthedocs.io">Nipype</a> and encompasses
+a combination of tools from well-known software packages, including
+<a class="reference external" href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/">FSL</a>,
+<a class="reference external" href="https://stnava.github.io/ANTs/">ANTs</a>,
+<a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/">FreeSurfer</a>,
+and <a class="reference external" href="https://humanconnectome.org/software/connectome-workbench">Connectome Workbench</a>.</p>
+<p>More information and documentation can be found at
+<a class="reference external" href="https://www.nipreps.org/smriprep/">https://www.nipreps.org/smriprep/</a>.
+Support is provided on <a class="reference external" href="https://neurostars.org/tags/smriprep">neurostars.org</a>.</p>
+<section id="principles">
+<h2>Principles<a class="headerlink" href="#principles" title="Link to this heading"></a></h2>
+<p><em>sMRIPrep</em> is built around three principles:</p>
+<ol class="arabic simple">
+<li><p><strong>Robustness</strong> - The pipeline adapts the preprocessing steps depending on
+the input dataset and should provide results as good as possible
+independently of scanner make, scanning parameters or presence of additional
+correction scans (such as fieldmaps).</p></li>
+<li><p><strong>Ease of use</strong> - Thanks to dependence on the BIDS standard, manual
+parameter input is reduced to a minimum, allowing the pipeline to run in an
+automatic fashion.</p></li>
+<li><p><strong>“Glass box”</strong> philosophy - Automation should not mean that one should not
+visually inspect the results or understand the methods.
+Thus, <em>sMRIPrep</em> provides visual reports for each subject, detailing the
+accuracy of the most important processing steps.
+This, combined with the documentation, can help researchers to understand
+the process and decide which subjects should be kept for the group level
+analysis.</p></li>
+</ol>
+</section>
+<section id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Link to this heading"></a></h2>
+<p>Please acknowledge this work by mentioning explicitly the name of this software
+(sMRIPrep) and the version, along with a link to the <a class="reference external" href="https://github.com/nipreps/smriprep">GitHub repository</a> or the Zenodo reference
+(doi:<a class="reference external" href="https://doi.org/10.5281/zenodo.2650521">10.5281/zenodo.2650521</a>).</p>
+</section>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#container-technologies-docker-and-singularity">Container technologies: Docker and Singularity</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#docker-recommended-for-pc-laptop-and-commercial-cloud">Docker (recommended for PC/laptop and commercial Cloud)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#singularity-recommended-for-hpc">Singularity (recommended for HPC)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#manually-prepared-environment-python-3-5">Manually Prepared Environment (Python 3.5+)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#external-dependencies">External Dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#execution-and-the-bids-format">Execution and the BIDS format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#command-line-arguments">Command-Line Arguments</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-positional-arguments">Positional Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-options-for-filtering-bids-queries">Options for filtering BIDS queries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-options-to-handle-performance">Options to handle performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-workflow-configuration">Workflow configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-specific-options-for-ants-registrations">Specific options for ANTs registrations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-specific-options-for-freesurfer-preprocessing">Specific options for FreeSurfer preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-surface-preprocessing-options">Surface preprocessing options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep.cli.run-get_parser-other-options">Other options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#the-command-line-interface-of-the-docker-wrapper">The command-line interface of the docker wrapper</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep_docker-get_parser-positional-arguments">Positional Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep_docker-get_parser-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep_docker-get_parser-wrapper-options">Wrapper options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#smriprep_docker-get_parser-developer-options">Developer options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#the-freesurfer-license">The FreeSurfer license</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/smriprep.cli.html">smriprep.cli package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.cli.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/smriprep.interfaces.html">smriprep.interfaces package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.interfaces.html#smriprep.interfaces.DerivativesDataSink"><code class="docutils literal notranslate"><span class="pre">DerivativesDataSink</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.interfaces.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/smriprep.utils.html">smriprep.utils package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.utils.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/smriprep.workflows.html">smriprep.workflows package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.workflows.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.workflows.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">What’s new?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#march-11-2024">0.14.0 (March 11, 2024)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#december-08-2023">0.13.2 (December 08, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#november-21-2023">0.13.1 (November 21, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#november-20-2023">0.13.0 (November 20, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#august-16-2023">0.12.2 (August 16, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#june-15-2023">0.12.1 (June 15, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#june-05-2023">0.12.0 (June 05, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#march-23-2023">0.11.1 (March 23, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#march-10-2023">0.11.0 (March 10, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#november-30-2022">0.10.0 (November 30, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#july-20-2022">0.9.2 (July 20, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#july-14-2022">0.9.1 (July 14, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#may-26-2022">0.9.0 (May 26, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#february-08-2022">0.8.3 (February 08, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#december-13-2021">0.8.2 (December 13, 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#october-08-2021">0.8.1 (October 08, 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#september-1-2021">0.8.0 (September 1, 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#october-07-2021">0.7.2 (October 07, 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#november-18-2020">0.7.1 (November 18, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#september-27-2020">0.7.0 (September 27, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#june-9-2020">0.6.2 (June 9, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#may-27-2020">0.6.1 (May 27, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#may-22-2020">0.6.0 (May 22, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#x-series">0.5.x Series</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#june-7-2020">0.5.3 (June 7, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#february-14-2020">0.5.2 (February 14, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#february-7-2020">0.5.1 (February 7, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#february-6-2020">0.5.0 (February 6, 2020)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#pre-0-5-x-series">Pre- 0.5.x Series</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#january-22-2020">0.4.2 (January 22, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#decemeber-12-2019">0.4.1 (Decemeber 12, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#november-26-2019">0.4.0 (November 26, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#september-9-2019">0.3.2 (September 9, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#july-21-2019">0.3.1 (July 21, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#july-12-2019">0.3.0 (July 12, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#july-9-2019">0.2.4 (July 9, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#june-5-2019">0.2.3 (June 5, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#id1">0.2.2 (June 5, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#may-6-2019">0.2.1 (May 6, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#may-3-2019">0.2.0 (May 3, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#march-22-2019">0.1.1 (March 22, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#march-05-2019">0.1.0 (March 05, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#february-06-2019">0.0.5 (February 06, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#january-25-2019">0.0.4 (January 25, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#january-18-2019">0.0.3 (January 18, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#january-8-2019">0.0.2 (January 8, 2019)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: 0.14.0
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../0.10.0/index.html">0.10.0</a></dd>
+            <dd><a href="../0.11.0/index.html">0.11.0</a></dd>
+            <dd><a href="../0.11.0rc0/index.html">0.11.0rc0</a></dd>
+            <dd><a href="../0.11.0rc1/index.html">0.11.0rc1</a></dd>
+            <dd><a href="../0.11.1/index.html">0.11.1</a></dd>
+            <dd><a href="../0.12.0/index.html">0.12.0</a></dd>
+            <dd><a href="../0.12.1/index.html">0.12.1</a></dd>
+            <dd><a href="../0.12.2/index.html">0.12.2</a></dd>
+            <dd><a href="../0.13.0/index.html">0.13.0</a></dd>
+            <dd><a href="../0.13.1/index.html">0.13.1</a></dd>
+            <dd><a href="../0.13.2/index.html">0.13.2</a></dd>
+            <dd><a href="index.html">0.14.0</a></dd>
+            <dd><a href="../0.15.0/index.html">0.15.0</a></dd>
+            <dd><a href="../0.16.0/index.html">0.16.0</a></dd>
+            <dd><a href="../0.16.1/index.html">0.16.1</a></dd>
+            <dd><a href="../0.17.0/index.html">0.17.0</a></dd>
+            <dd><a href="../0.18.0/index.html">0.18.0</a></dd>
+            <dd><a href="../0.8.0/index.html">0.8.0</a></dd>
+            <dd><a href="../0.8.0rc1/index.html">0.8.0rc1</a></dd>
+            <dd><a href="../0.8.0rc2/index.html">0.8.0rc2</a></dd>
+            <dd><a href="../0.8.0rc3/index.html">0.8.0rc3</a></dd>
+            <dd><a href="../0.8.1/index.html">0.8.1</a></dd>
+            <dd><a href="../0.8.2/index.html">0.8.2</a></dd>
+            <dd><a href="../0.8.3/index.html">0.8.3</a></dd>
+            <dd><a href="../0.9.0/index.html">0.9.0</a></dd>
+            <dd><a href="../0.9.1/index.html">0.9.1</a></dd>
+            <dd><a href="../0.9.2/index.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../dev-nibabies/index.html">dev-nibabies</a></dd>
+            <dd><a href="../enh_calabel/index.html">enh/calabel</a></dd>
+            <dd><a href="../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../fix_parcstats/index.html">fix/parcstats</a></dd>
+            <dd><a href="../fix_recon-report/index.html">fix/recon-report</a></dd>
+            <dd><a href="../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../maint_0.12.x/index.html">maint/0.12.x</a></dd>
+            <dd><a href="../maint_0.13.x/index.html">maint/0.13.x</a></dd>
+            <dd><a href="../maint_0.15.x/index.html">maint/0.15.x</a></dd>
+            <dd><a href="../maint_0.16.x/index.html">maint/0.16.x</a></dd>
+            <dd><a href="../maint_0.17.x/index.html">maint/0.17.x</a></dd>
+            <dd><a href="../maint_0.18.x/index.html">maint/0.18.x</a></dd>
+            <dd><a href="../maint_0.8.x/index.html">maint/0.8.x</a></dd>
+            <dd><a href="../maint_0.9.x/index.html">maint/0.9.x</a></dd>
+            <dd><a href="../master/index.html">master</a></dd>
+            <dd><a href="../rel_0.16.1/index.html">rel/0.16.1</a></dd>
+            <dd><a href="../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

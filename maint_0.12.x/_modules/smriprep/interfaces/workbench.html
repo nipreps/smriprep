@@ -1,0 +1,861 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.interfaces.workbench &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../../../_static/jquery.js?v=1413ff29"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../../../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../interfaces.html">smriprep.interfaces</a></li>
+      <li class="breadcrumb-item active">smriprep.interfaces.workbench</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><b>Warning:</b> This document is for the development version of smriprep.</p>
+<h1>Source code for smriprep.interfaces.workbench</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">CommandLineInputSpec</span><span class="p">,</span> <span class="n">File</span><span class="p">,</span> <span class="n">TraitedSpec</span><span class="p">,</span> <span class="n">traits</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.workbench.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">WBCommand</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CreateSignedDistanceVolumeInputSpec</span><span class="p">(</span><span class="n">CommandLineInputSpec</span><span class="p">):</span>
+    <span class="n">surf_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Input surface GIFTI file (.surf.gii)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ref_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;NIfTI volume in the desired output space (dims, spacing, origin)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;surf_file&#39;</span><span class="p">],</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_distvol.nii.gz&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Name of output volume containing signed distances&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">out_mask</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;surf_file&#39;</span><span class="p">],</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_distmask.nii.gz&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-roi-out </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Name of file to store a mask where the ``out_file`` has a computed value&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fill_value</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span>
+        <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-fill-value </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;value to put in all voxels that don&#39;t get assigned a distance&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">exact_limit</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span>
+        <span class="mf">5.0</span><span class="p">,</span>
+        <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-exact-limit </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;distance for exact output in mm&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">approx_limit</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span>
+        <span class="mf">20.0</span><span class="p">,</span>
+        <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-approx-limit </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;distance for approximate output in mm&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">approx_neighborhood</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span>
+        <span class="mi">2</span><span class="p">,</span>
+        <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-approx-neighborhood </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;size of neighborhood cube measured from center to face in voxels, default 2 = 5x5x5&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">winding_method</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span>
+        <span class="s1">&#39;EVEN_ODD&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NEGATIVE&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NONZERO&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NORMALS&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-winding </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;winding method for point inside surface test&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CreateSignedDistanceVolumeOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Name of output volume containing signed distances&#39;</span><span class="p">)</span>
+    <span class="n">out_mask</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Name of file to store a mask where the ``out_file`` has a computed value&#39;</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="CreateSignedDistanceVolume">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.workbench.html#smriprep.interfaces.workbench.CreateSignedDistanceVolume">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CreateSignedDistanceVolume</span><span class="p">(</span><span class="n">WBCommand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create signed distance volume from surface</span>
+
+<span class="sd">    Computes the signed distance function of the surface.  Exact distance is</span>
+<span class="sd">    calculated by finding the closest point on any surface triangle to the</span>
+<span class="sd">    center of the voxel.  Approximate distance is calculated starting with</span>
+<span class="sd">    these distances, using dijkstra&#39;s method with a neighborhood of voxels.</span>
+<span class="sd">    Specifying too small of an exact distance may produce unexpected results.</span>
+
+<span class="sd">    The NORMALS winding method uses the normals of triangles and edges, or the</span>
+<span class="sd">    closest triangle hit by a ray from the point.  This method may be</span>
+<span class="sd">    slightly faster, but is only reliable for a closed surface that does not</span>
+<span class="sd">    cross through itself.  All other methods count entry (positive) and exit</span>
+<span class="sd">    (negative) crossings of a vertical ray from the point, then counts as</span>
+<span class="sd">    inside if the total is odd, negative, or nonzero, respectively.</span>
+
+<span class="sd">    Command help string::</span>
+
+<span class="sd">        CREATE SIGNED DISTANCE VOLUME FROM SURFACE</span>
+
+<span class="sd">        wb_command -create-signed-distance-volume</span>
+<span class="sd">           &lt;surface&gt; - the input surface</span>
+<span class="sd">           &lt;refspace&gt; - a volume in the desired output space (dims, spacing, origin)</span>
+<span class="sd">           &lt;outvol&gt; - output - the output volume</span>
+
+<span class="sd">           [-roi-out] - output an roi volume of where the output has a computed</span>
+<span class="sd">              value</span>
+<span class="sd">              &lt;roi-vol&gt; - output - the output roi volume</span>
+
+<span class="sd">           [-fill-value] - specify a value to put in all voxels that don&#39;t get</span>
+<span class="sd">              assigned a distance</span>
+<span class="sd">              &lt;value&gt; - value to fill with (default 0)</span>
+
+<span class="sd">           [-exact-limit] - specify distance for exact output</span>
+<span class="sd">              &lt;dist&gt; - distance in mm (default 5)</span>
+
+<span class="sd">           [-approx-limit] - specify distance for approximate output</span>
+<span class="sd">              &lt;dist&gt; - distance in mm (default 20)</span>
+
+<span class="sd">           [-approx-neighborhood] - voxel neighborhood for approximate calculation</span>
+<span class="sd">              &lt;num&gt; - size of neighborhood cube measured from center to face, in</span>
+<span class="sd">                 voxels (default 2 = 5x5x5)</span>
+
+<span class="sd">           [-winding] - winding method for point inside surface test</span>
+<span class="sd">              &lt;method&gt; - name of the method (default EVEN_ODD)</span>
+
+<span class="sd">           Computes the signed distance function of the surface.  Exact distance is</span>
+<span class="sd">           calculated by finding the closest point on any surface triangle to the</span>
+<span class="sd">           center of the voxel.  Approximate distance is calculated starting with</span>
+<span class="sd">           these distances, using dijkstra&#39;s method with a neighborhood of voxels.</span>
+<span class="sd">           Specifying too small of an exact distance may produce unexpected results.</span>
+<span class="sd">           Valid specifiers for winding methods are as follows:</span>
+
+<span class="sd">           EVEN_ODD (default)</span>
+<span class="sd">           NEGATIVE</span>
+<span class="sd">           NONZERO</span>
+<span class="sd">           NORMALS</span>
+
+<span class="sd">           The NORMALS method uses the normals of triangles and edges, or the</span>
+<span class="sd">           closest triangle hit by a ray from the point.  This method may be</span>
+<span class="sd">           slightly faster, but is only reliable for a closed surface that does not</span>
+<span class="sd">           cross through itself.  All other methods count entry (positive) and exit</span>
+<span class="sd">           (negative) crossings of a vertical ray from the point, then counts as</span>
+<span class="sd">           inside if the total is odd, negative, or nonzero, respectively.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">CreateSignedDistanceVolumeInputSpec</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">CreateSignedDistanceVolumeOutputSpec</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;wb_command -create-signed-distance-volume&#39;</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceAffineRegressionInputSpec</span><span class="p">(</span><span class="n">CommandLineInputSpec</span><span class="p">):</span>
+    <span class="n">in_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Surface to warp&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">target_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Surface to match the coordinates of&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">out_affine</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_xfm&#39;</span><span class="p">,</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_surface&#39;</span><span class="p">],</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output affine file&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceAffineRegressionOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">out_affine</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;The output affine file&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SurfaceAffineRegression">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.workbench.html#smriprep.interfaces.workbench.SurfaceAffineRegression">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceAffineRegression</span><span class="p">(</span><span class="n">WBCommand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;REGRESS THE AFFINE TRANSFORM BETWEEN SURFACES ON THE SAME MESH</span>
+
+<span class="sd">    wb_command -surface-affine-regression</span>
+<span class="sd">       &lt;source&gt; - the surface to warp</span>
+<span class="sd">       &lt;target&gt; - the surface to match the coordinates of</span>
+<span class="sd">       &lt;affine-out&gt; - output - the output affine file</span>
+
+<span class="sd">    Use linear regression to compute an affine that minimizes the sum of</span>
+<span class="sd">    squares of the coordinate differences between the target surface and the</span>
+<span class="sd">    warped source surface. Note that this has a bias to shrink the surface</span>
+<span class="sd">    that is being warped. The output is written as a NIFTI &#39;world&#39; matrix,</span>
+<span class="sd">    see -convert-affine to convert it for use in other software.</span>
+
+<span class="sd">    &gt;&gt;&gt; sar = SurfaceAffineRegression()</span>
+<span class="sd">    &gt;&gt;&gt; sar.inputs.in_surface = &#39;sub-01_hemi-L_sulc.shape.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; sar.inputs.target_surface = &#39;tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; sar.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE</span>
+<span class="sd">    &#39;wb_command -surface-affine-regression \</span>
+<span class="sd">    sub-01_hemi-L_sulc.shape.gii \</span>
+<span class="sd">    tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii \</span>
+<span class="sd">    sub-01_hemi-L_sulc.shape_xfm&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">SurfaceAffineRegressionInputSpec</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">SurfaceAffineRegressionOutputSpec</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;wb_command -surface-affine-regression&#39;</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceApplyAffineInputSpec</span><span class="p">(</span><span class="n">CommandLineInputSpec</span><span class="p">):</span>
+    <span class="n">in_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the surface to transform&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">in_affine</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the affine file&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">out_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_xformed.surf.gii&#39;</span><span class="p">,</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_surface&#39;</span><span class="p">],</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output transformed surface&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">flirt_source</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;flirt_target&#39;</span><span class="p">],</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-flirt </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Source volume (must be used if affine is a flirt affine)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">flirt_target</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;flirt_source&#39;</span><span class="p">],</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Target volume (must be used if affine is a flirt affine)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceApplyAffineOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">out_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output transformed surface&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SurfaceApplyAffine">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.workbench.html#smriprep.interfaces.workbench.SurfaceApplyAffine">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceApplyAffine</span><span class="p">(</span><span class="n">WBCommand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;APPLY AFFINE TRANSFORM TO SURFACE FILE</span>
+
+<span class="sd">    wb_command -surface-apply-affine</span>
+<span class="sd">       &lt;in-surf&gt; - the surface to transform</span>
+<span class="sd">       &lt;affine&gt; - the affine file</span>
+<span class="sd">       &lt;out-surf&gt; - output - the output transformed surface</span>
+
+<span class="sd">       [-flirt] - MUST be used if affine is a flirt affine</span>
+<span class="sd">          &lt;source-volume&gt; - the source volume used when generating the affine</span>
+<span class="sd">          &lt;target-volume&gt; - the target volume used when generating the affine</span>
+
+<span class="sd">    For flirt matrices, you must use the -flirt option, because flirt</span>
+<span class="sd">    matrices are not a complete description of the coordinate transform they</span>
+<span class="sd">    represent.  If the -flirt option is not present, the affine must be a</span>
+<span class="sd">    nifti &#39;world&#39; affine, which can be obtained with the -convert-affine</span>
+<span class="sd">    command, or aff_conv from the 4dfp suite.</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">    &gt;&gt;&gt; np.savetxt(&#39;affine.txt&#39;, np.eye(4), delimiter=&#39;\t&#39;)</span>
+
+<span class="sd">    .. doctest::</span>
+
+<span class="sd">    &gt;&gt;&gt; saa = SurfaceApplyAffine()</span>
+<span class="sd">    &gt;&gt;&gt; saa.inputs.in_surface = &#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; saa.inputs.in_affine = &#39;affine.txt&#39;</span>
+<span class="sd">    &gt;&gt;&gt; saa.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE</span>
+<span class="sd">    &#39;wb_command -surface-apply-affine \</span>
+<span class="sd">    sub-01_hemi-L_sphere.surf.gii \</span>
+<span class="sd">    affine.txt \</span>
+<span class="sd">    sub-01_hemi-L_sphere.surf_xformed.surf.gii&#39;</span>
+
+<span class="sd">    .. testcleanup::</span>
+
+<span class="sd">    &gt;&gt;&gt; os.unlink(&#39;affine.txt&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">SurfaceApplyAffineInputSpec</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">SurfaceApplyAffineOutputSpec</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;wb_command -surface-apply-affine&#39;</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceApplyWarpfieldInputSpec</span><span class="p">(</span><span class="n">CommandLineInputSpec</span><span class="p">):</span>
+    <span class="n">in_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the surface to transform&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">warpfield</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the INVERSE warpfield&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">out_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_warped.surf.gii&#39;</span><span class="p">,</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;in_surface&#39;</span><span class="p">],</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output transformed surface&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">fnirt_forward_warp</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-fnirt </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the forward warpfield (must be used if fnirt warpfield)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceApplyWarpfieldOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">out_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output transformed surface&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SurfaceApplyWarpfield">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.workbench.html#smriprep.interfaces.workbench.SurfaceApplyWarpfield">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceApplyWarpfield</span><span class="p">(</span><span class="n">WBCommand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;APPLY WARPFIELD TO SURFACE FILE</span>
+
+<span class="sd">    wb_command -surface-apply-warpfield</span>
+<span class="sd">      &lt;in-surf&gt; - the surface to transform</span>
+<span class="sd">      &lt;warpfield&gt; - the INVERSE warpfield</span>
+<span class="sd">      &lt;out-surf&gt; - output - the output transformed surface</span>
+
+<span class="sd">      [-fnirt] - MUST be used if using a fnirt warpfield</span>
+<span class="sd">         &lt;forward-warp&gt; - the forward warpfield</span>
+
+<span class="sd">    NOTE: warping a surface requires the INVERSE of the warpfield used to</span>
+<span class="sd">    warp the volume it lines up with.  The header of the forward warp is</span>
+<span class="sd">    needed by the -fnirt option in order to correctly interpret the</span>
+<span class="sd">    displacements in the fnirt warpfield.</span>
+
+<span class="sd">    If the -fnirt option is not present, the warpfield must be a nifti</span>
+<span class="sd">    &#39;world&#39; warpfield, which can be obtained with the -convert-warpfield</span>
+<span class="sd">    command.</span>
+
+<span class="sd">    &gt;&gt;&gt; saw = SurfaceApplyWarpfield()</span>
+<span class="sd">    &gt;&gt;&gt; saw.inputs.in_surface = &#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; saw.inputs.warpfield = &#39;sub-01_desc-warped_T1w.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; saw.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE</span>
+<span class="sd">    &#39;wb_command -surface-apply-warpfield \</span>
+<span class="sd">    sub-01_hemi-L_sphere.surf.gii \</span>
+<span class="sd">    sub-01_desc-warped_T1w.nii.gz \</span>
+<span class="sd">    sub-01_hemi-L_sphere.surf_warped.surf.gii&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">SurfaceApplyWarpfieldInputSpec</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">SurfaceApplyWarpfieldOutputSpec</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;wb_command -surface-apply-warpfield&#39;</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceModifySphereInputSpec</span><span class="p">(</span><span class="n">CommandLineInputSpec</span><span class="p">):</span>
+    <span class="n">in_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the sphere to modify&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">radius</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Int</span><span class="p">(</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the radius the output sphere should have&#39;</span>
+    <span class="p">)</span>
+    <span class="n">out_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_mod.surf.gii&#39;</span><span class="p">,</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="s1">&#39;in_surface&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the modified sphere&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">recenter</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Bool</span><span class="p">(</span>
+        <span class="kc">False</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-recenter&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;recenter the sphere by means of the bounding box&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceModifySphereOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">out_surface</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the modified sphere&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SurfaceModifySphere">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.workbench.html#smriprep.interfaces.workbench.SurfaceModifySphere">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceModifySphere</span><span class="p">(</span><span class="n">WBCommand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CHANGE RADIUS AND OPTIONALLY RECENTER A SPHERE</span>
+
+<span class="sd">    wb_command -surface-modify-sphere</span>
+<span class="sd">      &lt;sphere-in&gt; - the sphere to modify</span>
+<span class="sd">      &lt;radius&gt; - the radius the output sphere should have</span>
+<span class="sd">      &lt;sphere-out&gt; - output - the output sphere</span>
+
+<span class="sd">      [-recenter] - recenter the sphere by means of the bounding box</span>
+
+<span class="sd">    This command may be useful if you have used -surface-resample to resample</span>
+<span class="sd">    a sphere, which can suffer from problems generally not present in</span>
+<span class="sd">    -surface-sphere-project-unproject.  If the sphere should already be</span>
+<span class="sd">    centered around the origin, using -recenter may still shift it slightly</span>
+<span class="sd">    before changing the radius, which is likely to be undesirable.</span>
+
+<span class="sd">    If &lt;sphere-in&gt; is not close to spherical, or not centered around the</span>
+<span class="sd">    origin and -recenter is not used, a warning is printed.</span>
+
+<span class="sd">    &gt;&gt;&gt; sms = SurfaceModifySphere()</span>
+<span class="sd">    &gt;&gt;&gt; sms.inputs.in_surface = &#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; sms.inputs.radius = 100</span>
+<span class="sd">    &gt;&gt;&gt; sms.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE</span>
+<span class="sd">    &#39;wb_command -surface-modify-sphere \</span>
+<span class="sd">    sub-01_hemi-L_sphere.surf.gii 100 sub-01_hemi-L_sphere.surf_mod.surf.gii&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">SurfaceModifySphereInputSpec</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">SurfaceModifySphereOutputSpec</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;wb_command -surface-modify-sphere&#39;</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceSphereProjectUnprojectInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;COPY REGISTRATION DEFORMATIONS TO DIFFERENT SPHERE.</span>
+
+<span class="sd">    wb_command -surface-sphere-project-unproject</span>
+<span class="sd">       &lt;sphere-in&gt; - a sphere with the desired output mesh</span>
+<span class="sd">       &lt;sphere-project-to&gt; - a sphere that aligns with sphere-in</span>
+<span class="sd">       &lt;sphere-unproject-from&gt; - &lt;sphere-project-to&gt; deformed to the desired</span>
+<span class="sd">          output space</span>
+<span class="sd">       &lt;sphere-out&gt; - output - the output sphere</span>
+
+<span class="sd">       Background: A surface registration starts with an input sphere, and moves</span>
+<span class="sd">       its vertices around on the sphere until it matches the template data.</span>
+<span class="sd">       This means that the registration deformation is actually represented as</span>
+<span class="sd">       the difference between two separate files - the starting sphere, and the</span>
+<span class="sd">       registered sphere.  Since the starting sphere of the registration may not</span>
+<span class="sd">       have vertex correspondence to any other sphere (often, it is a native</span>
+<span class="sd">       sphere), it can be inconvenient to manipulate or compare these</span>
+<span class="sd">       deformations across subjects, etc.</span>
+
+<span class="sd">       The purpose of this command is to be able to apply these deformations</span>
+<span class="sd">       onto a new sphere of the user&#39;s choice, to make it easier to compare or</span>
+<span class="sd">       manipulate them.  Common uses are to concatenate two successive separate</span>
+<span class="sd">       registrations (e.g. Human to Chimpanzee, and then Chimpanzee to Macaque)</span>
+<span class="sd">       or inversion (for dedrifting or symmetric registration schemes).</span>
+
+<span class="sd">       &lt;sphere-in&gt; must already be considered to be in alignment with one of the</span>
+<span class="sd">       two ends of the registration (if your registration is Human to</span>
+<span class="sd">       Chimpanzee, &lt;sphere-in&gt; must be in register with either Human or</span>
+<span class="sd">       Chimpanzee).  The &#39;project-to&#39; sphere must be the side of the</span>
+<span class="sd">       registration that is aligned with &lt;sphere-in&gt; (if your registration is</span>
+<span class="sd">       Human to Chimpanzee, and &lt;sphere-in&gt; is aligned with Human, then</span>
+<span class="sd">       &#39;project-to&#39; should be the original Human sphere).  The &#39;unproject-from&#39;</span>
+<span class="sd">       sphere must be the remaining sphere of the registration (original vs</span>
+<span class="sd">       deformed/registered).  The output is as if you had run the same</span>
+<span class="sd">       registration with &lt;sphere-in&gt; as the starting sphere, in the direction of</span>
+<span class="sd">       deforming the &#39;project-to&#39; sphere to create the &#39;unproject-from&#39; sphere.</span>
+
+<span class="sd">       Note that this command cannot check for you what spheres are aligned with</span>
+<span class="sd">       other spheres, and using the wrong spheres or in the incorrect order will</span>
+<span class="sd">       not necessarily cause an error message.  In some cases, it may be useful</span>
+<span class="sd">       to use a new, arbitrary sphere as the input, which can be created with</span>
+<span class="sd">       the -surface-create-sphere command.</span>
+
+<span class="sd">       Example 1: You have a Human to Chimpanzee registration, and a Chimpanzee</span>
+<span class="sd">       to Macaque registration, and want to combine them.  If you use the Human</span>
+<span class="sd">       sphere registered to Chimpanzee as sphere-in, the Chimpanzee standard</span>
+<span class="sd">       sphere as project-to, and the Chimpanzee sphere registered to Macaque as</span>
+<span class="sd">       unproject-from, the output will be the Human sphere in register with the</span>
+<span class="sd">       Macaque.</span>
+
+<span class="sd">       Example 2: You have a Human to Chimpanzee registration, but what you</span>
+<span class="sd">       really want is the inverse, that is, the sphere as if you had run the</span>
+<span class="sd">       registration from Chimpanzee to Human.  If you use the Chimpanzee</span>
+<span class="sd">       standard sphere as sphere-in, the Human sphere registered to Chimpanzee</span>
+<span class="sd">       as project-to, and the standard Human sphere as unproject-from, the</span>
+<span class="sd">       output will be the Chimpanzee sphere in register with the Human.</span>
+
+<span class="sd">       Technical details: Each vertex of &lt;sphere-in&gt; is projected to a triangle</span>
+<span class="sd">       of &lt;sphere-project-to&gt;, and its new position is determined by the</span>
+<span class="sd">       position of the corresponding triangle in &lt;sphere-unproject-from&gt;.  The</span>
+<span class="sd">       output is a sphere with the topology of &lt;sphere-in&gt;, but coordinates</span>
+<span class="sd">       shifted by the deformation from &lt;sphere-project-to&gt; to</span>
+<span class="sd">       &lt;sphere-unproject-from&gt;.  &lt;sphere-project-to&gt; and &lt;sphere-unproject-from&gt;</span>
+<span class="sd">       must have the same topology as each other, but &lt;sphere-in&gt; may have any</span>
+<span class="sd">       topology.&quot;&quot;&quot;</span>
+
+    <span class="n">sphere_in</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;a sphere with the desired output mesh&#39;</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">sphere_project_to</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;a sphere that aligns with sphere-in&#39;</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">sphere_unproject_from</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;&lt;sphere-project-to&gt; deformed to the desired output space&#39;</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">sphere_out</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">File</span><span class="p">(</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_unprojected.surf.gii&#39;</span><span class="p">,</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sphere_in&#39;</span><span class="p">],</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output sphere&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceSphereProjectUnprojectOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">sphere_out</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output sphere&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SurfaceSphereProjectUnproject">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.workbench.html#smriprep.interfaces.workbench.SurfaceSphereProjectUnproject">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceSphereProjectUnproject</span><span class="p">(</span><span class="n">WBCommand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;COPY REGISTRATION DEFORMATIONS TO DIFFERENT SPHERE.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; from smriprep.interfaces.workbench import SurfaceSphereProjectUnproject</span>
+<span class="sd">    &gt;&gt;&gt; sphere_project = SurfaceSphereProjectUnproject()</span>
+<span class="sd">    &gt;&gt;&gt; sphere_project.inputs.sphere_in = &#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; sphere_project.inputs.sphere_project_to = &#39;tpl-fsLR_hemi-L_den-32k_sphere.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; sphere_project.inputs.sphere_unproject_from = &#39;lh.sphere.reg.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; sphere_project.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE</span>
+<span class="sd">    &#39;wb_command -surface-sphere-project-unproject sub-01_hemi-L_sphere.surf.gii \</span>
+<span class="sd">    tpl-fsLR_hemi-L_den-32k_sphere.surf.gii lh.sphere.reg.surf.gii \</span>
+<span class="sd">    sub-01_hemi-L_sphere.surf_unprojected.surf.gii&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">SurfaceSphereProjectUnprojectInputSpec</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">SurfaceSphereProjectUnprojectOutputSpec</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;wb_command -surface-sphere-project-unproject&#39;</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceResampleInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;RESAMPLE A SURFACE TO A DIFFERENT MESH</span>
+
+<span class="sd">    wb_command -surface-resample</span>
+<span class="sd">      &lt;surface-in&gt; - the surface file to resample</span>
+<span class="sd">      &lt;current-sphere&gt; - a sphere surface with the mesh that the input surface</span>
+<span class="sd">         is currently on</span>
+<span class="sd">      &lt;new-sphere&gt; - a sphere surface that is in register with &lt;current-sphere&gt;</span>
+<span class="sd">         and has the desired output mesh</span>
+<span class="sd">      &lt;method&gt; - the method name</span>
+<span class="sd">      &lt;surface-out&gt; - output - the output surface file</span>
+
+<span class="sd">      [-area-surfs] - specify surfaces to do vertex area correction based on</span>
+<span class="sd">         &lt;current-area&gt; - a relevant surface with &lt;current-sphere&gt; mesh</span>
+<span class="sd">         &lt;new-area&gt; - a relevant surface with &lt;new-sphere&gt; mesh</span>
+
+<span class="sd">      [-area-metrics] - specify vertex area metrics to do area correction based</span>
+<span class="sd">         on</span>
+<span class="sd">         &lt;current-area&gt; - a metric file with vertex areas for &lt;current-sphere&gt;</span>
+<span class="sd">            mesh</span>
+<span class="sd">         &lt;new-area&gt; - a metric file with vertex areas for &lt;new-sphere&gt; mesh</span>
+
+<span class="sd">      Resamples a surface file, given two spherical surfaces that are in</span>
+<span class="sd">      register.  If ADAP_BARY_AREA is used, exactly one of -area-surfs or</span>
+<span class="sd">      -area-metrics must be specified.  This method is not generally</span>
+<span class="sd">      recommended for surface resampling, but is provided for completeness.</span>
+
+<span class="sd">      The BARYCENTRIC method is generally recommended for anatomical surfaces,</span>
+<span class="sd">      in order to minimize smoothing.</span>
+
+<span class="sd">      For cut surfaces (including flatmaps), use -surface-cut-resample.</span>
+
+<span class="sd">      Instead of resampling a spherical surface, the</span>
+<span class="sd">      -surface-sphere-project-unproject command is recommended.</span>
+
+<span class="sd">      The &lt;method&gt; argument must be one of the following:</span>
+
+<span class="sd">      ADAP_BARY_AREA</span>
+<span class="sd">      BARYCENTRIC</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">surface_in</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the surface file to resample&#39;</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">current_sphere</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;a sphere surface with the mesh that the input surface is currently on&#39;</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">new_sphere</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;a sphere surface that is in register with &lt;current-sphere&gt; and has the &#39;</span>
+        <span class="s1">&#39;desired output mesh&#39;</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">method</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span>
+        <span class="s1">&#39;ADAP_BARY_AREA&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;BARYCENTRIC&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the method name&#39;</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">surface_out</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">File</span><span class="p">(</span>
+        <span class="n">name_template</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_resampled.surf.gii&#39;</span><span class="p">,</span>
+        <span class="n">name_source</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;surface_in&#39;</span><span class="p">],</span>
+        <span class="n">keep_extension</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output surface file&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">correction_source</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span>
+        <span class="s1">&#39;area_surfs&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;area_metrics&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;specify surfaces or vertex area metrics to do vertex area correction based on&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">current_area</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;a relevant surface with &lt;current-sphere&gt; mesh&#39;</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;correction_source&#39;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">new_area</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;a relevant surface with &lt;new-sphere&gt; mesh&#39;</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+        <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;correction_source&#39;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceResampleOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
+    <span class="n">surface_out</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;the output surface file&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SurfaceResample">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.workbench.html#smriprep.interfaces.workbench.SurfaceResample">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceResample</span><span class="p">(</span><span class="n">WBCommand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;RESAMPLE A SURFACE TO A DIFFERENT MESH.</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; from smriprep.interfaces.workbench import SurfaceResample</span>
+<span class="sd">    &gt;&gt;&gt; surface_resample = SurfaceResample()</span>
+<span class="sd">    &gt;&gt;&gt; surface_resample.inputs.surface_in = &#39;sub-01_hemi-L_midthickness.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; surface_resample.inputs.current_sphere = &#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; surface_resample.inputs.new_sphere = &#39;tpl-fsLR_hemi-L_den-32k_sphere.surf.gii&#39;</span>
+<span class="sd">    &gt;&gt;&gt; surface_resample.inputs.method = &#39;BARYCENTRIC&#39;</span>
+<span class="sd">    &gt;&gt;&gt; surface_resample.cmdline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE</span>
+<span class="sd">    &#39;wb_command -surface-resample sub-01_hemi-L_midthickness.surf.gii \</span>
+<span class="sd">    sub-01_hemi-L_sphere.surf.gii tpl-fsLR_hemi-L_den-32k_sphere.surf.gii \</span>
+<span class="sd">    BARYCENTRIC sub-01_hemi-L_midthickness.surf_resampled.surf.gii&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">SurfaceResampleInputSpec</span>
+    <span class="n">output_spec</span> <span class="o">=</span> <span class="n">SurfaceResampleOutputSpec</span>
+    <span class="n">_cmd</span> <span class="o">=</span> <span class="s1">&#39;wb_command -surface-resample&#39;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: maint/0.12.x
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../../../0.10.0/index.html">0.10.0</a></dd>
+            <dd><a href="../../../../0.11.0/index.html">0.11.0</a></dd>
+            <dd><a href="../../../../0.11.0rc0/index.html">0.11.0rc0</a></dd>
+            <dd><a href="../../../../0.11.0rc1/index.html">0.11.0rc1</a></dd>
+            <dd><a href="../../../../0.11.1/index.html">0.11.1</a></dd>
+            <dd><a href="../../../../0.12.0/index.html">0.12.0</a></dd>
+            <dd><a href="../../../../0.12.1/index.html">0.12.1</a></dd>
+            <dd><a href="../../../../0.12.2/index.html">0.12.2</a></dd>
+            <dd><a href="../../../../0.13.0/index.html">0.13.0</a></dd>
+            <dd><a href="../../../../0.13.1/index.html">0.13.1</a></dd>
+            <dd><a href="../../../../0.13.2/index.html">0.13.2</a></dd>
+            <dd><a href="../../../../0.14.0/index.html">0.14.0</a></dd>
+            <dd><a href="../../../../0.15.0/index.html">0.15.0</a></dd>
+            <dd><a href="../../../../0.16.0/index.html">0.16.0</a></dd>
+            <dd><a href="../../../../0.16.1/index.html">0.16.1</a></dd>
+            <dd><a href="../../../../0.17.0/index.html">0.17.0</a></dd>
+            <dd><a href="../../../../0.18.0/index.html">0.18.0</a></dd>
+            <dd><a href="../../../../0.8.0/index.html">0.8.0</a></dd>
+            <dd><a href="../../../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
+            <dd><a href="../../../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
+            <dd><a href="../../../../0.8.0rc3/index.html">0.8.0rc3</a></dd>
+            <dd><a href="../../../../0.8.1/index.html">0.8.1</a></dd>
+            <dd><a href="../../../../0.8.2/index.html">0.8.2</a></dd>
+            <dd><a href="../../../../0.8.3/index.html">0.8.3</a></dd>
+            <dd><a href="../../../../0.9.0/index.html">0.9.0</a></dd>
+            <dd><a href="../../../../0.9.1/index.html">0.9.1</a></dd>
+            <dd><a href="../../../../0.9.2/index.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../../../dev-nibabies/index.html">dev-nibabies</a></dd>
+            <dd><a href="../../../../enh_calabel/index.html">enh/calabel</a></dd>
+            <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
+            <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
+            <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
+            <dd><a href="workbench.html">maint/0.12.x</a></dd>
+            <dd><a href="../../../../maint_0.13.x/index.html">maint/0.13.x</a></dd>
+            <dd><a href="../../../../maint_0.15.x/index.html">maint/0.15.x</a></dd>
+            <dd><a href="../../../../maint_0.16.x/index.html">maint/0.16.x</a></dd>
+            <dd><a href="../../../../maint_0.17.x/index.html">maint/0.17.x</a></dd>
+            <dd><a href="../../../../maint_0.18.x/index.html">maint/0.18.x</a></dd>
+            <dd><a href="../../../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
+            <dd><a href="../../../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
+            <dd><a href="../../../../master/index.html">master</a></dd>
+            <dd><a href="../../../../rel_0.16.1/index.html">rel/0.16.1</a></dd>
+            <dd><a href="../../../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.utils.bids &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../../../_static/jquery.js?v=1413ff29"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d9a209d6"></script>
+      <script src="../../../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smriprep.utils.bids</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><b>Warning:</b> This document is for the development version of smriprep.</p>
+<h1>Source code for smriprep.utils.bids</h1><div class="highlight"><pre>
+<span></span><span class="c1"># emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-</span>
+<span class="c1"># vi: set ft=python sts=4 ts=4 sw=4 et:</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2021 The NiPreps Developers &lt;nipreps@gmail.com&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="c1"># We support and encourage derived works from this project, please read</span>
+<span class="c1"># about our expectations at</span>
+<span class="c1">#</span>
+<span class="c1">#     https://www.nipreps.org/community/licensing/</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Utilities to handle BIDS inputs.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="kn">import</span> <span class="n">loads</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">bids.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">BIDSLayout</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span> <span class="k">as</span> <span class="n">nwf_load</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">smriprep</span>
+
+
+<div class="viewcode-block" id="collect_derivatives">
+<a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.collect_derivatives">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">collect_derivatives</span><span class="p">(</span>
+    <span class="n">derivatives_dir</span><span class="p">,</span>
+    <span class="n">subject_id</span><span class="p">,</span>
+    <span class="n">std_spaces</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">patterns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">session_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gather existing derivatives and compose a cache.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">patterns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_spec</span><span class="p">,</span> <span class="n">_patterns</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">loads</span><span class="p">(</span><span class="n">smriprep</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="s1">&#39;io_spec.json&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="n">_spec</span>
+        <span class="k">if</span> <span class="n">patterns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">patterns</span> <span class="o">=</span> <span class="n">_patterns</span>
+
+    <span class="n">deriv_config</span> <span class="o">=</span> <span class="n">nwf_load</span><span class="p">(</span><span class="s1">&#39;nipreps.json&#39;</span><span class="p">)</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="n">BIDSLayout</span><span class="p">(</span><span class="n">derivatives_dir</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">deriv_config</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">derivs_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Subject and session (if available) will be added to all queries</span>
+    <span class="n">qry_base</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;subject&#39;</span><span class="p">:</span> <span class="n">subject_id</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">session_id</span><span class="p">:</span>
+        <span class="n">qry_base</span><span class="p">[</span><span class="s1">&#39;session&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">session_id</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">&#39;baseline&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">qry</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">qry</span><span class="p">,</span> <span class="o">**</span><span class="n">qry_base</span><span class="p">}</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">qry</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Respect label order in queries</span>
+        <span class="k">if</span> <span class="s1">&#39;label&#39;</span> <span class="ow">in</span> <span class="n">qry</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">entities</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]))</span>
+
+        <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+
+        <span class="n">derivs_cache</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;t1w_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">paths</span>
+
+    <span class="n">transforms</span> <span class="o">=</span> <span class="n">derivs_cache</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;transforms&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="k">for</span> <span class="n">_space</span> <span class="ow">in</span> <span class="n">std_spaces</span><span class="p">:</span>
+        <span class="n">space</span> <span class="o">=</span> <span class="n">_space</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:cohort-&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">&#39;transforms&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">qry</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">qry</span><span class="p">,</span> <span class="o">**</span><span class="n">qry_base</span><span class="p">}</span>
+            <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;from&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;from&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">space</span>
+            <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qry</span><span class="p">[</span><span class="s1">&#39;to&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">space</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">qry</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">transforms</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">_space</span><span class="p">,</span> <span class="p">{})[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">item</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">&#39;surfaces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">qry</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">qry</span><span class="p">,</span> <span class="o">**</span><span class="n">qry_base</span><span class="p">}</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">return_type</span><span class="o">=</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">qry</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">derivs_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">derivs_cache</span></div>
+
+
+
+<div class="viewcode-block" id="write_bidsignore">
+<a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.write_bidsignore">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_bidsignore</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">):</span>
+    <span class="n">bids_ignore</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;*.html&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;logs/&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;figures/&#39;</span><span class="p">,</span>  <span class="c1"># Reports</span>
+        <span class="s1">&#39;*_xfm.*&#39;</span><span class="p">,</span>  <span class="c1"># Unspecified transform files</span>
+        <span class="s1">&#39;*.surf.gii&#39;</span><span class="p">,</span>  <span class="c1"># Unspecified structural outputs</span>
+    <span class="p">]</span>
+    <span class="n">ignore_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;.bidsignore&#39;</span>
+
+    <span class="n">ignore_file</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bids_ignore</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="write_derivative_description">
+<a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.write_derivative_description">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_derivative_description</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">,</span> <span class="n">deriv_dir</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write a ``dataset_description.json`` for the derivatives folder.</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">    &gt;&gt;&gt; from smriprep.data import load</span>
+<span class="sd">    &gt;&gt;&gt; from pathlib import Path</span>
+<span class="sd">    &gt;&gt;&gt; from tempfile import TemporaryDirectory</span>
+<span class="sd">    &gt;&gt;&gt; tmpdir = TemporaryDirectory()</span>
+<span class="sd">    &gt;&gt;&gt; bids_dir = load(&#39;tests&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; deriv_desc = Path(tmpdir.name) / &#39;dataset_description.json&#39;</span>
+
+<span class="sd">    .. doctest::</span>
+
+<span class="sd">    &gt;&gt;&gt; write_derivative_description(bids_dir, deriv_desc.parent)</span>
+<span class="sd">    &gt;&gt;&gt; deriv_desc.is_file()</span>
+<span class="sd">    True</span>
+
+<span class="sd">    .. testcleanup::</span>
+
+<span class="sd">    &gt;&gt;&gt; tmpdir.cleanup()</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..__about__</span><span class="w"> </span><span class="kn">import</span> <span class="n">DOWNLOAD_URL</span><span class="p">,</span> <span class="n">__version__</span>
+
+    <span class="n">bids_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">bids_dir</span><span class="p">)</span>
+    <span class="n">deriv_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">)</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Name&#39;</span><span class="p">:</span> <span class="s1">&#39;sMRIPrep - Structural MRI PREProcessing workflow&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;BIDSVersion&#39;</span><span class="p">:</span> <span class="s1">&#39;1.4.0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;DatasetType&#39;</span><span class="p">:</span> <span class="s1">&#39;derivative&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;GeneratedBy&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;Name&#39;</span><span class="p">:</span> <span class="s1">&#39;sMRIPrep&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Version&#39;</span><span class="p">:</span> <span class="n">__version__</span><span class="p">,</span>
+                <span class="s1">&#39;CodeURL&#39;</span><span class="p">:</span> <span class="n">DOWNLOAD_URL</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="s1">&#39;HowToAcknowledge&#39;</span><span class="p">:</span> <span class="s1">&#39;Please cite our paper (https://doi.org/10.1101/306951), and &#39;</span>
+        <span class="s1">&#39;include the generated citation boilerplate within the Methods &#39;</span>
+        <span class="s1">&#39;section of the text.&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Keys that can only be set by environment</span>
+    <span class="k">if</span> <span class="s1">&#39;SMRIPREP_DOCKER_TAG&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+        <span class="n">desc</span><span class="p">[</span><span class="s1">&#39;GeneratedBy&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;Container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Type&#39;</span><span class="p">:</span> <span class="s1">&#39;docker&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Tag&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;poldracklab/smriprep:</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SMRIPREP_DOCKER_TAG&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">if</span> <span class="s1">&#39;SMRIPREP_SINGULARITY_URL&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+        <span class="n">desc</span><span class="p">[</span><span class="s1">&#39;GeneratedBy&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;Container&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Type&#39;</span><span class="p">:</span> <span class="s1">&#39;singularity&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;URI&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;SMRIPREP_SINGULARITY_URL&#39;</span><span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Keys deriving from source dataset</span>
+    <span class="n">orig_desc</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">bids_dir</span> <span class="o">/</span> <span class="s1">&#39;dataset_description.json&#39;</span>
+    <span class="k">if</span> <span class="n">fname</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">orig_desc</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">fname</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="s1">&#39;DatasetDOI&#39;</span> <span class="ow">in</span> <span class="n">orig_desc</span><span class="p">:</span>
+        <span class="n">doi</span> <span class="o">=</span> <span class="n">orig_desc</span><span class="p">[</span><span class="s1">&#39;DatasetDOI&#39;</span><span class="p">]</span>
+        <span class="n">desc</span><span class="p">[</span><span class="s1">&#39;SourceDatasets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;URL&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;https://doi.org/</span><span class="si">{</span><span class="n">doi</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;DOI&#39;</span><span class="p">:</span> <span class="n">doi</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;License&#39;</span> <span class="ow">in</span> <span class="n">orig_desc</span><span class="p">:</span>
+        <span class="n">desc</span><span class="p">[</span><span class="s1">&#39;License&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orig_desc</span><span class="p">[</span><span class="s1">&#39;License&#39;</span><span class="p">]</span>
+
+    <span class="n">Path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">deriv_dir</span> <span class="o">/</span> <span class="s1">&#39;dataset_description.json&#39;</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: maint/0.13.x
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../../../0.10.0/index.html">0.10.0</a></dd>
+            <dd><a href="../../../../0.11.0/index.html">0.11.0</a></dd>
+            <dd><a href="../../../../0.11.0rc0/index.html">0.11.0rc0</a></dd>
+            <dd><a href="../../../../0.11.0rc1/index.html">0.11.0rc1</a></dd>
+            <dd><a href="../../../../0.11.1/index.html">0.11.1</a></dd>
+            <dd><a href="../../../../0.12.0/index.html">0.12.0</a></dd>
+            <dd><a href="../../../../0.12.1/index.html">0.12.1</a></dd>
+            <dd><a href="../../../../0.12.2/index.html">0.12.2</a></dd>
+            <dd><a href="../../../../0.13.0/index.html">0.13.0</a></dd>
+            <dd><a href="../../../../0.13.1/index.html">0.13.1</a></dd>
+            <dd><a href="../../../../0.13.2/index.html">0.13.2</a></dd>
+            <dd><a href="../../../../0.14.0/index.html">0.14.0</a></dd>
+            <dd><a href="../../../../0.15.0/index.html">0.15.0</a></dd>
+            <dd><a href="../../../../0.16.0/index.html">0.16.0</a></dd>
+            <dd><a href="../../../../0.16.1/index.html">0.16.1</a></dd>
+            <dd><a href="../../../../0.17.0/index.html">0.17.0</a></dd>
+            <dd><a href="../../../../0.18.0/index.html">0.18.0</a></dd>
+            <dd><a href="../../../../0.8.0/index.html">0.8.0</a></dd>
+            <dd><a href="../../../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
+            <dd><a href="../../../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
+            <dd><a href="../../../../0.8.0rc3/index.html">0.8.0rc3</a></dd>
+            <dd><a href="../../../../0.8.1/index.html">0.8.1</a></dd>
+            <dd><a href="../../../../0.8.2/index.html">0.8.2</a></dd>
+            <dd><a href="../../../../0.8.3/index.html">0.8.3</a></dd>
+            <dd><a href="../../../../0.9.0/index.html">0.9.0</a></dd>
+            <dd><a href="../../../../0.9.1/index.html">0.9.1</a></dd>
+            <dd><a href="../../../../0.9.2/index.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../../../dev-nibabies/index.html">dev-nibabies</a></dd>
+            <dd><a href="../../../../enh_calabel/index.html">enh/calabel</a></dd>
+            <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
+            <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
+            <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
+            <dd><a href="bids.html">maint/0.13.x</a></dd>
+            <dd><a href="../../../../maint_0.15.x/index.html">maint/0.15.x</a></dd>
+            <dd><a href="../../../../maint_0.16.x/index.html">maint/0.16.x</a></dd>
+            <dd><a href="../../../../maint_0.17.x/index.html">maint/0.17.x</a></dd>
+            <dd><a href="../../../../maint_0.18.x/index.html">maint/0.18.x</a></dd>
+            <dd><a href="../../../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
+            <dd><a href="../../../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
+            <dd><a href="../../../../master/index.html">master</a></dd>
+            <dd><a href="../../../../rel_0.16.1/index.html">rel/0.16.1</a></dd>
+            <dd><a href="../../../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

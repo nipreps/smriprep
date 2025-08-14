@@ -1,0 +1,837 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What’s new? &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e08756c3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="_static/jquery.js?v=1413ff29"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d9a209d6"></script>
+      <script src="_static/doctools.js?v=6afcdcd2"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="smriprep.workflows.surfaces module" href="api/smriprep.workflows.surfaces.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#december-19-2024">0.17.0 (December 19, 2024)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#august-26-2024">0.16.1 (August 26, 2024)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#july-31-2024">0.16.0 (July 31, 2024)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#march-22-2024">0.15.0 (March 22, 2024)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#march-11-2024">0.14.0 (March 11, 2024)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#december-08-2023">0.13.2 (December 08, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#november-21-2023">0.13.1 (November 21, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#november-20-2023">0.13.0 (November 20, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#august-16-2023">0.12.2 (August 16, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#june-15-2023">0.12.1 (June 15, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#june-05-2023">0.12.0 (June 05, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#march-23-2023">0.11.1 (March 23, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#march-10-2023">0.11.0 (March 10, 2023)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#november-30-2022">0.10.0 (November 30, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#july-20-2022">0.9.2 (July 20, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#july-14-2022">0.9.1 (July 14, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#may-26-2022">0.9.0 (May 26, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#february-08-2022">0.8.3 (February 08, 2022)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#december-13-2021">0.8.2 (December 13, 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#october-08-2021">0.8.1 (October 08, 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#september-1-2021">0.8.0 (September 1, 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#october-07-2021">0.7.2 (October 07, 2021)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#november-18-2020">0.7.1 (November 18, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#september-27-2020">0.7.0 (September 27, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#june-9-2020">0.6.2 (June 9, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#may-27-2020">0.6.1 (May 27, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#may-22-2020">0.6.0 (May 22, 2020)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#x-series">0.5.x Series</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#june-7-2020">0.5.3 (June 7, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#february-14-2020">0.5.2 (February 14, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#february-7-2020">0.5.1 (February 7, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#february-6-2020">0.5.0 (February 6, 2020)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pre-0-5-x-series">Pre- 0.5.x Series</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#january-22-2020">0.4.2 (January 22, 2020)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#decemeber-12-2019">0.4.1 (Decemeber 12, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#november-26-2019">0.4.0 (November 26, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#september-9-2019">0.3.2 (September 9, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#july-21-2019">0.3.1 (July 21, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#july-12-2019">0.3.0 (July 12, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#july-9-2019">0.2.4 (July 9, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#june-5-2019">0.2.3 (June 5, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">0.2.2 (June 5, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#may-6-2019">0.2.1 (May 6, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#may-3-2019">0.2.0 (May 3, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#march-22-2019">0.1.1 (March 22, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#march-05-2019">0.1.0 (March 05, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#february-06-2019">0.0.5 (February 06, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#january-25-2019">0.0.4 (January 25, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#january-18-2019">0.0.3 (January 18, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#january-8-2019">0.0.2 (January 8, 2019)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">What’s new?</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/changes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../master/changes.html"><b>Warning:</b> This document is for an old version of smriprep. The main version is master.</a></p>
+<section id="what-s-new">
+<h1>What’s new?<a class="headerlink" href="#what-s-new" title="Link to this heading"></a></h1>
+<section id="december-19-2024">
+<h2>0.17.0 (December 19, 2024)<a class="headerlink" href="#december-19-2024" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.17.x series.</p>
+<p>This release improves handling of datasets where T1w images are not
+the primary modality. It also supports the generation of fsLR meshes
+on the subject surface with the names:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">sub-&lt;label&gt;/anat/sub-&lt;label&gt;_hemi-&lt;L|R&gt;_space-fsLR_den-&lt;label&gt;_&lt;surface&gt;.surf.gii</span>
+<span class="pre">`</span></code></p>
+<p>These are useful for plotting CIFTI results on subject anatomy.</p>
+<ul class="simple">
+<li><p>FIX: Stop excluding FS minc_modify_header used during fallback registration (#453)</p></li>
+<li><p>ENH: Output fsLR meshes on subject surfaces (#460)</p></li>
+<li><p>ENH: Support spatial normalization to alternative modalities (#459)</p></li>
+<li><p>ENH: Add <cite>t2w_file</cite> output to <cite>TemplateFlowSelect</cite> (#457)</p></li>
+<li><p>MNT: Enable pre-release tests (#461)</p></li>
+<li><p>MNT: Complete transition from flake8/black to ruff (#435)</p></li>
+<li><p>MNT: Adopt src/ layout and tox (#458)</p></li>
+</ul>
+</section>
+<section id="august-26-2024">
+<h2>0.16.1 (August 26, 2024)<a class="headerlink" href="#august-26-2024" title="Link to this heading"></a></h2>
+<p>A bug-fix release that reworks selection within the
+FreeSurfer to native segmentation resampling workflow.</p>
+<ul class="simple">
+<li><p>FIX: Select function in segmentation resampling workflow (#450)</p></li>
+</ul>
+</section>
+<section id="july-31-2024">
+<h2>0.16.0 (July 31, 2024)<a class="headerlink" href="#july-31-2024" title="Link to this heading"></a></h2>
+<p>Start of the 0.16.x minor series.</p>
+<p>This release decouples much of the hardcoded T1w behavior in favor of T1w/T2w options,
+to allow easier integration with tools less reliant on a single anatomical scan.</p>
+<ul class="simple">
+<li><p>ENH: Use genericised “anat” input/output for TemplateDimensions (#443)</p></li>
+<li><p>ENH: Remove much of the hardcoded <cite>T1w</cite> fields in favor of <cite>anat</cite> (#433)</p></li>
+<li><p>RF: Load package data with acres (#448)</p></li>
+<li><p>RF: <cite>space-fsaverage</cite> to <cite>sphere_reg</cite> output files (#446)</p></li>
+<li><p>MNT: Unpin libitk 5.3 (ANTs 2.5.3 is built with 5.4) (#445)</p></li>
+<li><p>MNT: Clean up doc builds, environment, style checks (#444)</p></li>
+</ul>
+</section>
+<section id="march-22-2024">
+<h2>0.15.0 (March 22, 2024)<a class="headerlink" href="#march-22-2024" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.15.x series.</p>
+<p>This release adds the workflow configuration option and CLI option
+to reuse existing FreeSurfer outputs without attempting to resume.
+This should allow for using longitudinal or non-standard pipelines
+(for example, FastSurfer) without additional tooling for each variant.</p>
+<ul class="simple">
+<li><p>FIX: Patch version for smriprep-docker (#424)</p></li>
+<li><p>FIX: Require recent templateflow, select correct aparc dseg.tsv (#420)</p></li>
+<li><p>ENH: Add –fs-no-resume option to reuse existing FreeSurfer outputs without resuming (#393)</p></li>
+<li><p>MNT: set copyright owner in LICENSE file (#426)</p></li>
+<li><p>MNT: Apply Repo-Review suggestions (#422)</p></li>
+<li><p>CI: Small cleanups to GHA (#423)</p></li>
+</ul>
+</section>
+<section id="march-11-2024">
+<h2>0.14.0 (March 11, 2024)<a class="headerlink" href="#march-11-2024" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.14.x series.</p>
+<p>This release restores correct handling of cohort identifiers in templates.
+A feature release is warranted due to changes in the workflow structure.</p>
+<ul class="simple">
+<li><p>FIX: Fetch templates during workflow construction (#418)</p></li>
+<li><p>FIX: Re-add cohort identifier to template name (#416)</p></li>
+<li><p>FIX: Repair FreeSurfer Dependency in Dockerfile (tcsh) (#404)</p></li>
+<li><p>FIX: Invert result of skull-strip check in auto mode (#402)</p></li>
+<li><p>STY: Adopt ruff for linting and formatting (#397)</p></li>
+<li><p>CHORE: Update ruff, ignore certain rules (#419)</p></li>
+</ul>
+</section>
+<section id="december-08-2023">
+<h2>0.13.2 (December 08, 2023)<a class="headerlink" href="#december-08-2023" title="Link to this heading"></a></h2>
+<p>Bug fix release in the 0.13.x series.</p>
+<p>This release fixes a check for skull-stripping in auto mode, and adds
+missing fsLR atlases to the Python package resources.
+The Docker image has also been updated to ensure FreeSurfer can be run
+from the sMRIPrep container.</p>
+<p>With thanks to Patrick Sadil for reports and fixes.</p>
+<ul class="simple">
+<li><p>ENH: Add 59k atlases (#405)</p></li>
+<li><p>FIX: Repair FreeSurfer dependency in Dockerfile (tcsh) (#404)</p></li>
+<li><p>FIX: Invert result of skull-strip check in auto mode (#402)</p></li>
+</ul>
+</section>
+<section id="november-21-2023">
+<h2>0.13.1 (November 21, 2023)<a class="headerlink" href="#november-21-2023" title="Link to this heading"></a></h2>
+<p>Bug fix release in the 0.13.x series.</p>
+<p>This release fixes a bug with a workflow connection that was not properly
+named, and which would cause an error when T2-weighted images were provided.</p>
+<ul class="simple">
+<li><p>FIX: T1w_preproc -&gt; t1w_preproc (#399)</p></li>
+</ul>
+</section>
+<section id="november-20-2023">
+<h2>0.13.0 (November 20, 2023)<a class="headerlink" href="#november-20-2023" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.13.x series.</p>
+<p>This release adds support for MSM-Sulc, improving the alignment of subject
+surfaces to the fsLR template. This process is enabled by default, but may
+be disabled with the <code class="docutils literal notranslate"><span class="pre">--no-msm</span></code> flag.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">--fast-track</span></code> flag has been deprecated in favor of a more flexible
+<code class="docutils literal notranslate"><span class="pre">--derivatives</span></code> flag. This flag can be used to specify one or more
+directories to search for derivatives. Derivatives found in these
+directories can be used to skip corresponding workflows. For derivatives
+that can be deterministically generated from other derivatives, sMRIPrep
+will regenerate the derivatives to avoid inconsistencies.</p>
+<p>This supports the 23.2.x series of fMRIPrep, which introduces a <code class="docutils literal notranslate"><span class="pre">--level</span></code>
+flag to control the level of processing. This feature is not currently
+available in sMRIPrep, but will be in a future release. To preview this
+functionality, use fMRIPrep’s <code class="docutils literal notranslate"><span class="pre">--anat-only</span></code> flag to run only structural
+workflows.</p>
+<ul class="simple">
+<li><p>FIX: Add missing fsLR reg sphere to io_spec (#382)</p></li>
+<li><p>FIX: Invert sulcal depth metric before passing to MSM, use HCP atlas files (#383)</p></li>
+<li><p>FIX: Update surfaces with fsnative2t1w_xfm (#384)</p></li>
+<li><p>FIX: Add surface-modify-sphere call to catch potential sphere elongation (#375)</p></li>
+<li><p>ENH: Add T2w/FLAIR usage to boilerplate (#392)</p></li>
+<li><p>ENH: Annotate mris_expand with thread usage (#386)</p></li>
+<li><p>ENH: Add sphere registration to fit workflow, check for precomputed (#370)</p></li>
+<li><p>ENH: Save msm registration sphere as desc-msm_sphere.surf.gii (#365)</p></li>
+<li><p>ENH: Add Multimodal Surface Matching (#358)</p></li>
+<li><p>ENH: Run pytest on CircleCI (#364)</p></li>
+<li><p>ENH: Separate surfaces and morphometrics into standalone outputs (#359)</p></li>
+<li><p>RF: Split template and fsLR resampling and sinking into isolated workflows (#388)</p></li>
+<li><p>RF: Replace most of anat_ribbon_wf with a Python function (#363)</p></li>
+<li><p>RF: Break up surface workflows for easier mix-and-match in fMRIPrep (#360)</p></li>
+<li><p>TEST: Add smoke tests for main anatomical workflows (#390)</p></li>
+<li><p>TEST: Add sloppy MSM configuration for use in debugging/CI (#366)</p></li>
+<li><p>DOC: <a class="reference external" href="http://">http://</a> → <a class="reference external" href="https://">https://</a> (#377)</p></li>
+<li><p>DOC: Fix misspelling found by codespell (#378)</p></li>
+<li><p>MNT: Remove AFNI from smriprep docker container (#387)</p></li>
+<li><p>MNT: Use a set literal, not a list literal (#379)</p></li>
+<li><p>MNT: Update installation environment (#361)</p></li>
+<li><p>MNT: Include 3T18yoSchwartzReactN32 FreeSurfer atlas in image (#357)</p></li>
+<li><p>MNT: Infrastructure updates (#351)</p></li>
+<li><p>MNT: fix flake8 warning (#349)</p></li>
+<li><p>MNT: apply pyupgrade suggestions (#348)</p></li>
+<li><p>MNT: fix typos found by codespell (#346)</p></li>
+<li><p>MNT: Python 3.11 should be supported (#347)</p></li>
+</ul>
+</section>
+<section id="august-16-2023">
+<h2>0.12.2 (August 16, 2023)<a class="headerlink" href="#august-16-2023" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.12.x series.</p>
+<p>In rare cases where Freesurfer is unable to align to its default atlas in
+Talairach registration, it was unable to fall back to the Schwartz atlas
+because we were not including it in the Docker image. This release exists
+to provide an updated Docker image, and no upgrade is needed for users not
+encountering this issue.</p>
+<ul class="simple">
+<li><p>DOCKER: Include 3T18yoSchwartzReactN32 FreeSurfer atlas in image (#357)</p></li>
+</ul>
+</section>
+<section id="june-15-2023">
+<h2>0.12.1 (June 15, 2023)<a class="headerlink" href="#june-15-2023" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.12.x series.</p>
+<p>This release correctly generates <code class="docutils literal notranslate"><span class="pre">*_space-fsLR_desc-reg_sphere.surf.gii</span></code>,
+which was previously a copy of the standard <code class="docutils literal notranslate"><span class="pre">*_desc-reg_sphere.surf.gii</span></code>.</p>
+<ul class="simple">
+<li><p>FIX: Pass sphere_reg_fsLR to ds_reg_fsLR (#350)</p></li>
+</ul>
+</section>
+<section id="june-05-2023">
+<h2>0.12.0 (June 05, 2023)<a class="headerlink" href="#june-05-2023" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.12.x series.</p>
+<p>This release adds ANTs DenoiseImage to T1w and T2w preprocessing,
+improving signal-to-noise ratio.
+Surface processing now produces a registration sphere to permit
+directly resampling data from T1w space to fsLR.</p>
+<ul class="simple">
+<li><p>FIX: Query templateflow files to see if resolution is available (#336)</p></li>
+<li><p>ENH: Project fsLR mesh onto native sphere to enable single-shot resampling into fsLR (#339)</p></li>
+<li><p>ENH: Use ANTs DenoiseImage before conforming anatomical images (#337)</p></li>
+<li><p>MNT: Add <code class="docutils literal notranslate"><span class="pre">sloppy</span></code> argument to workflows, distinguish from <code class="docutils literal notranslate"><span class="pre">debug</span></code> (#344)</p></li>
+<li><p>MNT: Loosen niworkflow restriction (#335)</p></li>
+<li><p>DOC: Add security fix to vendored jquery (#332)</p></li>
+<li><p>CI: Fix codecov in CircleCI, remove Travis config (#333)</p></li>
+<li><p>CI: Prioritize tags on release (#331)</p></li>
+</ul>
+</section>
+<section id="march-23-2023">
+<h2>0.11.1 (March 23, 2023)<a class="headerlink" href="#march-23-2023" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.11.x series.</p>
+<p>This release changes the default name of a workflow. This change modifies
+the workflow structure superficially, but in such a way that reusing a working
+directory should present no possibility of error.</p>
+<ul class="simple">
+<li><p>RF: Reflect function name on nipype workflow (#328)</p></li>
+<li><p>DOC: Update boilerplate generation with <em>TemplateFlow</em> reference (#329)</p></li>
+</ul>
+</section>
+<section id="march-10-2023">
+<h2>0.11.0 (March 10, 2023)<a class="headerlink" href="#march-10-2023" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.11.x series.</p>
+<p>This series supports fMRIPrep 23.0.x.</p>
+<p>This release drops support for Python 3.7.</p>
+<ul class="simple">
+<li><p>ENH: Enable resampling morphometrics to fsLR CIFTI-2 files (#325)</p></li>
+<li><p>ENH: Add cortical ribbon workflow (#322)</p></li>
+<li><p>ENH: Merge T2w images and coregister to T1w template (#319)</p></li>
+<li><p>MAINT: Rotate CircleCI secrets and setup up org-level context (#315)</p></li>
+<li><p>CI: Update build to match fMRIPrep (#323)</p></li>
+</ul>
+</section>
+<section id="november-30-2022">
+<h2>0.10.0 (November 30, 2022)<a class="headerlink" href="#november-30-2022" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.10.x series.</p>
+<p>This series supports fMRIPrep 22.1.x and Nibabies 22.2.x.</p>
+<p>This will be the last series to support Python 3.7.</p>
+<ul class="simple">
+<li><p>FIX: Expand surfaces pattern to allow morphometrics (#312)</p></li>
+<li><p>ENH: Bind FreeSurfer subjects directory (#311)</p></li>
+<li><p>ENH: Output thickness, curvature, and sulcal depth files (#305)</p></li>
+<li><p>WRAPPER: Update patch location, use –patch syntax (#309)</p></li>
+<li><p>CI: Fix expected ds054 outputs (#310)</p></li>
+<li><p>CI: Set max Python version to 3.10 (#308)</p></li>
+<li><p>CI: Simplify actions to build once, test many (#304)</p></li>
+<li><p>CI: Update CircleCI docker orb (#302)</p></li>
+</ul>
+</section>
+<section id="july-20-2022">
+<h2>0.9.2 (July 20, 2022)<a class="headerlink" href="#july-20-2022" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.9.x series.</p>
+<p>With thanks to Eric Feczko for tracking down a fiddly bug.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>FIX: Use mris_convert –to-scanner, and update normalization step (#295)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="july-14-2022">
+<h2>0.9.1 (July 14, 2022)<a class="headerlink" href="#july-14-2022" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.9.x series.</p>
+<p>This release contains patches for supporting FreeSurfer 7.2.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>FIX: Disable -T2pial and -FLAIRpial at -autorecon1 stage (#291)</p></li>
+<li><p>FIX: Re-add missing getfullpath FreeSurfer binary (#290)</p></li>
+<li><p>FIX: Re-add fsr-checkxopts to Docker image (#287)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="may-26-2022">
+<h2>0.9.0 (May 26, 2022)<a class="headerlink" href="#may-26-2022" title="Link to this heading"></a></h2>
+<p>A new minor release incorporating support for FreeSurfer 7.2.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>DOC: Fix build (#283)</p></li>
+<li><p>DOCKER: Bundle FreeSurfer 7.2 (#281)</p></li>
+<li><p>FIX: Override nipype handling of recon-all hemi input (#282)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="february-08-2022">
+<h2>0.8.3 (February 08, 2022)<a class="headerlink" href="#february-08-2022" title="Link to this heading"></a></h2>
+<p>Patch release in the 0.8.x series. This allows compatibility with the next minor release of <cite>niworkflows</cite>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>DOC: Update scipy intersphinx url (#276)</p></li>
+<li><p>MAINT: Allow compatibility with new niworkflows minor (#277)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="december-13-2021">
+<h2>0.8.2 (December 13, 2021)<a class="headerlink" href="#december-13-2021" title="Link to this heading"></a></h2>
+<p>Patch release in the 0.8.x series.</p>
+<p>This release includes some minor formatting fixes to the generated workflow boilerplate.
+Additionally, the Docker image environment was updated.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>DOCKER: Update Dockerfile to match fMRIPrep, using FSL 6 (#274)</p></li>
+<li><p>FIX: Generated boilerplate formatting (#275)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="october-08-2021">
+<h2>0.8.1 (October 08, 2021)<a class="headerlink" href="#october-08-2021" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.8.x series.</p>
+<p>All releases since 0.5.3 have incorrectly resampled the (aparc+)aseg
+segmentations with trilinear interpolation, rather than nearest-neighbor.
+This fix has also been applied in 0.7.2,
+to provide a fix in the fMRIPrep LTS series.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>FIX: Resample aseg with nearest-neighbor interpolation (#268)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="september-1-2021">
+<h2>0.8.0 (September 1, 2021)<a class="headerlink" href="#september-1-2021" title="Link to this heading"></a></h2>
+<p>A new minor release incorporating small iterations and improvements on
+<em>NiWorkflows</em>, and including some bug-fixes/enhancements.</p>
+<ul class="simple">
+<li><p>DOC: Ensure copyright notice is found in all Python files (#248)</p></li>
+<li><p>FIX: Revert to FAST for tissue probability segmentations (#263)</p></li>
+<li><p>FIX: Sturdier version check of sMRIPrep-wrapper package (#245)</p></li>
+<li><p>FIX: Do not use deprecated <code class="docutils literal notranslate"><span class="pre">--filter</span> <span class="pre">pandoc-citeproc</span></code> generating boilerplate (e72eea5)</p></li>
+<li><p>FIX: Mask T1w images before transforming to template (#237)</p></li>
+<li><p>FIX: Account for label entity when querying brain mask (#257)</p></li>
+<li><p>MAINT: Run pytest on GitHub Actions (#262)</p></li>
+<li><p>MAINT: Mount TemplateFlow’s home directory in CircleCI tests (#246)</p></li>
+<li><p>MAINT: Run <code class="docutils literal notranslate"><span class="pre">black</span></code> at the top level of the repo (#241)</p></li>
+<li><p>MAINT: Update to new API of <em>NiWorkflows</em> (#239)</p></li>
+<li><p>MAINT: Refactor <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> and move tests from TravisCI to GHA (#240)</p></li>
+<li><p>MAINT: Use separate fallback cache for maint/0.7.x (#250)</p></li>
+<li><p>MAINT: CircleCI housekeeping (#258) (#259)</p></li>
+</ul>
+</section>
+<section id="october-07-2021">
+<h2>0.7.2 (October 07, 2021)<a class="headerlink" href="#october-07-2021" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.7.x series.</p>
+<p>All releases since 0.5.3 have incorrectly resampled the (aparc+)aseg
+segmentations with trilinear interpolation, rather than nearest-neighbor.
+This also reverts to using FAST for tissue probability maps, as the
+calculations from FreeSurfer’s segmentation are less straightforward.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>FIX: Resample aseg with nearest-neighbor interpolation (#268)</p></li>
+<li><p>FIX: Revert to FAST for tissue probability maps (#264)</p></li>
+<li><p>CI: Use separate fallback cache for maint/0.7.x (#250)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="november-18-2020">
+<h2>0.7.1 (November 18, 2020)<a class="headerlink" href="#november-18-2020" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.7.x series.</p>
+<p>All releases since 0.4.0 have incorrectly labelled T1w images normalized to a
+template space as SkullStripped in the corresponding JSON sidecar files.
+This affects 0.4.x through 0.4.2, 0.5.x through 0.5.3, 0.6.x through 0.6.2, and
+0.7.0. Prior to 0.4.0, the images were actually skull-stripped, and the metadata
+labels were not incorrect.</p>
+<p>For backwards compatibility reasons, any future releases of these series will
+have SkullStripped set to False. In 0.8 and above, the images will be skull-stripped
+and the metadata set back to True.</p>
+<ul class="simple">
+<li><p>CI: CircleCI housekeeping (#234, #235)</p></li>
+</ul>
+</section>
+<section id="september-27-2020">
+<h2>0.7.0 (September 27, 2020)<a class="headerlink" href="#september-27-2020" title="Link to this heading"></a></h2>
+<p>Minor release in preparation for <em>fMRIPrep</em> 20.2.x LTS series.
+Includes minor features and bug-fixes over the previous 0.6 series.</p>
+<ul class="simple">
+<li><p>FIX: Pin <em>NiWorkflows</em> 1.3.1 including bugfix for INU-correction failures (nipreps/niworkflows#567)</p></li>
+<li><p>FIX: Generate anatomical conversions with full spec from <code class="docutils literal notranslate"><span class="pre">--output-spaces</span></code> (#219)</p></li>
+<li><p>FIX: Ordering of <code class="docutils literal notranslate"><span class="pre">probseg</span></code> maps with anatomical <em>fast-track</em> (#214)</p></li>
+<li><p>FIX: Progress partial volume maps instead of posteriors (FSL FAST) (#213)</p></li>
+<li><p>ENH: Retain session info when multi-session data are not averaged (#225)</p></li>
+<li><p>ENH: Update derivatives description, <code class="docutils literal notranslate"><span class="pre">.bidsignore</span></code> for derivatives (#220)</p></li>
+<li><p>ENH: Add <code class="docutils literal notranslate"><span class="pre">--no-tty</span></code> option to Docker wrapper (#216)</p></li>
+<li><p>ENH: Add function to handle stale <code class="docutils literal notranslate"><span class="pre">IsRunning</span></code> files (#207)</p></li>
+<li><p>MAINT: Upgrade ANTs to 2.3.4 in <code class="docutils literal notranslate"><span class="pre">Dockerfile</span></code> (365673b)</p></li>
+<li><p>MAINT: Make workflows keyword-only (PEP 3102) (#208)</p></li>
+</ul>
+</section>
+<section id="june-9-2020">
+<h2>0.6.2 (June 9, 2020)<a class="headerlink" href="#june-9-2020" title="Link to this heading"></a></h2>
+<p>Bug-fix release addressing minor problems related to FreeSurfer handling.</p>
+<ul class="simple">
+<li><p>FIX: Adapt to the new FS canary interface (backwards compatible) (#205)</p></li>
+<li><p>FIX: Use <code class="docutils literal notranslate"><span class="pre">t1w2fsnative_xfm</span></code> to resample segmentations (#201)</p></li>
+</ul>
+</section>
+<section id="may-27-2020">
+<h2>0.6.1 (May 27, 2020)<a class="headerlink" href="#may-27-2020" title="Link to this heading"></a></h2>
+<p>Hotfix release to address an issue recently encountered in fMRIPrep 20.1.0rc3.</p>
+<ul class="simple">
+<li><p>FIX: <code class="docutils literal notranslate"><span class="pre">MultiLabel</span></code> interpolations should not use <code class="docutils literal notranslate"><span class="pre">float=True</span></code> (#196)</p></li>
+</ul>
+</section>
+<section id="may-22-2020">
+<h2>0.6.0 (May 22, 2020)<a class="headerlink" href="#may-22-2020" title="Link to this heading"></a></h2>
+<p>Minor release in preparation for fMRIPrep 20.1.x series.
+Features the new implementation of derivatives writers in NiWorkflows,
+and additional flexibility to use previously computed results (in particular,
+skull-stripped brains, and the new <em>fast-track</em> that allows skipping the
+anatomical workflow in full, if all the expected derivatives are provided).
+Most of the the bug-fixes correspond to amendments over these newly added
+features.</p>
+<ul class="simple">
+<li><p>FIX: Convert LTA to ITK with nitransforms (#188)</p></li>
+<li><p>FIX: Dismiss <code class="docutils literal notranslate"><span class="pre">session</span></code> entity on most of anatomical derivatives (#193)</p></li>
+<li><p>FIX: Revise tissue probability maps connections and order (#190)</p></li>
+<li><p>FIX: Make TPMs label ordering in <code class="docutils literal notranslate"><span class="pre">io_spec.json</span></code> consistent with workflow (#179)</p></li>
+<li><p>FIX: Correct the <code class="docutils literal notranslate"><span class="pre">dseg</span></code> labeling from FSL FAST earlier (#177)</p></li>
+<li><p>FIX: Ensure <code class="docutils literal notranslate"><span class="pre">bias_corrected</span></code> is single file, not list (#174)</p></li>
+<li><p>ENH: Use new <code class="docutils literal notranslate"><span class="pre">DerivativesDataSink</span></code> from NiWorkflows 1.2.0 (#183)</p></li>
+<li><p>ENH: Use FreeSurfer’s canary to exit fast and with a clear message when the license is missing (#182)</p></li>
+<li><p>ENH: Execute FSL FAST only with <code class="docutils literal notranslate"><span class="pre">--fs-no-reconall</span></code> (#180)</p></li>
+<li><p>ENH: Enable anatomical fast track reusing existing derivatives (#107)</p></li>
+<li><p>ENH: Add option to skip brain extraction (#167)</p></li>
+<li><p>MAINT: Remove unused nwf interfaces (#187)</p></li>
+<li><p>MAINT: Pin troublesome sphinx (#175)</p></li>
+<li><p>MAINT: Update dependencies to be inline with fMRIPrep-20.1.x (#173)</p></li>
+</ul>
+</section>
+<section id="x-series">
+<h2>0.5.x Series<a class="headerlink" href="#x-series" title="Link to this heading"></a></h2>
+<section id="june-7-2020">
+<h3>0.5.3 (June 7, 2020)<a class="headerlink" href="#june-7-2020" title="Link to this heading"></a></h3>
+<p>Bug-fix release in the 0.5.x series.</p>
+<p>This release fixes a bug where pre-run FreeSurfer that was not in alignment with the
+T1w template generated by fMRIPrep could result in misaligned segmentation and mask
+derivatives.</p>
+<p>The bug is most likely to occur with pre-run FreeSurfer where multiple T1w images are found.
+It is easily evident in the first figure in the anatomical section of the reports, and will
+show heavily misaligned brain mask.</p>
+<ul class="simple">
+<li><p>FIX: Use t1w2fsnative_xfm to resample segmentations (#201) &#64;effigies</p></li>
+</ul>
+</section>
+<section id="february-14-2020">
+<h3>0.5.2 (February 14, 2020)<a class="headerlink" href="#february-14-2020" title="Link to this heading"></a></h3>
+<p>Minor tweaks in preparation for fMRIPrep 20.0.0 release.</p>
+<ul class="simple">
+<li><p>ENH: Enable users to pass JSON filters to select subsets of data (#143) &#64;bpinsard</p></li>
+<li><p>MAINT: Add ignore W503 in setup.cfg (#165) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="february-7-2020">
+<h3>0.5.1 (February 7, 2020)<a class="headerlink" href="#february-7-2020" title="Link to this heading"></a></h3>
+<p>A hotfix release updating dependencies</p>
+<ul class="simple">
+<li><p>PIN: Nibabel 3.0.1 and niworkflows 1.1.6 (#166) &#64;mgxd</p></li>
+</ul>
+</section>
+<section id="february-6-2020">
+<h3>0.5.0 (February 6, 2020)<a class="headerlink" href="#february-6-2020" title="Link to this heading"></a></h3>
+<p>A new minor release with a focus on improving internal handling and representations
+of spatial references.</p>
+<ul class="simple">
+<li><p>RF: Update Spaces objects (#164) &#64;mgxd</p></li>
+<li><p>ENH: Fix template keys output in normalization workflow, when cohort present (#163) &#64;oesteban</p></li>
+<li><p>ENH: Integrate new infrastructure in NiWorkflows to handle spatial references (#159) &#64;mgxd</p></li>
+<li><p>FIX: Improvements to the CircleCI workflow (#162) &#64;oesteban</p></li>
+<li><p>CI: Update coverage (#156) &#64;effigies</p></li>
+</ul>
+</section>
+</section>
+<section id="pre-0-5-x-series">
+<h2>Pre- 0.5.x Series<a class="headerlink" href="#pre-0-5-x-series" title="Link to this heading"></a></h2>
+<section id="january-22-2020">
+<h3>0.4.2 (January 22, 2020)<a class="headerlink" href="#january-22-2020" title="Link to this heading"></a></h3>
+<p>Bugfix release in the 0.4.x series.</p>
+<ul class="simple">
+<li><p>FIX: Calculate FoV with shape and zooms (#161) &#64;effigies</p></li>
+<li><p>FIX: Package version incorrect within Docker image (#155) &#64;oesteban</p></li>
+<li><p>ENH: Add <code class="docutils literal notranslate"><span class="pre">smriprep.__main__</span></code> to allow <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">smriprep</span></code> (#158) &#64;effigies</p></li>
+<li><p>MAINT: Revise CircleCI to optimize TemplateFlow and caching (#157) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="decemeber-12-2019">
+<h3>0.4.1 (Decemeber 12, 2019)<a class="headerlink" href="#decemeber-12-2019" title="Link to this heading"></a></h3>
+<p>Bugfix release to address some fMRIPrep issues.</p>
+<ul class="simple">
+<li><p>FIX: Use T2/FLAIR refinement at cortribbon stage (#148) &#64;effigies</p></li>
+<li><p>FIX: empty specs for legacy/nonstd spaces (#146) &#64;mgxd</p></li>
+<li><p>DOC: Refactor of documentation (#144) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="november-26-2019">
+<h3>0.4.0 (November 26, 2019)<a class="headerlink" href="#november-26-2019" title="Link to this heading"></a></h3>
+<p>A new 0.4.x series with a number of new features and bugfixes.</p>
+<ul class="simple">
+<li><p>FIX: Allow setting nonstandard spaces for parser (#141) &#64;oesteban</p></li>
+<li><p>FIX: Normalization workflow API - provide bare template names (#139) &#64;oesteban</p></li>
+<li><p>FIX: Build <code class="docutils literal notranslate"><span class="pre">smriprep-docker</span></code> like <code class="docutils literal notranslate"><span class="pre">fmriprep-docker</span></code> (#138) &#64;oesteban</p></li>
+<li><p>FIX: Check template identifiers are valid early (#135) &#64;oesteban</p></li>
+<li><p>FIX: Re-organize FreeSurfer stages to avoid duplication and races (#117) &#64;effigies</p></li>
+<li><p>FIX: Revise naming of transforms when several T1w images are averaged (#106) &#64;oesteban</p></li>
+<li><p>FIX: Allow setting nonstandard spaces for parser (#141) &#64;oesteban</p></li>
+<li><p>ENH: Add <code class="docutils literal notranslate"><span class="pre">--fs-subjects-dir</span></code> flag (#114) &#64;effigies</p></li>
+<li><p>ENH: Add <code class="docutils literal notranslate"><span class="pre">smriprep-docker</span></code> wrapper (#118) &#64;effigies</p></li>
+<li><p>ENH: Add a <code class="docutils literal notranslate"><span class="pre">README.rst</span></code> (#103) &#64;oesteban</p></li>
+<li><p>ENH: Decoupling anatomical reports (#112) &#64;oesteban</p></li>
+<li><p>ENH: Reduce friction when iterating over target templates (#111) &#64;oesteban</p></li>
+<li><p>ENH: Write out the fsnative-to-T1w transform (#113) &#64;oesteban</p></li>
+<li><p>DOC: Minimal refactor preparing release (#140) &#64;oesteban</p></li>
+<li><p>DOC: Revise numpy docstrings so they are correctly rendered (#134) &#64;oesteban</p></li>
+<li><p>DOC: Deploy docs to gh-pages from CircleCI - with versioning (#65) &#64;rwblair</p></li>
+<li><p>CI: Optimize CircleCI using a local docker registry instead docker save/load (#136) &#64;oesteban</p></li>
+<li><p>CI: Run pytests on Python 3.7 for now (#133) &#64;effigies</p></li>
+<li><p>CI: Fix packaging test (#115) &#64;effigies</p></li>
+<li><p>CI: Test packaging and update deploy_pypi step (#119) &#64;effigies</p></li>
+<li><p>MAINT: Fine-tune versioning extension of sphinx (#121) &#64;oesteban</p></li>
+<li><p>MAINT: Refactoring inputs/outputs names and some stylistic changes (#108) &#64;oesteban</p></li>
+<li><p>MAINT: Resolve issues with working directory of ds005 on CircleCI (#110) &#64;oesteban</p></li>
+<li><p>PIN: niworkflows ~= 1.0.0rc1</p></li>
+</ul>
+</section>
+<section id="september-9-2019">
+<h3>0.3.2 (September 9, 2019)<a class="headerlink" href="#september-9-2019" title="Link to this heading"></a></h3>
+<p>Bugfix patch-release</p>
+<ul class="simple">
+<li><p>FIX: Render INU-corrected T1w in Segmentation reportlet (#102) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="july-21-2019">
+<h3>0.3.1 (July 21, 2019)<a class="headerlink" href="#july-21-2019" title="Link to this heading"></a></h3>
+<p>Minor release to update pinnings of niworkflows and TemplateFlow client.</p>
+<ul class="simple">
+<li><p>PIN: niworkflows-0.10.1 and templateflow-0.4.1</p></li>
+<li><p>CI: Fix PyPI deployment (#99) &#64;effigies</p></li>
+</ul>
+</section>
+<section id="july-12-2019">
+<h3>0.3.0 (July 12, 2019)<a class="headerlink" href="#july-12-2019" title="Link to this heading"></a></h3>
+<p>Minor release to allow dependent tools to upgrade to PyBIDS 0.9 series (minimum 0.9.2).
+We’ve also moved to a <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code>-based setup to standardize configuration.</p>
+<ul class="simple">
+<li><p>MAINT: Move to setup.cfg + pyproject.toml (#98) &#64;effigies</p></li>
+<li><p>MAINT: Use PyBIDS 0.9.x via niworkflows PR (#94) &#64;effigies</p></li>
+</ul>
+</section>
+<section id="july-9-2019">
+<h3>0.2.4 (July 9, 2019)<a class="headerlink" href="#july-9-2019" title="Link to this heading"></a></h3>
+<p>Several minor improvements on TemplateFlow integration.</p>
+<ul class="simple">
+<li><p>ENH: Use proper resolution in anatomical outputs (#92) &#64;oesteban</p></li>
+<li><p>ENH: Indicate what templates were not found in TemplateFlow (#91) &#64;oesteban</p></li>
+<li><p>ENH: Pass template specs on to registration workflow (#90) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="june-5-2019">
+<h3>0.2.3 (June 5, 2019)<a class="headerlink" href="#june-5-2019" title="Link to this heading"></a></h3>
+<p>Enable CLI to set pediatric and infant templates for skull-stripping.</p>
+<ul class="simple">
+<li><p>ENH: Allow template modifiers (a la <code class="docutils literal notranslate"><span class="pre">--output-spaces</span></code>) in skull-stripping (#89) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="id1">
+<h3>0.2.2 (June 5, 2019)<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p>Enable latest templates added to TemplateFlow.</p>
+<ul class="simple">
+<li><p>PIN: templateflow-0.3.0, which includes infant/pediatric templates (#88) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="may-6-2019">
+<h3>0.2.1 (May 6, 2019)<a class="headerlink" href="#may-6-2019" title="Link to this heading"></a></h3>
+<p>Hotfix release improving the reliability of the brain extraction workflow.</p>
+<ul class="simple">
+<li><p>FIX: Keep header consistency along anatomical workflow (#83) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="may-3-2019">
+<h3>0.2.0 (May 3, 2019)<a class="headerlink" href="#may-3-2019" title="Link to this heading"></a></h3>
+<p>This new release of <em>sMRIPrep</em> adds the possibility of specifying several
+spatial normalization targets via the <code class="docutils literal notranslate"><span class="pre">--output-spaces</span></code> option drafted
+in <a class="reference external" href="https://github.com/nipreps/fmriprep/issues/1588">nipreps/fmriprep#1588</a>.</p>
+<ul class="simple">
+<li><p>FIX: Resolve behavior when deprecated <code class="docutils literal notranslate"><span class="pre">--template</span></code> is given (#77) &#64;oesteban</p></li>
+<li><p>FIX: Solved problems in report generation (#76) &#64;oesteban</p></li>
+<li><p>ENH: Force compression of derivative NIfTI volumes (#80) &#64;effigies</p></li>
+<li><p>ENH: Pull list of spatial normalization templates from TemplateFlow (#68) &#64;oesteban</p></li>
+<li><p>ENH: CLI uses <code class="docutils literal notranslate"><span class="pre">pathlib.Path</span></code> when possible (#73) &#64;oesteban</p></li>
+<li><p>ENH: Create a spatial normalization workflow (#72) &#64;oesteban</p></li>
+<li><p>ENH: Several improvements over the new spatial normalization workflow (#74) &#64;oesteban</p></li>
+<li><p>ENH: Support for multiple <code class="docutils literal notranslate"><span class="pre">--output-spaces</span></code> (#75) &#64;oesteban</p></li>
+<li><p>DOC/STY: Fix documentation build, simplify (non)parametric output nodes (#79) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="march-22-2019">
+<h3>0.1.1 (March 22, 2019)<a class="headerlink" href="#march-22-2019" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>ENH: Pure Nipype brain extraction workflow (#57) &#64;oesteban</p></li>
+<li><p>ENH: Write metadata for anatomical outputs (#62) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="march-05-2019">
+<h3>0.1.0 (March 05, 2019)<a class="headerlink" href="#march-05-2019" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>PIN: Niworkflows 0.8 and TemplateFlow 0.1 (#56) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="february-06-2019">
+<h3>0.0.5 (February 06, 2019)<a class="headerlink" href="#february-06-2019" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>MAINT: Update to keep up with nipreps/niworkflows#299 (#51) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="january-25-2019">
+<h3>0.0.4 (January 25, 2019)<a class="headerlink" href="#january-25-2019" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>ENH: Allow templates other than <code class="docutils literal notranslate"><span class="pre">MNI152NLin2009cAsym</span></code> (#47) &#64;oesteban</p></li>
+<li><p>DOC: Fix workflow hierarchy within docstrings so that fMRIPrep docs build (<a class="reference external" href="https://github.com/nipreps/smriprep/commit/0110ab277faa525d60263ba085947ef1545898af">0110ab2</a>).</p></li>
+</ul>
+</section>
+<section id="january-18-2019">
+<h3>0.0.3 (January 18, 2019)<a class="headerlink" href="#january-18-2019" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>FIX: Add <code class="docutils literal notranslate"><span class="pre">-cw256</span></code> flag for images with FoV &gt; 256 voxels (#36) &#64;oesteban</p></li>
+<li><p>ENH: Integrate TemplateFlow to handle templates (#45) &#64;oesteban</p></li>
+</ul>
+</section>
+<section id="january-8-2019">
+<h3>0.0.2 (January 8, 2019)<a class="headerlink" href="#january-8-2019" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>First functional version after forking from fMRIPrep</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api/smriprep.workflows.surfaces.html" class="btn btn-neutral float-left" title="smriprep.workflows.surfaces module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: 0.17.0
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../0.10.0/changes.html">0.10.0</a></dd>
+            <dd><a href="../0.11.0/changes.html">0.11.0</a></dd>
+            <dd><a href="../0.11.0rc0/changes.html">0.11.0rc0</a></dd>
+            <dd><a href="../0.11.0rc1/changes.html">0.11.0rc1</a></dd>
+            <dd><a href="../0.11.1/changes.html">0.11.1</a></dd>
+            <dd><a href="../0.12.0/changes.html">0.12.0</a></dd>
+            <dd><a href="../0.12.1/changes.html">0.12.1</a></dd>
+            <dd><a href="../0.12.2/changes.html">0.12.2</a></dd>
+            <dd><a href="../0.13.0/changes.html">0.13.0</a></dd>
+            <dd><a href="../0.13.1/changes.html">0.13.1</a></dd>
+            <dd><a href="../0.13.2/changes.html">0.13.2</a></dd>
+            <dd><a href="../0.14.0/changes.html">0.14.0</a></dd>
+            <dd><a href="../0.15.0/changes.html">0.15.0</a></dd>
+            <dd><a href="../0.16.0/changes.html">0.16.0</a></dd>
+            <dd><a href="../0.16.1/changes.html">0.16.1</a></dd>
+            <dd><a href="changes.html">0.17.0</a></dd>
+            <dd><a href="../0.18.0/changes.html">0.18.0</a></dd>
+            <dd><a href="../0.8.0/changes.html">0.8.0</a></dd>
+            <dd><a href="../0.8.0rc1/changes.html">0.8.0rc1</a></dd>
+            <dd><a href="../0.8.0rc2/changes.html">0.8.0rc2</a></dd>
+            <dd><a href="../0.8.0rc3/changes.html">0.8.0rc3</a></dd>
+            <dd><a href="../0.8.1/changes.html">0.8.1</a></dd>
+            <dd><a href="../0.8.2/changes.html">0.8.2</a></dd>
+            <dd><a href="../0.8.3/changes.html">0.8.3</a></dd>
+            <dd><a href="../0.9.0/changes.html">0.9.0</a></dd>
+            <dd><a href="../0.9.1/changes.html">0.9.1</a></dd>
+            <dd><a href="../0.9.2/changes.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../dev-nibabies/changes.html">dev-nibabies</a></dd>
+            <dd><a href="../enh_calabel/changes.html">enh/calabel</a></dd>
+            <dd><a href="../enh_split-surfaces/changes.html">enh/split-surfaces</a></dd>
+            <dd><a href="../fix_parcstats/changes.html">fix/parcstats</a></dd>
+            <dd><a href="../fix_recon-report/changes.html">fix/recon-report</a></dd>
+            <dd><a href="../fix_tfselect-resless/changes.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../maint_0.12.x/changes.html">maint/0.12.x</a></dd>
+            <dd><a href="../maint_0.13.x/changes.html">maint/0.13.x</a></dd>
+            <dd><a href="../maint_0.15.x/changes.html">maint/0.15.x</a></dd>
+            <dd><a href="../maint_0.16.x/changes.html">maint/0.16.x</a></dd>
+            <dd><a href="../maint_0.17.x/changes.html">maint/0.17.x</a></dd>
+            <dd><a href="../maint_0.18.x/changes.html">maint/0.18.x</a></dd>
+            <dd><a href="../maint_0.8.x/changes.html">maint/0.8.x</a></dd>
+            <dd><a href="../maint_0.9.x/changes.html">maint/0.9.x</a></dd>
+            <dd><a href="../master/changes.html">master</a></dd>
+            <dd><a href="../rel_0.16.1/changes.html">rel/0.16.1</a></dd>
+            <dd><a href="../rel_0.8.0rc1/changes.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.interfaces.reports module &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../_static/jquery.js?v=1413ff29"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="smriprep.interfaces.templateflow module" href="smriprep.interfaces.templateflow.html" />
+    <link rel="prev" title="smriprep.interfaces.freesurfer module" href="smriprep.interfaces.freesurfer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Library API (application program interface)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="smriprep.cli.html">smriprep.cli package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="smriprep.interfaces.html">smriprep.interfaces package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="smriprep.interfaces.html#smriprep.interfaces.DerivativesDataSink"><code class="docutils literal notranslate"><span class="pre">DerivativesDataSink</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="smriprep.interfaces.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.freesurfer.html">smriprep.interfaces.freesurfer module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">smriprep.interfaces.reports module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.templateflow.html">smriprep.interfaces.templateflow module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.utils.html">smriprep.utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.workflows.html">smriprep.workflows package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">Library API (application program interface)</a></li>
+          <li class="breadcrumb-item"><a href="smriprep.interfaces.html">smriprep.interfaces package</a></li>
+      <li class="breadcrumb-item active">smriprep.interfaces.reports module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/smriprep.interfaces.reports.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../../master/api/smriprep.interfaces.reports.html"><b>Warning:</b> This document is for the development version of smriprep. The main version is master.</a></p>
+<section id="module-smriprep.interfaces.reports">
+<span id="smriprep-interfaces-reports-module"></span><h1>smriprep.interfaces.reports module<a class="headerlink" href="#module-smriprep.interfaces.reports" title="Link to this heading"></a></h1>
+<p>Interfaces to generate reportlets.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.reports.AboutSummary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.reports.</span></span><span class="sig-name descname"><span class="pre">AboutSummary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/reports.html#AboutSummary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.reports.AboutSummary" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#smriprep.interfaces.reports.SummaryInterface" title="smriprep.interfaces.reports.SummaryInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SummaryInterface</span></code></a></p>
+<p>About section reportlet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> (<em>a string</em>) – SMRIPrep command.</p></li>
+<li><p><strong>version</strong> (<em>a string</em>) – SMRIPrep version.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out_report</strong> (<em>a pathlike object or string representing an existing file</em>) – HTML segment containing summary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.reports.FSSurfaceReport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.reports.</span></span><span class="sig-name descname"><span class="pre">FSSurfaceReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/reports.html#FSSurfaceReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.reports.FSSurfaceReport" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterface</span></code></p>
+<p>Replaces <code class="docutils literal notranslate"><span class="pre">ReconAllRPT</span></code>, without need of calling recon-all.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Mandatory Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subject_id</strong> (<em>a string</em>) – Subject name for whom to retrieve data.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a pathlike object or string representing an existing directory</em>) – Freesurfer subjects directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>compress_report</strong> (<em>‘auto’ or True or False</em>) – Compress the reportlet using SVGO orWEBP. ‘auto’ - compress if relevant software is installed, True = force,False - don’t attempt to compress.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">auto</span></code>)</p></li>
+<li><p><strong>hemi</strong> (<em>‘both’ or ‘lh’ or ‘rh’</em>) – Selects hemisphere specific outputs.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">both</span></code>)</p></li>
+<li><p><strong>out_report</strong> (<em>a pathlike object or string representing a file</em>) – Filename for the visual report.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">report.svg</span></code>)</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out_report</strong> (<em>a pathlike object or string representing a file</em>) – Filename for the visual report.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.reports.SubjectSummary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.reports.</span></span><span class="sig-name descname"><span class="pre">SubjectSummary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/reports.html#SubjectSummary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.reports.SubjectSummary" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#smriprep.interfaces.reports.SummaryInterface" title="smriprep.interfaces.reports.SummaryInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SummaryInterface</span></code></a></p>
+<p>Subject html summary reportlet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_spaces</strong> (<em>a list of items which are a string</em>) – List of standard spaces.</p></li>
+<li><p><strong>subject_id</strong> (<em>a string</em>) – Subject ID.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a pathlike object or string representing a directory</em>) – FreeSurfer subjects directory.</p></li>
+<li><p><strong>t1w</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – T1w structural images.</p></li>
+<li><p><strong>t2w</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – T2w structural images.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>out_report</strong> (<em>a pathlike object or string representing an existing file</em>) – HTML segment containing summary.</p></li>
+<li><p><strong>subject_id</strong> (<em>a string</em>) – FreeSurfer subject ID.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.reports.SummaryInterface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.reports.</span></span><span class="sig-name descname"><span class="pre">SummaryInterface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/reports.html#SummaryInterface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.reports.SummaryInterface" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterface</span></code></p>
+<p>Base Nipype interface for html summaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out_report</strong> (<em>a pathlike object or string representing an existing file</em>) – HTML segment containing summary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="smriprep.interfaces.freesurfer.html" class="btn btn-neutral float-left" title="smriprep.interfaces.freesurfer module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="smriprep.interfaces.templateflow.html" class="btn btn-neutral float-right" title="smriprep.interfaces.templateflow module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: fix/tfselect-resless
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../0.10.0/api/smriprep.interfaces.reports.html">0.10.0</a></dd>
+            <dd><a href="../../0.11.0/api/smriprep.interfaces.reports.html">0.11.0</a></dd>
+            <dd><a href="../../0.11.0rc0/api/smriprep.interfaces.reports.html">0.11.0rc0</a></dd>
+            <dd><a href="../../0.11.0rc1/api/smriprep.interfaces.reports.html">0.11.0rc1</a></dd>
+            <dd><a href="../../0.11.1/api/smriprep.interfaces.reports.html">0.11.1</a></dd>
+            <dd><a href="../../0.12.0/api/smriprep.interfaces.reports.html">0.12.0</a></dd>
+            <dd><a href="../../0.12.1/api/smriprep.interfaces.reports.html">0.12.1</a></dd>
+            <dd><a href="../../0.12.2/api/smriprep.interfaces.reports.html">0.12.2</a></dd>
+            <dd><a href="../../0.13.0/api/smriprep.interfaces.reports.html">0.13.0</a></dd>
+            <dd><a href="../../0.13.1/api/smriprep.interfaces.reports.html">0.13.1</a></dd>
+            <dd><a href="../../0.13.2/api/smriprep.interfaces.reports.html">0.13.2</a></dd>
+            <dd><a href="../../0.14.0/api/smriprep.interfaces.reports.html">0.14.0</a></dd>
+            <dd><a href="../../0.15.0/api/smriprep.interfaces.reports.html">0.15.0</a></dd>
+            <dd><a href="../../0.16.0/api/smriprep.interfaces.reports.html">0.16.0</a></dd>
+            <dd><a href="../../0.16.1/api/smriprep.interfaces.reports.html">0.16.1</a></dd>
+            <dd><a href="../../0.17.0/api/smriprep.interfaces.reports.html">0.17.0</a></dd>
+            <dd><a href="../../0.18.0/api/smriprep.interfaces.reports.html">0.18.0</a></dd>
+            <dd><a href="../../0.8.0/api/smriprep.interfaces.reports.html">0.8.0</a></dd>
+            <dd><a href="../../0.8.0rc1/api/smriprep.interfaces.reports.html">0.8.0rc1</a></dd>
+            <dd><a href="../../0.8.0rc2/api/smriprep.interfaces.reports.html">0.8.0rc2</a></dd>
+            <dd><a href="../../0.8.0rc3/api/smriprep.interfaces.reports.html">0.8.0rc3</a></dd>
+            <dd><a href="../../0.8.1/api/smriprep.interfaces.reports.html">0.8.1</a></dd>
+            <dd><a href="../../0.8.2/api/smriprep.interfaces.reports.html">0.8.2</a></dd>
+            <dd><a href="../../0.8.3/api/smriprep.interfaces.reports.html">0.8.3</a></dd>
+            <dd><a href="../../0.9.0/api/smriprep.interfaces.reports.html">0.9.0</a></dd>
+            <dd><a href="../../0.9.1/api/smriprep.interfaces.reports.html">0.9.1</a></dd>
+            <dd><a href="../../0.9.2/api/smriprep.interfaces.reports.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../dev-nibabies/api/smriprep.interfaces.reports.html">dev-nibabies</a></dd>
+            <dd><a href="../../enh_calabel/api/smriprep.interfaces.reports.html">enh/calabel</a></dd>
+            <dd><a href="../../enh_split-surfaces/api/smriprep.interfaces.reports.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../fix_parcstats/api/smriprep.interfaces.reports.html">fix/parcstats</a></dd>
+            <dd><a href="../../fix_recon-report/api/smriprep.interfaces.reports.html">fix/recon-report</a></dd>
+            <dd><a href="smriprep.interfaces.reports.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../maint_0.12.x/api/smriprep.interfaces.reports.html">maint/0.12.x</a></dd>
+            <dd><a href="../../maint_0.13.x/api/smriprep.interfaces.reports.html">maint/0.13.x</a></dd>
+            <dd><a href="../../maint_0.15.x/api/smriprep.interfaces.reports.html">maint/0.15.x</a></dd>
+            <dd><a href="../../maint_0.16.x/api/smriprep.interfaces.reports.html">maint/0.16.x</a></dd>
+            <dd><a href="../../maint_0.17.x/api/smriprep.interfaces.reports.html">maint/0.17.x</a></dd>
+            <dd><a href="../../maint_0.18.x/api/smriprep.interfaces.reports.html">maint/0.18.x</a></dd>
+            <dd><a href="../../maint_0.8.x/api/smriprep.interfaces.reports.html">maint/0.8.x</a></dd>
+            <dd><a href="../../maint_0.9.x/api/smriprep.interfaces.reports.html">maint/0.9.x</a></dd>
+            <dd><a href="../../master/api/smriprep.interfaces.reports.html">master</a></dd>
+            <dd><a href="../../rel_0.16.1/api/smriprep.interfaces.reports.html">rel/0.16.1</a></dd>
+            <dd><a href="../../rel_0.8.0rc1/api/smriprep.interfaces.reports.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+smriprep.interfaces.workbench module
+====================================
+
+.. automodule:: smriprep.interfaces.workbench
+   :members:
+   :undoc-members:
+   :show-inheritance:

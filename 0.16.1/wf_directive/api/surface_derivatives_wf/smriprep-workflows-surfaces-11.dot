@@ -1,0 +1,16 @@
+strict digraph {
+"inputnode (utility)";
+"gifti_surface_wf";
+"gifti_morphometrics_wf";
+"segs_to_native_wf_aseg";
+"segs_to_native_wf_aparc_aseg";
+"outputnode (utility)";
+"inputnode (utility)" -> "gifti_surface_wf";
+"inputnode (utility)" -> "gifti_morphometrics_wf";
+"inputnode (utility)" -> "segs_to_native_wf_aseg";
+"inputnode (utility)" -> "segs_to_native_wf_aparc_aseg";
+"gifti_surface_wf" -> "outputnode (utility)";
+"gifti_morphometrics_wf" -> "outputnode (utility)";
+"segs_to_native_wf_aseg" -> "outputnode (utility)";
+"segs_to_native_wf_aparc_aseg" -> "outputnode (utility)";
+}

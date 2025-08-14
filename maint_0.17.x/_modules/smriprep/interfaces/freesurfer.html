@@ -1,0 +1,523 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.interfaces.freesurfer &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../../../_static/jquery.js?v=1413ff29"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=d9a209d6"></script>
+      <script src="../../../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../interfaces.html">smriprep.interfaces</a></li>
+      <li class="breadcrumb-item active">smriprep.interfaces.freesurfer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><b>Warning:</b> This document is for the development version of smriprep.</p>
+<h1>Source code for smriprep.interfaces.freesurfer</h1><div class="highlight"><pre>
+<span></span><span class="c1"># emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-</span>
+<span class="c1"># vi: set ft=python sts=4 ts=4 sw=4 et:</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2021 The NiPreps Developers &lt;nipreps@gmail.com&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1">#</span>
+<span class="c1"># We support and encourage derived works from this project, please read</span>
+<span class="c1"># about our expectations at</span>
+<span class="c1">#</span>
+<span class="c1">#     https://www.nipreps.org/community/licensing/</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot;Nipype&#39;s recon-all replacement.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">looseversion</span><span class="w"> </span><span class="kn">import</span> <span class="n">LooseVersion</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype</span><span class="w"> </span><span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">freesurfer</span> <span class="k">as</span> <span class="n">fs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">File</span><span class="p">,</span> <span class="n">InputMultiObject</span><span class="p">,</span> <span class="n">isdefined</span><span class="p">,</span> <span class="n">traits</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipype.utils.filemanip</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_depends</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">freesurfer</span> <span class="k">as</span> <span class="n">nwfs</span>
+
+<span class="n">iflogger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;nipype.interface&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_ReconAllInputSpec</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">preprocess</span><span class="o">.</span><span class="n">ReconAllInputSpec</span><span class="p">):</span>
+    <span class="n">directive</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span>
+        <span class="s1">&#39;all&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autorecon1&#39;</span><span class="p">,</span>
+        <span class="c1"># autorecon2 variants</span>
+        <span class="s1">&#39;autorecon2&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autorecon2-volonly&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autorecon2-perhemi&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autorecon2-inflate1&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autorecon2-cp&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autorecon2-wm&#39;</span><span class="p">,</span>
+        <span class="c1"># autorecon3 variants</span>
+        <span class="s1">&#39;autorecon3&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autorecon3-T2pial&#39;</span><span class="p">,</span>
+        <span class="c1"># Mix of autorecon2 and autorecon3 steps</span>
+        <span class="s1">&#39;autorecon-pial&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;autorecon-hemi&#39;</span><span class="p">,</span>
+        <span class="c1"># Not &quot;multi-stage flags&quot;</span>
+        <span class="s1">&#39;localGI&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;qcache&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;process directive&#39;</span><span class="p">,</span>
+        <span class="n">usedefault</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">xor</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;steps&#39;</span><span class="p">],</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span>
+        <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span>
+            <span class="c1"># autorecon1</span>
+            <span class="s1">&#39;motioncor&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;talairach&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;nuintensitycor&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;normalization&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;skullstrip&#39;</span><span class="p">,</span>
+            <span class="c1"># autorecon2-volonly</span>
+            <span class="s1">&#39;gcareg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;canorm&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;careg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;careginv&#39;</span><span class="p">,</span>  <span class="c1"># 5.3</span>
+            <span class="s1">&#39;rmneck&#39;</span><span class="p">,</span>  <span class="c1"># 5.3</span>
+            <span class="s1">&#39;skull-lta&#39;</span><span class="p">,</span>  <span class="c1"># 5.3</span>
+            <span class="s1">&#39;calabel&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;normalization2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;maskbfs&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;segmentation&#39;</span><span class="p">,</span>
+            <span class="c1"># autorecon2 per-hemi</span>
+            <span class="s1">&#39;tessellate&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;smooth1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;inflate1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;qsphere&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;fix&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;smooth2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;inflate2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;curvHK&#39;</span><span class="p">,</span>  <span class="c1"># 6.0</span>
+            <span class="s1">&#39;curvstats&#39;</span><span class="p">,</span>
+            <span class="c1"># autorecon3 per-hemi</span>
+            <span class="s1">&#39;sphere&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;surfreg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;jacobian_white&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;avgcurv&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cortparc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;pial&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;pctsurfcon&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;parcstats&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cortparc2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;parcstats2&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cortparc3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;parcstats3&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;label-exvivo-ec&#39;</span><span class="p">,</span>
+            <span class="c1"># autorecon vol</span>
+            <span class="s1">&#39;cortribbon&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;hyporelabel&#39;</span><span class="p">,</span>  <span class="c1"># 6.0</span>
+            <span class="s1">&#39;segstats&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;aparc2aseg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;apas2aseg&#39;</span><span class="p">,</span>  <span class="c1"># 6.0</span>
+            <span class="s1">&#39;wmparc&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;balabels&#39;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;specific process directives&#39;</span><span class="p">,</span>
+        <span class="n">xor</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;directive&#39;</span><span class="p">],</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">hemi</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Enum</span><span class="p">(</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span> <span class="s1">&#39;rh&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;hemisphere to process&#39;</span><span class="p">,</span> <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-</span><span class="si">%s</span><span class="s1">-only&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ReconAll">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.freesurfer.html#smriprep.interfaces.freesurfer.ReconAll">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReconAll</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">ReconAll</span><span class="p">):</span>
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_ReconAllInputSpec</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cmdline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">ReconAll</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">cmdline</span>
+
+        <span class="c1"># Adds &#39;-expert&#39; flag if expert flags are passed</span>
+        <span class="c1"># Mutually exclusive with &#39;expert&#39; input parameter</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prep_expert_file</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_resuming</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">cmd</span>
+        <span class="n">subjects_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">subjects_dir</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isdefined</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">):</span>
+            <span class="n">subjects_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gen_subjects_dir</span><span class="p">()</span>
+
+        <span class="c1"># Check only relevant steps</span>
+        <span class="n">directive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">directive</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isdefined</span><span class="p">(</span><span class="n">directive</span><span class="p">):</span>
+            <span class="n">steps</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">isdefined</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">steps</span><span class="p">):</span>
+                <span class="n">steps</span> <span class="o">=</span> <span class="p">[</span><span class="n">step</span> <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steps</span> <span class="k">if</span> <span class="n">step</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">steps</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">directive</span> <span class="o">==</span> <span class="s1">&#39;autorecon1&#39;</span><span class="p">:</span>
+            <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon1_steps</span>
+        <span class="k">elif</span> <span class="n">directive</span> <span class="o">==</span> <span class="s1">&#39;autorecon2-volonly&#39;</span><span class="p">:</span>
+            <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon2_volonly_steps</span>
+        <span class="k">elif</span> <span class="n">directive</span> <span class="o">==</span> <span class="s1">&#39;autorecon2-perhemi&#39;</span><span class="p">:</span>
+            <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon2_perhemi_steps</span>
+        <span class="k">elif</span> <span class="n">directive</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;autorecon2&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">isdefined</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">hemi</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">hemi</span> <span class="o">==</span> <span class="s1">&#39;lh&#39;</span><span class="p">:</span>
+                    <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon2_volonly_steps</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon2_lh_steps</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon2_volonly_steps</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon2_rh_steps</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon2_steps</span>
+        <span class="k">elif</span> <span class="n">directive</span> <span class="o">==</span> <span class="s1">&#39;autorecon-hemi&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">hemi</span> <span class="o">==</span> <span class="s1">&#39;lh&#39;</span><span class="p">:</span>
+                <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon_lh_steps</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon_rh_steps</span>
+        <span class="k">elif</span> <span class="n">directive</span> <span class="o">==</span> <span class="s1">&#39;autorecon3&#39;</span><span class="p">:</span>
+            <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autorecon3_steps</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steps</span>
+
+        <span class="n">no_run</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">step</span><span class="p">,</span> <span class="n">outfiles</span><span class="p">,</span> <span class="n">infiles</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;-</span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">noflag</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;-no</span><span class="si">{</span><span class="n">step</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="k">if</span> <span class="n">noflag</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">flag</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">:</span>
+                <span class="n">no_run</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># FreeSurfer changed the meaning and order of -apas2aseg without</span>
+            <span class="c1"># updating the recon table on the wiki. Hack it until fixed in nipype.</span>
+            <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="s1">&#39;apas2aseg&#39;</span> <span class="ow">and</span> <span class="n">fs</span><span class="o">.</span><span class="n">Info</span><span class="o">.</span><span class="n">looseversion</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">LooseVersion</span><span class="p">(</span><span class="s1">&#39;7.3.0&#39;</span><span class="p">):</span>
+                <span class="n">infiles</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="n">subj_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">subject_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">check_depends</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subj_dir</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">outfiles</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">subj_dir</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">infiles</span><span class="p">],</span>
+            <span class="p">):</span>
+                <span class="n">flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">noflag</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">isdefined</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">steps</span><span class="p">):</span>
+                    <span class="n">flags</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+                <span class="n">no_run</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">no_run</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_run</span><span class="p">:</span>
+            <span class="n">iflogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;recon-all complete : Not running&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s1">&#39;echo recon-all: nothing to do&#39;</span>
+
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">flags</span><span class="p">)</span>
+        <span class="n">iflogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;resume recon-all : </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cmd</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">trait_spec</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># Nipype disables this if -autorecon-hemi is passed</span>
+        <span class="c1"># We need to use it either way to prevent undesired behavior</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;hemi&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">trait_spec</span><span class="o">.</span><span class="n">argstr</span> <span class="o">%</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_format_arg</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">trait_spec</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_MRIsConvertDataInputSpec</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">MRIsConvertInputSpec</span><span class="p">):</span>
+    <span class="n">in_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">genfile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Surface file&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">_xor</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;annot_file&#39;</span><span class="p">,</span> <span class="s1">&#39;parcstats_file&#39;</span><span class="p">,</span> <span class="s1">&#39;label_file&#39;</span><span class="p">,</span> <span class="s1">&#39;scalarcurv_file&#39;</span><span class="p">,</span> <span class="s1">&#39;functional_file&#39;</span><span class="p">)</span>
+    <span class="n">annot_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--annot </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">xor</span><span class="o">=</span><span class="n">_xor</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;input is annotation or gifti label data&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">parcstats_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--parcstats </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">xor</span><span class="o">=</span><span class="n">_xor</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;infile is name of text file containing label/val pairs&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">label_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--label </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">xor</span><span class="o">=</span><span class="n">_xor</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;infile is .label file, label is name of this label&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">scalarcurv_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-c </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">xor</span><span class="o">=</span><span class="n">_xor</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;input is scalar curv overlay file (must still specify surface)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">functional_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-f </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">xor</span><span class="o">=</span><span class="n">_xor</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;input is functional time-series or other multi-frame data (must specify surface)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="MRIsConvertData">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.freesurfer.html#smriprep.interfaces.freesurfer.MRIsConvertData">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MRIsConvertData</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">MRIsConvert</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert surface data files (label, curvature, functional, etc)</span>
+<span class="sd">    Wraps mris_convert to automatically select the correct ?h.white surface if</span>
+<span class="sd">    passed a file from the subject&#39;s surf/ directory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_MRIsConvertDataInputSpec</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gen_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;in_file&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">isdefined</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span>
+
+            <span class="c1"># Find file we&#39;re trying to convert</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;annot&#39;</span><span class="p">,</span> <span class="s1">&#39;parcstats&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="s1">&#39;scalarcurv&#39;</span><span class="p">,</span> <span class="s1">&#39;functional&#39;</span><span class="p">):</span>
+                <span class="n">input_file</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">opt</span><span class="si">}</span><span class="s1">_file&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">isdefined</span><span class="p">(</span><span class="n">input_file</span><span class="p">):</span>
+                    <span class="n">fname</span> <span class="o">=</span> <span class="n">input_file</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">fname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Missing file to derive filename from.&#39;</span><span class="p">)</span>
+
+            <span class="c1"># $SUB/lh.curv -&gt; $SUB/lh.white, etc</span>
+            <span class="n">dirname</span><span class="p">,</span> <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+            <span class="n">hemi</span> <span class="o">=</span> <span class="n">basename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">hemi</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;lh&#39;</span><span class="p">,</span> <span class="s1">&#39;rh&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">hemi</span><span class="si">}</span><span class="s1">.white&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_gen_filename</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MakeMidthicknessInputSpec</span><span class="p">(</span><span class="n">nwfs</span><span class="o">.</span><span class="n">_MakeMidthicknessInputSpec</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">FSTraitedSpecOpenMP</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="MakeMidthickness">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.freesurfer.html#smriprep.interfaces.freesurfer.MakeMidthickness">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MakeMidthickness</span><span class="p">(</span><span class="n">nwfs</span><span class="o">.</span><span class="n">MakeMidthickness</span><span class="p">,</span> <span class="n">fs</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">FSCommandOpenMP</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Patched MakeMidthickness interface</span>
+
+<span class="sd">    Ensures output filenames are specified with hemisphere labels, when appropriate.</span>
+<span class="sd">    This may not cover all use-cases in MRIsExpand, but we&#39;re just making midthickness</span>
+<span class="sd">    files.</span>
+
+<span class="sd">    This interface also sets the OMP_NUM_THREADS environment variable to floor(1.5x) the</span>
+<span class="sd">    number of threads requested by the user, as tests indicate that cores are underutilized</span>
+<span class="sd">    by a factor of 2/3.</span>
+
+<span class="sd">    &gt;&gt;&gt; from smriprep.interfaces.freesurfer import MakeMidthickness</span>
+<span class="sd">    &gt;&gt;&gt; mris_expand = MakeMidthickness(thickness=True, distance=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; mris_expand.inputs.in_file = &#39;lh.white&#39;</span>
+<span class="sd">    &gt;&gt;&gt; mris_expand.cmdline</span>
+<span class="sd">    &#39;mris_expand -thickness lh.white 0.5 lh.expanded&#39;</span>
+<span class="sd">    &gt;&gt;&gt; mris_expand.inputs.out_name = &#39;graymid&#39;</span>
+<span class="sd">    &gt;&gt;&gt; mris_expand.cmdline</span>
+<span class="sd">    &#39;mris_expand -thickness lh.white 0.5 lh.graymid&#39;</span>
+
+<span class="sd">        Explicit hemisphere labels should still be respected:</span>
+
+<span class="sd">    &gt;&gt;&gt; mris_expand.inputs.out_name = &#39;rh.graymid&#39;</span>
+<span class="sd">    &gt;&gt;&gt; mris_expand.cmdline</span>
+<span class="sd">    &#39;mris_expand -thickness lh.white 0.5 rh.graymid&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">MakeMidthicknessInputSpec</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">trait_spec</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="c1"># FreeSurfer at some point changed whether it would add the hemi label onto the</span>
+        <span class="c1"># surface. Therefore we&#39;ll do it ourselves.</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;out_name&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_associated_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_format_arg</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">trait_spec</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_num_threads_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">num_threads</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;OMP_NUM_THREADS&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">num_threads</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)})</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: maint/0.17.x
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../../../0.10.0/index.html">0.10.0</a></dd>
+            <dd><a href="../../../../0.11.0/index.html">0.11.0</a></dd>
+            <dd><a href="../../../../0.11.0rc0/index.html">0.11.0rc0</a></dd>
+            <dd><a href="../../../../0.11.0rc1/index.html">0.11.0rc1</a></dd>
+            <dd><a href="../../../../0.11.1/index.html">0.11.1</a></dd>
+            <dd><a href="../../../../0.12.0/index.html">0.12.0</a></dd>
+            <dd><a href="../../../../0.12.1/index.html">0.12.1</a></dd>
+            <dd><a href="../../../../0.12.2/index.html">0.12.2</a></dd>
+            <dd><a href="../../../../0.13.0/index.html">0.13.0</a></dd>
+            <dd><a href="../../../../0.13.1/index.html">0.13.1</a></dd>
+            <dd><a href="../../../../0.13.2/index.html">0.13.2</a></dd>
+            <dd><a href="../../../../0.14.0/index.html">0.14.0</a></dd>
+            <dd><a href="../../../../0.15.0/index.html">0.15.0</a></dd>
+            <dd><a href="../../../../0.16.0/index.html">0.16.0</a></dd>
+            <dd><a href="../../../../0.16.1/index.html">0.16.1</a></dd>
+            <dd><a href="../../../../0.17.0/index.html">0.17.0</a></dd>
+            <dd><a href="../../../../0.18.0/index.html">0.18.0</a></dd>
+            <dd><a href="../../../../0.8.0/index.html">0.8.0</a></dd>
+            <dd><a href="../../../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
+            <dd><a href="../../../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
+            <dd><a href="../../../../0.8.0rc3/index.html">0.8.0rc3</a></dd>
+            <dd><a href="../../../../0.8.1/index.html">0.8.1</a></dd>
+            <dd><a href="../../../../0.8.2/index.html">0.8.2</a></dd>
+            <dd><a href="../../../../0.8.3/index.html">0.8.3</a></dd>
+            <dd><a href="../../../../0.9.0/index.html">0.9.0</a></dd>
+            <dd><a href="../../../../0.9.1/index.html">0.9.1</a></dd>
+            <dd><a href="../../../../0.9.2/index.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../../../dev-nibabies/index.html">dev-nibabies</a></dd>
+            <dd><a href="../../../../enh_calabel/index.html">enh/calabel</a></dd>
+            <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
+            <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
+            <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
+            <dd><a href="../../../../maint_0.13.x/index.html">maint/0.13.x</a></dd>
+            <dd><a href="../../../../maint_0.15.x/index.html">maint/0.15.x</a></dd>
+            <dd><a href="../../../../maint_0.16.x/index.html">maint/0.16.x</a></dd>
+            <dd><a href="freesurfer.html">maint/0.17.x</a></dd>
+            <dd><a href="../../../../maint_0.18.x/index.html">maint/0.18.x</a></dd>
+            <dd><a href="../../../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
+            <dd><a href="../../../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
+            <dd><a href="../../../../master/index.html">master</a></dd>
+            <dd><a href="../../../../rel_0.16.1/index.html">rel/0.16.1</a></dd>
+            <dd><a href="../../../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

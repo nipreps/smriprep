@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.workflows.anatomical module &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../_static/jquery.js?v=1413ff29"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d9a209d6"></script>
+      <script src="../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="smriprep.workflows.base module" href="smriprep.workflows.base.html" />
+    <link rel="prev" title="smriprep.workflows.fit.registration module" href="smriprep.workflows.fit.registration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Library API (application program interface)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="smriprep.cli.html">smriprep.cli package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.interfaces.html">smriprep.interfaces package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.utils.html">smriprep.utils package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="smriprep.workflows.html">smriprep.workflows package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="smriprep.workflows.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="smriprep.workflows.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">smriprep.workflows.anatomical module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.workflows.base.html">smriprep.workflows.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.workflows.outputs.html">smriprep.workflows.outputs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.workflows.surfaces.html">smriprep.workflows.surfaces module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">Library API (application program interface)</a></li>
+          <li class="breadcrumb-item"><a href="smriprep.workflows.html">smriprep.workflows package</a></li>
+      <li class="breadcrumb-item active">smriprep.workflows.anatomical module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/smriprep.workflows.anatomical.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../../master/api/smriprep.workflows.anatomical.html"><b>Warning:</b> This document is for an old version of smriprep. The main version is master.</a></p>
+<section id="module-smriprep.workflows.anatomical">
+<span id="smriprep-workflows-anatomical-module"></span><h1>smriprep.workflows.anatomical module<a class="headerlink" href="#module-smriprep.workflows.anatomical" title="Link to this heading"></a></h1>
+<p>Anatomical reference preprocessing workflows.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.anatomical.init_anat_fit_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.anatomical.</span></span><span class="sig-name descname"><span class="pre">init_anat_fit_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bids_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">freesurfer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hires</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitudinal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">msm_sulc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t1w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t2w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_strip_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_strip_template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.utils.spaces.html#niworkflows.utils.spaces.Reference" title="(in niworkflows v0)"><span class="pre">Reference</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">spaces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.utils.spaces.html#niworkflows.utils.spaces.SpatialReferences" title="(in niworkflows v0)"><span class="pre">SpatialReferences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomputed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_nthreads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">flair</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sloppy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'anat_fit_wf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_strip_fixed_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_no_resume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/anatomical.html#init_anat_fit_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.anatomical.init_anat_fit_wf" title="Link to this definition"></a></dt>
+<dd><p>Stage the anatomical preprocessing steps of <em>sMRIPrep</em>.</p>
+<p>This includes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>T1w reference: realigning and then averaging T1w images.</p></li>
+<li><p>Brain extraction and INU (bias field) correction.</p></li>
+<li><p>Brain tissue segmentation.</p></li>
+<li><p>Spatial normalization to standard spaces.</p></li>
+<li><p>Surface reconstruction with <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/">FreeSurfer</a>.</p></li>
+</ul>
+</div></blockquote>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-anatomical-1.png" src="../_images/smriprep-workflows-anatomical-1.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-anatomical-1.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-1.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-1.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-1.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bids_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Path of the input BIDS dataset root</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Directory in which to save derivatives</p></li>
+<li><p><strong>freesurfer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Enable FreeSurfer surface reconstruction (increases runtime by 6h,
+at the very least)</p></li>
+<li><p><strong>hires</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Enable sub-millimeter preprocessing in FreeSurfer</p></li>
+<li><p><strong>longitudinal</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Create unbiased structural template, regardless of number of inputs
+(may increase runtime)</p></li>
+<li><p><strong>t1w</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a>) – List of T1-weighted structural images.</p></li>
+<li><p><strong>skull_strip_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Determiner for T1-weighted skull stripping (<cite>force</cite> ensures skull stripping,
+<cite>skip</cite> ignores skull stripping, and <cite>auto</cite> automatically ignores skull stripping
+if pre-stripped brains are detected).</p></li>
+<li><p><strong>skull_strip_template</strong> (<a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.utils.spaces.html#niworkflows.utils.spaces.Reference" title="(in niworkflows v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reference</span></code></a>) – Spatial reference to use in atlas-based brain extraction.</p></li>
+<li><p><strong>spaces</strong> (<a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.utils.spaces.html#niworkflows.utils.spaces.SpatialReferences" title="(in niworkflows v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialReferences</span></code></a>) – Object containing standard and nonstandard space specifications.</p></li>
+<li><p><strong>precomputed</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>) – Dictionary mapping output specification attribute names and
+paths to precomputed derivatives.</p></li>
+<li><p><strong>omp_nthreads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>) – Maximum number of threads an individual process may use</p></li>
+<li><p><strong>debug</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Enable debugging outputs</p></li>
+<li><p><strong>sloppy</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Quick, impercise operations. Used to decrease workflow duration.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, optional) – Workflow name (default: anat_fit_wf)</p></li>
+<li><p><strong>skull_strip_fixed_seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Do not use a random seed for skull-stripping - will ensure
+run-to-run replicability when used with –omp-nthreads 1
+(default: <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>t1w</strong> – List of T1-weighted structural images</p></li>
+<li><p><strong>t2w</strong> – List of T2-weighted structural images</p></li>
+<li><p><strong>roi</strong> – A mask to exclude regions during standardization</p></li>
+<li><p><strong>flair</strong> – List of FLAIR images</p></li>
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t1w_preproc</strong> – The T1w reference map, which is calculated as the average of bias-corrected
+and preprocessed T1w images, defining the anatomical space.</p></li>
+<li><p><strong>t1w_mask</strong> – Brain (binary) mask estimated by brain extraction.</p></li>
+<li><p><strong>t1w_dseg</strong> – Brain tissue segmentation of the preprocessed structural image, including
+gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).</p></li>
+<li><p><strong>t1w_tpms</strong> – List of tissue probability maps corresponding to <code class="docutils literal notranslate"><span class="pre">t1w_dseg</span></code>.</p></li>
+<li><p><strong>t1w_valid_list</strong> – List of input T1w images accepted for preprocessing. If t1w_preproc is
+precomputed, this is always a list containing that image.</p></li>
+<li><p><strong>template</strong> – List of template names to which the structural image has been registered</p></li>
+<li><p><strong>anat2std_xfm</strong> – List of nonlinear spatial transforms to resample data from subject
+anatomical space into standard template spaces. Collated with template.</p></li>
+<li><p><strong>std2anat_xfm</strong> – List of nonlinear spatial transforms to resample data from standard
+template spaces into subject anatomical space. Collated with template.</p></li>
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR; use as input to a node to ensure that it is run after
+FreeSurfer reconstruction is completed.</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID; use as input to a node to ensure that it is run after
+FreeSurfer reconstruction is completed.</p></li>
+<li><p><strong>fsnative2t1w_xfm</strong> – ITK-style affine matrix translating from FreeSurfer-conformed subject space to T1w</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.anat.ants.html#niworkflows.anat.ants.init_brain_extraction_wf" title="(in niworkflows v0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">init_brain_extraction_wf()</span></code></a></p></li>
+<li><p><a class="reference internal" href="smriprep.workflows.surfaces.html#smriprep.workflows.surfaces.init_surface_recon_wf" title="smriprep.workflows.surfaces.init_surface_recon_wf"><code class="xref py py-func docutils literal notranslate"><span class="pre">init_surface_recon_wf()</span></code></a></p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.anatomical.init_anat_preproc_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.anatomical.</span></span><span class="sig-name descname"><span class="pre">init_anat_preproc_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bids_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">freesurfer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hires</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitudinal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">msm_sulc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t1w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t2w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_strip_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_strip_template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.utils.spaces.html#niworkflows.utils.spaces.Reference" title="(in niworkflows v0)"><span class="pre">Reference</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">spaces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.utils.spaces.html#niworkflows.utils.spaces.SpatialReferences" title="(in niworkflows v0)"><span class="pre">SpatialReferences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">precomputed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_nthreads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">flair</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sloppy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cifti_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'91k'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'170k'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">False</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'anat_preproc_wf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skull_strip_fixed_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_no_resume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/anatomical.html#init_anat_preproc_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.anatomical.init_anat_preproc_wf" title="Link to this definition"></a></dt>
+<dd><p>Stage the anatomical preprocessing steps of <em>sMRIPrep</em>.</p>
+<p>This workflow is a compatibility wrapper around <a class="reference internal" href="#smriprep.workflows.anatomical.init_anat_fit_wf" title="smriprep.workflows.anatomical.init_anat_fit_wf"><code class="xref py py-func docutils literal notranslate"><span class="pre">init_anat_fit_wf()</span></code></a>
+that emits all derivatives that were present in sMRIPrep 0.9.x and before.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-anatomical-2.png" src="../_images/smriprep-workflows-anatomical-2.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-anatomical-2.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-2.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-2.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-2.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bids_root</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Path of the input BIDS dataset root</p></li>
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Directory in which to save derivatives</p></li>
+<li><p><strong>freesurfer</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Enable FreeSurfer surface reconstruction (increases runtime by 6h,
+at the very least)</p></li>
+<li><p><strong>hires</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Enable sub-millimeter preprocessing in FreeSurfer</p></li>
+<li><p><strong>longitudinal</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Create unbiased structural template, regardless of number of inputs
+(may increase runtime)</p></li>
+<li><p><strong>t1w</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a>) – List of T1-weighted structural images.</p></li>
+<li><p><strong>skull_strip_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Determiner for T1-weighted skull stripping (<cite>force</cite> ensures skull stripping,
+<cite>skip</cite> ignores skull stripping, and <cite>auto</cite> automatically ignores skull stripping
+if pre-stripped brains are detected).</p></li>
+<li><p><strong>skull_strip_template</strong> (<a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.utils.spaces.html#niworkflows.utils.spaces.Reference" title="(in niworkflows v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reference</span></code></a>) – Spatial reference to use in atlas-based brain extraction.</p></li>
+<li><p><strong>spaces</strong> (<a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.utils.spaces.html#niworkflows.utils.spaces.SpatialReferences" title="(in niworkflows v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialReferences</span></code></a>) – Object containing standard and nonstandard space specifications.</p></li>
+<li><p><strong>precomputed</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>) – Dictionary mapping output specification attribute names and
+paths to precomputed derivatives.</p></li>
+<li><p><strong>omp_nthreads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>) – Maximum number of threads an individual process may use</p></li>
+<li><p><strong>debug</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Enable debugging outputs</p></li>
+<li><p><strong>sloppy</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Quick, impercise operations. Used to decrease workflow duration.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, optional) – Workflow name (default: anat_fit_wf)</p></li>
+<li><p><strong>skull_strip_fixed_seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Do not use a random seed for skull-stripping - will ensure
+run-to-run replicability when used with –omp-nthreads 1
+(default: <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+<li><p><strong>fs_no_resume</strong> (<em>bool</em>) – EXPERT: Import pre-computed FreeSurfer reconstruction without resuming.
+The user is responsible for ensuring that all necessary files are present.
+(default: <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>t1w</strong> – List of T1-weighted structural images</p></li>
+<li><p><strong>t2w</strong> – List of T2-weighted structural images</p></li>
+<li><p><strong>roi</strong> – A mask to exclude regions during standardization</p></li>
+<li><p><strong>flair</strong> – List of FLAIR images</p></li>
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t1w_preproc</strong> – The T1w reference map, which is calculated as the average of bias-corrected
+and preprocessed T1w images, defining the anatomical space.</p></li>
+<li><p><strong>t1w_mask</strong> – Brain (binary) mask estimated by brain extraction.</p></li>
+<li><p><strong>t1w_dseg</strong> – Brain tissue segmentation of the preprocessed structural image, including
+gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).</p></li>
+<li><p><strong>t1w_tpms</strong> – List of tissue probability maps corresponding to <code class="docutils literal notranslate"><span class="pre">t1w_dseg</span></code>.</p></li>
+<li><p><strong>template</strong> – List of template names to which the structural image has been registered</p></li>
+<li><p><strong>anat2std_xfm</strong> – List of nonlinear spatial transforms to resample data from subject
+anatomical space into standard template spaces. Collated with template.</p></li>
+<li><p><strong>std2anat_xfm</strong> – List of nonlinear spatial transforms to resample data from standard
+template spaces into subject anatomical space. Collated with template.</p></li>
+<li><p><strong>subjects_dir</strong> – FreeSurfer SUBJECTS_DIR; use as input to a node to ensure that it is run after
+FreeSurfer reconstruction is completed.</p></li>
+<li><p><strong>subject_id</strong> – FreeSurfer subject ID; use as input to a node to ensure that it is run after
+FreeSurfer reconstruction is completed.</p></li>
+<li><p><strong>fsnative2t1w_xfm</strong> – ITK-style affine matrix translating from FreeSurfer-conformed subject space to T1w</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.workflows.anatomical.init_anat_template_wf">
+<span class="sig-prename descclassname"><span class="pre">smriprep.workflows.anatomical.</span></span><span class="sig-name descname"><span class="pre">init_anat_template_wf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitudinal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">omp_nthreads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'T1w'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'T2w'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'anat_template_wf'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/workflows/anatomical.html#init_anat_template_wf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.workflows.anatomical.init_anat_template_wf" title="Link to this definition"></a></dt>
+<dd><p>Generate a canonically-oriented, structural average from all input images.</p>
+<dl>
+<dt>Workflow Graph</dt><dd><figure class="align-default">
+<img alt="../_images/smriprep-workflows-anatomical-3.png" src="../_images/smriprep-workflows-anatomical-3.png" />
+</figure>
+<p>(<a class="reference external" href="../api/smriprep-workflows-anatomical-3.py">Source code</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-3.png">png</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-3.svg">svg</a>, <a class="reference external" href="../api/smriprep-workflows-anatomical-3.pdf">pdf</a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>longitudinal</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>) – Create unbiased structural average, regardless of number of inputs
+(may increase runtime)</p></li>
+<li><p><strong>omp_nthreads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>) – Maximum number of threads an individual process may use</p></li>
+<li><p><strong>num_files</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>) – Number of images</p></li>
+<li><p><strong>image_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – MR image type (T1w, T2w, etc.)</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, optional) – Workflow name (default: anat_template_wf)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>anat_files</strong> – List of structural images</p>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>anat_ref</strong> – Structural reference averaging input images</p></li>
+<li><p><strong>anat_valid_list</strong> – List of structural images accepted for combination</p></li>
+<li><p><strong>anat_realign_xfm</strong> – List of affine transforms to realign input images to final reference</p></li>
+<li><p><strong>out_report</strong> – Conformation report</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="smriprep.workflows.fit.registration.html" class="btn btn-neutral float-left" title="smriprep.workflows.fit.registration module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="smriprep.workflows.base.html" class="btn btn-neutral float-right" title="smriprep.workflows.base module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: 0.14.0
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../0.10.0/api/smriprep.workflows.anatomical.html">0.10.0</a></dd>
+            <dd><a href="../../0.11.0/api/smriprep.workflows.anatomical.html">0.11.0</a></dd>
+            <dd><a href="../../0.11.0rc0/api/smriprep.workflows.anatomical.html">0.11.0rc0</a></dd>
+            <dd><a href="../../0.11.0rc1/api/smriprep.workflows.anatomical.html">0.11.0rc1</a></dd>
+            <dd><a href="../../0.11.1/api/smriprep.workflows.anatomical.html">0.11.1</a></dd>
+            <dd><a href="../../0.12.0/api/smriprep.workflows.anatomical.html">0.12.0</a></dd>
+            <dd><a href="../../0.12.1/api/smriprep.workflows.anatomical.html">0.12.1</a></dd>
+            <dd><a href="../../0.12.2/api/smriprep.workflows.anatomical.html">0.12.2</a></dd>
+            <dd><a href="../../0.13.0/api/smriprep.workflows.anatomical.html">0.13.0</a></dd>
+            <dd><a href="../../0.13.1/api/smriprep.workflows.anatomical.html">0.13.1</a></dd>
+            <dd><a href="../../0.13.2/api/smriprep.workflows.anatomical.html">0.13.2</a></dd>
+            <dd><a href="smriprep.workflows.anatomical.html">0.14.0</a></dd>
+            <dd><a href="../../0.15.0/api/smriprep.workflows.anatomical.html">0.15.0</a></dd>
+            <dd><a href="../../0.16.0/api/smriprep.workflows.anatomical.html">0.16.0</a></dd>
+            <dd><a href="../../0.16.1/api/smriprep.workflows.anatomical.html">0.16.1</a></dd>
+            <dd><a href="../../0.17.0/api/smriprep.workflows.anatomical.html">0.17.0</a></dd>
+            <dd><a href="../../0.18.0/api/smriprep.workflows.anatomical.html">0.18.0</a></dd>
+            <dd><a href="../../0.8.0/api/smriprep.workflows.anatomical.html">0.8.0</a></dd>
+            <dd><a href="../../0.8.0rc1/api/smriprep.workflows.anatomical.html">0.8.0rc1</a></dd>
+            <dd><a href="../../0.8.0rc2/api/smriprep.workflows.anatomical.html">0.8.0rc2</a></dd>
+            <dd><a href="../../0.8.0rc3/api/smriprep.workflows.anatomical.html">0.8.0rc3</a></dd>
+            <dd><a href="../../0.8.1/api/smriprep.workflows.anatomical.html">0.8.1</a></dd>
+            <dd><a href="../../0.8.2/api/smriprep.workflows.anatomical.html">0.8.2</a></dd>
+            <dd><a href="../../0.8.3/api/smriprep.workflows.anatomical.html">0.8.3</a></dd>
+            <dd><a href="../../0.9.0/api/smriprep.workflows.anatomical.html">0.9.0</a></dd>
+            <dd><a href="../../0.9.1/api/smriprep.workflows.anatomical.html">0.9.1</a></dd>
+            <dd><a href="../../0.9.2/api/smriprep.workflows.anatomical.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../dev-nibabies/api/smriprep.workflows.anatomical.html">dev-nibabies</a></dd>
+            <dd><a href="../../enh_calabel/api/smriprep.workflows.anatomical.html">enh/calabel</a></dd>
+            <dd><a href="../../enh_split-surfaces/api/smriprep.workflows.anatomical.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../fix_parcstats/api/smriprep.workflows.anatomical.html">fix/parcstats</a></dd>
+            <dd><a href="../../fix_recon-report/api/smriprep.workflows.anatomical.html">fix/recon-report</a></dd>
+            <dd><a href="../../fix_tfselect-resless/api/smriprep.workflows.anatomical.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../maint_0.12.x/api/smriprep.workflows.anatomical.html">maint/0.12.x</a></dd>
+            <dd><a href="../../maint_0.13.x/api/smriprep.workflows.anatomical.html">maint/0.13.x</a></dd>
+            <dd><a href="../../maint_0.15.x/api/smriprep.workflows.anatomical.html">maint/0.15.x</a></dd>
+            <dd><a href="../../maint_0.16.x/api/smriprep.workflows.anatomical.html">maint/0.16.x</a></dd>
+            <dd><a href="../../maint_0.17.x/api/smriprep.workflows.anatomical.html">maint/0.17.x</a></dd>
+            <dd><a href="../../maint_0.18.x/api/smriprep.workflows.anatomical.html">maint/0.18.x</a></dd>
+            <dd><a href="../../maint_0.8.x/api/smriprep.workflows.anatomical.html">maint/0.8.x</a></dd>
+            <dd><a href="../../maint_0.9.x/api/smriprep.workflows.anatomical.html">maint/0.9.x</a></dd>
+            <dd><a href="../../master/api/smriprep.workflows.anatomical.html">master</a></dd>
+            <dd><a href="../../rel_0.16.1/api/smriprep.workflows.anatomical.html">rel/0.16.1</a></dd>
+            <dd><a href="../../rel_0.8.0rc1/api/smriprep.workflows.anatomical.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

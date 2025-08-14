@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5dd5ad26" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="_static/jquery.js?v=1413ff29"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="_static/doctools.js?v=6afcdcd2"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="sMRIPrep: Structural MRI PREProcessing pipeline" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#container-technologies-docker-and-singularity">Container technologies: Docker and Singularity</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#docker-recommended-for-pc-laptop-and-commercial-cloud">Docker (recommended for PC/laptop and commercial Cloud)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-smriprep-docker-wrapper">The <code class="docutils literal notranslate"><span class="pre">smriprep-docker</span></code> wrapper</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#singularity-recommended-for-hpc">Singularity (recommended for HPC)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#manually-prepared-environment-python-3-5">Manually Prepared Environment (Python 3.5+)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#external-dependencies">External Dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../master/installation.html"><b>Warning:</b> This document is for an old version of smriprep. The main version is master.</a></p>
+<section id="id1">
+<h1>Installation<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
+<p>There are two ways of getting <em>sMRIPrep</em> installed:</p>
+<ul class="simple">
+<li><p>within a <a class="reference internal" href="#manually-prepared-environment-python-3-5">Manually Prepared Environment (Python 3.5+)</a>, also known as
+<em>bare-metal installation</em>; or</p></li>
+<li><p>using container technologies (RECOMMENDED), such as
+<a class="reference external" href="https://fmriprep.readthedocs.io/en/stable/docker.html">Docker</a> or
+<a class="reference external" href="https://fmriprep.readthedocs.io/en/stable/singularity.html">Singularity</a>.</p></li>
+</ul>
+<p>Once you have your <em>bare-metal</em> environment set-up (first option above),
+the next step is executing the <code class="docutils literal notranslate"><span class="pre">smriprep</span></code> command-line.
+The <code class="docutils literal notranslate"><span class="pre">smriprep</span></code> command-line options are documented in the <a class="reference internal" href="usage.html#usage"><span class="std std-ref">Usage</span></a>
+section.
+The <code class="docutils literal notranslate"><span class="pre">smriprep</span></code> command-line adheres to the <a class="reference external" href="usage.html#execution-and-the-bids-format">BIDS-Apps recommendations
+for the user interface</a>.
+Therefore, the command-line has the following structure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ smriprep &lt;input_bids_path&gt; &lt;derivatives_path&gt; &lt;analysis_level&gt; &lt;named_options&gt;
+</pre></div>
+</div>
+<p>On the other hand, if you chose a container infrastructure, then
+the command-line will be composed of a preamble to configure the
+container execution followed by the <code class="docutils literal notranslate"><span class="pre">smriprep</span></code> command-line options
+as if you were running it on a <em>bare-metal</em> installation.
+The command-line structure above is then modified as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ &lt;container_command_and_options&gt; &lt;container_image&gt; \
+     &lt;input_bids_path&gt; &lt;derivatives_path&gt; &lt;analysis_level&gt; &lt;smriprep_named_options&gt;
+</pre></div>
+</div>
+<p>Therefore, once specified, the container options and the image to be run
+the command line is the same as for the <em>bare-metal</em> installation but dropping
+the <code class="docutils literal notranslate"><span class="pre">smriprep</span></code> executable name.</p>
+<section id="container-technologies-docker-and-singularity">
+<h2>Container technologies: Docker and Singularity<a class="headerlink" href="#container-technologies-docker-and-singularity" title="Link to this heading"></a></h2>
+<p>Container technologies are operating-system-level virtualization methods to run Linux systems
+using the host’s Linux kernel.
+This is a lightweight approach to virtualization, as compares to virtual machines.</p>
+<section id="docker-recommended-for-pc-laptop-and-commercial-cloud">
+<span id="installation-docker"></span><h3>Docker (recommended for PC/laptop and commercial Cloud)<a class="headerlink" href="#docker-recommended-for-pc-laptop-and-commercial-cloud" title="Link to this heading"></a></h3>
+<p>Probably, the most popular framework to execute containers is Docker.
+If you are to run <em>sMRIPrep</em> on your PC/laptop, this is the RECOMMENDED way of execution.
+Please make sure you follow the <a class="reference external" href="https://docs.docker.com/install/">Docker installation</a> instructions.
+You can check your <a class="reference external" href="https://www.docker.com/products/container-runtime">Docker Engine</a> installation running their <code class="docutils literal notranslate"><span class="pre">hello-world</span></code> image:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ docker run --rm hello-world
+</pre></div>
+</div>
+<p>If you have a functional installation, then you should obtain the following output.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 1. The Docker daemon pulled the &quot;hello-world&quot; image from the Docker Hub.
+    (amd64)
+ 1. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 1. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+</pre></div>
+</div>
+<p>After checking your Docker Engine is capable of running Docker images, then go ahead
+and <a class="reference external" href="https://fmriprep.readthedocs.io/en/stable/docker.html">check out our documentation</a>
+to run the <em>sMRIPrep</em> image.
+The list of Docker images ready to use is found at the <a class="reference external" href="https://hub.docker.com/r/nipreps/smriprep/tags">Docker Hub</a>,
+under the <code class="docutils literal notranslate"><span class="pre">nipreps/smriprep</span></code> identifier.</p>
+<section id="the-smriprep-docker-wrapper">
+<h4>The <code class="docutils literal notranslate"><span class="pre">smriprep-docker</span></code> wrapper<a class="headerlink" href="#the-smriprep-docker-wrapper" title="Link to this heading"></a></h4>
+<p>This is the easiest way to <a class="reference external" href="https://fmriprep.readthedocs.io/en/stable/docker.html#running-smriprep-with-the-smriprep-docker-wrapper">run sMRIPrep using Docker</a>.
+The <a class="reference external" href="https://pypi.python.org/pypi/smriprep-docker">Docker wrapper</a> is a Python script that operates the Docker Engine seamlessly
+as if you were running <code class="docutils literal notranslate"><span class="pre">smriprep</span></code> directly.
+To that end, <code class="docutils literal notranslate"><span class="pre">smriprep-docker</span></code> reinterprets the command-line you are passing and
+converts it into a <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">run</span></code> command.
+The wrapper just requires Python and an Internet connection.
+Install the wrapper using a Python distribution system, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -m pip install --user --upgrade smriprep-docker
+</pre></div>
+</div>
+</section>
+</section>
+<section id="singularity-recommended-for-hpc">
+<h3>Singularity (recommended for HPC)<a class="headerlink" href="#singularity-recommended-for-hpc" title="Link to this heading"></a></h3>
+<p>For security reasons, many <abbr title="High-Performance Computing">HPCs</abbr> (e.g., <a class="reference external" href="https://www.tacc.utexas.edu/">TACC</a>)
+do not allow Docker containers, but do allow <a class="reference external" href="https://github.com/singularityware/singularity">Singularity</a> containers.
+The improved security for multi-tenant systems comes at the price of some limitations
+and extra steps necessary for execution.
+Please make sure you <a class="reference external" href="singularity.html">follow our tips and tricks to run sMRIPrep’s Singularity images</a>.</p>
+</section>
+</section>
+<section id="manually-prepared-environment-python-3-5">
+<h2>Manually Prepared Environment (Python 3.5+)<a class="headerlink" href="#manually-prepared-environment-python-3-5" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This method is not recommended! Please checkout container alternatives
+such as <a class="reference external" href="https://fmriprep.readthedocs.io/en/stable/docker.html">Docker</a>, or
+<a class="reference external" href="https://fmriprep.readthedocs.io/en/stable/singularity.html">Singularity</a>.</p>
+</div>
+<p>Make sure all of <em>sMRIPrep</em>’s <a class="reference internal" href="#external-dependencies">External Dependencies</a> are installed.
+These tools must be installed and their binaries available in the
+system’s <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>.
+A relatively interpretable description of how your environment can be set-up
+is found in the <a class="reference external" href="https://github.com/nipreps/smriprep/blob/master/Dockerfile">Dockerfile</a>.
+As an additional installation setting, FreeSurfer requires a license file (see <a class="reference internal" href="usage.html#fs-license"><span class="std std-ref">The FreeSurfer license</span></a>).</p>
+<p>On a functional Python 3.5 (or above) environment with <code class="docutils literal notranslate"><span class="pre">pip</span></code> installed,
+<em>sMRIPrep</em> can be installed using the habitual command</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ python -m pip install smriprep
+</pre></div>
+</div>
+<p>Check your installation with the <code class="docutils literal notranslate"><span class="pre">--version</span></code> argument</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ smriprep --version
+</pre></div>
+</div>
+<section id="external-dependencies">
+<h3>External Dependencies<a class="headerlink" href="#external-dependencies" title="Link to this heading"></a></h3>
+<p><em>sMRIPrep</em> is written using Python 3.5 (or above), and is based on
+<a class="reference external" href="http://nipype.readthedocs.io/en/latest/">nipype</a>.</p>
+<p><em>sMRIPrep</em> requires some other neuroimaging software tools that are
+not handled by the Python’s packaging system (Pypi) used to deploy
+the <code class="docutils literal notranslate"><span class="pre">smriprep</span></code> package:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/">FSL</a> (version 5.0.9)</p></li>
+<li><p><a class="reference external" href="https://stnava.github.io/ANTs/">ANTs</a> (version 2.2.0 - NeuroDocker build)</p></li>
+<li><p><a class="reference external" href="https://afni.nimh.nih.gov/">AFNI</a> (version Debian-16.2.07)</p></li>
+<li><p><a class="reference external" href="https://sourceforge.net/projects/c3d/">C3D</a> (version 1.0.0)</p></li>
+<li><p><a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/">FreeSurfer</a> (version 6.0.1)</p></li>
+<li><p><a class="reference external" href="https://github.com/bids-standard/bids-validator">bids-validator</a> (version 1.1.0)</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="sMRIPrep: Structural MRI PREProcessing pipeline" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: 0.12.2
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../0.10.0/installation.html">0.10.0</a></dd>
+            <dd><a href="../0.11.0/installation.html">0.11.0</a></dd>
+            <dd><a href="../0.11.0rc0/installation.html">0.11.0rc0</a></dd>
+            <dd><a href="../0.11.0rc1/installation.html">0.11.0rc1</a></dd>
+            <dd><a href="../0.11.1/installation.html">0.11.1</a></dd>
+            <dd><a href="../0.12.0/installation.html">0.12.0</a></dd>
+            <dd><a href="../0.12.1/installation.html">0.12.1</a></dd>
+            <dd><a href="installation.html">0.12.2</a></dd>
+            <dd><a href="../0.13.0/installation.html">0.13.0</a></dd>
+            <dd><a href="../0.13.1/installation.html">0.13.1</a></dd>
+            <dd><a href="../0.13.2/installation.html">0.13.2</a></dd>
+            <dd><a href="../0.14.0/installation.html">0.14.0</a></dd>
+            <dd><a href="../0.15.0/installation.html">0.15.0</a></dd>
+            <dd><a href="../0.16.0/installation.html">0.16.0</a></dd>
+            <dd><a href="../0.16.1/installation.html">0.16.1</a></dd>
+            <dd><a href="../0.17.0/installation.html">0.17.0</a></dd>
+            <dd><a href="../0.18.0/installation.html">0.18.0</a></dd>
+            <dd><a href="../0.8.0/installation.html">0.8.0</a></dd>
+            <dd><a href="../0.8.0rc1/installation.html">0.8.0rc1</a></dd>
+            <dd><a href="../0.8.0rc2/installation.html">0.8.0rc2</a></dd>
+            <dd><a href="../0.8.0rc3/installation.html">0.8.0rc3</a></dd>
+            <dd><a href="../0.8.1/installation.html">0.8.1</a></dd>
+            <dd><a href="../0.8.2/installation.html">0.8.2</a></dd>
+            <dd><a href="../0.8.3/installation.html">0.8.3</a></dd>
+            <dd><a href="../0.9.0/installation.html">0.9.0</a></dd>
+            <dd><a href="../0.9.1/installation.html">0.9.1</a></dd>
+            <dd><a href="../0.9.2/installation.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../dev-nibabies/installation.html">dev-nibabies</a></dd>
+            <dd><a href="../enh_calabel/installation.html">enh/calabel</a></dd>
+            <dd><a href="../enh_split-surfaces/installation.html">enh/split-surfaces</a></dd>
+            <dd><a href="../fix_parcstats/installation.html">fix/parcstats</a></dd>
+            <dd><a href="../fix_recon-report/installation.html">fix/recon-report</a></dd>
+            <dd><a href="../fix_tfselect-resless/installation.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../maint_0.12.x/installation.html">maint/0.12.x</a></dd>
+            <dd><a href="../maint_0.13.x/installation.html">maint/0.13.x</a></dd>
+            <dd><a href="../maint_0.15.x/installation.html">maint/0.15.x</a></dd>
+            <dd><a href="../maint_0.16.x/installation.html">maint/0.16.x</a></dd>
+            <dd><a href="../maint_0.17.x/installation.html">maint/0.17.x</a></dd>
+            <dd><a href="../maint_0.18.x/installation.html">maint/0.18.x</a></dd>
+            <dd><a href="../maint_0.8.x/installation.html">maint/0.8.x</a></dd>
+            <dd><a href="../maint_0.9.x/installation.html">maint/0.9.x</a></dd>
+            <dd><a href="../master/installation.html">master</a></dd>
+            <dd><a href="../rel_0.16.1/installation.html">rel/0.16.1</a></dd>
+            <dd><a href="../rel_0.8.0rc1/installation.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

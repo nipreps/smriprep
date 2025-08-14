@@ -1,0 +1,188 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.interfaces &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5dd5ad26" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../../_static/jquery.js?v=1413ff29"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=7b397ac5"></script>
+      <script src="../../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">Library API (application program interface)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smriprep.interfaces</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><b>Warning:</b> This document is for the development version of smriprep.</p>
+<h1>Source code for smriprep.interfaces</h1><div class="highlight"><pre>
+<span></span><span class="c1"># emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-</span>
+<span class="c1"># vi: set ft=python sts=4 ts=4 sw=4 et:</span>
+
+<span class="c1"># Load modules for compatibility</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.interfaces.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">DerivativesDataSink</span> <span class="k">as</span> <span class="n">DDS</span>
+
+
+<div class="viewcode-block" id="DerivativesDataSink">
+<a class="viewcode-back" href="../../api/smriprep.interfaces.html#smriprep.interfaces.DerivativesDataSink">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DerivativesDataSink</span><span class="p">(</span><span class="n">DDS</span><span class="p">):</span>
+    <span class="n">out_path_base</span> <span class="o">=</span> <span class="s1">&#39;smriprep&#39;</span></div>
+
+
+
+<span class="k">del</span> <span class="n">DDS</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: fix/recon-report
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../../0.10.0/index.html">0.10.0</a></dd>
+            <dd><a href="../../../0.11.0/index.html">0.11.0</a></dd>
+            <dd><a href="../../../0.11.0rc0/index.html">0.11.0rc0</a></dd>
+            <dd><a href="../../../0.11.0rc1/index.html">0.11.0rc1</a></dd>
+            <dd><a href="../../../0.11.1/index.html">0.11.1</a></dd>
+            <dd><a href="../../../0.12.0/index.html">0.12.0</a></dd>
+            <dd><a href="../../../0.12.1/index.html">0.12.1</a></dd>
+            <dd><a href="../../../0.12.2/index.html">0.12.2</a></dd>
+            <dd><a href="../../../0.13.0/index.html">0.13.0</a></dd>
+            <dd><a href="../../../0.13.1/index.html">0.13.1</a></dd>
+            <dd><a href="../../../0.13.2/index.html">0.13.2</a></dd>
+            <dd><a href="../../../0.14.0/index.html">0.14.0</a></dd>
+            <dd><a href="../../../0.15.0/index.html">0.15.0</a></dd>
+            <dd><a href="../../../0.16.0/index.html">0.16.0</a></dd>
+            <dd><a href="../../../0.16.1/index.html">0.16.1</a></dd>
+            <dd><a href="../../../0.17.0/index.html">0.17.0</a></dd>
+            <dd><a href="../../../0.18.0/index.html">0.18.0</a></dd>
+            <dd><a href="../../../0.8.0/index.html">0.8.0</a></dd>
+            <dd><a href="../../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
+            <dd><a href="../../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
+            <dd><a href="../../../0.8.0rc3/index.html">0.8.0rc3</a></dd>
+            <dd><a href="../../../0.8.1/index.html">0.8.1</a></dd>
+            <dd><a href="../../../0.8.2/index.html">0.8.2</a></dd>
+            <dd><a href="../../../0.8.3/index.html">0.8.3</a></dd>
+            <dd><a href="../../../0.9.0/index.html">0.9.0</a></dd>
+            <dd><a href="../../../0.9.1/index.html">0.9.1</a></dd>
+            <dd><a href="../../../0.9.2/index.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../../dev-nibabies/index.html">dev-nibabies</a></dd>
+            <dd><a href="../../../enh_calabel/index.html">enh/calabel</a></dd>
+            <dd><a href="../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../../fix_parcstats/index.html">fix/parcstats</a></dd>
+            <dd><a href="interfaces.html">fix/recon-report</a></dd>
+            <dd><a href="../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
+            <dd><a href="../../../maint_0.13.x/index.html">maint/0.13.x</a></dd>
+            <dd><a href="../../../maint_0.15.x/index.html">maint/0.15.x</a></dd>
+            <dd><a href="../../../maint_0.16.x/index.html">maint/0.16.x</a></dd>
+            <dd><a href="../../../maint_0.17.x/index.html">maint/0.17.x</a></dd>
+            <dd><a href="../../../maint_0.18.x/index.html">maint/0.18.x</a></dd>
+            <dd><a href="../../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
+            <dd><a href="../../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
+            <dd><a href="../../../master/index.html">master</a></dd>
+            <dd><a href="../../../rel_0.16.1/index.html">rel/0.16.1</a></dd>
+            <dd><a href="../../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

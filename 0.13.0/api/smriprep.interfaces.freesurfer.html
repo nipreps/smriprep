@@ -1,0 +1,544 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.18.1.dev76 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
+
+  
+      <script src="../_static/jquery.js?v=1413ff29"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d9a209d6"></script>
+      <script src="../_static/doctools.js?v=6afcdcd2"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="smriprep.interfaces.gifti module" href="smriprep.interfaces.gifti.html" />
+    <link rel="prev" title="smriprep.interfaces.cifti module" href="smriprep.interfaces.cifti.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            smriprep
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">Library API (application program interface)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="smriprep.cli.html">smriprep.cli package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="smriprep.interfaces.html">smriprep.interfaces package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="smriprep.interfaces.html#smriprep.interfaces.DerivativesDataSink"><code class="docutils literal notranslate"><span class="pre">DerivativesDataSink</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="smriprep.interfaces.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.cifti.html">smriprep.interfaces.cifti module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">smriprep.interfaces.freesurfer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.gifti.html">smriprep.interfaces.gifti module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.msm.html">smriprep.interfaces.msm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.reports.html">smriprep.interfaces.reports module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.surf.html">smriprep.interfaces.surf module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.templateflow.html">smriprep.interfaces.templateflow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smriprep.interfaces.workbench.html">smriprep.interfaces.workbench module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.utils.html">smriprep.utils package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smriprep.workflows.html">smriprep.workflows package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changes.html">What’s new?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">smriprep</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">Library API (application program interface)</a></li>
+          <li class="breadcrumb-item"><a href="smriprep.interfaces.html">smriprep.interfaces package</a></li>
+      <li class="breadcrumb-item active">smriprep.interfaces.freesurfer module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/smriprep.interfaces.freesurfer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+
+
+    
+    
+
+
+
+    <p class="scv-banner scv-sphinx_rtd_theme"><a href="../../master/api/smriprep.interfaces.freesurfer.html"><b>Warning:</b> This document is for an old version of smriprep. The main version is master.</a></p>
+<section id="module-smriprep.interfaces.freesurfer">
+<span id="smriprep-interfaces-freesurfer-module"></span><h1>smriprep.interfaces.freesurfer module<a class="headerlink" href="#module-smriprep.interfaces.freesurfer" title="Link to this heading"></a></h1>
+<p>Nipype’s recon-all replacement.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.MRIsConvertData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">MRIsConvertData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#MRIsConvertData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.MRIsConvertData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MRIsConvert</span></code></p>
+<p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">mris_convert</span></code>.</p>
+<p>Convert surface data files (label, curvature, functional, etc)
+Wraps mris_convert to automatically select the correct ?h.white surface if
+passed a file from the subject’s surf/ directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Mandatory Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>annot_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Input is annotation or gifti label data.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--annot</span> <span class="pre">%s</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">annot_file</span></code>, <code class="docutils literal notranslate"><span class="pre">parcstats_file</span></code>, <code class="docutils literal notranslate"><span class="pre">label_file</span></code>, <code class="docutils literal notranslate"><span class="pre">scalarcurv_file</span></code>, <code class="docutils literal notranslate"><span class="pre">functional_file</span></code>.</p></li>
+<li><p><strong>functional_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Input is functional time-series or other multi-frame data (must specify surface).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-f</span> <span class="pre">%s</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">annot_file</span></code>, <code class="docutils literal notranslate"><span class="pre">parcstats_file</span></code>, <code class="docutils literal notranslate"><span class="pre">label_file</span></code>, <code class="docutils literal notranslate"><span class="pre">scalarcurv_file</span></code>, <code class="docutils literal notranslate"><span class="pre">functional_file</span></code>.</p></li>
+<li><p><strong>label_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Infile is .label file, label is name of this label.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--label</span> <span class="pre">%s</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">annot_file</span></code>, <code class="docutils literal notranslate"><span class="pre">parcstats_file</span></code>, <code class="docutils literal notranslate"><span class="pre">label_file</span></code>, <code class="docutils literal notranslate"><span class="pre">scalarcurv_file</span></code>, <code class="docutils literal notranslate"><span class="pre">functional_file</span></code>.</p></li>
+<li><p><strong>out_datatype</strong> (<em>‘asc’ or ‘ico’ or ‘tri’ or ‘stl’ or ‘vtk’ or ‘gii’ or ‘mgh’ or ‘mgz’</em>) – These file formats are supported:  ASCII:       .ascICO: .ico, .tri GEO: .geo STL: .stl VTK: .vtk GIFTI: .gii MGH surface-encoded ‘volume’: .mgh, .mgz.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">out_file</span></code>.</p></li>
+<li><p><strong>out_file</strong> (<em>a pathlike object or string representing a file</em>) – Output filename or True to generate one.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code> (position: -1).
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">out_datatype</span></code>.</p></li>
+<li><p><strong>parcstats_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Infile is name of text file containing label/val pairs.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--parcstats</span> <span class="pre">%s</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">annot_file</span></code>, <code class="docutils literal notranslate"><span class="pre">parcstats_file</span></code>, <code class="docutils literal notranslate"><span class="pre">label_file</span></code>, <code class="docutils literal notranslate"><span class="pre">scalarcurv_file</span></code>, <code class="docutils literal notranslate"><span class="pre">functional_file</span></code>.</p></li>
+<li><p><strong>scalarcurv_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Input is scalar curv overlay file (must still specify surface).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-c</span> <span class="pre">%s</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">annot_file</span></code>, <code class="docutils literal notranslate"><span class="pre">parcstats_file</span></code>, <code class="docutils literal notranslate"><span class="pre">label_file</span></code>, <code class="docutils literal notranslate"><span class="pre">scalarcurv_file</span></code>, <code class="docutils literal notranslate"><span class="pre">functional_file</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>args</strong> (<em>a string</em>) – Additional parameters to the command.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code>.</p></li>
+<li><p><strong>dataarray_num</strong> (<em>an integer</em>) – If input is gifti, ‘num’ specifies which data array to use.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--da_num</span> <span class="pre">%d</span></code>.</p></li>
+<li><p><strong>environ</strong> (<em>a dictionary with keys which are a bytes or None or a value of class ‘str’ and with values which are a bytes or None or a value of class ‘str’</em>) – Environment variables.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">{}</span></code>)</p></li>
+<li><p><strong>in_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Surface file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code> (position: -2).</p></li>
+<li><p><strong>labelstats_outfile</strong> (<em>a pathlike object or string representing a file</em>) – Outfile is name of gifti file to which label stats will be written.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--labelstats</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>normal</strong> (<em>a boolean</em>) – Output is an ascii file where vertex data.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-n</span></code>.</p></li>
+<li><p><strong>origname</strong> (<em>a string</em>) – Read orig positions.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-o</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>patch</strong> (<em>a boolean</em>) – Input is a patch, not a full surface.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-p</span></code>.</p></li>
+<li><p><strong>rescale</strong> (<em>a boolean</em>) – Rescale vertex xyz so total area is same as group average.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-r</span></code>.</p></li>
+<li><p><strong>scale</strong> (<em>a float</em>) – Scale vertex xyz by scale.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-s</span> <span class="pre">%.3f</span></code>.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a pathlike object or string representing an existing directory</em>) – Subjects directory.</p></li>
+<li><p><strong>talairachxfm_subjid</strong> (<em>a string</em>) – Apply talairach xfm of subject to vertex xyz.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-t</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>to_scanner</strong> (<em>a boolean</em>) – Convert coordinates from native FS (tkr) coords to scanner coords.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--to-scanner</span></code>.</p></li>
+<li><p><strong>to_tkr</strong> (<em>a boolean</em>) – Convert coordinates from scanner coords to native FS (tkr) coords.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--to-tkr</span></code>.</p></li>
+<li><p><strong>vertex</strong> (<em>a boolean</em>) – Writes out neighbors of a vertex in each row.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-v</span></code>.</p></li>
+<li><p><strong>xyz_ascii</strong> (<em>a boolean</em>) – Print only surface xyz to ascii file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-a</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>converted</strong> (<em>a pathlike object or string representing an existing file</em>) – Converted output surface.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.MakeMidthickness">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">MakeMidthickness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#MakeMidthickness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.MakeMidthickness" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.interfaces.freesurfer.html#niworkflows.interfaces.freesurfer.MakeMidthickness" title="(in niworkflows v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MakeMidthickness</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">FSCommandOpenMP</span></code></p>
+<p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">mris_expand</span></code>.</p>
+<p>Patched MakeMidthickness interface</p>
+<p>Ensures output filenames are specified with hemisphere labels, when appropriate.
+This may not cover all use-cases in MRIsExpand, but we’re just making midthickness
+files.</p>
+<p>This interface also sets the OMP_NUM_THREADS environment variable to floor(1.5x) the
+number of threads requested by the user, as tests indicate that cores are underutilized
+by a factor of 2/3.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MakeMidthickness</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span> <span class="o">=</span> <span class="n">MakeMidthickness</span><span class="p">(</span><span class="n">thickness</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span> <span class="o">=</span> <span class="s1">&#39;lh.white&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">cmdline</span>
+<span class="go">&#39;mris_expand -thickness lh.white 0.5 lh.expanded&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">out_name</span> <span class="o">=</span> <span class="s1">&#39;graymid&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">cmdline</span>
+<span class="go">&#39;mris_expand -thickness lh.white 0.5 lh.graymid&#39;</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>Explicit hemisphere labels should still be respected:</p>
+</div></blockquote>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">out_name</span> <span class="o">=</span> <span class="s1">&#39;rh.graymid&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">cmdline</span>
+<span class="go">&#39;mris_expand -thickness lh.white 0.5 rh.graymid&#39;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Mandatory Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>distance</strong> (<em>a float</em>) – Distance in mm or fraction of cortical thickness.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%g</span></code> (position: -2).</p></li>
+<li><p><strong>in_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Surface to expand.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code> (position: -3).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>args</strong> (<em>a string</em>) – Additional parameters to the command.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code>.</p></li>
+<li><p><strong>dt</strong> (<em>a float</em>) – Dt (implicit: 0.25).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-T</span> <span class="pre">%g</span></code>.</p></li>
+<li><p><strong>environ</strong> (<em>a dictionary with keys which are a bytes or None or a value of class ‘str’ and with values which are a bytes or None or a value of class ‘str’</em>) – Environment variables.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">{}</span></code>)</p></li>
+<li><p><strong>graymid</strong> (<em>a list of items which are any value</em>) – Existing graymid/midthickness file.</p></li>
+<li><p><strong>nsurfaces</strong> (<em>an integer</em>) – Number of surfacces to write during expansion.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-N</span> <span class="pre">%d</span></code>.</p></li>
+<li><p><strong>num_threads</strong> (<em>an integer</em>) – Allows for specifying more threads.</p></li>
+<li><p><strong>out_name</strong> (<em>a string</em>) – Output surface file. If no path, uses directory of <code class="docutils literal notranslate"><span class="pre">in_file</span></code>. If no path AND missing “lh.” or “rh.”, derive from <code class="docutils literal notranslate"><span class="pre">in_file</span></code>.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code> (position: -1).
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">expanded</span></code>)</p></li>
+<li><p><strong>pial</strong> (<em>a string</em>) – Name of pial file (implicit: “pial”)
+If no path, uses directory of <code class="docutils literal notranslate"><span class="pre">in_file</span></code>
+If no path AND missing “lh.” or “rh.”, derive from <code class="docutils literal notranslate"><span class="pre">in_file</span></code>.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-pial</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>smooth_averages</strong> (<em>an integer</em>) – Smooth surface with N iterations after expansion.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-A</span> <span class="pre">%d</span></code>.</p></li>
+<li><p><strong>sphere</strong> (<em>a string</em>) – WARNING: Do not change this trait.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">sphere</span></code>)</p></li>
+<li><p><strong>spring</strong> (<em>a float</em>) – Spring term (implicit: 0.05).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-S</span> <span class="pre">%g</span></code>.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a pathlike object or string representing an existing directory</em>) – Subjects directory.</p></li>
+<li><p><strong>thickness</strong> (<em>a boolean</em>) – Expand by fraction of cortical thickness, not mm.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-thickness</span></code>.</p></li>
+<li><p><strong>thickness_name</strong> (<em>a string</em>) – Name of thickness file (implicit: “thickness”)
+If no path, uses directory of <code class="docutils literal notranslate"><span class="pre">in_file</span></code>
+If no path AND missing “lh.” or “rh.”, derive from <cite>in_file</cite>.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-thickness_name</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>write_iterations</strong> (<em>an integer</em>) – Write snapshots of expansion every N iterations.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-W</span> <span class="pre">%d</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>out_file</strong> (<em>a pathlike object or string representing a file</em>) – Output surface file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.ReconAll">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">ReconAll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cmdline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#ReconAll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.ReconAll" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ReconAll</span></code></p>
+<p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">recon-all</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>FLAIR_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Convert FLAIR image to orig directory.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-FLAIR</span> <span class="pre">%s</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
+<li><p><strong>T1_files</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Name of T1 file to process.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-i</span> <span class="pre">%s...</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
+<li><p><strong>T2_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Convert T2 image to orig directory.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-T2</span> <span class="pre">%s</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
+<li><p><strong>args</strong> (<em>a string</em>) – Additional parameters to the command.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code>.</p></li>
+<li><p><strong>base_template_id</strong> (<em>a string</em>) – Base template id.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-base</span> <span class="pre">%s</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>, <code class="docutils literal notranslate"><span class="pre">longitudinal_timepoint_id</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">base_timepoint_ids</span></code>.</p></li>
+<li><p><strong>base_timepoint_ids</strong> (<em>a list of items which are a string</em>) – Processed timepoint to use in template.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-base-tp</span> <span class="pre">%s...</span></code>.</p></li>
+<li><p><strong>big_ventricles</strong> (<em>a boolean</em>) – For use in subjects with enlarged ventricles.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-bigventricles</span></code>.</p></li>
+<li><p><strong>brainstem</strong> (<em>a boolean</em>) – Segment brainstem structures.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-brainstem-structures</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
+<li><p><strong>directive</strong> (<em>‘all’ or ‘autorecon1’ or ‘autorecon2’ or ‘autorecon2-volonly’ or ‘autorecon2-perhemi’ or ‘autorecon2-inflate1’ or ‘autorecon2-cp’ or ‘autorecon2-wm’ or ‘autorecon3’ or ‘autorecon3-T2pial’ or ‘autorecon-pial’ or ‘autorecon-hemi’ or ‘localGI’ or ‘qcache’</em>) – Process directive.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-%s</span></code> (position: 0).
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">steps</span></code>.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">all</span></code>)</p></li>
+<li><p><strong>environ</strong> (<em>a dictionary with keys which are a bytes or None or a value of class ‘str’ and with values which are a bytes or None or a value of class ‘str’</em>) – Environment variables.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">{}</span></code>)</p></li>
+<li><p><strong>expert</strong> (<em>a pathlike object or string representing an existing file</em>) – Set parameters using expert file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-expert</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>flags</strong> (<em>a list of items which are a string</em>) – Additional parameters.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code>.</p></li>
+<li><p><strong>hemi</strong> (<em>‘lh’ or ‘rh’</em>) – Hemisphere to process.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-%s-only</span></code>.</p></li>
+<li><p><strong>hippocampal_subfields_T1</strong> (<em>a boolean</em>) – Segment hippocampal subfields using input T1 scan.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-hippocampal-subfields-T1</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
+<li><p><strong>hippocampal_subfields_T2</strong> (<em>a tuple of the form: (a pathlike object or string representing an existing file, a string)</em>) – Segment hippocampal subfields using T2 scan, identified by ID (may be combined with hippocampal_subfields_T1).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-hippocampal-subfields-T2</span> <span class="pre">%s</span> <span class="pre">%s</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
+<li><p><strong>hires</strong> (<em>a boolean</em>) – Conform to minimum voxel size (for voxels &lt; 1mm).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-hires</span></code>.</p></li>
+<li><p><strong>longitudinal_template_id</strong> (<em>a string</em>) – Longitudinal base template id.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code> (position: 2).</p></li>
+<li><p><strong>longitudinal_timepoint_id</strong> (<em>a string</em>) – Longitudinal session/timepoint id.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-long</span> <span class="pre">%s</span></code> (position: 1).
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>, <code class="docutils literal notranslate"><span class="pre">base_template_id</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">longitudinal_template_id</span></code>.</p></li>
+<li><p><strong>mprage</strong> (<em>a boolean</em>) – Assume scan parameters are MGH MP-RAGE protocol, which produces darker gray matter.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-mprage</span></code>.
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p></li>
+<li><p><strong>mri_aparc2aseg</strong> (<em>a string</em>) – Flags to pass to mri_aparc2aseg commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_ca_label</strong> (<em>a string</em>) – Flags to pass to mri_ca_label commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_ca_normalize</strong> (<em>a string</em>) – Flags to pass to mri_ca_normalize commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_ca_register</strong> (<em>a string</em>) – Flags to pass to mri_ca_register commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_edit_wm_with_aseg</strong> (<em>a string</em>) – Flags to pass to mri_edit_wm_with_aseg commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_em_register</strong> (<em>a string</em>) – Flags to pass to mri_em_register commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_fill</strong> (<em>a string</em>) – Flags to pass to mri_fill commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_mask</strong> (<em>a string</em>) – Flags to pass to mri_mask commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_normalize</strong> (<em>a string</em>) – Flags to pass to mri_normalize commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_pretess</strong> (<em>a string</em>) – Flags to pass to mri_pretess commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_remove_neck</strong> (<em>a string</em>) – Flags to pass to mri_remove_neck commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_segment</strong> (<em>a string</em>) – Flags to pass to mri_segment commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_segstats</strong> (<em>a string</em>) – Flags to pass to mri_segstats commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_tessellate</strong> (<em>a string</em>) – Flags to pass to mri_tessellate commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mri_watershed</strong> (<em>a string</em>) – Flags to pass to mri_watershed commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_anatomical_stats</strong> (<em>a string</em>) – Flags to pass to mris_anatomical_stats commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_ca_label</strong> (<em>a string</em>) – Flags to pass to mris_ca_label commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_fix_topology</strong> (<em>a string</em>) – Flags to pass to mris_fix_topology commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_inflate</strong> (<em>a string</em>) – Flags to pass to mri_inflate commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_make_surfaces</strong> (<em>a string</em>) – Flags to pass to mris_make_surfaces commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_register</strong> (<em>a string</em>) – Flags to pass to mris_register commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_smooth</strong> (<em>a string</em>) – Flags to pass to mri_smooth commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_sphere</strong> (<em>a string</em>) – Flags to pass to mris_sphere commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mris_surf2vol</strong> (<em>a string</em>) – Flags to pass to mris_surf2vol commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>mrisp_paint</strong> (<em>a string</em>) – Flags to pass to mrisp_paint commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>openmp</strong> (<em>an integer</em>) – Number of processors to use in parallel.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-openmp</span> <span class="pre">%d</span></code>.</p></li>
+<li><p><strong>parallel</strong> (<em>a boolean</em>) – Enable parallel execution.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-parallel</span></code>.</p></li>
+<li><p><strong>steps</strong> (<em>a list of items which are ‘motioncor’ or ‘talairach’ or ‘nuintensitycor’ or ‘normalization’ or ‘skullstrip’ or ‘gcareg’ or ‘canorm’ or ‘careg’ or ‘careginv’ or ‘rmneck’ or ‘skull-lta’ or ‘calabel’ or ‘normalization2’ or ‘maskbfs’ or ‘segmentation’ or ‘tessellate’ or ‘smooth1’ or ‘inflate1’ or ‘qsphere’ or ‘fix’ or ‘white’ or ‘smooth2’ or ‘inflate2’ or ‘curvHK’ or ‘curvstats’ or ‘sphere’ or ‘surfreg’ or ‘jacobian_white’ or ‘avgcurv’ or ‘cortparc’ or ‘pial’ or ‘pctsurfcon’ or ‘parcstats’ or ‘cortparc2’ or ‘parcstats2’ or ‘cortparc3’ or ‘parcstats3’ or ‘label-exvivo-ec’ or ‘cortribbon’ or ‘hyporelabel’ or ‘segstats’ or ‘aparc2aseg’ or ‘apas2aseg’ or ‘wmparc’ or ‘balabels’</em>) – Specific process directives.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">directive</span></code>.</p></li>
+<li><p><strong>subject_id</strong> (<em>a string</em>) – Subject name.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-subjid</span> <span class="pre">%s</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">base_template_id</span></code>, <code class="docutils literal notranslate"><span class="pre">longitudinal_timepoint_id</span></code>.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a pathlike object or string representing an existing directory</em>) – Path to subjects directory.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-sd</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>talairach</strong> (<em>a string</em>) – Flags to pass to talairach commands.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">expert</span></code>.</p></li>
+<li><p><strong>use_FLAIR</strong> (<em>a boolean</em>) – Use FLAIR image to refine the pial surface.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-FLAIRpial</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">use_T2</span></code>.</p></li>
+<li><p><strong>use_T2</strong> (<em>a boolean</em>) – Use T2 image to refine the pial surface.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-T2pial</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">use_FLAIR</span></code>.</p></li>
+<li><p><strong>xopts</strong> (<em>‘use’ or ‘clean’ or ‘overwrite’</em>) – Use, delete or overwrite existing expert options file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">-xopts-%s</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>BA_stats</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Brodmann Area statistics files.</p></li>
+<li><p><strong>T1</strong> (<em>a pathlike object or string representing an existing file</em>) – Intensity normalized whole-head volume.</p></li>
+<li><p><strong>annot</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Surface annotation files.</p></li>
+<li><p><strong>aparc_a2009s_stats</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Aparc a2009s parcellation statistics files.</p></li>
+<li><p><strong>aparc_aseg</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Aparc parcellation projected into aseg volume.</p></li>
+<li><p><strong>aparc_stats</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Aparc parcellation statistics files.</p></li>
+<li><p><strong>area_pial</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Mean area of triangles each vertex on the pial surface is associated with.</p></li>
+<li><p><strong>aseg</strong> (<em>a pathlike object or string representing an existing file</em>) – Volumetric map of regions from automatic segmentation.</p></li>
+<li><p><strong>aseg_stats</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Automated segmentation statistics file.</p></li>
+<li><p><strong>avg_curv</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Average atlas curvature, sampled to subject.</p></li>
+<li><p><strong>brain</strong> (<em>a pathlike object or string representing an existing file</em>) – Intensity normalized brain-only volume.</p></li>
+<li><p><strong>brainmask</strong> (<em>a pathlike object or string representing an existing file</em>) – Skull-stripped (brain-only) volume.</p></li>
+<li><p><strong>curv</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Maps of surface curvature.</p></li>
+<li><p><strong>curv_pial</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Curvature of pial surface.</p></li>
+<li><p><strong>curv_stats</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Curvature statistics files.</p></li>
+<li><p><strong>entorhinal_exvivo_stats</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Entorhinal exvivo statistics files.</p></li>
+<li><p><strong>filled</strong> (<em>a pathlike object or string representing an existing file</em>) – Subcortical mass volume.</p></li>
+<li><p><strong>graymid</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Graymid/midthickness surface meshes.</p></li>
+<li><p><strong>inflated</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Inflated surface meshes.</p></li>
+<li><p><strong>jacobian_white</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Distortion required to register to spherical atlas.</p></li>
+<li><p><strong>label</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Volume and surface label files.</p></li>
+<li><p><strong>norm</strong> (<em>a pathlike object or string representing an existing file</em>) – Normalized skull-stripped volume.</p></li>
+<li><p><strong>nu</strong> (<em>a pathlike object or string representing an existing file</em>) – Non-uniformity corrected whole-head volume.</p></li>
+<li><p><strong>orig</strong> (<em>a pathlike object or string representing an existing file</em>) – Base image conformed to Freesurfer space.</p></li>
+<li><p><strong>pial</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Gray matter/pia matter surface meshes.</p></li>
+<li><p><strong>rawavg</strong> (<em>a pathlike object or string representing an existing file</em>) – Volume formed by averaging input images.</p></li>
+<li><p><strong>ribbon</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Volumetric maps of cortical ribbons.</p></li>
+<li><p><strong>smoothwm</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Smoothed original surface meshes.</p></li>
+<li><p><strong>sphere</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Spherical surface meshes.</p></li>
+<li><p><strong>sphere_reg</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Spherical registration file.</p></li>
+<li><p><strong>subject_id</strong> (<em>a string</em>) – Subject name for whom to retrieve data.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a pathlike object or string representing an existing directory</em>) – Freesurfer subjects directory.</p></li>
+<li><p><strong>sulc</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Surface maps of sulcal depth.</p></li>
+<li><p><strong>thickness</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Surface maps of cortical thickness.</p></li>
+<li><p><strong>volume</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – Surface maps of cortical volume.</p></li>
+<li><p><strong>white</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – White/gray matter surface meshes.</p></li>
+<li><p><strong>wm</strong> (<em>a pathlike object or string representing an existing file</em>) – Segmented white-matter volume.</p></li>
+<li><p><strong>wmparc</strong> (<em>a pathlike object or string representing an existing file</em>) – Aparc parcellation projected into subcortical white matter.</p></li>
+<li><p><strong>wmparc_stats</strong> (<em>a list of items which are a pathlike object or string representing an existing file</em>) – White matter parcellation statistics file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.ReconAll.cmdline">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cmdline</span></span><a class="headerlink" href="#smriprep.interfaces.freesurfer.ReconAll.cmdline" title="Link to this definition"></a></dt>
+<dd><p><cite>command</cite> plus any arguments (args)
+validates arguments and generates command line</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="smriprep.interfaces.cifti.html" class="btn btn-neutral float-left" title="smriprep.interfaces.cifti module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="smriprep.interfaces.gifti.html" class="btn btn-neutral float-right" title="smriprep.interfaces.gifti module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2019, Center for Reproducible Neuroscience, Stanford University.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: 0.13.0
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Tags</dt>
+            <dd><a href="../../0.10.0/api/smriprep.interfaces.freesurfer.html">0.10.0</a></dd>
+            <dd><a href="../../0.11.0/api/smriprep.interfaces.freesurfer.html">0.11.0</a></dd>
+            <dd><a href="../../0.11.0rc0/api/smriprep.interfaces.freesurfer.html">0.11.0rc0</a></dd>
+            <dd><a href="../../0.11.0rc1/api/smriprep.interfaces.freesurfer.html">0.11.0rc1</a></dd>
+            <dd><a href="../../0.11.1/api/smriprep.interfaces.freesurfer.html">0.11.1</a></dd>
+            <dd><a href="../../0.12.0/api/smriprep.interfaces.freesurfer.html">0.12.0</a></dd>
+            <dd><a href="../../0.12.1/api/smriprep.interfaces.freesurfer.html">0.12.1</a></dd>
+            <dd><a href="../../0.12.2/api/smriprep.interfaces.freesurfer.html">0.12.2</a></dd>
+            <dd><a href="smriprep.interfaces.freesurfer.html">0.13.0</a></dd>
+            <dd><a href="../../0.13.1/api/smriprep.interfaces.freesurfer.html">0.13.1</a></dd>
+            <dd><a href="../../0.13.2/api/smriprep.interfaces.freesurfer.html">0.13.2</a></dd>
+            <dd><a href="../../0.14.0/api/smriprep.interfaces.freesurfer.html">0.14.0</a></dd>
+            <dd><a href="../../0.15.0/api/smriprep.interfaces.freesurfer.html">0.15.0</a></dd>
+            <dd><a href="../../0.16.0/api/smriprep.interfaces.freesurfer.html">0.16.0</a></dd>
+            <dd><a href="../../0.16.1/api/smriprep.interfaces.freesurfer.html">0.16.1</a></dd>
+            <dd><a href="../../0.17.0/api/smriprep.interfaces.freesurfer.html">0.17.0</a></dd>
+            <dd><a href="../../0.18.0/api/smriprep.interfaces.freesurfer.html">0.18.0</a></dd>
+            <dd><a href="../../0.8.0/api/smriprep.interfaces.freesurfer.html">0.8.0</a></dd>
+            <dd><a href="../../0.8.0rc1/api/smriprep.interfaces.freesurfer.html">0.8.0rc1</a></dd>
+            <dd><a href="../../0.8.0rc2/api/smriprep.interfaces.freesurfer.html">0.8.0rc2</a></dd>
+            <dd><a href="../../0.8.0rc3/api/smriprep.interfaces.freesurfer.html">0.8.0rc3</a></dd>
+            <dd><a href="../../0.8.1/api/smriprep.interfaces.freesurfer.html">0.8.1</a></dd>
+            <dd><a href="../../0.8.2/api/smriprep.interfaces.freesurfer.html">0.8.2</a></dd>
+            <dd><a href="../../0.8.3/api/smriprep.interfaces.freesurfer.html">0.8.3</a></dd>
+            <dd><a href="../../0.9.0/api/smriprep.interfaces.freesurfer.html">0.9.0</a></dd>
+            <dd><a href="../../0.9.1/api/smriprep.interfaces.freesurfer.html">0.9.1</a></dd>
+            <dd><a href="../../0.9.2/api/smriprep.interfaces.freesurfer.html">0.9.2</a></dd>
+        </dl>
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../dev-nibabies/api/smriprep.interfaces.freesurfer.html">dev-nibabies</a></dd>
+            <dd><a href="../../enh_calabel/api/smriprep.interfaces.freesurfer.html">enh/calabel</a></dd>
+            <dd><a href="../../enh_split-surfaces/api/smriprep.interfaces.freesurfer.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../fix_parcstats/api/smriprep.interfaces.freesurfer.html">fix/parcstats</a></dd>
+            <dd><a href="../../fix_recon-report/api/smriprep.interfaces.freesurfer.html">fix/recon-report</a></dd>
+            <dd><a href="../../fix_tfselect-resless/api/smriprep.interfaces.freesurfer.html">fix/tfselect-resless</a></dd>
+            <dd><a href="../../maint_0.12.x/api/smriprep.interfaces.freesurfer.html">maint/0.12.x</a></dd>
+            <dd><a href="../../maint_0.13.x/api/smriprep.interfaces.freesurfer.html">maint/0.13.x</a></dd>
+            <dd><a href="../../maint_0.15.x/api/smriprep.interfaces.freesurfer.html">maint/0.15.x</a></dd>
+            <dd><a href="../../maint_0.16.x/api/smriprep.interfaces.freesurfer.html">maint/0.16.x</a></dd>
+            <dd><a href="../../maint_0.17.x/api/smriprep.interfaces.freesurfer.html">maint/0.17.x</a></dd>
+            <dd><a href="../../maint_0.18.x/api/smriprep.interfaces.freesurfer.html">maint/0.18.x</a></dd>
+            <dd><a href="../../maint_0.8.x/api/smriprep.interfaces.freesurfer.html">maint/0.8.x</a></dd>
+            <dd><a href="../../maint_0.9.x/api/smriprep.interfaces.freesurfer.html">maint/0.9.x</a></dd>
+            <dd><a href="../../master/api/smriprep.interfaces.freesurfer.html">master</a></dd>
+            <dd><a href="../../rel_0.16.1/api/smriprep.interfaces.freesurfer.html">rel/0.16.1</a></dd>
+            <dd><a href="../../rel_0.8.0rc1/api/smriprep.interfaces.freesurfer.html">rel/0.8.0rc1</a></dd>
+        </dl>
+    </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
