@@ -1,3 +1,17 @@
+0.19.0 (September 12, 2025)
+===========================
+New feature release in the 0.19.x series.
+
+This release enables per-session processing and more flexible surfacet resampling.
+
+* FIX: Collate pre-computed transforms correctly (#487)
+* ENH: Resample surfaces to any space/density using Connectome Workbench. (#473)
+* ENH: Generate cortex mask in during fit stage (#482)
+* ENH: Use output surfaces in internal nodes, ensuring greater consistency (#483)
+* ENH: Enable per-session processing (#480)
+* DOC: Fix typo in citation boilerplate (sMRIPprep → sMRIPrep) (#489)
+* STY: ISC rules do not conflict with the formatter any more (#484)
+
 0.18.0 (May 08, 2025)
 =====================
 New feature release in the 0.18.x series.
