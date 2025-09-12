@@ -1,3 +1,9 @@
+0.19.1 (September 12, 2025)
+===========================
+Bug-fix release in the 0.19.x series.
+
+Fixed a package metadata error.
+
 0.19.0 (September 12, 2025)
 ===========================
 New feature release in the 0.19.x series.
