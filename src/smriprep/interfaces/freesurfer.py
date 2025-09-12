@@ -337,4 +337,4 @@ class MakeMidthickness(nwfs.MakeMidthickness, fs.base.FSCommandOpenMP):
 
     def _num_threads_update(self):
         if self.inputs.num_threads:
-            self.inputs.environ.update({'OMP_NUM_THREADS': str(self.inputs.num_threads * 3 // 2)})
+            self.inputs.environ.update({'OMP_SCHEDULE': 'dynamic', 'OMP_NUM_THREADS': str(min(8, self.inputs.num_threads - 1))})
