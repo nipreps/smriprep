@@ -1,0 +1,9 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        actions/*: ref-pin
+        astral-sh/setup-uv: ref-pin
+        codecov/codecov-action: ref-pin
+        hynek/build-and-inspect-python-package: ref-pin
+        pypa/gh-action-pypi-publish: ref-pin
