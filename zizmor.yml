@@ -7,3 +7,6 @@ rules:
         codecov/codecov-action: ref-pin
         hynek/build-and-inspect-python-package: ref-pin
         pypa/gh-action-pypi-publish: ref-pin
+  cache-poisoning:
+   ignore:
+    - build_test_deploy.yml
