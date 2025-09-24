@@ -707,6 +707,11 @@ BIDS dataset."""
     anat2std_buffer = pe.Node(niu.Merge(2), name='anat2std_buffer')
     std2anat_buffer = pe.Node(niu.Merge(2), name='std2anat_buffer')
 
+    # Stage 5 results: FreeSurfer-to-anat transforms
+    fs2anat_buffer = pe.Node(
+        niu.IdentityInterface(fields=['fsnative2anat_xfm']), name='fs2anat_buffer'
+    )
+
     # Stage 6 results: Refined stage 2 results; may be direct copy if no refinement
     refined_buffer = pe.Node(
         niu.IdentityInterface(fields=['t1w_mask', 't1w_brain']),
@@ -733,6 +738,7 @@ BIDS dataset."""
         (anat2std_buffer, outputnode, [('out', 'anat2std_xfm')]),
         (std2anat_buffer, outputnode, [('out', 'std2anat_xfm')]),
         (template_buffer, outputnode, [('out', 'template')]),
+        (fs2anat_buffer, outputnode, [('fsnative2anat_xfm', 'fsnative2t1w_xfm')]),
         (sourcefile_buffer, outputnode, [('source_files', 't1w_valid_list')]),
         (surfaces_buffer, outputnode, [
             ('white', 'white'),
@@ -1089,13 +1095,13 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, ds_fs_registration_wf, [
                 ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
-            (ds_fs_registration_wf, outputnode, [
-                ('outputnode.fsnative2anat_xfm', 'fsnative2t1w_xfm'),
+            (ds_fs_registration_wf, fs2anat_buffer, [
+                ('outputnode.fsnative2anat_xfm', 'fsnative2anat_xfm'),
             ]),
         ])  # fmt:skip
     elif 'reverse' in fsnative_xfms:
         LOGGER.info('ANAT Found fsnative-T1w transform - skipping registration')
-        outputnode.inputs.fsnative2t1w_xfm = fsnative_xfms['reverse']
+        fs2anat_buffer.inputs.fsnative2anat_xfm = fsnative_xfms['reverse']
     else:
         raise RuntimeError(
             'Found a T1w-to-fsnative transform without the reverse. Time to handle this.'
@@ -1111,11 +1117,13 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, refinement_wf, [
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
                 ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (t1w_buffer, refinement_wf, [
                 ('t1w_preproc', 'inputnode.reference_image'),
                 ('ants_seg', 'inputnode.ants_segs'),
+            ]),
+            (fs2anat_buffer, refinement_wf, [
+                ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (t1w_buffer, applyrefined, [('t1w_preproc', 'in_file')]),
             (refinement_wf, applyrefined, [('outputnode.out_brainmask', 'mask_file')]),
@@ -1171,7 +1179,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
                 ('outputnode.subjects_dir', 'subjects_dir'),
             ]),
             (bbreg, coreg_xfms, [('out_lta_file', 'in1')]),
-            (surface_recon_wf, coreg_xfms, [('outputnode.fsnative2t1w_xfm', 'in2')]),
+            (fs2anat_buffer, coreg_xfms, [('fsnative2anat_xfm', 'in2')]),
             (coreg_xfms, t2wtot1w_xfm, [('out', 'in_xfms')]),
             (t2w_template_wf, t2w_resample, [('outputnode.anat_ref', 'input_image')]),
             (t1w_buffer, t2w_resample, [('t1w_preproc', 'reference_image')]),
@@ -1217,7 +1225,9 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (surface_recon_wf, gifti_surfaces_wf, [
                 ('outputnode.subject_id', 'inputnode.subject_id'),
                 ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
+            ]),
+            (fs2anat_buffer, gifti_surfaces_wf, [
+                ('fsnative2anat_xfm', 'inputnode.fsnative2anat_xfm'),
             ]),
             (sourcefile_buffer, ds_surfaces_wf, [('source_files', 'inputnode.source_files')]),
             (gifti_surfaces_wf, ds_surfaces_wf, [
