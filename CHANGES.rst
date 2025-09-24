@@ -1,3 +1,17 @@
+0.19.2 (September 24, 2025)
+===========================
+Bug-fix release in the 0.19.x series.
+
+For users attempting to run sMRIPrep or fMRIPrep with precomputed derivatives,
+the FreeSurfer-to-anat transform was being found but not passed to the relevant nodes.
+This should only affect users who deleted subject-native surface GIFTI files in an
+effort to save space.
+
+This fix does not change the calculation of the transform, so users do not need to
+recalculate the transform to benefit from this fix.
+
+* FIX: Use pre-computed FreeSurfer-to-anat transform, when found (#497)
+
 0.19.1 (September 12, 2025)
 ===========================
 Bug-fix release in the 0.19.x series.
