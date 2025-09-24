@@ -708,7 +708,9 @@ BIDS dataset."""
     std2anat_buffer = pe.Node(niu.Merge(2), name='std2anat_buffer')
 
     # Stage 5 results: FreeSurfer-to-anat transforms
-    fs2anat_buffer = pe.Node(niu.IdentityInterface(fields=['fsnative2anat_xfm']), name='std2anat_buffer')
+    fs2anat_buffer = pe.Node(
+        niu.IdentityInterface(fields=['fsnative2anat_xfm']), name='std2anat_buffer'
+    )
 
     # Stage 6 results: Refined stage 2 results; may be direct copy if no refinement
     refined_buffer = pe.Node(
