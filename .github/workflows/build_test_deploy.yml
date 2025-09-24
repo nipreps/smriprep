@@ -60,7 +60,9 @@ jobs:
           upload-name-suffix: -main
           attest-build-provenance-github: ${{ github.event_name != 'pull_request' }}
       - name: Clean up package build
-        run: rm -r ${{ steps.build-smriprep.outputs.dist }}
+        run: rm -r "$DIST"
+        env:
+          DIST: ${{ steps.build-smriprep.outputs.dist }}
       - uses: hynek/build-and-inspect-python-package@v2
         id: build-wrapper
         with:
@@ -68,7 +70,9 @@ jobs:
           upload-name-suffix: -wrapper
           attest-build-provenance-github: ${{ github.event_name != 'pull_request' }}
       - name: Clean up wrapper build
-        run: rm -r ${{ steps.build-wrapper.outputs.dist }}
+        run: rm -r "$DIST"
+        env:
+          DIST: ${{ steps.build-wrapper.outputs.dist }}
 
   test:
     runs-on: ${{ matrix.os }}
