@@ -288,7 +288,11 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
     else:
         # Check that the subject directory exists
         check_subjects_dir = pe.Node(
-            niu.Function(function=_check_subjects_dir),
+            niu.Function(
+                function=_check_subjects_dir,
+                input_names=['subjects_dir', 'subject_id'],
+                output_names=['subjects_dir', 'subject_id'],
+            ),
             name='check_subjects_dir',
         )
         workflow.connect([
@@ -302,16 +306,20 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         fs_base_inputs = autorecon1 = pe.Node(FreeSurferSource(), name='fs_base_inputs')
 
         workflow.connect([
-            (inputnode, fs_base_inputs, [
+            (inputnode, check_subjects_dir, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
+            (check_subjects_dir, fs_base_inputs, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
             ]),
             # Generate mid-thickness surfaces
-            (inputnode, get_surfaces, [
+            (check_subjects_dir, get_surfaces, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
             ]),
-            (inputnode, save_midthickness, [
+            (check_subjects_dir, save_midthickness, [
                 ('subjects_dir', 'base_directory'),
                 ('subject_id', 'container'),
             ]),
@@ -1830,13 +1838,26 @@ def _repeat(seq: list, count: int) -> list:
 
 
 def _check_subjects_dir(subjects_dir: str, subject_id: str) -> tuple[str, str]:
+    """Raise an error if subject's directory does not exist.
+
+    Parameters
+    ----------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+
+    Returns
+    -------
+    tuple
+        A tuple of the subjects_dir and subject_id
+    """
     from pathlib import Path
 
     subjects_dir = Path(subjects_dir)
-    subject_id = Path(subject_id)
     if not subjects_dir.exists():
         raise FileNotFoundError(f'Subject directory {subjects_dir} does not exist.')
     if not (subjects_dir / subject_id).exists():
         raise FileNotFoundError(f'Subject {subject_id} does not exist in {subjects_dir}.')
 
-    return str(subjects_dir), str(subject_id)
+    return str(subjects_dir), subject_id
