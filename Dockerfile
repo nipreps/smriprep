@@ -22,8 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Ubuntu 22.04 LTS - Jammy
-ARG BASE_IMAGE=ubuntu:jammy-20240125
+ARG BASE_IMAGE=ghcr.io/nipreps/smriprep-base:20251104
 
 #
 # Build wheel
@@ -38,7 +37,7 @@ RUN uvx --from=build pyproject-build --installer=uv /src
 #
 
 # Utilities for downloading packages
-FROM ${BASE_IMAGE} as downloader
+FROM ubuntu:jammy-20240125 AS downloader
 # Bump the date to current to refresh curl/certificates/etc
 RUN echo "2023.07.20"
 RUN apt-get update && \
@@ -50,20 +49,8 @@ RUN apt-get update && \
                     unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# FreeSurfer 7.3.2
-FROM downloader as freesurfer
-COPY docker/files/freesurfer7.3.2-exclude.txt /usr/local/etc/freesurfer7.3.2-exclude.txt
-RUN curl -sSL https://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/7.3.2/freesurfer-linux-ubuntu22_amd64-7.3.2.tar.gz \
-     | tar zxv --no-same-owner -C /opt --exclude-from=/usr/local/etc/freesurfer7.3.2-exclude.txt
-
 # Micromamba
-FROM downloader as micromamba
-
-# Install a C compiler to build extensions when needed.
-# traits<6.4 wheels are not available for Python 3.11+, but build easily.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+FROM downloader AS micromamba
 
 WORKDIR /
 # Bump the date to current to force update micromamba
@@ -87,55 +74,12 @@ RUN npm install -g svgo@^3.2.0 bids-validator@^1.14.0 && \
 #
 # Main stage
 #
-FROM ${BASE_IMAGE} as smriprep
-
-# Configure apt
-ENV DEBIAN_FRONTEND="noninteractive" \
-    LANG="en_US.UTF-8" \
-    LC_ALL="en_US.UTF-8"
-
-# Some baseline tools
-# bc, tcsh are needed for FreeSurfer
-# libglu1-mesa is needed for Connectome Workbench
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-                    bc \
-                    ca-certificates \
-                    curl \
-                    git \
-                    gnupg \
-                    libglu1-mesa \
-                    lsb-release \
-                    netbase \
-                    tcsh \
-                    xvfb && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Install files from stages
-COPY --from=freesurfer /opt/freesurfer /opt/freesurfer
-
-# Simulate SetUpFreeSurfer.sh
-ENV OS="Linux" \
-    FS_OVERRIDE=0 \
-    FIX_VERTEX_AREA="" \
-    FSF_OUTPUT_FORMAT="nii.gz" \
-    FREESURFER_HOME="/opt/freesurfer"
-ENV SUBJECTS_DIR="$FREESURFER_HOME/subjects" \
-    FUNCTIONALS_DIR="$FREESURFER_HOME/sessions" \
-    MNI_DIR="$FREESURFER_HOME/mni" \
-    LOCAL_DIR="$FREESURFER_HOME/local" \
-    MINC_BIN_DIR="$FREESURFER_HOME/mni/bin" \
-    MINC_LIB_DIR="$FREESURFER_HOME/mni/lib" \
-    MNI_DATAPATH="$FREESURFER_HOME/mni/data"
-ENV PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
-    MNI_PERL5LIB="$MINC_LIB_DIR/perl5/5.8.5" \
-    PATH="$FREESURFER_HOME/bin:$FREESURFER_HOME/tktools:$MINC_BIN_DIR:$PATH"
+FROM ${BASE_IMAGE} AS smriprep
 
 # Create a shared $HOME directory
 RUN useradd -m -s /bin/bash -G users smriprep
 WORKDIR /home/smriprep
-ENV HOME="/home/smriprep" \
-    LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+ENV HOME="/home/smriprep"
 
 COPY --from=micromamba /bin/micromamba /bin/micromamba
 COPY --from=micromamba /opt/conda/envs/smriprep /opt/conda/envs/smriprep
@@ -143,9 +87,7 @@ COPY --from=micromamba /opt/conda/envs/smriprep /opt/conda/envs/smriprep
 ENV MAMBA_ROOT_PREFIX="/opt/conda"
 RUN micromamba shell init -s bash && \
     echo "micromamba activate smriprep" >> $HOME/.bashrc
-ENV PATH="/opt/conda/envs/smriprep/bin:$PATH" \
-    CPATH="/opt/conda/envs/smriprep/include:$CPATH" \
-    LD_LIBRARY_PATH="/opt/conda/envs/smriprep/lib:$LD_LIBRARY_PATH"
+ENV PATH="/opt/conda/envs/smriprep/bin:$PATH"
 
 # Precaching atlases
 COPY scripts/fetch_templates.py fetch_templates.py
@@ -155,20 +97,7 @@ RUN python fetch_templates.py && \
     find $HOME/.cache/templateflow -type f -exec chmod go=u {} +
 
 # FSL environment
-ENV LANG="C.UTF-8" \
-    LC_ALL="C.UTF-8" \
-    PYTHONNOUSERSITE=1 \
-    FSLDIR="/opt/conda/envs/smriprep" \
-    FSLOUTPUTTYPE="NIFTI_GZ" \
-    FSLMULTIFILEQUIT="TRUE" \
-    FSLLOCKDIR="" \
-    FSLMACHINELIST="" \
-    FSLREMOTECALL="" \
-    FSLGECUDAQ="cuda.q"
-
-# MSM
-RUN curl -L -H "Accept: application/octet-stream" https://api.github.com/repos/ecr05/MSM_HOCR/releases/assets/16253707 -o /usr/local/bin/msm \
-    && chmod +x /usr/local/bin/msm
+ENV FSLDIR="/opt/conda/envs/smriprep"
 
 # Unless otherwise specified each process should only use one thread - nipype
 # will handle parallelization

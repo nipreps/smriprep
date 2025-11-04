@@ -109,8 +109,25 @@ jobs:
       - run: *docker_auth
       - run: *setup_docker_registry
       - run:
-          name: Create named builder
-          command: docker buildx create --use --name=builder --driver=docker-container
+          name: Get base image information
+          command: |
+            export BASE_IMAGE=$( grep BASE_IMAGE= Dockerfile | cut -d= -f2 )
+            export BASE_IMAGE_NAME=${BASE_IMAGE%:*}
+            export BASE_TAG=${BASE_IMAGE#*:}
+            echo "BASE_IMAGE=$BASE_IMAGE" >> $BASH_ENV
+            echo "BASE_IMAGE_NAME=$BASE_IMAGE_NAME" >> $BASH_ENV
+            echo "BASE_TAG=$BASE_TAG" >> $BASH_ENV
+            env
+      - run:
+          name: Build base image, if needed
+          command: |
+            if ! docker manifest inspect $BASE_IMAGE; then
+              docker buildx build --load \
+                  --cache-from $BASE_IMAGE_NAME:latest \
+                  -t $BASE_IMAGE \
+                  --platform linux/amd64 \
+                  -f Dockerfile.base .
+            fi
       - run:
           name: Build Docker image
           no_output_timeout: 60m
@@ -126,7 +143,7 @@ jobs:
               echo "them to your fork with ``git push origin --tags``"
             fi
             # Build docker image
-            docker buildx build --load --builder builder \
+            docker buildx build --load \
                 --cache-from localhost:5000/smriprep \
                 --cache-from nipreps/smriprep:latest \
                 -t nipreps/smriprep:latest \
