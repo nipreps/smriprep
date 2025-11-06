@@ -286,20 +286,30 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             ]),
         ])  # fmt:skip
     else:
-        # Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
-        fs_base_inputs = autorecon1 = pe.Node(FreeSurferSource(), name='fs_base_inputs')
+        # Check that the subject directory exists
+        check_subjects_dir = pe.Node(
+            niu.Function(
+                function=_check_subjects_dir,
+                input_names=['subjects_dir', 'subject_id'],
+                output_names=['subjects_dir', 'subject_id'],
+            ),
+            name='check_subjects_dir',
+        )
+
+        # Hook up get_surfaces immediately,
+        # pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
+        autorecon1 = get_surfaces
 
         workflow.connect([
-            (inputnode, fs_base_inputs, [
+            (inputnode, check_subjects_dir, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
             ]),
-            # Generate mid-thickness surfaces
-            (inputnode, get_surfaces, [
+            (check_subjects_dir, get_surfaces, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
             ]),
-            (inputnode, save_midthickness, [
+            (check_subjects_dir, save_midthickness, [
                 ('subjects_dir', 'base_directory'),
                 ('subject_id', 'container'),
             ]),
@@ -1815,3 +1825,29 @@ def _select_seg(in_files, segmentation):
 
 def _repeat(seq: list, count: int) -> list:
     return seq * count
+
+
+def _check_subjects_dir(subjects_dir: str, subject_id: str) -> tuple[str, str]:
+    """Raise an error if subject's directory does not exist.
+
+    Parameters
+    ----------
+    subjects_dir
+        FreeSurfer SUBJECTS_DIR
+    subject_id
+        FreeSurfer subject ID
+
+    Returns
+    -------
+    tuple
+        A tuple of the subjects_dir and subject_id
+    """
+    from pathlib import Path
+
+    subjects_dir = Path(subjects_dir)
+    if not subjects_dir.exists():
+        raise FileNotFoundError(f'Subject directory {subjects_dir} does not exist.')
+    if not (subjects_dir / subject_id).exists():
+        raise FileNotFoundError(f'Subject {subject_id} does not exist in {subjects_dir}.')
+
+    return str(subjects_dir), subject_id
