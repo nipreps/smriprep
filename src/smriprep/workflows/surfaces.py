@@ -295,12 +295,6 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             ),
             name='check_subjects_dir',
         )
-        workflow.connect([
-            (inputnode, check_subjects_dir, [
-                ('subjects_dir', 'subjects_dir'),
-                ('subject_id', 'subject_id'),
-            ]),
-        ])  # fmt:skip
 
         # Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
         fs_base_inputs = autorecon1 = pe.Node(FreeSurferSource(), name='fs_base_inputs')
