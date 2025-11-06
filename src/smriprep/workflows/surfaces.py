@@ -296,19 +296,15 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             name='check_subjects_dir',
         )
 
-        # Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
-        fs_base_inputs = autorecon1 = pe.Node(FreeSurferSource(), name='fs_base_inputs')
+        # Hook up get_surfaces immediately,
+        # pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
+        autorecon1 = get_surfaces
 
         workflow.connect([
             (inputnode, check_subjects_dir, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
             ]),
-            (check_subjects_dir, fs_base_inputs, [
-                ('subjects_dir', 'subjects_dir'),
-                ('subject_id', 'subject_id'),
-            ]),
-            # Generate mid-thickness surfaces
             (check_subjects_dir, get_surfaces, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
