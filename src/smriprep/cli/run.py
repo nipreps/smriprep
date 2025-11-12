@@ -34,7 +34,7 @@ def main():
         )
 
     if opts.subject_anatomical_reference == 'unbiased':
-        opts['longitudinal'] = True
+        opts.longitudinal = True
     return build_opts(opts)
 
 
