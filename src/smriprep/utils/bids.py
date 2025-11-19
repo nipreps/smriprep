@@ -94,6 +94,14 @@ def collect_derivatives(
 
         derivs_cache[key] = sorted(item)
 
+    for key, qry in spec['masks'].items():
+        qry = {**qry, **qry_base}
+        item = layout.get(return_type='filename', **qry)
+        if not item or len(item) != 1:
+            continue
+
+        derivs_cache[key] = item[0]
+
     return derivs_cache
 
 
