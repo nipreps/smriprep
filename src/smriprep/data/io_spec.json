@@ -44,6 +44,16 @@
           ".nii.gz",
           ".nii"
         ]
+      },
+      "t2w_preproc": {
+        "datatype": "anat",
+        "space": null,
+        "desc": "preproc",
+        "suffix": "T2w",
+        "extension": [
+          ".nii.gz",
+          ".nii"
+        ]
       }
     },
     "transforms": {

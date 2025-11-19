@@ -70,7 +70,9 @@ def collect_derivatives(
 
         paths = [item.path for item in item]
 
-        derivs_cache[f't1w_{key}'] = paths[0] if len(paths) == 1 else paths
+        if not key.startswith('t2w_'):
+            key = f't1w_{key}'
+        derivs_cache[key] = paths[0] if len(paths) == 1 else paths
 
     transforms = derivs_cache.setdefault('transforms', {})
     for _space in std_spaces:
