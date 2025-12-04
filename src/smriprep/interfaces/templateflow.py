@@ -218,3 +218,34 @@ def fetch_template_files(
     # Not guaranteed to exist so add fallback
     files['t2w'] = tf.get(name[0], desc=None, suffix='T2w', **specs) or Undefined
     return files
+
+
+class _TemplateFlowReferenceInputSpec(BaseInterfaceInputSpec):
+    template = File(exists=True, mandatory=True, desc='Path to template reference file')
+
+
+class _TemplateFlowReferenceOutputSpec(TraitedSpec):
+    uri = traits.Str(desc='URI of the template reference file')
+
+
+class TemplateFlowReference(SimpleInterface):
+    """Get template reference file from TemplateFlow."""
+
+    input_spec = _TemplateFlowReferenceInputSpec
+    output_spec = _TemplateFlowReferenceOutputSpec
+
+    def _run_interface(self, runtime):
+        from pathlib import Path
+
+        # For standard templates from TemplateFlow, we want the URL.
+        # For custom templates, we want the local path.
+        tf_url = 'https://templateflow.s3.amazonaws.com'
+        local_path = self.inputs.templateflow_dir
+
+        rel_path = Path(self.inputs.template).relative_to(local_path)
+        template_name = rel_path.name.split('_')[0].split('-')[1]
+        if template_name in tf.TF_LAYOUT.get_templates():
+            self._results['uri'] = f'{tf_url}/{str(rel_path)}'
+        else:
+            self._results['uri'] = str(self.inputs.template)
+        return runtime
