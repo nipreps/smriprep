@@ -1027,7 +1027,7 @@ def init_ds_anat_volumes_wf(
     ds_std_tpms.inputs.label = tpm_labels
 
     workflow.connect([
-        (inputnode, spatial_reference, [('ref_file', 'in_file')]),
+        (inputnode, spatial_reference, [('ref_file', 'template')]),
         (inputnode, gen_ref, [
             ('ref_file', 'fixed_image'),
             (('resolution', _is_native), 'keep_native'),
@@ -1042,13 +1042,13 @@ def init_ds_anat_volumes_wf(
         (inputnode, anat2std_dseg, [('anat_dseg', 'input_image')]),
         (inputnode, anat2std_tpms, [('anat_tpms', 'input_image')]),
         (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
-        (spatial_reference, ds_std_t1w, [('out_file', 'SpatialReference')]),
+        (spatial_reference, ds_std_t1w, [('uri', 'SpatialReference')]),
         (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
-        (spatial_reference, ds_std_mask, [('out_file', 'SpatialReference')]),
+        (spatial_reference, ds_std_mask, [('uri', 'SpatialReference')]),
         (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
-        (spatial_reference, ds_std_dseg, [('out_file', 'SpatialReference')]),
+        (spatial_reference, ds_std_dseg, [('uri', 'SpatialReference')]),
         (anat2std_tpms, ds_std_tpms, [('output_image', 'in_file')]),
-        (spatial_reference, ds_std_tpms, [('out_file', 'SpatialReference')]),
+        (spatial_reference, ds_std_tpms, [('uri', 'SpatialReference')]),
     ])  # fmt:skip
 
     workflow.connect(
