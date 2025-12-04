@@ -240,9 +240,8 @@ class TemplateFlowReference(SimpleInterface):
         # For standard templates from TemplateFlow, we want the URL.
         # For custom templates, we want the local path.
         tf_url = 'https://templateflow.s3.amazonaws.com'
-        local_path = self.inputs.templateflow_dir
 
-        rel_path = Path(self.inputs.template).relative_to(local_path)
+        rel_path = Path(self.inputs.template).relative_to(tf.TF_LAYOUT.root)
         template_name = rel_path.name.split('_')[0].split('-')[1]
         if template_name in tf.TF_LAYOUT.get_templates():
             self._results['uri'] = f'{tf_url}/{str(rel_path)}'
