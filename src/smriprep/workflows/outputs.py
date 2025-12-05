@@ -972,6 +972,8 @@ def init_ds_anat_volumes_wf(
     dataset_links = dataset_links or {}
     if 'bids' not in dataset_links:
         dataset_links['bids'] = str(output_dir)
+    if 'templateflow' not in dataset_links:
+        dataset_links['templateflow'] = 'https://templateflow.s3.amazonaws.com'
 
     spatial_reference_uri = pe.Node(
         BIDSURI(

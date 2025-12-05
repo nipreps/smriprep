@@ -245,6 +245,9 @@ def _find_nearest_path(path_dict, input_path):
     >>> input_path = 'https://example.com/sub-01/func/sub-01_task-rest_bold.nii.gz'
     >>> _find_nearest_path(path_dict, input_path)  # already a URL
     'https://example.com/sub-01/func/sub-01_task-rest_bold.nii.gz'
+    >>> path_dict['bids:tfl:'] = 'https://example.com'
+    >>> _find_nearest_path(path_dict, input_path)  # match to 'bids:tfl:'
+    'bids:tfl:sub-01/func/sub-01_task-rest_bold.nii.gz'
     """
     # Don't modify BIDS-URIs
     if isinstance(input_path, str) and input_path.startswith('bids:'):
