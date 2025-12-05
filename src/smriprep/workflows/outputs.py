@@ -969,7 +969,7 @@ def init_ds_anat_volumes_wf(
         name='spatial_reference',
     )
 
-    dataset_links = dataset_links or {}
+    dataset_links = dataset_links.copy() or {}
     if 'bids' not in dataset_links:
         dataset_links['bids'] = str(output_dir)
     if 'templateflow' not in dataset_links:
