@@ -33,6 +33,7 @@ from niworkflows.interfaces.space import SpaceDataSource
 from niworkflows.interfaces.utility import KeySelect
 
 from ..interfaces import DerivativesDataSink
+from ..interfaces.bids import BIDSURI
 from ..interfaces.templateflow import (
     TemplateFlowReference,
     TemplateFlowSelect,
@@ -933,6 +934,7 @@ def init_ds_anat_volumes_wf(
     *,
     bids_root: str,
     output_dir: str,
+    dataset_links: dict[str, str] | None = None,
     name='ds_anat_volumes_wf',
     tpm_labels=BIDS_TISSUE_ORDER,
 ) -> pe.Workflow:
@@ -965,6 +967,19 @@ def init_ds_anat_volumes_wf(
     spatial_reference = pe.Node(
         TemplateFlowReference(),
         name='spatial_reference',
+    )
+
+    dataset_links = dataset_links or {}
+    if 'bids' not in dataset_links:
+        dataset_links['bids'] = str(output_dir)
+
+    spatial_reference_uri = pe.Node(
+        BIDSURI(
+            numinputs=1,
+            dataset_links=dataset_links,
+            out_dir=str(output_dir),
+        ),
+        name='spatial_reference_uri',
     )
 
     gen_ref = pe.Node(GenerateSamplingReference(), name='gen_ref', mem_gb=0.01)
@@ -1028,6 +1043,7 @@ def init_ds_anat_volumes_wf(
 
     workflow.connect([
         (inputnode, spatial_reference, [('ref_file', 'template')]),
+        (spatial_reference, spatial_reference_uri, [('uri', 'in1')]),
         (inputnode, gen_ref, [
             ('ref_file', 'fixed_image'),
             (('resolution', _is_native), 'keep_native'),
@@ -1042,13 +1058,13 @@ def init_ds_anat_volumes_wf(
         (inputnode, anat2std_dseg, [('anat_dseg', 'input_image')]),
         (inputnode, anat2std_tpms, [('anat_tpms', 'input_image')]),
         (anat2std_t1w, ds_std_t1w, [('output_image', 'in_file')]),
-        (spatial_reference, ds_std_t1w, [('uri', 'SpatialReference')]),
+        (spatial_reference_uri, ds_std_t1w, [(('out', _pop), 'SpatialReference')]),
         (anat2std_mask, ds_std_mask, [('output_image', 'in_file')]),
-        (spatial_reference, ds_std_mask, [('uri', 'SpatialReference')]),
+        (spatial_reference_uri, ds_std_mask, [(('out', _pop), 'SpatialReference')]),
         (anat2std_dseg, ds_std_dseg, [('output_image', 'in_file')]),
-        (spatial_reference, ds_std_dseg, [('uri', 'SpatialReference')]),
+        (spatial_reference_uri, ds_std_dseg, [(('out', _pop), 'SpatialReference')]),
         (anat2std_tpms, ds_std_tpms, [('output_image', 'in_file')]),
-        (spatial_reference, ds_std_tpms, [('uri', 'SpatialReference')]),
+        (spatial_reference_uri, ds_std_tpms, [(('out', _pop), 'SpatialReference')]),
     ])  # fmt:skip
 
     workflow.connect(
