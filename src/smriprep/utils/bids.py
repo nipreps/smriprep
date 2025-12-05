@@ -242,10 +242,24 @@ def _find_nearest_path(path_dict, input_path):
     >>> input_path = 'bids::sub-01/func/sub-01_task-rest_bold.nii.gz'
     >>> _find_nearest_path(path_dict, input_path)  # already a BIDS-URI
     'bids::sub-01/func/sub-01_task-rest_bold.nii.gz'
+    >>> input_path = 'https://example.com/sub-01/func/sub-01_task-rest_bold.nii.gz'
+    >>> _find_nearest_path(path_dict, input_path)  # already a URL
+    'https://example.com/sub-01/func/sub-01_task-rest_bold.nii.gz'
     """
     # Don't modify BIDS-URIs
     if isinstance(input_path, str) and input_path.startswith('bids:'):
         return input_path
+
+    # Only modify URLs if there's a URL in the path_dict
+    if isinstance(input_path, str) and input_path.startswith('http'):
+        remote_found = False
+        for path in path_dict.values():
+            if path.startswith('http'):
+                remote_found = True
+                break
+
+        if not remote_found:
+            return input_path
 
     input_path = Path(input_path)
     matching_path = None
