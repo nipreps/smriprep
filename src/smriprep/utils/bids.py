@@ -254,7 +254,7 @@ def _find_nearest_path(path_dict, input_path):
     if isinstance(input_path, str) and input_path.startswith('http'):
         remote_found = False
         for path in path_dict.values():
-            if path.startswith('http'):
+            if str(path).startswith('http'):
                 remote_found = True
                 break
 
