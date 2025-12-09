@@ -42,7 +42,7 @@ jobs:
       attestations: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -96,13 +96,13 @@ jobs:
       DEPENDS: ${{ matrix.dependencies }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v5
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Display Python version
@@ -149,7 +149,7 @@ jobs:
 
     steps:
       - name: Download packages built by build-and-inspect-python-package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: Packages-*
           path: dist
@@ -158,7 +158,7 @@ jobs:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v5
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Restore cached templateflow
@@ -203,7 +203,7 @@ jobs:
 
     steps:
       - name: Download packages built by build-and-inspect-python-package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           pattern: Packages-*
           path: dist
@@ -226,7 +226,7 @@ jobs:
         check: ["style", "spellcheck"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Install the latest version of uv
