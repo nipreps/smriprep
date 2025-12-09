@@ -11,3 +11,5 @@ updates:
       actions-infrastructure:
         patterns:
           - "actions/*"
+    cooldown:
+      default-days: 7
