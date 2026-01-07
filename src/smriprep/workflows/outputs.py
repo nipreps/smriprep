@@ -1216,7 +1216,7 @@ def init_template_iterator_wf(
             ('space', 'template'),
             ('cohort', 'cohort'),
         ]),
-        (gen_space_entity, outputnode, [('space_entity', 'space_entity')]),
+        (gen_space_entity, outputnode, [('out', 'space_entity')]),
         (gen_tplid, select_xfm, [('out', 'key')]),
         (spacesource, select_tpl, [
             ('space', 'template'),
