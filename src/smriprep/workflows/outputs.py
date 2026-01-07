@@ -1173,6 +1173,7 @@ def init_template_iterator_wf(
                 'anat2std_xfm',
                 'std_t1w',
                 'std_mask',
+                'space_entity',
             ],
         ),
         name='outputnode',
@@ -1199,6 +1200,7 @@ def init_template_iterator_wf(
 
     # fmt:off
     workflow.connect([
+        (inputnode, outputnode, [(('template', _combine_cohort), 'space_entity')]),
         (inputnode, select_xfm, [
             ('anat2std_xfm', 'anat2std_xfm'),
             ('template', 'keys'),
