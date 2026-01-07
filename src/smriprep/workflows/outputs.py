@@ -1189,6 +1189,12 @@ def init_template_iterator_wf(
         run_without_submitting=True,
     )
 
+    gen_space_entity = pe.Node(
+        niu.Function(function=_gen_space_entity),
+        name='gen_space_entity',
+        run_without_submitting=True,
+    )
+
     select_xfm = pe.Node(
         KeySelect(fields=['anat2std_xfm']),
         name='select_xfm',
@@ -1198,7 +1204,6 @@ def init_template_iterator_wf(
 
     # fmt:off
     workflow.connect([
-        (inputnode, outputnode, [(('template', _combine_cohort), 'space_entity')]),
         (inputnode, select_xfm, [
             ('anat2std_xfm', 'anat2std_xfm'),
             ('template', 'keys'),
@@ -1207,6 +1212,11 @@ def init_template_iterator_wf(
             ('space', 'template'),
             ('cohort', 'cohort'),
         ]),
+        (spacesource, gen_space_entity, [
+            ('space', 'template'),
+            ('cohort', 'cohort'),
+        ]),
+        (gen_space_entity, outputnode, [('space_entity', 'space_entity')]),
         (gen_tplid, select_xfm, [('out', 'key')]),
         (spacesource, select_tpl, [
             ('space', 'template'),
@@ -1413,6 +1423,15 @@ def _fmt_cohort(template, cohort=None):
 
     if cohort and isdefined(cohort):
         return f'{template}:cohort-{cohort}'
+    return template
+
+
+def _gen_space_entity(template, cohort=None):
+    from nipype.interfaces.base import isdefined
+
+    if cohort and isdefined(cohort):
+        return f'{template}+{cohort}'
+
     return template
 
 
