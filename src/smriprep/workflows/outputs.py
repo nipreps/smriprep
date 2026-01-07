@@ -948,7 +948,6 @@ def init_ds_anat_volumes_wf(
                 'anat2std_xfm',
                 # Entities
                 'space',
-                'cohort',
                 'resolution',
             ]
         ),
@@ -1051,7 +1050,6 @@ def init_ds_anat_volumes_wf(
             (inputnode, n, [
                 ('source_files', 'source_file'),
                 ('space', 'space'),
-                ('cohort', 'cohort'),
                 ('resolution', 'resolution'),
             ])
             for n in (ds_std_t1w, ds_std_mask, ds_std_dseg, ds_std_tpms)
