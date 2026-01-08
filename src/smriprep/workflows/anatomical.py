@@ -332,7 +332,6 @@ def init_anat_preproc_wf(
             ('outputnode.std_t1w', 'inputnode.ref_file'),
             ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
             ('outputnode.space', 'inputnode.space'),
-            ('outputnode.cohort', 'inputnode.cohort'),
             ('outputnode.resolution', 'inputnode.resolution'),
         ]),
     ])  # fmt:skip
