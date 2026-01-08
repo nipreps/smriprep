@@ -1171,7 +1171,7 @@ def init_template_iterator_wf(
                 'anat2std_xfm',
                 'std_t1w',
                 'std_mask',
-                'space_entity',
+                'full_space',
             ],
         ),
         name='outputnode',
@@ -1189,9 +1189,9 @@ def init_template_iterator_wf(
         run_without_submitting=True,
     )
 
-    gen_space_entity = pe.Node(
-        niu.Function(function=_gen_space_entity),
-        name='gen_space_entity',
+    gen_full_space = pe.Node(
+        niu.Function(function=_gen_full_space),
+        name='gen_full_space',
         run_without_submitting=True,
     )
 
@@ -1212,11 +1212,11 @@ def init_template_iterator_wf(
             ('space', 'template'),
             ('cohort', 'cohort'),
         ]),
-        (spacesource, gen_space_entity, [
+        (spacesource, gen_full_space, [
             ('space', 'template'),
             ('cohort', 'cohort'),
         ]),
-        (gen_space_entity, outputnode, [('out', 'space_entity')]),
+        (gen_full_space, outputnode, [('out', 'full_space')]),
         (gen_tplid, select_xfm, [('out', 'key')]),
         (spacesource, select_tpl, [
             ('space', 'template'),
@@ -1426,7 +1426,7 @@ def _fmt_cohort(template, cohort=None):
     return template
 
 
-def _gen_space_entity(template, cohort=None):
+def _gen_full_space(template, cohort=None):
     from nipype.interfaces.base import isdefined
 
     if cohort and isdefined(cohort):

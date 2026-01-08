@@ -331,7 +331,7 @@ def init_anat_preproc_wf(
         (template_iterator_wf, ds_std_volumes_wf, [
             ('outputnode.std_t1w', 'inputnode.ref_file'),
             ('outputnode.anat2std_xfm', 'inputnode.anat2std_xfm'),
-            ('outputnode.space_entity', 'inputnode.space'),
+            ('outputnode.full_space', 'inputnode.space'),
             ('outputnode.resolution', 'inputnode.resolution'),
         ]),
     ])  # fmt:skip
