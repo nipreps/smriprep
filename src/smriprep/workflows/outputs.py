@@ -1152,6 +1152,41 @@ def init_template_iterator_wf(
     space.
 
     The fields in `outputnode` can be used as if they come from a single template.
+
+    Parameters
+    ----------
+    spaces : :class:`SpatialReferences`
+        SpatialReferences object containing the template identifiers.
+    sloppy : :class:`bool`
+        If True, use sloppy arguments to speed up processing.
+    name : :class:`str`
+        Workflow name (default: template_iterator_wf)
+
+    Inputs
+    ------
+    template : :class:`list` of :class:`str`
+        The template identifiers from the spaces parameter
+        (for example, "MNIInfant:cohort-1:resolution-2").
+    anat2std_xfm : :class:`list` of :class:`str`
+        Paths to anatomical-to-template transform files.
+
+    Outputs
+    -------
+    template : :class:`list` of :class:`str`
+        The template label (for example, "MNIInfant" for MNIInfant:cohort-1:resolution-2).
+    cohort : :class:`list` of :class:`str`
+        The cohort label, if present (for example, "1" for MNIInfant:cohort-1:resolution-2).
+    resolution : :class:`list` of :class:`str`
+        The resolution label, if present (for example, "2" for MNIInfant:cohort-1:resolution-2).
+    space : :class:`list` of :class:`str`
+        The space entity for non-template derivatives
+        (for example, "MNIInfant+1" for MNIInfant:cohort-1:resolution-2).
+    anat2std_xfm : :class:`list` of :class:`str`
+        Path to the anatomical-to-template transform file.
+    std_t1w : :class:`list` of :class:`str`
+        Path to the template T1w image.
+    std_mask : :class:`list` of :class:`str`
+        Path to the template brain mask.
     """
     for template in spaces.get_spaces(nonstandard=False, dim=(3,)):
         fetch_template_files(template, specs=None, sloppy=sloppy)
@@ -1165,13 +1200,13 @@ def init_template_iterator_wf(
     outputnode = pe.Node(
         niu.IdentityInterface(
             fields=[
-                'space',
+                'template',
                 'resolution',
                 'cohort',
+                'space',
                 'anat2std_xfm',
                 'std_t1w',
                 'std_mask',
-                'full_space',
             ],
         ),
         name='outputnode',
@@ -1202,7 +1237,6 @@ def init_template_iterator_wf(
     )
     select_tpl = pe.Node(TemplateFlowSelect(), name='select_tpl', run_without_submitting=True)
 
-    # fmt:off
     workflow.connect([
         (inputnode, select_xfm, [
             ('anat2std_xfm', 'anat2std_xfm'),
@@ -1216,7 +1250,7 @@ def init_template_iterator_wf(
             ('space', 'template'),
             ('cohort', 'cohort'),
         ]),
-        (gen_full_space, outputnode, [('out', 'full_space')]),
+        (gen_full_space, outputnode, [('out', 'space')]),
         (gen_tplid, select_xfm, [('out', 'key')]),
         (spacesource, select_tpl, [
             ('space', 'template'),
@@ -1224,7 +1258,7 @@ def init_template_iterator_wf(
             (('resolution', _no_native, sloppy), 'resolution'),
         ]),
         (spacesource, outputnode, [
-            ('space', 'space'),
+            ('space', 'template'),
             ('resolution', 'resolution'),
             ('cohort', 'cohort'),
         ]),
@@ -1235,8 +1269,7 @@ def init_template_iterator_wf(
             ('t1w_file', 'std_t1w'),
             ('brain_mask', 'std_mask'),
         ]),
-    ])
-    # fmt:on
+    ])  # fmt:skip
 
     return workflow
 
