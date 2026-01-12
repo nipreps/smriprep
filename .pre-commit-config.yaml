@@ -21,7 +21,7 @@ repos:
     rev: v0.14.11
     hooks:
       - id: ruff-check
-        args: [--fix]
+        args: [ --fix, --show-fixes ]
       - id: ruff-format
   - repo: https://github.com/woodruffw/zizmor-pre-commit
     rev: v1.20.0
