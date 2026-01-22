@@ -10,13 +10,22 @@ repos:
       - id: check-added-large-files
       - id: check-toml
       - id: check-json
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
+    hooks:
+      - id: rst-backticks
+        exclude: ^CHANGES.rst
+      - id: rst-directive-colons
+      - id: rst-inline-touching-normal
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.13
     hooks:
       - id: ruff-check
-        args: [--fix]
+        args: [ --fix, --show-fixes ]
       - id: ruff-format
   - repo: https://github.com/woodruffw/zizmor-pre-commit
     rev: v1.22.0
     hooks:
       - id: zizmor
+ci:
+  autoupdate_schedule: monthly
