@@ -46,6 +46,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Set up Python for package build tooling
+        uses: actions/setup-python@v6
+        with:
+          # Avoid runner-default Python 3.14 until the build toolchain
+          # (notably PyO3 transitively via pydantic-core) supports it.
+          python-version: "3.13"
       # Pin to v2.9 because floating @v2 has produced CI regressions.
       # We also remove /tmp/baipp before each invocation as a temporary
       # compatibility guard for cached-venv reuse until upstream behavior is
