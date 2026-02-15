@@ -353,6 +353,7 @@ class _MRICoregInputSpec(fs.registration.MRICoregInputSpec):
         argstr='--ref %s',
         desc='reference (target) file',
         copyfile=False,
+    exists=True,
     )
     subject_id = traits.Str(
         argstr='--s %s',
