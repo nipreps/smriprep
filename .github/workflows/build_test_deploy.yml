@@ -46,26 +46,17 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Set up Python for package build tooling
-        uses: actions/setup-python@v6
-        with:
-          # Avoid runner-default Python 3.14 until the build toolchain
-          # (notably PyO3 transitively via pydantic-core) supports it.
-          python-version: "3.13"
-      # Pin to v2.9 because floating @v2 has produced CI regressions.
+      # Pin to a specific v2 commit because floating @v2 can regress.
+      # This commit currently carries tooling that is Python 3.14 compatible.
       # We also remove /tmp/baipp before each invocation as a temporary
       # compatibility guard for cached-venv reuse until upstream behavior is
       # stable across repeated invocations in one job.
-      #
-      # If v2.9 reintroduces metadata/twine issues, pin hatchling to 1.26.x.
-      # Unless build-and-inspect-python-package lets us select build as a backend,
-      # this remains the safest fallback.
       #
       # https://github.com/astral-sh/uv/issues/5450
       # or https://github.com/hynek/build-and-inspect-python-package/issues/155
       - name: Clean up baipp virtualenv path (main build)
         run: rm -rf /tmp/baipp
-      - uses: hynek/build-and-inspect-python-package@v2.9
+      - uses: hynek/build-and-inspect-python-package@c8508a8c721100cf0319cd57d297a5fcacc7cc40 # v2
         id: build-smriprep
         with:
           upload-name-suffix: -main
@@ -76,7 +67,7 @@ jobs:
           DIST: ${{ steps.build-smriprep.outputs.dist }}
       - name: Clean up baipp virtualenv path (wrapper build)
         run: rm -rf /tmp/baipp
-      - uses: hynek/build-and-inspect-python-package@v2.9
+      - uses: hynek/build-and-inspect-python-package@c8508a8c721100cf0319cd57d297a5fcacc7cc40 # v2
         id: build-wrapper
         with:
           path: wrapper
