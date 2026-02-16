@@ -3,5 +3,5 @@ smriprep.interfaces.gifti module
 
 .. automodule:: smriprep.interfaces.gifti
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

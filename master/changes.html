@@ -6,17 +6,18 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>What’s new? &mdash; smriprep 0.18.1.dev76 documentation</title>
+  <title>What’s new? &mdash; smriprep 0.19.3.dev74 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e08756c3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
+      <link rel="stylesheet" href="_static/banner.css" type="text/css" />
 
   
       <script src="_static/jquery.js?v=1413ff29"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=d9a209d6"></script>
       <script src="_static/doctools.js?v=6afcdcd2"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -47,6 +48,9 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#september-24-2025">0.19.2 (September 24, 2025)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#september-12-2025">0.19.1 (September 12, 2025)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">0.19.0 (September 12, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#may-08-2025">0.18.0 (May 08, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#december-19-2024">0.17.0 (December 19, 2024)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#august-26-2024">0.16.1 (August 26, 2024)</a></li>
@@ -91,7 +95,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#july-12-2019">0.3.0 (July 12, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#july-9-2019">0.2.4 (July 9, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#june-5-2019">0.2.3 (June 5, 2019)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id1">0.2.2 (June 5, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">0.2.2 (June 5, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#may-6-2019">0.2.1 (May 6, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#may-3-2019">0.2.0 (May 3, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#march-22-2019">0.1.1 (March 22, 2019)</a></li>
@@ -138,6 +142,38 @@
 
 <section id="what-s-new">
 <h1>What’s new?<a class="headerlink" href="#what-s-new" title="Link to this heading"></a></h1>
+<section id="september-24-2025">
+<h2>0.19.2 (September 24, 2025)<a class="headerlink" href="#september-24-2025" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.19.x series.</p>
+<p>For users attempting to run sMRIPrep or fMRIPrep with precomputed derivatives,
+the FreeSurfer-to-anat transform was being found but not passed to the relevant nodes.
+This should only affect users who deleted subject-native surface GIFTI files in an
+effort to save space.</p>
+<p>This fix does not change the calculation of the transform, so users do not need to
+recalculate the transform to benefit from this fix.</p>
+<ul class="simple">
+<li><p>FIX: Use pre-computed FreeSurfer-to-anat transform, when found (#497)</p></li>
+</ul>
+</section>
+<section id="september-12-2025">
+<h2>0.19.1 (September 12, 2025)<a class="headerlink" href="#september-12-2025" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.19.x series.</p>
+<p>Fixed a package metadata error.</p>
+</section>
+<section id="id1">
+<h2>0.19.0 (September 12, 2025)<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.19.x series.</p>
+<p>This release enables per-session processing and more flexible surfacet resampling.</p>
+<ul class="simple">
+<li><p>FIX: Collate pre-computed transforms correctly (#487)</p></li>
+<li><p>ENH: Resample surfaces to any space/density using Connectome Workbench. (#473)</p></li>
+<li><p>ENH: Generate cortex mask in during fit stage (#482)</p></li>
+<li><p>ENH: Use output surfaces in internal nodes, ensuring greater consistency (#483)</p></li>
+<li><p>ENH: Enable per-session processing (#480)</p></li>
+<li><p>DOC: Fix typo in citation boilerplate (sMRIPprep → sMRIPrep) (#489)</p></li>
+<li><p>STY: ISC rules do not conflict with the formatter any more (#484)</p></li>
+</ul>
+</section>
 <section id="may-08-2025">
 <h2>0.18.0 (May 08, 2025)<a class="headerlink" href="#may-08-2025" title="Link to this heading"></a></h2>
 <p>New feature release in the 0.18.x series.</p>
@@ -681,8 +717,8 @@ We’ve also moved to a <code class="docutils literal notranslate"><span class="
 <li><p>ENH: Allow template modifiers (a la <code class="docutils literal notranslate"><span class="pre">--output-spaces</span></code>) in skull-stripping (#89) &#64;oesteban</p></li>
 </ul>
 </section>
-<section id="id1">
-<h3>0.2.2 (June 5, 2019)<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<section id="id2">
+<h3>0.2.2 (June 5, 2019)<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <p>Enable latest templates added to TemplateFlow.</p>
 <ul class="simple">
 <li><p>PIN: templateflow-0.3.0, which includes infant/pediatric templates (#88) &#64;oesteban</p></li>
@@ -804,6 +840,9 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
             <dd><a href="../0.16.1/changes.html">0.16.1</a></dd>
             <dd><a href="../0.17.0/changes.html">0.17.0</a></dd>
             <dd><a href="../0.18.0/changes.html">0.18.0</a></dd>
+            <dd><a href="../0.19.0/changes.html">0.19.0</a></dd>
+            <dd><a href="../0.19.1/changes.html">0.19.1</a></dd>
+            <dd><a href="../0.19.2/changes.html">0.19.2</a></dd>
             <dd><a href="../0.8.0/changes.html">0.8.0</a></dd>
             <dd><a href="../0.8.0rc1/changes.html">0.8.0rc1</a></dd>
             <dd><a href="../0.8.0rc2/changes.html">0.8.0rc2</a></dd>
@@ -817,9 +856,15 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
         </dl>
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../dependabot_github_actions_actions-infrastructure-e6ee9d7de3/changes.html">dependabot/github_actions/actions-infrastructure-e6ee9d7de3</a></dd>
+            <dd><a href="../dependabot_github_actions_docker_login-action-3.7.0/changes.html">dependabot/github_actions/docker/login-action-3.7.0</a></dd>
+            <dd><a href="../dependabot_pip_fonttools-4.60.2/changes.html">dependabot/pip/fonttools-4.60.2</a></dd>
+            <dd><a href="../dependabot_pip_pillow-12.1.1/changes.html">dependabot/pip/pillow-12.1.1</a></dd>
+            <dd><a href="../dependabot_pip_urllib3-2.6.3/changes.html">dependabot/pip/urllib3-2.6.3</a></dd>
             <dd><a href="../dev-nibabies/changes.html">dev-nibabies</a></dd>
             <dd><a href="../enh_calabel/changes.html">enh/calabel</a></dd>
             <dd><a href="../enh_split-surfaces/changes.html">enh/split-surfaces</a></dd>
+            <dd><a href="../enh_upstream-mricoreg/changes.html">enh/upstream-mricoreg</a></dd>
             <dd><a href="../fix_parcstats/changes.html">fix/parcstats</a></dd>
             <dd><a href="../fix_recon-report/changes.html">fix/recon-report</a></dd>
             <dd><a href="../fix_tfselect-resless/changes.html">fix/tfselect-resless</a></dd>
@@ -829,9 +874,11 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
             <dd><a href="../maint_0.16.x/changes.html">maint/0.16.x</a></dd>
             <dd><a href="../maint_0.17.x/changes.html">maint/0.17.x</a></dd>
             <dd><a href="../maint_0.18.x/changes.html">maint/0.18.x</a></dd>
+            <dd><a href="../maint_0.19.x/changes.html">maint/0.19.x</a></dd>
             <dd><a href="../maint_0.8.x/changes.html">maint/0.8.x</a></dd>
             <dd><a href="../maint_0.9.x/changes.html">maint/0.9.x</a></dd>
             <dd><a href="changes.html">master</a></dd>
+            <dd><a href="../pre-commit-ci-update-config/changes.html">pre-commit-ci-update-config</a></dd>
             <dd><a href="../rel_0.16.1/changes.html">rel/0.16.1</a></dd>
             <dd><a href="../rel_0.8.0rc1/changes.html">rel/0.8.0rc1</a></dd>
         </dl>

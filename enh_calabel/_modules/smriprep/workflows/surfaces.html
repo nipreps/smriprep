@@ -5,17 +5,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.surfaces &mdash; smriprep 0.18.1.dev76 documentation</title>
+  <title>smriprep.workflows.surfaces &mdash; smriprep 0.19.3.dev74 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
+      <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
 
   
       <script src="../../../_static/jquery.js?v=1413ff29"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=7b397ac5"></script>
       <script src="../../../_static/doctools.js?v=6afcdcd2"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -371,20 +372,30 @@
             <span class="p">]),</span>
         <span class="p">])</span>  <span class="c1"># fmt:skip</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="c1"># Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP</span>
-        <span class="n">fs_base_inputs</span> <span class="o">=</span> <span class="n">autorecon1</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">FreeSurferSource</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fs_base_inputs&#39;</span><span class="p">)</span>
+        <span class="c1"># Check that the subject directory exists</span>
+        <span class="n">check_subjects_dir</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+            <span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span>
+                <span class="n">function</span><span class="o">=</span><span class="n">_check_subjects_dir</span><span class="p">,</span>
+                <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;subject_id&#39;</span><span class="p">],</span>
+                <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;subject_id&#39;</span><span class="p">],</span>
+            <span class="p">),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;check_subjects_dir&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Hook up get_surfaces immediately,</span>
+        <span class="c1"># pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP</span>
+        <span class="n">autorecon1</span> <span class="o">=</span> <span class="n">get_surfaces</span>
 
         <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
-            <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">fs_base_inputs</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">check_subjects_dir</span><span class="p">,</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;subjects_dir&#39;</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;subject_id&#39;</span><span class="p">,</span> <span class="s1">&#39;subject_id&#39;</span><span class="p">),</span>
             <span class="p">]),</span>
-            <span class="c1"># Generate mid-thickness surfaces</span>
-            <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">get_surfaces</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">check_subjects_dir</span><span class="p">,</span> <span class="n">get_surfaces</span><span class="p">,</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;subjects_dir&#39;</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;subject_id&#39;</span><span class="p">,</span> <span class="s1">&#39;subject_id&#39;</span><span class="p">),</span>
             <span class="p">]),</span>
-            <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">save_midthickness</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">check_subjects_dir</span><span class="p">,</span> <span class="n">save_midthickness</span><span class="p">,</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;base_directory&#39;</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;subject_id&#39;</span><span class="p">,</span> <span class="s1">&#39;container&#39;</span><span class="p">),</span>
             <span class="p">]),</span>
@@ -1940,6 +1951,32 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_repeat</span><span class="p">(</span><span class="n">seq</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">seq</span> <span class="o">*</span> <span class="n">count</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_subjects_dir</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise an error if subject&#39;s directory does not exist.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    subjects_dir</span>
+<span class="sd">        FreeSurfer SUBJECTS_DIR</span>
+<span class="sd">    subject_id</span>
+<span class="sd">        FreeSurfer subject ID</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        A tuple of the subjects_dir and subject_id</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+    <span class="n">subjects_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subjects_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Subject directory </span><span class="si">{</span><span class="n">subjects_dir</span><span class="si">}</span><span class="s1"> does not exist.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">subjects_dir</span> <span class="o">/</span> <span class="n">subject_id</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Subject </span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1"> does not exist in </span><span class="si">{</span><span class="n">subjects_dir</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">),</span> <span class="n">subject_id</span>
 </pre></div>
 
            </div>
@@ -1989,6 +2026,9 @@
             <dd><a href="../../../../0.16.1/index.html">0.16.1</a></dd>
             <dd><a href="../../../../0.17.0/index.html">0.17.0</a></dd>
             <dd><a href="../../../../0.18.0/index.html">0.18.0</a></dd>
+            <dd><a href="../../../../0.19.0/index.html">0.19.0</a></dd>
+            <dd><a href="../../../../0.19.1/index.html">0.19.1</a></dd>
+            <dd><a href="../../../../0.19.2/index.html">0.19.2</a></dd>
             <dd><a href="../../../../0.8.0/index.html">0.8.0</a></dd>
             <dd><a href="../../../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
             <dd><a href="../../../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
@@ -2002,9 +2042,15 @@
         </dl>
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../dependabot_github_actions_actions-infrastructure-e6ee9d7de3/index.html">dependabot/github_actions/actions-infrastructure-e6ee9d7de3</a></dd>
+            <dd><a href="../../../../dependabot_github_actions_docker_login-action-3.7.0/index.html">dependabot/github_actions/docker/login-action-3.7.0</a></dd>
+            <dd><a href="../../../../dependabot_pip_fonttools-4.60.2/index.html">dependabot/pip/fonttools-4.60.2</a></dd>
+            <dd><a href="../../../../dependabot_pip_pillow-12.1.1/index.html">dependabot/pip/pillow-12.1.1</a></dd>
+            <dd><a href="../../../../dependabot_pip_urllib3-2.6.3/index.html">dependabot/pip/urllib3-2.6.3</a></dd>
             <dd><a href="../../../../dev-nibabies/index.html">dev-nibabies</a></dd>
             <dd><a href="surfaces.html">enh/calabel</a></dd>
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../../../enh_upstream-mricoreg/index.html">enh/upstream-mricoreg</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
             <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
@@ -2014,9 +2060,11 @@
             <dd><a href="../../../../maint_0.16.x/index.html">maint/0.16.x</a></dd>
             <dd><a href="../../../../maint_0.17.x/index.html">maint/0.17.x</a></dd>
             <dd><a href="../../../../maint_0.18.x/index.html">maint/0.18.x</a></dd>
+            <dd><a href="../../../../maint_0.19.x/index.html">maint/0.19.x</a></dd>
             <dd><a href="../../../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
             <dd><a href="../../../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
             <dd><a href="../../../../master/index.html">master</a></dd>
+            <dd><a href="../../../../pre-commit-ci-update-config/index.html">pre-commit-ci-update-config</a></dd>
             <dd><a href="../../../../rel_0.16.1/index.html">rel/0.16.1</a></dd>
             <dd><a href="../../../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
         </dl>

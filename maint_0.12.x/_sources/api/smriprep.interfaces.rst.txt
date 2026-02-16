@@ -3,8 +3,8 @@ smriprep.interfaces package
 
 .. automodule:: smriprep.interfaces
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

@@ -6,17 +6,18 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.msm module &mdash; smriprep 0.18.1.dev76 documentation</title>
+  <title>smriprep.interfaces.msm module &mdash; smriprep 0.19.3.dev74 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
+      <link rel="stylesheet" href="../_static/banner.css" type="text/css" />
 
   
       <script src="../_static/jquery.js?v=1413ff29"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../_static/documentation_options.js?v=d9a209d6"></script>
       <script src="../_static/doctools.js?v=6afcdcd2"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -109,7 +110,7 @@
 <span id="smriprep-interfaces-msm-module"></span><h1>smriprep.interfaces.msm module<a class="headerlink" href="#module-smriprep.interfaces.msm" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="smriprep.interfaces.msm.MSM">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.msm.</span></span><span class="sig-name descname"><span class="pre">MSM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cmdline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/msm.html#MSM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.msm.MSM" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.msm.</span></span><span class="sig-name descname"><span class="pre">MSM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cmdline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/msm.html#MSM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.msm.MSM" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">CommandLine</span></code></p>
 <p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">msm</span></code>.</p>
 <p>MSM (Multimodal Surface Matching) is a tool for registering cortical surfaces.
@@ -132,7 +133,7 @@ choice of similarity metric used to match the images.</p>
 <span class="gp">... </span>  <span class="n">reference_data</span><span class="o">=</span><span class="s1">&#39;tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii&#39;</span><span class="p">,</span>
 <span class="gp">... </span>  <span class="n">out_base</span><span class="o">=</span><span class="s1">&#39;L.&#39;</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">msm</span><span class="o">.</span><span class="n">cmdline</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msm</span><span class="o">.</span><span class="n">cmdline</span>
 <span class="go">&#39;msm --conf=.../MSMSulcStrainFinalconf     --indata=sub-01_hemi-L_sulc.shape.gii     --inmesh=sub-01_hemi-L_sphere.surf.gii     --out=L.     --refdata=tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii     --refmesh=tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii&#39;</span>
 </pre></div>
 </div>
@@ -238,6 +239,9 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
             <dd><a href="../../0.16.1/api/smriprep.interfaces.msm.html">0.16.1</a></dd>
             <dd><a href="smriprep.interfaces.msm.html">0.17.0</a></dd>
             <dd><a href="../../0.18.0/api/smriprep.interfaces.msm.html">0.18.0</a></dd>
+            <dd><a href="../../0.19.0/api/smriprep.interfaces.msm.html">0.19.0</a></dd>
+            <dd><a href="../../0.19.1/api/smriprep.interfaces.msm.html">0.19.1</a></dd>
+            <dd><a href="../../0.19.2/api/smriprep.interfaces.msm.html">0.19.2</a></dd>
             <dd><a href="../../0.8.0/index.html">0.8.0</a></dd>
             <dd><a href="../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
             <dd><a href="../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
@@ -251,9 +255,15 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
         </dl>
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../dependabot_github_actions_actions-infrastructure-e6ee9d7de3/api/smriprep.interfaces.msm.html">dependabot/github_actions/actions-infrastructure-e6ee9d7de3</a></dd>
+            <dd><a href="../../dependabot_github_actions_docker_login-action-3.7.0/api/smriprep.interfaces.msm.html">dependabot/github_actions/docker/login-action-3.7.0</a></dd>
+            <dd><a href="../../dependabot_pip_fonttools-4.60.2/api/smriprep.interfaces.msm.html">dependabot/pip/fonttools-4.60.2</a></dd>
+            <dd><a href="../../dependabot_pip_pillow-12.1.1/api/smriprep.interfaces.msm.html">dependabot/pip/pillow-12.1.1</a></dd>
+            <dd><a href="../../dependabot_pip_urllib3-2.6.3/api/smriprep.interfaces.msm.html">dependabot/pip/urllib3-2.6.3</a></dd>
             <dd><a href="../../dev-nibabies/api/smriprep.interfaces.msm.html">dev-nibabies</a></dd>
             <dd><a href="../../enh_calabel/index.html">enh/calabel</a></dd>
             <dd><a href="../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../enh_upstream-mricoreg/api/smriprep.interfaces.msm.html">enh/upstream-mricoreg</a></dd>
             <dd><a href="../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../fix_recon-report/index.html">fix/recon-report</a></dd>
             <dd><a href="../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
@@ -263,9 +273,11 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
             <dd><a href="../../maint_0.16.x/api/smriprep.interfaces.msm.html">maint/0.16.x</a></dd>
             <dd><a href="../../maint_0.17.x/api/smriprep.interfaces.msm.html">maint/0.17.x</a></dd>
             <dd><a href="../../maint_0.18.x/api/smriprep.interfaces.msm.html">maint/0.18.x</a></dd>
+            <dd><a href="../../maint_0.19.x/api/smriprep.interfaces.msm.html">maint/0.19.x</a></dd>
             <dd><a href="../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
             <dd><a href="../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
             <dd><a href="../../master/api/smriprep.interfaces.msm.html">master</a></dd>
+            <dd><a href="../../pre-commit-ci-update-config/api/smriprep.interfaces.msm.html">pre-commit-ci-update-config</a></dd>
             <dd><a href="../../rel_0.16.1/api/smriprep.interfaces.msm.html">rel/0.16.1</a></dd>
             <dd><a href="../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
         </dl>

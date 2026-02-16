@@ -3,8 +3,8 @@ smriprep.workflows.fit package
 
 .. automodule:: smriprep.workflows.fit
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------

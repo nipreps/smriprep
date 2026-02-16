@@ -5,17 +5,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.outputs &mdash; smriprep 0.18.1.dev76 documentation</title>
+  <title>smriprep.workflows.outputs &mdash; smriprep 0.19.3.dev74 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
+      <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
 
   
       <script src="../../../_static/jquery.js?v=1413ff29"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../_static/documentation_options.js?v=7b397ac5"></script>
       <script src="../../../_static/doctools.js?v=6afcdcd2"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -1063,7 +1064,6 @@
                 <span class="s1">&#39;anat2std_xfm&#39;</span><span class="p">,</span>
                 <span class="c1"># Entities</span>
                 <span class="s1">&#39;space&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;cohort&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;resolution&#39;</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="p">),</span>
@@ -1166,7 +1166,6 @@
             <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s1">&#39;source_files&#39;</span><span class="p">,</span> <span class="s1">&#39;source_file&#39;</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;space&#39;</span><span class="p">,</span> <span class="s1">&#39;space&#39;</span><span class="p">),</span>
-                <span class="p">(</span><span class="s1">&#39;cohort&#39;</span><span class="p">,</span> <span class="s1">&#39;cohort&#39;</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">&#39;resolution&#39;</span><span class="p">,</span> <span class="s1">&#39;resolution&#39;</span><span class="p">),</span>
             <span class="p">])</span>
             <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">(</span><span class="n">ds_std_t1w</span><span class="p">,</span> <span class="n">ds_std_mask</span><span class="p">,</span> <span class="n">ds_std_dseg</span><span class="p">,</span> <span class="n">ds_std_tpms</span><span class="p">)</span>
@@ -1275,6 +1274,41 @@
 <span class="sd">    space.</span>
 
 <span class="sd">    The fields in `outputnode` can be used as if they come from a single template.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    spaces : :class:`SpatialReferences`</span>
+<span class="sd">        SpatialReferences object containing the template identifiers.</span>
+<span class="sd">    sloppy : :class:`bool`</span>
+<span class="sd">        If True, use sloppy arguments to speed up processing.</span>
+<span class="sd">    name : :class:`str`</span>
+<span class="sd">        Workflow name (default: template_iterator_wf)</span>
+
+<span class="sd">    Inputs</span>
+<span class="sd">    ------</span>
+<span class="sd">    template : :class:`list` of :class:`str`</span>
+<span class="sd">        The template identifiers from the spaces parameter</span>
+<span class="sd">        (for example, &quot;MNIInfant:cohort-1:resolution-2&quot;).</span>
+<span class="sd">    anat2std_xfm : :class:`list` of :class:`str`</span>
+<span class="sd">        Paths to anatomical-to-template transform files.</span>
+
+<span class="sd">    Outputs</span>
+<span class="sd">    -------</span>
+<span class="sd">    template : :class:`list` of :class:`str`</span>
+<span class="sd">        The template label (for example, &quot;MNIInfant&quot; for MNIInfant:cohort-1:resolution-2).</span>
+<span class="sd">    cohort : :class:`list` of :class:`str`</span>
+<span class="sd">        The cohort label, if present (for example, &quot;1&quot; for MNIInfant:cohort-1:resolution-2).</span>
+<span class="sd">    resolution : :class:`list` of :class:`str`</span>
+<span class="sd">        The resolution label, if present (for example, &quot;2&quot; for MNIInfant:cohort-1:resolution-2).</span>
+<span class="sd">    space : :class:`list` of :class:`str`</span>
+<span class="sd">        The space entity for non-template derivatives</span>
+<span class="sd">        (for example, &quot;MNIInfant+1&quot; for MNIInfant:cohort-1:resolution-2).</span>
+<span class="sd">    anat2std_xfm : :class:`list` of :class:`str`</span>
+<span class="sd">        Path to the anatomical-to-template transform file.</span>
+<span class="sd">    std_t1w : :class:`list` of :class:`str`</span>
+<span class="sd">        Path to the template T1w image.</span>
+<span class="sd">    std_mask : :class:`list` of :class:`str`</span>
+<span class="sd">        Path to the template brain mask.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">spaces</span><span class="o">.</span><span class="n">get_spaces</span><span class="p">(</span><span class="n">nonstandard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,)):</span>
         <span class="n">fetch_template_files</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">specs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sloppy</span><span class="o">=</span><span class="n">sloppy</span><span class="p">)</span>
@@ -1288,9 +1322,10 @@
     <span class="n">outputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span>
             <span class="n">fields</span><span class="o">=</span><span class="p">[</span>
-                <span class="s1">&#39;space&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;template&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;resolution&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;cohort&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;space&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;anat2std_xfm&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;std_t1w&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;std_mask&#39;</span><span class="p">,</span>
@@ -1311,6 +1346,12 @@
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
+    <span class="n">gen_full_space</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">_gen_full_space</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;gen_full_space&#39;</span><span class="p">,</span>
+        <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
     <span class="n">select_xfm</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">KeySelect</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;anat2std_xfm&#39;</span><span class="p">]),</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">&#39;select_xfm&#39;</span><span class="p">,</span>
@@ -1318,7 +1359,6 @@
     <span class="p">)</span>
     <span class="n">select_tpl</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">TemplateFlowSelect</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;select_tpl&#39;</span><span class="p">,</span> <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="c1"># fmt:off</span>
     <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
         <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">select_xfm</span><span class="p">,</span> <span class="p">[</span>
             <span class="p">(</span><span class="s1">&#39;anat2std_xfm&#39;</span><span class="p">,</span> <span class="s1">&#39;anat2std_xfm&#39;</span><span class="p">),</span>
@@ -1328,6 +1368,11 @@
             <span class="p">(</span><span class="s1">&#39;space&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;cohort&#39;</span><span class="p">,</span> <span class="s1">&#39;cohort&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
+        <span class="p">(</span><span class="n">spacesource</span><span class="p">,</span> <span class="n">gen_full_space</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;space&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;cohort&#39;</span><span class="p">,</span> <span class="s1">&#39;cohort&#39;</span><span class="p">),</span>
+        <span class="p">]),</span>
+        <span class="p">(</span><span class="n">gen_full_space</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="s1">&#39;space&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">gen_tplid</span><span class="p">,</span> <span class="n">select_xfm</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="s1">&#39;key&#39;</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">spacesource</span><span class="p">,</span> <span class="n">select_tpl</span><span class="p">,</span> <span class="p">[</span>
             <span class="p">(</span><span class="s1">&#39;space&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
@@ -1335,7 +1380,7 @@
             <span class="p">((</span><span class="s1">&#39;resolution&#39;</span><span class="p">,</span> <span class="n">_no_native</span><span class="p">,</span> <span class="n">sloppy</span><span class="p">),</span> <span class="s1">&#39;resolution&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
         <span class="p">(</span><span class="n">spacesource</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;space&#39;</span><span class="p">,</span> <span class="s1">&#39;space&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;space&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;resolution&#39;</span><span class="p">,</span> <span class="s1">&#39;resolution&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;cohort&#39;</span><span class="p">,</span> <span class="s1">&#39;cohort&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
@@ -1346,8 +1391,7 @@
             <span class="p">(</span><span class="s1">&#39;t1w_file&#39;</span><span class="p">,</span> <span class="s1">&#39;std_t1w&#39;</span><span class="p">),</span>
             <span class="p">(</span><span class="s1">&#39;brain_mask&#39;</span><span class="p">,</span> <span class="s1">&#39;std_mask&#39;</span><span class="p">),</span>
         <span class="p">]),</span>
-    <span class="p">])</span>
-    <span class="c1"># fmt:on</span>
+    <span class="p">])</span>  <span class="c1"># fmt:skip</span>
 
     <span class="k">return</span> <span class="n">workflow</span></div>
 
@@ -1541,6 +1585,15 @@
     <span class="k">return</span> <span class="n">template</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_gen_full_space</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">cohort</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">isdefined</span>
+
+    <span class="k">if</span> <span class="n">cohort</span> <span class="ow">and</span> <span class="n">isdefined</span><span class="p">(</span><span class="n">cohort</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">template</span><span class="si">}</span><span class="s1">+</span><span class="si">{</span><span class="n">cohort</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="k">return</span> <span class="n">template</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_combine_cohort</span><span class="p">(</span><span class="n">in_template</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">in_template</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">template</span> <span class="o">=</span> <span class="n">in_template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -1608,6 +1661,9 @@
             <dd><a href="../../../../0.16.1/index.html">0.16.1</a></dd>
             <dd><a href="../../../../0.17.0/index.html">0.17.0</a></dd>
             <dd><a href="../../../../0.18.0/index.html">0.18.0</a></dd>
+            <dd><a href="../../../../0.19.0/index.html">0.19.0</a></dd>
+            <dd><a href="../../../../0.19.1/index.html">0.19.1</a></dd>
+            <dd><a href="../../../../0.19.2/index.html">0.19.2</a></dd>
             <dd><a href="../../../../0.8.0/index.html">0.8.0</a></dd>
             <dd><a href="../../../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
             <dd><a href="../../../../0.8.0rc2/index.html">0.8.0rc2</a></dd>
@@ -1621,9 +1677,15 @@
         </dl>
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../dependabot_github_actions_actions-infrastructure-e6ee9d7de3/index.html">dependabot/github_actions/actions-infrastructure-e6ee9d7de3</a></dd>
+            <dd><a href="../../../../dependabot_github_actions_docker_login-action-3.7.0/index.html">dependabot/github_actions/docker/login-action-3.7.0</a></dd>
+            <dd><a href="../../../../dependabot_pip_fonttools-4.60.2/index.html">dependabot/pip/fonttools-4.60.2</a></dd>
+            <dd><a href="../../../../dependabot_pip_pillow-12.1.1/index.html">dependabot/pip/pillow-12.1.1</a></dd>
+            <dd><a href="../../../../dependabot_pip_urllib3-2.6.3/index.html">dependabot/pip/urllib3-2.6.3</a></dd>
             <dd><a href="../../../../dev-nibabies/index.html">dev-nibabies</a></dd>
             <dd><a href="../../../../enh_calabel/index.html">enh/calabel</a></dd>
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
+            <dd><a href="../../../../enh_upstream-mricoreg/index.html">enh/upstream-mricoreg</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
             <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
@@ -1633,9 +1695,11 @@
             <dd><a href="../../../../maint_0.16.x/index.html">maint/0.16.x</a></dd>
             <dd><a href="../../../../maint_0.17.x/index.html">maint/0.17.x</a></dd>
             <dd><a href="../../../../maint_0.18.x/index.html">maint/0.18.x</a></dd>
+            <dd><a href="../../../../maint_0.19.x/index.html">maint/0.19.x</a></dd>
             <dd><a href="../../../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
             <dd><a href="../../../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
             <dd><a href="../../../../master/index.html">master</a></dd>
+            <dd><a href="../../../../pre-commit-ci-update-config/index.html">pre-commit-ci-update-config</a></dd>
             <dd><a href="../../../../rel_0.16.1/index.html">rel/0.16.1</a></dd>
             <dd><a href="../../../../rel_0.8.0rc1/index.html">rel/0.8.0rc1</a></dd>
         </dl>

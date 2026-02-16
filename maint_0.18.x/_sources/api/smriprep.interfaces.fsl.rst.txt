@@ -3,5 +3,5 @@ smriprep.interfaces.fsl module
 
 .. automodule:: smriprep.interfaces.fsl
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
