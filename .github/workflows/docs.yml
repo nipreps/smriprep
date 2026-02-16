@@ -1,0 +1,347 @@
+name: Docs
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - master
+    tags-ignore:
+      - "*"
+  workflow_run:
+    workflows: ["Build-Test-Deploy"]
+    types:
+      - completed
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  resolve_context:
+    runs-on: ubuntu-latest
+    outputs:
+      source_sha: ${{ steps.resolve.outputs.source_sha }}
+      source_ref_name: ${{ steps.resolve.outputs.source_ref_name }}
+      source_ref_type: ${{ steps.resolve.outputs.source_ref_type }}
+      run_build_docs: ${{ steps.resolve.outputs.run_build_docs }}
+      deploy_target: ${{ steps.resolve.outputs.deploy_target }}
+      force_versioned: ${{ steps.resolve.outputs.force_versioned }}
+    steps:
+      - name: Checkout repository for ref and tag resolution
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/head', github.event.pull_request.number) || github.sha }}
+
+      - name: Resolve docs workflow context
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GH_REPOSITORY: ${{ github.repository }}
+          PUSH_SHA: ${{ github.sha }}
+          PUSH_REF_NAME: ${{ github.ref_name }}
+          PUSH_REF_TYPE: ${{ github.ref_type }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          WR_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          WR_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          WR_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WR_EVENT: ${{ github.event.workflow_run.event }}
+        run: |
+          set -euo pipefail
+
+          source_sha=""
+          source_ref_name=""
+          source_ref_type="branch"
+          run_build_docs="false"
+          deploy_target="none"
+
+          case "$EVENT_NAME" in
+            push|workflow_dispatch)
+              source_sha="$PUSH_SHA"
+              source_ref_name="$PUSH_REF_NAME"
+              source_ref_type="${PUSH_REF_TYPE:-branch}"
+              ;;
+            pull_request)
+              source_sha="$PR_HEAD_SHA"
+              source_ref_name="$PR_HEAD_REF"
+              source_ref_type="branch"
+              ;;
+            workflow_run)
+              source_sha="$WR_HEAD_SHA"
+              source_ref_name="$WR_HEAD_BRANCH"
+              source_ref_type="branch"
+              ;;
+            *)
+              echo "Unsupported event: $EVENT_NAME" >&2
+              exit 1
+              ;;
+          esac
+
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            tag_name=""
+            if [[ -n "$source_ref_name" ]] && git show-ref --verify --quiet "refs/tags/$source_ref_name"; then
+              tag_name="$source_ref_name"
+            fi
+            if [[ -z "$tag_name" ]] && [[ -n "$source_sha" ]]; then
+              tag_name="$(git tag --points-at "$source_sha" | head -n 1 || true)"
+            fi
+            if [[ -n "$tag_name" ]]; then
+              source_ref_type="tag"
+              source_ref_name="$tag_name"
+            fi
+          fi
+
+          branch_excluded="false"
+          if [[ "$source_ref_type" == "branch" ]]; then
+            case "$source_ref_name" in
+              test/*|tests/*|ds005/*|ds054/*)
+                branch_excluded="true"
+                ;;
+            esac
+          fi
+
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            if [[ "$WR_EVENT" == "push" ]] && [[ "$WR_CONCLUSION" == "success" ]] && [[ "$GH_REPOSITORY" == "nipreps/smriprep" ]]; then
+              if [[ "$source_ref_type" == "tag" ]]; then
+                deploy_target="tag"
+              elif [[ "$source_ref_type" == "branch" ]] && [[ "$source_ref_name" == "master" ]]; then
+                deploy_target="master"
+              fi
+            fi
+            if [[ "$deploy_target" != "none" ]]; then
+              run_build_docs="true"
+            fi
+          elif [[ "$branch_excluded" != "true" ]]; then
+            run_build_docs="true"
+          fi
+
+          force_versioned="false"
+          if [[ -n "$source_sha" ]]; then
+            commit_line="$(git log --format=oneline -n 1 "$source_sha" || true)"
+            if echo "$commit_line" | grep -qiE '\[docs?[ _]?versions?\]'; then
+              force_versioned="true"
+            fi
+          fi
+
+          {
+            echo "source_sha=$source_sha"
+            echo "source_ref_name=$source_ref_name"
+            echo "source_ref_type=$source_ref_type"
+            echo "run_build_docs=$run_build_docs"
+            echo "deploy_target=$deploy_target"
+            echo "force_versioned=$force_versioned"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Resolved context:"
+          echo "  source_sha=$source_sha"
+          echo "  source_ref_name=$source_ref_name"
+          echo "  source_ref_type=$source_ref_type"
+          echo "  run_build_docs=$run_build_docs"
+          echo "  deploy_target=$deploy_target"
+          echo "  force_versioned=$force_versioned"
+
+  build_docs:
+    needs:
+      - resolve_context
+    if: needs.resolve_context.outputs.run_build_docs == 'true'
+    runs-on: ubuntu-latest
+    env:
+      FSLOUTPUTTYPE: NIFTI
+      SUBJECTS_DIR: /tmp/subjects
+    outputs:
+      has_versioned_docs: ${{ steps.has-versioned.outputs.has_versioned_docs }}
+    steps:
+      - name: Checkout source revision
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ needs.resolve_context.outputs.source_sha }}
+          persist-credentials: false
+
+      - name: Install Graphviz
+        run: |
+          sudo apt update
+          sudo apt -y install graphviz
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Update pip
+        run: pip install --upgrade pip
+
+      - name: Install deps and package
+        run: pip install -r docs/requirements.txt .
+
+      - name: Build only this commit
+        run: make -C docs NO_ET=1 SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
+
+      - name: Upload unversioned docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-unversioned-html
+          path: docs/_build/no_version_html/html
+          if-no-files-found: error
+
+      - name: Determine whether to build versioned docs
+        id: versioned
+        env:
+          SOURCE_REF_NAME: ${{ needs.resolve_context.outputs.source_ref_name }}
+          SOURCE_REF_TYPE: ${{ needs.resolve_context.outputs.source_ref_type }}
+          FORCE_VERSIONED: ${{ needs.resolve_context.outputs.force_versioned }}
+        run: |
+          set -euo pipefail
+          build_versioned="false"
+
+          if [[ "$SOURCE_REF_TYPE" == "tag" ]] || [[ "$SOURCE_REF_NAME" == "master" ]] || [[ "$FORCE_VERSIONED" == "true" ]]; then
+            build_versioned="true"
+          fi
+
+          echo "build_versioned=$build_versioned" >> "$GITHUB_OUTPUT"
+          echo "build_versioned=$build_versioned"
+
+      - name: Clean-up unversioned docs
+        if: steps.versioned.outputs.build_versioned == 'true'
+        run: make -C docs clean
+
+      - name: Restore versioned docs cache
+        if: steps.versioned.outputs.build_versioned == 'true'
+        id: docs-cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: docs/_build
+          key: docs-v2-${{ needs.resolve_context.outputs.source_ref_name }}-${{ needs.resolve_context.outputs.source_sha }}
+          restore-keys: |
+            docs-v2-${{ needs.resolve_context.outputs.source_ref_name }}-
+            docs-v2-master-
+            docs-v2-
+
+      - name: Generate versioned docs
+        if: steps.versioned.outputs.build_versioned == 'true'
+        env:
+          SOURCE_REF_NAME: ${{ needs.resolve_context.outputs.source_ref_name }}
+        run: make -f ./docs/Makefile NO_ET=1 versioned CURBRANCH="${SOURCE_REF_NAME}"
+
+      - name: Save versioned docs cache
+        if: steps.versioned.outputs.build_versioned == 'true' && steps.docs-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: docs/_build
+          key: docs-v2-${{ needs.resolve_context.outputs.source_ref_name }}-${{ needs.resolve_context.outputs.source_sha }}
+
+      - name: Upload versioned docs artifact
+        if: steps.versioned.outputs.build_versioned == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-versioned-html
+          path: docs/_build/html
+          if-no-files-found: error
+
+      - name: "Set output: has_versioned_docs"
+        id: has-versioned
+        run: echo "has_versioned_docs=${{ steps.versioned.outputs.build_versioned }}" >> "$GITHUB_OUTPUT"
+
+  deploy_docs_master:
+    needs:
+      - resolve_context
+      - build_docs
+    if: needs.resolve_context.outputs.deploy_target == 'master' && needs.build_docs.outputs.has_versioned_docs == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download versioned docs artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: docs-versioned-html
+          path: /tmp/docs-site
+
+      - name: Prepare docs payload
+        run: |
+          set -euo pipefail
+          docs_root="/tmp/docs-site"
+          if [[ -d "/tmp/docs-site/html" ]]; then
+            docs_root="/tmp/docs-site/html"
+          fi
+          touch "$docs_root/.nojekyll"
+          echo "DOCS_ROOT=$docs_root" >> "$GITHUB_ENV"
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Deploy docs to gh-pages branch
+        run: |
+          set -euo pipefail
+          rsync -a --delete "${DOCS_ROOT}/" ./
+
+          git config user.email "nipreps@gmail.com"
+          git config user.name "nipreps-bot"
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No documentation changes to publish."
+            exit 0
+          fi
+
+          git commit -m "doc(update) [skip ci]"
+          git push origin gh-pages
+
+  deploy_docs_tag:
+    needs:
+      - resolve_context
+      - build_docs
+    if: needs.resolve_context.outputs.deploy_target == 'tag' && needs.build_docs.outputs.has_versioned_docs == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download versioned docs artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: docs-versioned-html
+          path: /tmp/docs-site
+
+      - name: Prepare docs payload
+        run: |
+          set -euo pipefail
+          docs_root="/tmp/docs-site"
+          if [[ -d "/tmp/docs-site/html" ]]; then
+            docs_root="/tmp/docs-site/html"
+          fi
+          touch "$docs_root/.nojekyll"
+          echo "DOCS_ROOT=$docs_root" >> "$GITHUB_ENV"
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Deploy docs to gh-pages branch
+        run: |
+          set -euo pipefail
+          rsync -a --delete "${DOCS_ROOT}/" ./
+
+          git config user.email "nipreps@gmail.com"
+          git config user.name "nipreps-bot"
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No documentation changes to publish."
+            exit 0
+          fi
+
+          git commit -m "doc(update) [skip ci]"
+          git push origin gh-pages
