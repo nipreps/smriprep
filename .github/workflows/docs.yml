@@ -291,7 +291,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          rsync -a --delete "${DOCS_ROOT}/" ./
+          rsync -a --delete --exclude='.git/' "${DOCS_ROOT}/" ./
 
           git config user.email "nipreps@gmail.com"
           git config user.name "nipreps-bot"
@@ -344,7 +344,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          rsync -a --delete "${DOCS_ROOT}/" ./
+          rsync -a --delete --exclude='.git/' "${DOCS_ROOT}/" ./
 
           git config user.email "nipreps@gmail.com"
           git config user.name "nipreps-bot"
