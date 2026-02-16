@@ -84,12 +84,11 @@ jobs:
               ;;
           esac
 
-          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_run" ]] && [[ -z "$source_ref_name" ]]; then
+            # Keep branch context when workflow_run provides a branch; only infer a
+            # tag from commit metadata when no branch is available.
             tag_name=""
-            if [[ -n "$source_ref_name" ]] && git show-ref --verify --quiet "refs/tags/$source_ref_name"; then
-              tag_name="$source_ref_name"
-            fi
-            if [[ -z "$tag_name" ]] && [[ -n "$source_sha" ]]; then
+            if [[ -n "$source_sha" ]]; then
               tag_name="$(git tag --points-at "$source_sha" | head -n 1 || true)"
             fi
             if [[ -n "$tag_name" ]]; then
