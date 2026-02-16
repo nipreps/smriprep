@@ -248,7 +248,9 @@ jobs:
 
       - name: "Set output: has_versioned_docs"
         id: has-versioned
-        run: echo "has_versioned_docs=${{ steps.versioned.outputs.build_versioned }}" >> "$GITHUB_OUTPUT"
+        env:
+          BUILD_VERSIONED: ${{ steps.versioned.outputs.build_versioned }}
+        run: printf 'has_versioned_docs=%s\n' "$BUILD_VERSIONED" >> "$GITHUB_OUTPUT"
 
   deploy_docs_master:
     needs:
@@ -266,6 +268,7 @@ jobs:
           path: /tmp/docs-site
 
       - name: Prepare docs payload
+        id: prepare
         run: |
           set -euo pipefail
           docs_root="/tmp/docs-site"
@@ -273,15 +276,19 @@ jobs:
             docs_root="/tmp/docs-site/html"
           fi
           touch "$docs_root/.nojekyll"
-          echo "DOCS_ROOT=$docs_root" >> "$GITHUB_ENV"
+          printf 'docs_root=%s\n' "$docs_root" >> "$GITHUB_OUTPUT"
 
       - name: Checkout gh-pages branch
         uses: actions/checkout@v6
         with:
           ref: gh-pages
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Deploy docs to gh-pages branch
+        env:
+          DOCS_ROOT: ${{ steps.prepare.outputs.docs_root }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           rsync -a --delete "${DOCS_ROOT}/" ./
@@ -296,7 +303,7 @@ jobs:
           fi
 
           git commit -m "doc(update) [skip ci]"
-          git push origin gh-pages
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
 
   deploy_docs_tag:
     needs:
@@ -314,6 +321,7 @@ jobs:
           path: /tmp/docs-site
 
       - name: Prepare docs payload
+        id: prepare
         run: |
           set -euo pipefail
           docs_root="/tmp/docs-site"
@@ -321,15 +329,19 @@ jobs:
             docs_root="/tmp/docs-site/html"
           fi
           touch "$docs_root/.nojekyll"
-          echo "DOCS_ROOT=$docs_root" >> "$GITHUB_ENV"
+          printf 'docs_root=%s\n' "$docs_root" >> "$GITHUB_OUTPUT"
 
       - name: Checkout gh-pages branch
         uses: actions/checkout@v6
         with:
           ref: gh-pages
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Deploy docs to gh-pages branch
+        env:
+          DOCS_ROOT: ${{ steps.prepare.outputs.docs_root }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           rsync -a --delete "${DOCS_ROOT}/" ./
@@ -344,4 +356,4 @@ jobs:
           fi
 
           git commit -m "doc(update) [skip ci]"
-          git push origin gh-pages
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
