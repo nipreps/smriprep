@@ -112,6 +112,8 @@ norecursedirs = [".git"]
 addopts = [
   "-svx",
   "-ra",
+  "-p",
+  "test._fixtures",
   "--strict-config",
   "--strict-markers",
   "--doctest-modules",
