@@ -338,3 +338,41 @@ class MakeMidthickness(nwfs.MakeMidthickness, fs.base.FSCommandOpenMP):
     def _num_threads_update(self):
         if self.inputs.num_threads:
             self.inputs.environ.update({'OMP_NUM_THREADS': str(self.inputs.num_threads * 3 // 2)})
+
+
+class _MRICoregInputSpec(fs.registration.MRICoregInputSpec):
+    """Remove the ``xor`` between ``reference_file`` and ``subject_id``.
+
+    Upstream nipype declares these mutually exclusive, but FreeSurfer's
+    ``mri_coreg`` supports both simultaneously (``--s <subject> --ref <file>``).
+    This is needed when registering to an alternative contrast (e.g. T2w)
+    while retaining the FreeSurfer subject context for masking.
+    """
+
+    reference_file = File(
+        argstr='--ref %s',
+        desc='reference (target) file',
+        copyfile=False,
+        exists=True,
+    )
+    subject_id = traits.Str(
+        argstr='--s %s',
+        position=1,
+        requires=['subjects_dir'],
+        desc='freesurfer subject ID (implies ``reference_mask == '
+        'aparc+aseg.mgz`` unless otherwise specified)',
+    )
+
+
+class MRICoreg(fs.MRICoreg):
+    """Patched ``MRICoreg`` allowing both ``reference_file`` and ``subject_id``.
+
+    The upstream nipype interface incorrectly declares these fields as
+    mutually exclusive (``xor``), but the underlying ``mri_coreg`` tool
+    supports both.  This patch drops the ``xor`` and ``mandatory``
+    constraints so that callers can provide a FreeSurfer subject (for the
+    default ``aparc+aseg.mgz`` mask) together with an explicit reference
+    image (e.g. a T2w volume).
+    """
+
+    input_spec = _MRICoregInputSpec

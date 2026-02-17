@@ -43,43 +43,6 @@ _pull_from_registry: &pull_from_registry
     docker pull localhost:5000/smriprep
     docker tag localhost:5000/smriprep nipreps/smriprep:latest
 
-docs_deploy: &docs
-  docker:
-    - image: node:8.10.0
-      auth:
-        username: $DOCKER_USER
-        password: $DOCKER_PAT
-  working_directory: /tmp/gh-pages
-  steps:
-    - run:
-        name: Check whether this is the original repo
-        command: |
-          if [[ "$CIRCLE_PROJECT_USERNAME" != "nipreps" ]]; then
-              echo "Not in nipreps/smriprep - skipping docs deploy."
-              circleci step halt
-          fi
-    - add_ssh_keys:
-        fingerprints:
-          - "80:ec:ae:e8:92:1f:88:83:2a:e0:ee:35:39:79:85:88"
-    - run:
-        name: Install gh-pages tool
-        command: |
-          npm install -g --silent gh-pages@2.0.1
-    - checkout
-    - run:
-        name: Set git settings
-        command: |
-          git config user.email "nipreps@gmail.com"
-          git config user.name "nipreps-bot"
-    - attach_workspace:
-        at: docs/_build
-    - run:
-        name: Disable jekyll builds
-        command: touch docs/_build/html/.nojekyll
-    - run:
-        name: Deploy docs to gh-pages branch
-        command: gh-pages --dotfiles --message "doc(update) [skip ci]" --dist docs/_build/html
-
 version: 2.1
 orbs:
   docker: circleci/docker@2.2.0
@@ -209,6 +172,17 @@ jobs:
           paths:
             - src/smriprep
             - .force
+      - run:
+          name: Test smriprep-wrapper (Python 3)
+          command: |
+            pyenv local 3
+            echo -n "Python version: "
+            python --version
+            pip install --upgrade pip setuptools
+            pip install --upgrade wrapper/
+            which smriprep-docker
+            smriprep-docker -i nipreps/smriprep:latest --help
+            smriprep-docker -i nipreps/smriprep:latest --version
 
   get_data:
     <<: *python_defaults
@@ -302,66 +276,6 @@ jobs:
           key: env-v1-{{ .Branch }}-{{ epoch }}
           paths:
             - /home/circleci/.local
-
-  test:
-    <<: *machine_defaults
-    environment:
-      - FS_LICENSE: /tmp/fslicense/license.txt
-    steps:
-      - attach_workspace:
-          at: /tmp
-      - restore_cache:
-          keys:
-            - build-v1-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /tmp/docker
-            - /tmp/images
-      - docker/install-docker-credential-helper
-      - run: *docker_auth
-      - run: *setup_docker_registry
-      - run: *pull_from_registry
-      - checkout
-      - run:
-          name: Test smriprep-wrapper (Python 2)
-          command: |
-            pyenv local 2.7
-            echo -n "Python version: "
-            python --version
-            pip install --upgrade "pip<21"
-            pip install --upgrade setuptools
-            pip install --upgrade wrapper/
-            which smriprep-docker
-            smriprep-docker -i nipreps/smriprep:latest --help
-            smriprep-docker -i nipreps/smriprep:latest --version
-      - run:
-          name: Test smriprep-wrapper (Python 3)
-          command: |
-            pyenv local 3
-            echo -n "Python version: "
-            python --version
-            pip install --upgrade pip setuptools
-            pip install --upgrade wrapper/
-            which smriprep-docker
-            smriprep-docker -i nipreps/smriprep:latest --help
-            smriprep-docker -i nipreps/smriprep:latest --version
-      - restore_cache:
-          keys:
-            - testdata-v2-{{ .Branch }}-{{ epoch }}
-            - testdata-v2-{{ .Branch }}
-            - testdata-v2-
-      - restore_cache:
-          keys:
-            - templateflow-v1-{{ .Branch }}-{{ epoch }}
-            - templateflow-v1-{{ .Branch }}
-            - templateflow-v1-
-      - run:
-          name: Run Pytest
-          no_output_timeout: 2h
-          command: |
-            bash /tmp/src/smriprep/.circleci/pytest.sh -n auto
-      - codecov/upload:
-          file: /tmp/data/pytest_cov.xml
-          flags: pytest
 
   ds005:
     <<: *machine_defaults
@@ -643,65 +557,6 @@ jobs:
           path: /tmp/ds054/derivatives
           destination: fasttrack-derivatives
 
-  build_docs:
-    <<: *python_defaults
-    working_directory: /tmp/gh-pages
-    environment:
-      - FSLOUTPUTTYPE: NIFTI
-      - SUBJECTS_DIR: /tmp/subjects
-    steps:
-      - checkout
-      - run:
-          name: Install Graphviz
-          command: sudo apt update && sudo apt -y install graphviz
-      - run:
-          name: Update pip
-          command: pip install --upgrade pip
-      - run:
-          name: Install deps and package
-          command: pip install -r docs/requirements.txt .
-      - run:
-          name: Build only this commit
-          no_output_timeout: 30m
-          command: make -C docs NO_ET=1 SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
-      - store_artifacts:
-          path: ./docs/_build/no_version_html/html
-          destination: noversion
-      - run:
-          name: Stop or generate versioned docs?
-          command: |
-            set +e
-            force_versioned="$( git log --format=oneline -n 1 $CIRCLE_SHA1 | grep -i -E '\[docs?[ _]?versions?\]' )"
-            set -e
-            if [[ "x${CIRCLE_TAG}" = "x" && "${CIRCLE_BRANCH}" != "master" && "x${force_versioned}" = "x" ]]; then
-              echo "Not a tag or master branch - skipping versioned docs."
-              circleci step halt
-            fi
-      - run:
-          name: Clean-up unversioned docs
-          command: make -C docs clean
-      - restore_cache:
-          keys:
-            - docs-v2-{{ .Branch }}-{{ .Revision }}
-            - docs-v2-{{ .Branch }}-
-            - docs-v2-master
-            - docs-v2-
-          paths:
-            - ./docs/_build
-      - run:
-          name: Generate Versioned Docs
-          command: make -f ./docs/Makefile NO_ET=1 versioned CURBRANCH=${CIRCLE_TAG:-$CIRCLE_BRANCH}
-      - save_cache:
-          key: docs-v2-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - ./docs/_build
-      - persist_to_workspace:
-          root: docs/_build
-          paths: html
-      - store_artifacts:
-          path: ./docs/_build/html
-          destination: versioned
-
   deploy_docker:
     <<: *machine_defaults
     working_directory: *src
@@ -739,12 +594,6 @@ jobs:
               fi
             fi
 
-  deploy_docs_tag:
-    <<: *docs
-
-  deploy_docs_master:
-    <<: *docs
-
 workflows:
   version: 2
   build_test_deploy:
@@ -765,31 +614,6 @@ workflows:
               ignore:
                 - /docs?\/.*/
                 - /tests?\/.*/
-            tags:
-              only: /.*/
-
-      - test:
-          context:
-            - nipreps-common
-          requires:
-            - get_data
-            - build
-          filters:
-            branches:
-              ignore:
-                - /docs?\/.*/
-                - /ds005\/.*/
-                - /ds054\/.*/
-            tags:
-              only: /.*/
-
-      - build_docs:
-          filters:
-            branches:
-              ignore:
-                - /tests?\/.*/
-                - /ds005\/.*/
-                - /ds054\/.*/
             tags:
               only: /.*/
 
@@ -820,30 +644,6 @@ workflows:
                 - /docs?\/.*/
                 - /tests?\/.*/
                 - /ds005\/.*/
-            tags:
-              only: /.*/
-
-      - deploy_docs_master:
-          requires:
-            - build_docs
-            - ds005
-            - ds054
-            - test
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-
-      - deploy_docs_tag:
-          requires:
-            - build_docs
-            - ds005
-            - ds054
-            - test
-          filters:
-            branches:
-              ignore: /.*/
             tags:
               only: /.*/
 
