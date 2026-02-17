@@ -106,6 +106,7 @@ exclude = ".*"
 [tool.pytest.ini_options]
 minversion = "8"
 testpaths = ["src", "test"]
+pythonpath = ["src", "."]
 log_level = "INFO"
 xfail_strict = true
 norecursedirs = [".git"]
