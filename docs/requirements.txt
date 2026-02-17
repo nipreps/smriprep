@@ -8,7 +8,7 @@ pydot
 sphinx-argparse
 sphinx
 sphinx_rtd_theme
-sphinxcontrib-apidoc ~= 0.3.0
+sphinxcontrib-apidoc
 templateflow
 networkx != 2.8.1
 acres
