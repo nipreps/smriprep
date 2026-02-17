@@ -266,10 +266,8 @@ jobs:
           paths:
             - /home/circleci/.local
 
-  test:
+  wrapper_smoke:
     <<: *machine_defaults
-    environment:
-      - FS_LICENSE: /tmp/fslicense/license.txt
     steps:
       - attach_workspace:
           at: /tmp
@@ -285,18 +283,6 @@ jobs:
       - run: *pull_from_registry
       - checkout
       - run:
-          name: Test smriprep-wrapper (Python 2)
-          command: |
-            pyenv local 2.7
-            echo -n "Python version: "
-            python --version
-            pip install --upgrade "pip<21"
-            pip install --upgrade setuptools
-            pip install --upgrade wrapper/
-            which smriprep-docker
-            smriprep-docker -i nipreps/smriprep:latest --help
-            smriprep-docker -i nipreps/smriprep:latest --version
-      - run:
           name: Test smriprep-wrapper (Python 3)
           command: |
             pyenv local 3
@@ -307,24 +293,6 @@ jobs:
             which smriprep-docker
             smriprep-docker -i nipreps/smriprep:latest --help
             smriprep-docker -i nipreps/smriprep:latest --version
-      - restore_cache:
-          keys:
-            - testdata-v2-{{ .Branch }}-{{ epoch }}
-            - testdata-v2-{{ .Branch }}
-            - testdata-v2-
-      - restore_cache:
-          keys:
-            - templateflow-v1-{{ .Branch }}-{{ epoch }}
-            - templateflow-v1-{{ .Branch }}
-            - templateflow-v1-
-      - run:
-          name: Run Pytest
-          no_output_timeout: 2h
-          command: |
-            bash /tmp/src/smriprep/.circleci/pytest.sh -n auto
-      - codecov/upload:
-          file: /tmp/data/pytest_cov.xml
-          flags: pytest
 
   ds005:
     <<: *machine_defaults
@@ -666,16 +634,16 @@ workflows:
             tags:
               only: /.*/
 
-      - test:
+      - wrapper_smoke:
           context:
             - nipreps-common
           requires:
-            - get_data
             - build
           filters:
             branches:
               ignore:
                 - /docs?\/.*/
+                - /tests?\/.*/
                 - /ds005\/.*/
                 - /ds054\/.*/
             tags:
