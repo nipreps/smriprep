@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.freesurfer &mdash; smriprep 0.19.3.dev80 documentation</title>
+  <title>smriprep.interfaces.freesurfer &mdash; smriprep 0.19.3.dev87 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -432,6 +432,47 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">num_threads</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;OMP_NUM_THREADS&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">num_threads</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)})</span></div>
 
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_MRICoregInputSpec</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">registration</span><span class="o">.</span><span class="n">MRICoregInputSpec</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove the ``xor`` between ``reference_file`` and ``subject_id``.</span>
+
+<span class="sd">    Upstream nipype declares these mutually exclusive, but FreeSurfer&#39;s</span>
+<span class="sd">    ``mri_coreg`` supports both simultaneously (``--s &lt;subject&gt; --ref &lt;file&gt;``).</span>
+<span class="sd">    This is needed when registering to an alternative contrast (e.g. T2w)</span>
+<span class="sd">    while retaining the FreeSurfer subject context for masking.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">reference_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--ref </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;reference (target) file&#39;</span><span class="p">,</span>
+        <span class="n">copyfile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">subject_id</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Str</span><span class="p">(</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;--s </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">requires</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">],</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;freesurfer subject ID (implies ``reference_mask == &#39;</span>
+        <span class="s1">&#39;aparc+aseg.mgz`` unless otherwise specified)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="MRICoreg">
+<a class="viewcode-back" href="../../../api/smriprep.interfaces.freesurfer.html#smriprep.interfaces.freesurfer.MRICoreg">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MRICoreg</span><span class="p">(</span><span class="n">fs</span><span class="o">.</span><span class="n">MRICoreg</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Patched ``MRICoreg`` allowing both ``reference_file`` and ``subject_id``.</span>
+
+<span class="sd">    The upstream nipype interface incorrectly declares these fields as</span>
+<span class="sd">    mutually exclusive (``xor``), but the underlying ``mri_coreg`` tool</span>
+<span class="sd">    supports both.  This patch drops the ``xor`` and ``mandatory``</span>
+<span class="sd">    constraints so that callers can provide a FreeSurfer subject (for the</span>
+<span class="sd">    default ``aparc+aseg.mgz`` mask) together with an explicit reference</span>
+<span class="sd">    image (e.g. a T2w volume).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_MRICoregInputSpec</span></div>
+
 </pre></div>
 
            </div>
@@ -497,15 +538,11 @@
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dependabot_github_actions_actions-infrastructure-bf82f4b4c3/index.html">dependabot/github_actions/actions-infrastructure-bf82f4b4c3</a></dd>
             <dd><a href="../../../../dependabot_github_actions_docker_login-action-3.7.0/index.html">dependabot/github_actions/docker/login-action-3.7.0</a></dd>
-            <dd><a href="../../../../dependabot_pip_fonttools-4.60.2/index.html">dependabot/pip/fonttools-4.60.2</a></dd>
             <dd><a href="../../../../dependabot_pip_pillow-12.1.1/index.html">dependabot/pip/pillow-12.1.1</a></dd>
-            <dd><a href="../../../../dependabot_pip_urllib3-2.6.3/index.html">dependabot/pip/urllib3-2.6.3</a></dd>
             <dd><a href="../../../../dev-nibabies/index.html">dev-nibabies</a></dd>
             <dd><a href="../../../../enh_calabel/index.html">enh/calabel</a></dd>
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
-            <dd><a href="../../../../enh_upstream-mricoreg/index.html">enh/upstream-mricoreg</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
             <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
@@ -518,6 +555,7 @@
             <dd><a href="../../../../maint_0.19.x/index.html">maint/0.19.x</a></dd>
             <dd><a href="../../../../maint_0.8.x/index.html">maint/0.8.x</a></dd>
             <dd><a href="../../../../maint_0.9.x/index.html">maint/0.9.x</a></dd>
+            <dd><a href="../../../../maint_extract-tests-from-src/index.html">maint/extract-tests-from-src</a></dd>
             <dd><a href="../../../../master/index.html">master</a></dd>
             <dd><a href="freesurfer.html">pre-commit-ci-update-config</a></dd>
             <dd><a href="../../../../rel_0.16.1/index.html">rel/0.16.1</a></dd>

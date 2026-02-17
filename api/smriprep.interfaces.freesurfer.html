@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.19.3.dev80 documentation</title>
+  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.19.3.dev87 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -107,6 +107,102 @@
 <section id="module-smriprep.interfaces.freesurfer">
 <span id="smriprep-interfaces-freesurfer-module"></span><h1>smriprep.interfaces.freesurfer module<a class="headerlink" href="#module-smriprep.interfaces.freesurfer" title="Link to this heading"></a></h1>
 <p>Nipype’s recon-all replacement.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.MRICoreg">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">MRICoreg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#MRICoreg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.MRICoreg" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">MRICoreg</span></code></p>
+<p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">mri_coreg</span></code>.</p>
+<p>Patched <code class="docutils literal notranslate"><span class="pre">MRICoreg</span></code> allowing both <code class="docutils literal notranslate"><span class="pre">reference_file</span></code> and <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p>
+<p>The upstream nipype interface incorrectly declares these fields as
+mutually exclusive (<code class="docutils literal notranslate"><span class="pre">xor</span></code>), but the underlying <code class="docutils literal notranslate"><span class="pre">mri_coreg</span></code> tool
+supports both.  This patch drops the <code class="docutils literal notranslate"><span class="pre">xor</span></code> and <code class="docutils literal notranslate"><span class="pre">mandatory</span></code>
+constraints so that callers can provide a FreeSurfer subject (for the
+default <code class="docutils literal notranslate"><span class="pre">aparc+aseg.mgz</span></code> mask) together with an explicit reference
+image (e.g. a T2w volume).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Mandatory Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>source_file</strong> (<em>a pathlike object or string representing a file</em>) – Source file to be registered.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--mov</span> <span class="pre">%s</span></code>.</p>
+</dd>
+<dt class="field-even">Optional Inputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>args</strong> (<em>a string</em>) – Additional parameters to the command.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">%s</span></code>.</p></li>
+<li><p><strong>brute_force_limit</strong> (<em>a float</em>) – Constrain brute force search to +/- lim.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--bf-lim</span> <span class="pre">%g</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">no_brute_force</span></code>.</p></li>
+<li><p><strong>brute_force_samples</strong> (<em>an integer</em>) – Number of samples in brute force search.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--bf-nsamp</span> <span class="pre">%d</span></code>.
+Mutually <strong>exclusive</strong> with inputs: <code class="docutils literal notranslate"><span class="pre">no_brute_force</span></code>.</p></li>
+<li><p><strong>conform_reference</strong> (<em>a boolean</em>) – Conform reference without rescaling.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--conf-ref</span></code>.</p></li>
+<li><p><strong>dof</strong> (<em>6 or 9 or 12</em>) – Number of transform degrees of freedom.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--dof</span> <span class="pre">%d</span></code>.</p></li>
+<li><p><strong>environ</strong> (<em>a dictionary with keys which are a bytes or None or a value of class ‘str’ and with values which are a bytes or None or a value of class ‘str’</em>) – Environment variables.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">{}</span></code>)</p></li>
+<li><p><strong>ftol</strong> (<em>a float</em>) – Floating-point tolerance (default=1e-7).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--ftol</span> <span class="pre">%e</span></code>.</p></li>
+<li><p><strong>initial_rotation</strong> (<em>a tuple of the form: (a float, a float, a float)</em>) – Initial rotation in degrees.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--rot</span> <span class="pre">%g</span> <span class="pre">%g</span> <span class="pre">%g</span></code>.</p></li>
+<li><p><strong>initial_scale</strong> (<em>a tuple of the form: (a float, a float, a float)</em>) – Initial scale.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--scale</span> <span class="pre">%g</span> <span class="pre">%g</span> <span class="pre">%g</span></code>.</p></li>
+<li><p><strong>initial_shear</strong> (<em>a tuple of the form: (a float, a float, a float)</em>) – Initial shear (Hxy, Hxz, Hyz).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--shear</span> <span class="pre">%g</span> <span class="pre">%g</span> <span class="pre">%g</span></code>.</p></li>
+<li><p><strong>initial_translation</strong> (<em>a tuple of the form: (a float, a float, a float)</em>) – Initial translation in mm (implies no_cras0).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--trans</span> <span class="pre">%g</span> <span class="pre">%g</span> <span class="pre">%g</span></code>.</p></li>
+<li><p><strong>linmintol</strong> (<em>a float</em>) – Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--linmintol</span> <span class="pre">%e</span></code>.</p></li>
+<li><p><strong>max_iters</strong> (<em>an integer &gt;= 1</em>) – Maximum iterations (default: 4).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--nitersmax</span> <span class="pre">%d</span></code>.</p></li>
+<li><p><strong>no_brute_force</strong> (<em>a boolean</em>) – Do not brute force search.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--no-bf</span></code>.</p></li>
+<li><p><strong>no_coord_dithering</strong> (<em>a boolean</em>) – Turn off coordinate dithering.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--no-coord-dither</span></code>.</p></li>
+<li><p><strong>no_cras0</strong> (<em>a boolean</em>) – Do not set translation parameters to align centers of source and reference files.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--no-cras0</span></code>.</p></li>
+<li><p><strong>no_intensity_dithering</strong> (<em>a boolean</em>) – Turn off intensity dithering.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--no-intensity-dither</span></code>.</p></li>
+<li><p><strong>no_smooth</strong> (<em>a boolean</em>) – Do not apply smoothing to either reference or source file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--no-smooth</span></code>.</p></li>
+<li><p><strong>num_threads</strong> (<em>an integer</em>) – Number of OpenMP threads.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--threads</span> <span class="pre">%d</span></code>.</p></li>
+<li><p><strong>out_lta_file</strong> (<em>a bool or None or a pathlike object or string representing a file</em>) – Output registration file (LTA format).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--lta</span> <span class="pre">%s</span></code>.
+(Nipype <strong>default</strong> value: <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p></li>
+<li><p><strong>out_params_file</strong> (<em>a bool or None or a pathlike object or string representing a file</em>) – Output parameters file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--params</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>out_reg_file</strong> (<em>a bool or None or a pathlike object or string representing a file</em>) – Output registration file (REG format).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--regdat</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>ref_fwhm</strong> (<em>a float</em>) – Apply smoothing to reference file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--ref-fwhm</span></code>.</p></li>
+<li><p><strong>reference_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Reference (target) file.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--ref</span> <span class="pre">%s</span></code>.</p></li>
+<li><p><strong>reference_mask</strong> (<em>a bool or None or a string</em>) – Mask reference volume with given mask, or None if <code class="docutils literal notranslate"><span class="pre">False</span></code>.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--ref-mask</span> <span class="pre">%s</span></code> (position: 2).</p></li>
+<li><p><strong>saturation_threshold</strong> (<em>0.0 &lt;= a floating point number &lt;= 100.0</em>) – Saturation threshold (default=9.999).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--sat</span> <span class="pre">%g</span></code>.</p></li>
+<li><p><strong>sep</strong> (<em>a list of from 1 to 2 items which are any value</em>) – Set spatial scales, in voxels (default [2, 4]).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--sep</span> <span class="pre">%s...</span></code>.</p></li>
+<li><p><strong>source_mask</strong> (<em>a string</em>) – Mask source file with given mask.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--mov-mask</span></code>.</p></li>
+<li><p><strong>source_oob</strong> (<em>a boolean</em>) – Count source voxels that are out-of-bounds as 0.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--mov-oob</span></code>.</p></li>
+<li><p><strong>subject_id</strong> (<em>a string</em>) – Freesurfer subject ID (implies <code class="docutils literal notranslate"><span class="pre">reference_mask</span> <span class="pre">==</span> <span class="pre">aparc+aseg.mgz</span></code> unless otherwise specified).
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--s</span> <span class="pre">%s</span></code> (position: 1).
+<strong>Requires</strong> inputs: <code class="docutils literal notranslate"><span class="pre">subjects_dir</span></code>.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a pathlike object or string representing an existing directory</em>) – FreeSurfer SUBJECTS_DIR.
+Maps to a command-line argument: <code class="code docutils literal notranslate"><span class="pre">--sd</span> <span class="pre">%s</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Outputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>out_lta_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Output LTA-style registration file.</p></li>
+<li><p><strong>out_params_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Output parameters file.</p></li>
+<li><p><strong>out_reg_file</strong> (<em>a pathlike object or string representing an existing file</em>) – Output registration file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.MRIsConvertData">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">MRIsConvertData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#MRIsConvertData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.MRIsConvertData" title="Link to this definition"></a></dt>
@@ -516,15 +612,11 @@ validates arguments and generates command line</p>
         </dl>
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../dependabot_github_actions_actions-infrastructure-bf82f4b4c3/api/smriprep.interfaces.freesurfer.html">dependabot/github_actions/actions-infrastructure-bf82f4b4c3</a></dd>
             <dd><a href="../dependabot_github_actions_docker_login-action-3.7.0/api/smriprep.interfaces.freesurfer.html">dependabot/github_actions/docker/login-action-3.7.0</a></dd>
-            <dd><a href="../dependabot_pip_fonttools-4.60.2/api/smriprep.interfaces.freesurfer.html">dependabot/pip/fonttools-4.60.2</a></dd>
             <dd><a href="../dependabot_pip_pillow-12.1.1/api/smriprep.interfaces.freesurfer.html">dependabot/pip/pillow-12.1.1</a></dd>
-            <dd><a href="../dependabot_pip_urllib3-2.6.3/api/smriprep.interfaces.freesurfer.html">dependabot/pip/urllib3-2.6.3</a></dd>
             <dd><a href="../dev-nibabies/api/smriprep.interfaces.freesurfer.html">dev-nibabies</a></dd>
             <dd><a href="../enh_calabel/api/smriprep.interfaces.freesurfer.html">enh/calabel</a></dd>
             <dd><a href="../enh_split-surfaces/api/smriprep.interfaces.freesurfer.html">enh/split-surfaces</a></dd>
-            <dd><a href="../enh_upstream-mricoreg/api/smriprep.interfaces.freesurfer.html">enh/upstream-mricoreg</a></dd>
             <dd><a href="../fix_parcstats/api/smriprep.interfaces.freesurfer.html">fix/parcstats</a></dd>
             <dd><a href="../fix_recon-report/api/smriprep.interfaces.freesurfer.html">fix/recon-report</a></dd>
             <dd><a href="../fix_tfselect-resless/api/smriprep.interfaces.freesurfer.html">fix/tfselect-resless</a></dd>
@@ -537,6 +629,7 @@ validates arguments and generates command line</p>
             <dd><a href="../maint_0.19.x/api/smriprep.interfaces.freesurfer.html">maint/0.19.x</a></dd>
             <dd><a href="../maint_0.8.x/api/smriprep.interfaces.freesurfer.html">maint/0.8.x</a></dd>
             <dd><a href="../maint_0.9.x/api/smriprep.interfaces.freesurfer.html">maint/0.9.x</a></dd>
+            <dd><a href="../maint_extract-tests-from-src/api/smriprep.interfaces.freesurfer.html">maint/extract-tests-from-src</a></dd>
             <dd><a href="../master/api/smriprep.interfaces.freesurfer.html">master</a></dd>
             <dd><a href="../pre-commit-ci-update-config/api/smriprep.interfaces.freesurfer.html">pre-commit-ci-update-config</a></dd>
             <dd><a href="../rel_0.16.1/api/smriprep.interfaces.freesurfer.html">rel/0.16.1</a></dd>

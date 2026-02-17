@@ -1,0 +1,7 @@
+smriprep.interfaces.gifti module
+================================
+
+.. automodule:: smriprep.interfaces.gifti
+   :members:
+   :show-inheritance:
+   :undoc-members:
