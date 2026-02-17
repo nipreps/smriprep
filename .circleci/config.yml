@@ -172,6 +172,17 @@ jobs:
           paths:
             - src/smriprep
             - .force
+      - run:
+          name: Test smriprep-wrapper (Python 3)
+          command: |
+            pyenv local 3
+            echo -n "Python version: "
+            python --version
+            pip install --upgrade pip setuptools
+            pip install --upgrade wrapper/
+            which smriprep-docker
+            smriprep-docker -i nipreps/smriprep:latest --help
+            smriprep-docker -i nipreps/smriprep:latest --version
 
   get_data:
     <<: *python_defaults
@@ -265,34 +276,6 @@ jobs:
           key: env-v1-{{ .Branch }}-{{ epoch }}
           paths:
             - /home/circleci/.local
-
-  wrapper_smoke:
-    <<: *machine_defaults
-    steps:
-      - attach_workspace:
-          at: /tmp
-      - restore_cache:
-          keys:
-            - build-v1-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /tmp/docker
-            - /tmp/images
-      - docker/install-docker-credential-helper
-      - run: *docker_auth
-      - run: *setup_docker_registry
-      - run: *pull_from_registry
-      - checkout
-      - run:
-          name: Test smriprep-wrapper (Python 3)
-          command: |
-            pyenv local 3
-            echo -n "Python version: "
-            python --version
-            pip install --upgrade pip setuptools
-            pip install --upgrade wrapper/
-            which smriprep-docker
-            smriprep-docker -i nipreps/smriprep:latest --help
-            smriprep-docker -i nipreps/smriprep:latest --version
 
   ds005:
     <<: *machine_defaults
@@ -631,21 +614,6 @@ workflows:
               ignore:
                 - /docs?\/.*/
                 - /tests?\/.*/
-            tags:
-              only: /.*/
-
-      - wrapper_smoke:
-          context:
-            - nipreps-common
-          requires:
-            - build
-          filters:
-            branches:
-              ignore:
-                - /docs?\/.*/
-                - /tests?\/.*/
-                - /ds005\/.*/
-                - /ds054\/.*/
             tags:
               only: /.*/
 
