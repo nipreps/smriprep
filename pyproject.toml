@@ -53,7 +53,7 @@ doc = [
     "sphinx",
     "sphinx-argparse",
     "sphinx_rtd_theme",
-    "sphinxcontrib-apidoc ~= 0.3.0",
+    "sphinxcontrib-apidoc",
     "sphinxcontrib-napoleon",
     "sphinxcontrib-versioning",
 ]
@@ -109,7 +109,7 @@ exclude = ".*"
 [tool.pytest.ini_options]
 minversion = "8"
 testpaths = ["src"]
-log_cli_level = "INFO"
+log_level = "INFO"
 xfail_strict = true
 norecursedirs = [".git"]
 addopts = [
