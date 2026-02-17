@@ -10,3 +10,6 @@ rules:
   cache-poisoning:
    ignore:
     - build_test_deploy.yml
+  dangerous-triggers:
+   ignore:
+    - docs.yml
