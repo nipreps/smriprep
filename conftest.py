@@ -1,1 +1,1 @@
-pytest_plugins = ['test.conftest']
+pytest_plugins = ['test._fixtures']
