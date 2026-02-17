@@ -42,19 +42,21 @@ jobs:
       attestations: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
-      # Note that we may need to revert to 2.9 if bugs are found in `uv build`,
-      # unless build-and-inspect-python-package lets us select build as a backend
+      # Pin to a specific v2 commit because floating @v2 can regress.
+      # This commit currently carries tooling that is Python 3.14 compatible.
+      # We also remove /tmp/baipp before each invocation as a temporary
+      # compatibility guard for cached-venv reuse until upstream behavior is
+      # stable across repeated invocations in one job.
       #
       # https://github.com/astral-sh/uv/issues/5450
       # or https://github.com/hynek/build-and-inspect-python-package/issues/155
-      #
-      # If 2.9 is required, then we will need to pin to hatchling 1.26.x to avoid
-      # incompatibilities with twine and the package metadata emitted by hatchiling.
-      - uses: hynek/build-and-inspect-python-package@v2
+      - name: Clean up baipp virtualenv path (main build)
+        run: rm -rf /tmp/baipp
+      - uses: hynek/build-and-inspect-python-package@efb823f52190ad02594531168b7a2d5790e66516 # v2
         id: build-smriprep
         with:
           upload-name-suffix: -main
@@ -63,7 +65,9 @@ jobs:
         run: rm -r "$DIST"
         env:
           DIST: ${{ steps.build-smriprep.outputs.dist }}
-      - uses: hynek/build-and-inspect-python-package@v2
+      - name: Clean up baipp virtualenv path (wrapper build)
+        run: rm -rf /tmp/baipp
+      - uses: hynek/build-and-inspect-python-package@efb823f52190ad02594531168b7a2d5790e66516 # v2
         id: build-wrapper
         with:
           path: wrapper
@@ -96,13 +100,13 @@ jobs:
       DEPENDS: ${{ matrix.dependencies }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.1
         with:
           persist-credentials: false
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Display Python version
@@ -110,7 +114,7 @@ jobs:
 
       - name: Restore cached templateflow
         id: tf-cache-restore
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/templateflow
           key: templateflow-v0
@@ -149,21 +153,21 @@ jobs:
 
     steps:
       - name: Download packages built by build-and-inspect-python-package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: Packages-*
           path: dist
       - run: ls -lR
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Restore cached templateflow
         id: tf-cache-restore
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /tmp/templateflow
           key: templateflow-v0
@@ -203,7 +207,7 @@ jobs:
 
     steps:
       - name: Download packages built by build-and-inspect-python-package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: Packages-*
           path: dist
@@ -226,11 +230,11 @@ jobs:
         check: ["style", "spellcheck"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.1
         with:
           persist-credentials: false
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
       - name: Install tox
         run: uv tool install tox --with=tox-uv
       - name: Show tox config
