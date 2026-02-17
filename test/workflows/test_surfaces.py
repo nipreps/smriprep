@@ -7,9 +7,8 @@ import numpy as np
 import pytest
 from nipype.pipeline import engine as pe
 
-from test.interfaces.data import load as load_test_data
-
 from smriprep.workflows.surfaces import _select_seg, init_anat_ribbon_wf, init_gifti_surfaces_wf
+from test.interfaces.data import load as load_test_data
 
 
 def test_ribbon_workflow(tmp_path: Path):
