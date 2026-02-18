@@ -22,7 +22,7 @@
 #
 import pytest
 
-from smriprep.utils.misc import fs_isRunning
+from smriprep.utils.misc import apply_lut, fs_isRunning, stringify_sessions
 
 
 def _gen_fsdir(tmp_path, isrunning):
@@ -52,3 +52,52 @@ def test_fs_isRunning(tmp_path, isrunning, mtime_tol, error):
         with pytest.raises(error):
             fs_isRunning(fs_dir, 'sub-01', mtime_tol=mtime_tol)
         assert tuple(fs_dir.glob('**/IsRunning*'))
+
+
+def test_fs_isRunning_warns_on_cleanup(tmp_path):
+    import os
+
+    fs_dir = _gen_fsdir(tmp_path, isrunning=True)
+    reconlog = fs_dir / 'sub-01' / 'scripts' / 'recon-all.log'
+    os.utime(reconlog, (1, 1))
+
+    class _Logger:
+        def __init__(self):
+            self.msg = None
+
+        def warn(self, msg):
+            self.msg = msg
+
+    logger = _Logger()
+    fs_isRunning(fs_dir, 'sub-01', mtime_tol=1, logger=logger)
+    assert logger.msg is not None
+    assert 'Removed "IsRunning*" files' in logger.msg
+
+
+def test_apply_lut(make_nifti, tmp_path):
+    import nibabel as nb
+    import numpy as np
+
+    in_dseg = make_nifti(
+        tmp_path / 'dseg.nii.gz',
+        data=np.array([[[0, 1], [2, 1]]], dtype='int16'),
+    )
+    out_file = apply_lut(in_dseg, [0, 10, 20], newpath=tmp_path)
+
+    out_img = nb.load(out_file)
+    out_data = np.asanyarray(out_img.dataobj)
+    assert out_img.get_data_dtype().name == 'int16'
+    assert np.array_equal(out_data, np.array([[[0, 10], [20, 10]]], dtype='int16'))
+
+
+@pytest.mark.parametrize(
+    ('sessions', 'kwargs', 'expected'),
+    [
+        (['a'], {}, 'a'),
+        (['a', 'b', 'c'], {'max_length': 12}, 'a-b-c'),
+        (['a', 'b', 'toolong'], {}, 'multi-32b3'),
+        (['a', 'b', 'toolong'], {'digest_size': 4}, 'multi-f1edd4fd'),
+    ],
+)
+def test_stringify_sessions(sessions, kwargs, expected):
+    assert stringify_sessions(sessions, **kwargs) == expected
