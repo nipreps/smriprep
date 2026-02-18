@@ -2,11 +2,6 @@ name: Docs
 
 on:
   pull_request:
-  push:
-    branches-ignore:
-      - master
-    tags-ignore:
-      - "*"
   workflow_run:
     workflows: ["Build-Test-Deploy"]
     types:
@@ -185,7 +180,7 @@ jobs:
         run: make -C docs NO_ET=1 SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
 
       - name: Upload unversioned docs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docs-unversioned-html
           path: docs/_build/no_version_html/html
@@ -215,7 +210,7 @@ jobs:
       - name: Restore versioned docs cache
         if: steps.versioned.outputs.build_versioned == 'true'
         id: docs-cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: docs/_build
           key: docs-v2-${{ needs.resolve_context.outputs.source_ref_name }}-${{ needs.resolve_context.outputs.source_sha }}
@@ -232,14 +227,14 @@ jobs:
 
       - name: Save versioned docs cache
         if: steps.versioned.outputs.build_versioned == 'true' && steps.docs-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: docs/_build
           key: docs-v2-${{ needs.resolve_context.outputs.source_ref_name }}-${{ needs.resolve_context.outputs.source_sha }}
 
       - name: Upload versioned docs artifact
         if: steps.versioned.outputs.build_versioned == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docs-versioned-html
           path: docs/_build/html

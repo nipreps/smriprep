@@ -22,7 +22,7 @@
 #
 import pytest
 
-from ..misc import fs_isRunning
+from smriprep.utils.misc import fs_isRunning
 
 
 def _gen_fsdir(tmp_path, isrunning):

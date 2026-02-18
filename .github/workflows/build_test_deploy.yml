@@ -133,7 +133,26 @@ jobs:
       - name: Show tox config
         run: tox c
       - name: Run tox
-        run: tox -v --exit-and-dump-after 1800
+        run: |
+          if [[ "${DEPENDS}" != "pre" ]]; then
+            tox -v --exit-and-dump-after 1800
+            exit 0
+          fi
+
+          for attempt in 1 2 3; do
+            echo "Running pre-release tox (attempt ${attempt}/3)"
+            if tox -v --exit-and-dump-after 1800; then
+              exit 0
+            fi
+
+            if [[ "${attempt}" -lt 3 ]]; then
+              echo "Retrying after transient dependency-index failure..."
+              sleep $((attempt * 30))
+            fi
+          done
+
+          echo "Pre-release tox failed after 3 attempts."
+          exit 1
       - uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

@@ -35,7 +35,7 @@ etelemetry==0.3.1
     # via nipype
 filelock==3.20.3
     # via nipype
-fonttools==4.56.0
+fonttools==4.60.2
     # via matplotlib
 formulaic==1.1.1
     # via pybids
@@ -154,7 +154,7 @@ pandas==2.2.3
     #   niworkflows
     #   pybids
     #   seaborn
-pillow==11.1.0
+pillow==12.1.1
     # via
     #   imageio
     #   matplotlib
@@ -255,7 +255,7 @@ tzdata==2025.1
     # via pandas
 universal-pathlib==0.2.6
     # via pybids
-urllib3==2.6.0
+urllib3==2.6.3
     # via requests
 wrapt==1.17.2
     # via formulaic

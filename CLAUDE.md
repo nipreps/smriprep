@@ -17,14 +17,14 @@ tox
 tox -e py312-latest
 
 # Run a single test file
-pytest src/smriprep/interfaces/tests/test_surf.py
+pytest test/interfaces/test_surf.py
 
 # Run a single test
-pytest src/smriprep/interfaces/tests/test_surf.py::test_function_name
+pytest test/interfaces/test_surf.py::test_function_name
 
 # Note: default pytest addopts include -svx, --doctest-modules, --cov
 # To skip doctests when running a subset:
-pytest --override-ini="addopts=" src/smriprep/interfaces/tests/test_surf.py
+pytest --override-ini="addopts=" test/interfaces/test_surf.py
 ```
 
 ### Linting and Formatting
