@@ -24,7 +24,7 @@
 
 import pytest
 
-from smriprep.interfaces.freesurfer import MRIsConvertData, MakeMidthickness, ReconAll
+from smriprep.interfaces.freesurfer import MakeMidthickness, MRIsConvertData, ReconAll
 
 
 def test_mrisconvertdata_uses_explicit_in_file(tmp_path):

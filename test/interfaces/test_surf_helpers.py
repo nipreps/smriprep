@@ -22,12 +22,15 @@
 #
 """Tests for surface helper utilities."""
 
-from pathlib import Path
-
 import nibabel as nb
 import numpy as np
 
-from smriprep.interfaces.surf import AggregateSurfaces, fix_gifti_metadata, make_ribbon, normalize_surfs
+from smriprep.interfaces.surf import (
+    AggregateSurfaces,
+    fix_gifti_metadata,
+    make_ribbon,
+    normalize_surfs,
+)
 
 
 def test_normalize_surfs_graymid_to_midthickness(make_gifti_surface, tmp_path):
@@ -61,7 +64,9 @@ def test_normalize_surfs_fixes_sphere_metadata(make_gifti_surface, tmp_path):
 
 
 def test_fix_gifti_metadata(make_gifti_surface, tmp_path):
-    in_file = make_gifti_surface(tmp_path / 'lh.sphere.reg.surf.gii', meta={'GeometricType': 'Sphere'})
+    in_file = make_gifti_surface(
+        tmp_path / 'lh.sphere.reg.surf.gii', meta={'GeometricType': 'Sphere'}
+    )
     out_file = fix_gifti_metadata(in_file, newpath=str(tmp_path))
     pointset = nb.load(out_file).get_arrays_from_intent('NIFTI_INTENT_POINTSET')[0]
     assert pointset.meta['GeometricType'] == 'Spherical'
@@ -92,12 +97,20 @@ def test_aggregate_surfaces_groups_pairs(tmp_path):
 
 def test_make_ribbon_small_volumes(make_nifti, tmp_path):
     white = [
-        make_nifti(tmp_path / 'lh.white.nii.gz', data=np.array([[[1, 1], [0, 0]]], dtype='float32')),
-        make_nifti(tmp_path / 'rh.white.nii.gz', data=np.array([[[0, 1], [1, 0]]], dtype='float32')),
+        make_nifti(
+            tmp_path / 'lh.white.nii.gz', data=np.array([[[1, 1], [0, 0]]], dtype='float32')
+        ),
+        make_nifti(
+            tmp_path / 'rh.white.nii.gz', data=np.array([[[0, 1], [1, 0]]], dtype='float32')
+        ),
     ]
     pial = [
-        make_nifti(tmp_path / 'lh.pial.nii.gz', data=np.array([[[-1, 1], [-1, 1]]], dtype='float32')),
-        make_nifti(tmp_path / 'rh.pial.nii.gz', data=np.array([[[1, -1], [-1, 1]]], dtype='float32')),
+        make_nifti(
+            tmp_path / 'lh.pial.nii.gz', data=np.array([[[-1, 1], [-1, 1]]], dtype='float32')
+        ),
+        make_nifti(
+            tmp_path / 'rh.pial.nii.gz', data=np.array([[[1, -1], [-1, 1]]], dtype='float32')
+        ),
     ]
     out_file = make_ribbon(white, pial, newpath=str(tmp_path))
     ribbon = np.asanyarray(nb.load(out_file).dataobj).astype(bool)

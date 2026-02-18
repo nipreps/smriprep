@@ -88,7 +88,9 @@ def test_subjectsummary_freesurfer_status(cmdline, status, monkeypatch, tmp_path
 
 
 def test_aboutsummary_uses_timestamp(monkeypatch, tmp_path):
-    monkeypatch.setattr('smriprep.interfaces.reports.time.strftime', lambda *_a, **_k: '2024-01-01')
+    monkeypatch.setattr(
+        'smriprep.interfaces.reports.time.strftime', lambda *_a, **_k: '2024-01-01'
+    )
     result = AboutSummary(version='1.0.0', command='smriprep ...').run(cwd=tmp_path)
     html = Path(result.outputs.out_report).read_text()
     assert '1.0.0' in html

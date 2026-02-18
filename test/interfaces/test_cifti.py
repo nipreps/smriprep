@@ -39,7 +39,9 @@ from smriprep.interfaces.cifti import _create_cifti_image, _prepare_cifti
 def test_prepare_cifti(grayordinates, density, grayords, monkeypatch):
     monkeypatch.setattr(
         'smriprep.interfaces.cifti.tf.get',
-        lambda template, **kwargs: f"/tpl-{template}_hemi-{kwargs['hemi']}_den-{kwargs['density']}.label.gii",
+        lambda template, **kwargs: (
+            f'/tpl-{template}_hemi-{kwargs["hemi"]}_den-{kwargs["density"]}.label.gii'
+        ),
     )
     surface_labels, metadata = _prepare_cifti(grayordinates)
     assert len(surface_labels) == 2
@@ -60,8 +62,12 @@ def test_create_cifti_image(make_gifti_label, make_gifti_metric, tmp_path, monke
         make_gifti_label(tmp_path / 'R.label.gii', data=np.array([0, 1, 1], dtype='int32')),
     )
     scalars = (
-        make_gifti_metric(tmp_path / 'sub-01_hemi-L_curv.shape.gii', data=np.array([1.0, 2.0, 3.0])),
-        make_gifti_metric(tmp_path / 'sub-01_hemi-R_curv.shape.gii', data=np.array([4.0, 5.0, 6.0])),
+        make_gifti_metric(
+            tmp_path / 'sub-01_hemi-L_curv.shape.gii', data=np.array([1.0, 2.0, 3.0])
+        ),
+        make_gifti_metric(
+            tmp_path / 'sub-01_hemi-R_curv.shape.gii', data=np.array([4.0, 5.0, 6.0])
+        ),
     )
 
     out_file = _create_cifti_image(

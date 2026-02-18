@@ -22,10 +22,9 @@
 #
 """Unit tests for CLI helpers in ``smriprep.cli.run``."""
 
-from argparse import Namespace
-from pathlib import Path
 import sys
 import types
+from argparse import Namespace
 
 import pytest
 
@@ -168,14 +167,16 @@ def test_build_workflow_reports_only(monkeypatch, tmp_path):
     monkeypatch.setattr('niworkflows.utils.bids.collect_participants', lambda *_a, **_k: ['01'])
     monkeypatch.setattr(
         'nireports.assembler.tools.generate_reports',
-        lambda subject_session_list, smriprep_dir, run_uuid, bootstrap_file: calls.update(
-            {
-                'subject_session_list': subject_session_list,
-                'run_uuid': run_uuid,
-                'smriprep_dir': smriprep_dir,
-            }
-        )
-        or 0,
+        lambda subject_session_list, smriprep_dir, run_uuid, bootstrap_file: (
+            calls.update(
+                {
+                    'subject_session_list': subject_session_list,
+                    'run_uuid': run_uuid,
+                    'smriprep_dir': smriprep_dir,
+                }
+            )
+            or 0
+        ),
     )
 
     retval = {}
@@ -209,7 +210,9 @@ def test_build_workflow_full(monkeypatch, tmp_path):
     monkeypatch.setitem(sys.modules, 'smriprep.workflows.base', fake_base)
     monkeypatch.setattr('bids.layout.BIDSLayout', _Layout)
     monkeypatch.setattr('niworkflows.utils.bids.collect_participants', lambda *_a, **_k: ['01'])
-    monkeypatch.setattr('subprocess.check_call', lambda *args, **kwargs: (_ for _ in ()).throw(FileNotFoundError))
+    monkeypatch.setattr(
+        'subprocess.check_call', lambda *args, **kwargs: (_ for _ in ()).throw(FileNotFoundError)
+    )
 
     retval = {}
     result = run.build_workflow(opts, retval)
@@ -271,7 +274,9 @@ def test_build_opts_exits_on_missing_deps(monkeypatch, tmp_path):
     monkeypatch.setattr('multiprocessing.Manager', _Manager)
     monkeypatch.setattr('multiprocessing.Process', _Process)
     monkeypatch.setattr('niworkflows.utils.misc.check_valid_fs_license', lambda: True)
-    monkeypatch.setattr(run, 'build_workflow', lambda _opts, retval: _populate_retval(retval, _Workflow()))
+    monkeypatch.setattr(
+        run, 'build_workflow', lambda _opts, retval: _populate_retval(retval, _Workflow())
+    )
     monkeypatch.setattr(run, 'check_deps', lambda *_a, **_k: [('Iface', 'missing_cmd')])
 
     with pytest.raises(SystemExit, match='2'):
@@ -290,14 +295,21 @@ def test_build_opts_runs_and_finalizes(monkeypatch, tmp_path):
     monkeypatch.setattr('multiprocessing.Manager', _Manager)
     monkeypatch.setattr('multiprocessing.Process', _Process)
     monkeypatch.setattr('niworkflows.utils.misc.check_valid_fs_license', lambda: True)
-    monkeypatch.setattr(run, 'build_workflow', lambda _opts, retval: _populate_retval(retval, _Workflow()))
+    monkeypatch.setattr(
+        run, 'build_workflow', lambda _opts, retval: _populate_retval(retval, _Workflow())
+    )
     monkeypatch.setattr(run, 'check_deps', lambda *_a, **_k: [])
-    monkeypatch.setattr('nireports.assembler.tools.generate_reports', lambda *_a, **_k: calls.__setitem__('reports', True) or 0)
+    monkeypatch.setattr(
+        'nireports.assembler.tools.generate_reports',
+        lambda *_a, **_k: calls.__setitem__('reports', True) or 0,
+    )
     monkeypatch.setattr(
         'smriprep.utils.bids.write_derivative_description',
         lambda *_a, **_k: calls.__setitem__('desc', True),
     )
-    monkeypatch.setattr('smriprep.utils.bids.write_bidsignore', lambda *_a, **_k: calls.__setitem__('ignore', True))
+    monkeypatch.setattr(
+        'smriprep.utils.bids.write_bidsignore', lambda *_a, **_k: calls.__setitem__('ignore', True)
+    )
 
     with pytest.raises(SystemExit, match='0'):
         run.build_opts(opts)

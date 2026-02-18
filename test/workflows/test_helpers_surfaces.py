@@ -22,8 +22,6 @@
 #
 """Tests for surface workflow helpers."""
 
-from pathlib import Path
-
 import numpy as np
 import pytest
 

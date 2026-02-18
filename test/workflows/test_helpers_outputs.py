@@ -114,9 +114,15 @@ def test_outputs_helper_empty_and_read_json(tmp_path, monkeypatch):
 
 def test_rpt_masks(make_nifti, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    mask_file = make_nifti(tmp_path / 'mask.nii.gz', data=np.array([[[1, 0], [1, 0]]], dtype='uint8'))
-    before = make_nifti(tmp_path / 'before.nii.gz', data=np.array([[[2, 2], [2, 2]]], dtype='float32'))
-    after = make_nifti(tmp_path / 'after.nii.gz', data=np.array([[[3, 3], [3, 3]]], dtype='float32'))
+    mask_file = make_nifti(
+        tmp_path / 'mask.nii.gz', data=np.array([[[1, 0], [1, 0]]], dtype='uint8')
+    )
+    before = make_nifti(
+        tmp_path / 'before.nii.gz', data=np.array([[[2, 2], [2, 2]]], dtype='float32')
+    )
+    after = make_nifti(
+        tmp_path / 'after.nii.gz', data=np.array([[[3, 3], [3, 3]]], dtype='float32')
+    )
     after_mask = make_nifti(
         tmp_path / 'after_mask.nii.gz', data=np.array([[[1, 1], [0, 0]]], dtype='uint8')
     )
@@ -170,7 +176,9 @@ def test_init_outputs_workflow_smoke(monkeypatch):
         output_dir='.',
         surfaces=['sphere_reg', 'sphere_reg_fsLR', 'sphere_reg_msm'],
     )
-    wf_metrics = init_ds_surface_metrics_wf(bids_root='.', output_dir='.', metrics=['curv', 'sulc'])
+    wf_metrics = init_ds_surface_metrics_wf(
+        bids_root='.', output_dir='.', metrics=['curv', 'sulc']
+    )
     wf_grayord = init_ds_grayord_metrics_wf(
         bids_root='.',
         output_dir='.',

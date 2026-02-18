@@ -130,11 +130,17 @@ def test_collect_derivatives_partial_transforms(monkeypatch):
             if qry.get('suffix') != 'xfm':
                 return []
             if from_space == 'T1w' and to_space == 'MNI152NLin2009cAsym':
-                return ['/tmp/fwd-mni.h5'] if return_type == 'filename' else [_FakeItem('/tmp/fwd-mni.h5')]
+                return (
+                    ['/tmp/fwd-mni.h5']
+                    if return_type == 'filename'
+                    else [_FakeItem('/tmp/fwd-mni.h5')]
+                )
             if from_space == 'MNIPediatricAsym+3' and to_space == 'T1w':
-                return ['/tmp/rev-pediatric.h5'] if return_type == 'filename' else [
-                    _FakeItem('/tmp/rev-pediatric.h5')
-                ]
+                return (
+                    ['/tmp/rev-pediatric.h5']
+                    if return_type == 'filename'
+                    else [_FakeItem('/tmp/rev-pediatric.h5')]
+                )
             return []
 
     monkeypatch.setattr('smriprep.utils.bids.BIDSLayout', _FakeLayout)
@@ -158,7 +164,9 @@ def test_collect_derivatives_partial_transforms(monkeypatch):
         patterns={},
     )
     assert collected['transforms']['MNI152NLin2009cAsym'] == {'forward': '/tmp/fwd-mni.h5'}
-    assert collected['transforms']['MNIPediatricAsym:cohort-3'] == {'reverse': '/tmp/rev-pediatric.h5'}
+    assert collected['transforms']['MNIPediatricAsym:cohort-3'] == {
+        'reverse': '/tmp/rev-pediatric.h5'
+    }
 
 
 def test_collect_derivatives_enforces_surface_and_mask_cardinality(monkeypatch):

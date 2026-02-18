@@ -88,7 +88,9 @@ def make_gifti_label():
         path = Path(path)
         if data is None:
             data = np.array([1, 0, 1, 1], dtype='int32')
-        darray = nb.gifti.GiftiDataArray(np.asarray(data, dtype='int32'), intent='NIFTI_INTENT_LABEL')
+        darray = nb.gifti.GiftiDataArray(
+            np.asarray(data, dtype='int32'), intent='NIFTI_INTENT_LABEL'
+        )
         nb.GiftiImage(darrays=[darray]).to_filename(path)
         return str(path)
 
