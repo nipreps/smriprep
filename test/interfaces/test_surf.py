@@ -2,9 +2,9 @@ import nibabel as nb
 import numpy as np
 from nipype.pipeline import engine as pe
 
-from smriprep.interfaces.tests.data import load as load_test_data
+from test.interfaces.data import load as load_test_data
 
-from ..surf import MakeRibbon
+from smriprep.interfaces.surf import MakeRibbon
 
 
 def test_MakeRibbon(tmp_path):

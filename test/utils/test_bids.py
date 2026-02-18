@@ -1,7 +1,7 @@
 import pytest
 from niworkflows.utils.testing import generate_bids_skeleton
 
-from ..bids import collect_derivatives
+from smriprep.utils.bids import collect_derivatives
 from . import DERIV_SKELETON
 
 
