@@ -27,5 +27,13 @@ repos:
     rev: v1.22.0
     hooks:
       - id: zizmor
+  - repo: local
+    hooks:
+      - id: check-python-headers
+        name: check python headers
+        entry: python3 tools/check_python_headers.py
+        language: system
+        files: ^(src|test)/.*\.py$
+        pass_filenames: false
 ci:
   autoupdate_schedule: monthly
