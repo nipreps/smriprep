@@ -86,9 +86,6 @@ exclude = [".git_archival.txt"]  # No longer needed in sdist
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/smriprep"]
-exclude = [
-    "src/smriprep/data/tests/work",  # Large test data directory
-]
 
 ##  The following two sections configure setuptools_scm in the hatch way
 
@@ -104,7 +101,7 @@ version-file = "src/smriprep/_version.py"
 
 [tool.pytest.ini_options]
 minversion = "8"
-testpaths = ["src"]
+testpaths = ["src", "test"]
 log_level = "INFO"
 xfail_strict = true
 norecursedirs = [".git"]
