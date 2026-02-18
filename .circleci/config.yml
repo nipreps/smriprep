@@ -358,7 +358,9 @@ jobs:
                 --entrypoint=coverage \
                 nipreps/smriprep:latest \
                 xml
+      # CODECOV_TOKEN is provided by the nipreps-common CircleCI context.
       - codecov/upload:
+          token: CODECOV_TOKEN
           file: /tmp/src/smriprep/coverage.xml
           flags: ds005
       - run:
@@ -510,7 +512,9 @@ jobs:
                 --entrypoint=coverage \
                 nipreps/smriprep:latest \
                 xml
+      # CODECOV_TOKEN is provided by the nipreps-common CircleCI context.
       - codecov/upload:
+          token: CODECOV_TOKEN
           file: /tmp/src/smriprep/coverage.xml
           flags: ds054
       - run:
