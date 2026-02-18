@@ -31,11 +31,11 @@ from niworkflows.interfaces.fixes import FixHeaderApplyTransforms as ApplyTransf
 from niworkflows.interfaces.nibabel import ApplyMask, GenerateSamplingReference
 from niworkflows.interfaces.space import SpaceDataSource
 from niworkflows.interfaces.utility import KeySelect
+from templateflow import api as tf
 
 from ..interfaces import DerivativesDataSink
 from ..interfaces.bids import BIDSURI
 from ..interfaces.templateflow import (
-    TemplateFlowReference,
     TemplateFlowSelect,
     fetch_template_files,
 )
@@ -963,16 +963,11 @@ def init_ds_anat_volumes_wf(
     raw_sources = pe.Node(niu.Function(function=_bids_relative), name='raw_sources')
     raw_sources.inputs.bids_root = bids_root
 
-    spatial_reference = pe.Node(
-        TemplateFlowReference(),
-        name='spatial_reference',
-    )
-
     dataset_links = (dataset_links or {}).copy()
     if 'bids' not in dataset_links:
         dataset_links['bids'] = str(output_dir)
     if 'templateflow' not in dataset_links:
-        dataset_links['templateflow'] = 'https://templateflow.s3.amazonaws.com'
+        dataset_links['templateflow'] = str(tf.TF_LAYOUT.root)
 
     spatial_reference_uri = pe.Node(
         BIDSURI(
@@ -1043,8 +1038,7 @@ def init_ds_anat_volumes_wf(
     ds_std_tpms.inputs.label = tpm_labels
 
     workflow.connect([
-        (inputnode, spatial_reference, [('ref_file', 'template')]),
-        (spatial_reference, spatial_reference_uri, [('uri', 'in1')]),
+        (inputnode, spatial_reference_uri, [('ref_file', 'in1')]),
         (inputnode, gen_ref, [
             ('ref_file', 'fixed_image'),
             (('resolution', _is_native), 'keep_native'),
