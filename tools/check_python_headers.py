@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 """Check and normalize canonical NiPreps Python headers in src/ and test/."""
 
 from __future__ import annotations
 
 import argparse
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -47,9 +47,18 @@ PARTIAL_EDITOR_HEADER = re.compile(
 
 
 def iter_python_files(root: Path) -> list[Path]:
+    git_executable = shutil.which('git')
+    if git_executable is None:
+        files: list[Path] = []
+        for dirname in ('src', 'test'):
+            folder = root / dirname
+            if folder.exists():
+                files.extend(folder.rglob('*.py'))
+        return sorted(files, key=lambda path: path.as_posix())
+
     try:
         result = subprocess.run(
-            ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '--', 'src', 'test'],
+            [git_executable, 'ls-files', '--cached', '--', 'src', 'test'],
             check=True,
             capture_output=True,
             text=True,
@@ -63,7 +72,11 @@ def iter_python_files(root: Path) -> list[Path]:
                 files.extend(folder.rglob('*.py'))
         return sorted(files, key=lambda path: path.as_posix())
 
-    files = [root / relpath for relpath in result.stdout.splitlines() if relpath.endswith('.py')]
+    files = [
+        root / relpath
+        for relpath in result.stdout.splitlines()
+        if relpath.endswith('.py') and (root / relpath).exists()
+    ]
     return sorted(files, key=lambda path: path.as_posix())
 
 
