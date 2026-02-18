@@ -48,44 +48,44 @@ class _FakeSpaces:
 
 
 def _make_cli_opts(tmp_path, **overrides):
-    defaults = dict(
-        bids_dir=tmp_path / 'bids',
-        output_dir=tmp_path / 'out',
-        analysis_level='participant',
-        participant_label=None,
-        session_label=None,
-        derivatives=[],
-        bids_filter_file=None,
-        subject_anatomical_reference='first-lex',
-        nprocs=2,
-        omp_nthreads=0,
-        mem_gb=0,
-        low_mem=False,
-        use_plugin=None,
-        boilerplate=False,
-        verbose_count=0,
-        output_spaces=_FakeSpaces(),
-        longitudinal=False,
-        skull_strip_template=['OASIS30ANTs'],
-        skull_strip_fixed_seed=False,
-        skull_strip_mode='auto',
-        fs_license_file=None,
-        fs_subjects_dir=None,
-        fs_no_resume=False,
-        cifti_output=False,
-        hires=True,
-        msm_sulc=True,
-        run_reconall=False,
-        work_dir=tmp_path / 'work',
-        fast_track=False,
-        resource_monitor=False,
-        reports_only=False,
-        run_uuid=None,
-        write_graph=False,
-        stop_on_first_crash=False,
-        notrack=False,
-        sloppy=False,
-    )
+    defaults = {
+        'bids_dir': tmp_path / 'bids',
+        'output_dir': tmp_path / 'out',
+        'analysis_level': 'participant',
+        'participant_label': None,
+        'session_label': None,
+        'derivatives': [],
+        'bids_filter_file': None,
+        'subject_anatomical_reference': 'first-lex',
+        'nprocs': 2,
+        'omp_nthreads': 0,
+        'mem_gb': 0,
+        'low_mem': False,
+        'use_plugin': None,
+        'boilerplate': False,
+        'verbose_count': 0,
+        'output_spaces': _FakeSpaces(),
+        'longitudinal': False,
+        'skull_strip_template': ['OASIS30ANTs'],
+        'skull_strip_fixed_seed': False,
+        'skull_strip_mode': 'auto',
+        'fs_license_file': None,
+        'fs_subjects_dir': None,
+        'fs_no_resume': False,
+        'cifti_output': False,
+        'hires': True,
+        'msm_sulc': True,
+        'run_reconall': False,
+        'work_dir': tmp_path / 'work',
+        'fast_track': False,
+        'resource_monitor': False,
+        'reports_only': False,
+        'run_uuid': None,
+        'write_graph': False,
+        'stop_on_first_crash': False,
+        'notrack': False,
+        'sloppy': False,
+    }
     defaults.update(overrides)
     return Namespace(**defaults)
 
@@ -249,8 +249,8 @@ class _Process:
 def _populate_retval(retval, workflow):
     retval['workflow'] = workflow
     retval['plugin_settings'] = {'plugin': 'MultiProc', 'plugin_args': {}}
-    retval['bids_dir'] = '/tmp/bids'
-    retval['output_dir'] = '/tmp/out'
+    retval['bids_dir'] = '/mock/bids'
+    retval['output_dir'] = '/mock/out'
     retval['subject_session_list'] = [('01', None)]
     retval['run_uuid'] = '20260101-000000_uuid'
     retval['return_code'] = 0

@@ -48,9 +48,9 @@ def test_fmt_cohort():
 
 
 def test_set_reference():
-    assert _set_reference('T1w', '/tmp/tpl-T1w.nii.gz') == ('T1w', Undefined)
-    assert _set_reference('T2w', '/tmp/tpl-T1w.nii.gz', '/tmp/tpl-T2w.nii.gz') == (
+    assert _set_reference('T1w', '/mock/tpl-T1w.nii.gz') == ('T1w', Undefined)
+    assert _set_reference('T2w', '/mock/tpl-T1w.nii.gz', '/mock/tpl-T2w.nii.gz') == (
         'T2w',
         Undefined,
     )
-    assert _set_reference('T2w', '/tmp/tpl-T1w.nii.gz', None) == ('T1w', False)
+    assert _set_reference('T2w', '/mock/tpl-T1w.nii.gz', None) == ('T1w', False)

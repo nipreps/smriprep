@@ -86,9 +86,9 @@ def test_collect_derivatives_respects_session_id(monkeypatch):
         def get(self, return_type=None, **qry):
             self.calls.append(qry)
             if qry.get('suffix') == 'T1w' and qry.get('desc') == 'preproc':
-                return [_FakeItem('/tmp/sub-01_ses-pre_desc-preproc_T1w.nii.gz')]
+                return [_FakeItem('/mock/sub-01_ses-pre_desc-preproc_T1w.nii.gz')]
             if qry.get('suffix') == 'xfm':
-                path = '/tmp/sub-01_ses-pre_from-T1w_to-MNI152NLin2009cAsym_xfm.h5'
+                path = '/mock/sub-01_ses-pre_from-T1w_to-MNI152NLin2009cAsym_xfm.h5'
                 return [path] if return_type == 'filename' else [_FakeItem(path)]
             return []
 
@@ -106,7 +106,7 @@ def test_collect_derivatives_respects_session_id(monkeypatch):
     }
 
     collected = collect_derivatives(
-        '/tmp/derivs',
+        '/mock/derivs',
         '01',
         ['MNI152NLin2009cAsym'],
         spec=spec,
@@ -131,15 +131,15 @@ def test_collect_derivatives_partial_transforms(monkeypatch):
                 return []
             if from_space == 'T1w' and to_space == 'MNI152NLin2009cAsym':
                 return (
-                    ['/tmp/fwd-mni.h5']
+                    ['/mock/fwd-mni.h5']
                     if return_type == 'filename'
-                    else [_FakeItem('/tmp/fwd-mni.h5')]
+                    else [_FakeItem('/mock/fwd-mni.h5')]
                 )
             if from_space == 'MNIPediatricAsym+3' and to_space == 'T1w':
                 return (
-                    ['/tmp/rev-pediatric.h5']
+                    ['/mock/rev-pediatric.h5']
                     if return_type == 'filename'
-                    else [_FakeItem('/tmp/rev-pediatric.h5')]
+                    else [_FakeItem('/mock/rev-pediatric.h5')]
                 )
             return []
 
@@ -157,15 +157,15 @@ def test_collect_derivatives_partial_transforms(monkeypatch):
     }
 
     collected = collect_derivatives(
-        '/tmp/derivs',
+        '/mock/derivs',
         '01',
         ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3'],
         spec=spec,
         patterns={},
     )
-    assert collected['transforms']['MNI152NLin2009cAsym'] == {'forward': '/tmp/fwd-mni.h5'}
+    assert collected['transforms']['MNI152NLin2009cAsym'] == {'forward': '/mock/fwd-mni.h5'}
     assert collected['transforms']['MNIPediatricAsym:cohort-3'] == {
-        'reverse': '/tmp/rev-pediatric.h5'
+        'reverse': '/mock/rev-pediatric.h5'
     }
 
 
@@ -176,10 +176,10 @@ def test_collect_derivatives_enforces_surface_and_mask_cardinality(monkeypatch):
 
         def get(self, return_type=None, **qry):
             if qry.get('suffix') == 'white':
-                files = ['/tmp/lh.white.surf.gii']  # Missing right hemisphere
+                files = ['/mock/lh.white.surf.gii']  # Missing right hemisphere
                 return files if return_type == 'filename' else [_FakeItem(files[0])]
             if qry.get('suffix') == 'mask':
-                files = ['/tmp/ribbon1.nii.gz', '/tmp/ribbon2.nii.gz']  # Should be exactly one
+                files = ['/mock/ribbon1.nii.gz', '/mock/ribbon2.nii.gz']  # Should be exactly one
                 return files if return_type == 'filename' else [_FakeItem(fl) for fl in files]
             return []
 
@@ -192,7 +192,7 @@ def test_collect_derivatives_enforces_surface_and_mask_cardinality(monkeypatch):
         'surfaces': {'white': {'suffix': 'white'}},
         'masks': {'anat_ribbon': {'suffix': 'mask'}},
     }
-    collected = collect_derivatives('/tmp/derivs', '01', [], spec=spec, patterns={})
+    collected = collect_derivatives('/mock/derivs', '01', [], spec=spec, patterns={})
     assert 'white' not in collected
     assert 'anat_ribbon' not in collected
 
@@ -205,9 +205,9 @@ def test_collect_derivatives_respects_label_query_order(monkeypatch):
         def get(self, return_type=None, **qry):
             if qry.get('suffix') == 'probseg':
                 items = [
-                    _FakeItem('/tmp/label-CSF_probseg.nii.gz', label='CSF'),
-                    _FakeItem('/tmp/label-GM_probseg.nii.gz', label='GM'),
-                    _FakeItem('/tmp/label-WM_probseg.nii.gz', label='WM'),
+                    _FakeItem('/mock/label-CSF_probseg.nii.gz', label='CSF'),
+                    _FakeItem('/mock/label-GM_probseg.nii.gz', label='GM'),
+                    _FakeItem('/mock/label-WM_probseg.nii.gz', label='WM'),
                 ]
                 return items
             return []
@@ -223,9 +223,9 @@ def test_collect_derivatives_respects_label_query_order(monkeypatch):
         'surfaces': {},
         'masks': {},
     }
-    collected = collect_derivatives('/tmp/derivs', '01', [], spec=spec, patterns={})
+    collected = collect_derivatives('/mock/derivs', '01', [], spec=spec, patterns={})
     assert collected['t1w_tpms'] == [
-        '/tmp/label-GM_probseg.nii.gz',
-        '/tmp/label-WM_probseg.nii.gz',
-        '/tmp/label-CSF_probseg.nii.gz',
+        '/mock/label-GM_probseg.nii.gz',
+        '/mock/label-WM_probseg.nii.gz',
+        '/mock/label-CSF_probseg.nii.gz',
     ]

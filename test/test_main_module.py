@@ -33,7 +33,7 @@ def test_main_module_rewrites_argv_and_calls_main(monkeypatch):
         captured['argv0'] = sys.argv[0]
 
     monkeypatch.setattr('smriprep.cli.run.main', _fake_main)
-    monkeypatch.setattr(sys, 'argv', ['/tmp/__main__.py'])
+    monkeypatch.setattr(sys, 'argv', ['/mock/__main__.py'])
 
     runpy.run_module('smriprep.__main__', run_name='__main__')
     assert captured['argv0'] == f'{sys.executable} -m smriprep'
