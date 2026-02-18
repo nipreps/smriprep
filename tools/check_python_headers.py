@@ -68,6 +68,10 @@ def iter_python_files(root: Path) -> list[Path]:
 
 
 def normalize_text(text: str) -> str:
+    if text == '':
+        # Keep intentionally empty marker files (for example empty __init__.py) headerless.
+        return text
+
     body = text
     if body.startswith('#!'):
         body = body.split('\n', 1)[1] if '\n' in body else ''
