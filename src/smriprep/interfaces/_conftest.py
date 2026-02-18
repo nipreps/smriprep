@@ -15,6 +15,10 @@ def _docdir(request, tmp_path, monkeypatch):
         yield
         return
 
-    copytree(Path(request.config.rootpath) / 'test' / 'interfaces' / 'data', tmp_path, dirs_exist_ok=True)
+    copytree(
+        Path(request.config.rootpath) / 'test' / 'interfaces' / 'data',
+        tmp_path,
+        dirs_exist_ok=True,
+    )
     monkeypatch.chdir(tmp_path)
     yield
