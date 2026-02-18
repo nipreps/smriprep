@@ -106,15 +106,12 @@ exclude = ".*"
 [tool.pytest.ini_options]
 minversion = "8"
 testpaths = ["src", "test"]
-pythonpath = ["src", "."]
 log_level = "INFO"
 xfail_strict = true
 norecursedirs = [".git"]
 addopts = [
   "-svx",
   "-ra",
-  "-p",
-  "test._fixtures",
   "--strict-config",
   "--strict-markers",
   "--doctest-modules",

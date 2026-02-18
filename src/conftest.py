@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from smriprep.data import load
+from smriprep.interfaces._conftest import _docdir  # noqa: F401
 
 os.environ['NO_ET'] = '1'
 
