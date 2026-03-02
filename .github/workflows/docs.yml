@@ -256,7 +256,7 @@ jobs:
       contents: write
     steps:
       - name: Download versioned docs artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: docs-versioned-html
           path: /tmp/docs-site
@@ -309,7 +309,7 @@ jobs:
       contents: write
     steps:
       - name: Download versioned docs artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: docs-versioned-html
           path: /tmp/docs-site
