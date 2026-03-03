@@ -173,7 +173,7 @@ jobs:
 
     steps:
       - name: Download packages built by build-and-inspect-python-package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: Packages-*
           path: dist
@@ -228,7 +228,7 @@ jobs:
 
     steps:
       - name: Download packages built by build-and-inspect-python-package
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: Packages-*
           path: dist
