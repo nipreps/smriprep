@@ -180,7 +180,7 @@ jobs:
         run: make -C docs NO_ET=1 SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
 
       - name: Upload unversioned docs artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: docs-unversioned-html
           path: docs/_build/no_version_html/html
@@ -234,7 +234,7 @@ jobs:
 
       - name: Upload versioned docs artifact
         if: steps.versioned.outputs.build_versioned == 'true'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: docs-versioned-html
           path: docs/_build/html
