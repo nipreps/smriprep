@@ -20,6 +20,8 @@
 #
 #     https://www.nipreps.org/community/licensing/
 #
+import logging
+
 import pytest
 from niworkflows.utils.testing import generate_bids_skeleton
 
@@ -57,6 +59,40 @@ def test_collect_derivatives(deriv_dset):
         'sphere_reg_msm',
     ):
         assert len(collected[surface]) == 2
+
+
+@pytest.mark.parametrize(
+    ('sphere_reg_entities', 'warns'),
+    [
+        pytest.param({'desc': 'reg'}, True, id='without-fsaverage'),
+        pytest.param({'space': 'fsaverage', 'desc': 'reg'}, False, id='with-fsaverage'),
+    ],
+)
+def test_collect_derivatives_reuses_sphere_reg(tmp_path, caplog, sphere_reg_entities, warns):
+    """The fsaverage registration sphere is reusable under both naming conventions."""
+    skeleton = {
+        '01': [
+            {
+                'anat': [
+                    {
+                        'suffix': 'sphere',
+                        'hemi': hemi,
+                        'extension': '.surf.gii',
+                        **sphere_reg_entities,
+                    }
+                    for hemi in ('L', 'R')
+                ]
+            }
+        ]
+    }
+    deriv_dir = tmp_path / 'derivatives'
+    generate_bids_skeleton(deriv_dir, skeleton)
+
+    with caplog.at_level(logging.WARNING, logger='nipype.workflow'):
+        collected = collect_derivatives(deriv_dir, '01', [])
+
+    assert len(collected['sphere_reg']) == 2
+    assert any('legacy sphere_reg' in record.message for record in caplog.records) is warns
 
 
 def test_collect_derivatives_transforms(deriv_dset):
