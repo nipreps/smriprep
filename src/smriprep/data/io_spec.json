@@ -134,7 +134,7 @@
       "sphere_reg": {
         "datatype": "anat",
         "hemi": ["L", "R"],
-        "space": null,
+        "space": [null, "fsaverage"],
         "desc": "reg",
         "suffix": "sphere",
         "extension": ".surf.gii"

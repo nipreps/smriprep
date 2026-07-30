@@ -22,6 +22,7 @@
 #
 """Utilities to handle BIDS inputs."""
 
+import logging
 from json import loads
 from pathlib import Path
 
@@ -29,6 +30,8 @@ from bids.layout import BIDSLayout
 from niworkflows.data import load as nwf_load
 
 import smriprep
+
+LOGGER = logging.getLogger('nipype.workflow')
 
 
 def collect_derivatives(
@@ -91,6 +94,17 @@ def collect_derivatives(
         item = layout.get(return_type='filename', **qry)
         if not item or len(item) != 2:
             continue
+
+        # sphere_reg added ``space-fsaverage`` in sMRIPrep 0.16.0
+        if key == 'sphere_reg':
+            legacy = [f for f in item if 'space' not in layout.parse_file_entities(f)]
+            if legacy:
+                LOGGER.warning(
+                    f"Found legacy {key} derivative(s) that lack a 'space' entity; this "
+                    'naming is deprecated and may not be recognized in a future release. '
+                    'Rename or regenerate these derivatives with sMRIPrep >= 0.16.0. Files: %s',
+                    ', '.join(sorted(Path(f).name for f in legacy)),
+                )
 
         derivs_cache[key] = sorted(item)
 
