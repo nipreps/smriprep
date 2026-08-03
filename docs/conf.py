@@ -27,7 +27,7 @@ from smriprep import (
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'sphinxext')))
 
-from github_link import make_linkcode_resolve  # noqa: E402
+from github_link import make_linkcode_resolve
 
 os.environ['NO_ET'] = '1'
 
@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.abspath('../wrapper'))
 
 # -- Project information -----------------------------------------------------
 project = _package
-copyright = _copyright  # noqa: A001
+copyright = _copyright
 author = 'The sMRIPrep Developers'
 
 # The short X.Y version
