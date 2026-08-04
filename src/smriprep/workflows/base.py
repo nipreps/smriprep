@@ -366,7 +366,7 @@ def init_single_subject_wf(
         )[0]
 
     if not subject_data['t1w']:
-        raise Exception(
+        raise FileNotFoundError(
             f'No T1w images found for participant {subject_id}. All workflows require T1w images.'
         )
 

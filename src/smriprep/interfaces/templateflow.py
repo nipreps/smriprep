@@ -191,9 +191,8 @@ def fetch_template_files(
             }
         )
 
-    if res := specs.pop('res', None):
-        if res != 'native':
-            specs['resolution'] = res
+    if (res := specs.pop('res', None)) and res != 'native':
+        specs['resolution'] = res
 
     if not specs.get('resolution'):
         specs['resolution'] = 2 if sloppy else 1
