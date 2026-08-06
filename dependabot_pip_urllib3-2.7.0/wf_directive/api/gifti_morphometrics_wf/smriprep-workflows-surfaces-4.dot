@@ -1,0 +1,14 @@
+strict digraph {
+"inputnode (utility)";
+"get_surfaces (patches)";
+"surfmorph_list (utility)";
+"morphs2gii (freesurfer)";
+"outputnode (utility)";
+"morph_groups (utility)";
+"inputnode (utility)" -> "get_surfaces (patches)";
+"get_surfaces (patches)" -> "surfmorph_list (utility)";
+"surfmorph_list (utility)" -> "morphs2gii (freesurfer)";
+"morphs2gii (freesurfer)" -> "outputnode (utility)";
+"morphs2gii (freesurfer)" -> "morph_groups (utility)";
+"morph_groups (utility)" -> "outputnode (utility)";
+}

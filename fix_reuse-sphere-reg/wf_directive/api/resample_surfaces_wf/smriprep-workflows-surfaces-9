@@ -1,0 +1,17 @@
+digraph resample_surfaces_wf{
+  label="resample_surfaces_wf";
+  resample_surfaces_wf_inputnode[label="inputnode (utility)", style=filled, fillcolor="#FFFFC8"];
+  resample_surfaces_wf_surface_list[label="surface_list (utility)", style=filled, fillcolor="#FFFFC8"];
+  resample_surfaces_wf_resampler[label="resampler (workbench)", style=filled, fillcolor="#FFFFC8"];
+  resample_surfaces_wf_surface_groups[label="surface_groups (utility)", style=filled, fillcolor="#FFFFC8"];
+  resample_surfaces_wf_outputnode[label="outputnode (utility)", style=filled, fillcolor="#FFFFC8"];
+  resample_surfaces_wf_inputnode -> resample_surfaces_wf_surface_list;
+  resample_surfaces_wf_inputnode -> resample_surfaces_wf_surface_list;
+  resample_surfaces_wf_inputnode -> resample_surfaces_wf_surface_list;
+  resample_surfaces_wf_inputnode -> resample_surfaces_wf_resampler;
+  resample_surfaces_wf_surface_list -> resample_surfaces_wf_resampler;
+  resample_surfaces_wf_resampler -> resample_surfaces_wf_surface_groups;
+  resample_surfaces_wf_surface_groups -> resample_surfaces_wf_outputnode;
+  resample_surfaces_wf_surface_groups -> resample_surfaces_wf_outputnode;
+  resample_surfaces_wf_surface_groups -> resample_surfaces_wf_outputnode;
+}

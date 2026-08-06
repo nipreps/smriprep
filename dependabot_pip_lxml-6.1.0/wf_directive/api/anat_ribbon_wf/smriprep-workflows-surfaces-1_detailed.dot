@@ -1,0 +1,15 @@
+digraph structs {
+node [shape=record];
+anat_ribbon_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outpial> pial|<outreffile> ref_file|<outwhite> white}"];
+anat_ribbon_wfcreate_wm_distvol [label="{IN|<inreffile> ref_file|<insurffile> surf_file}|{ create_wm_distvol | workbench |  }|{OUT|<outoutfile> out_file}"];
+anat_ribbon_wfcreate_pial_distvol [label="{IN|<inreffile> ref_file|<insurffile> surf_file}|{ create_pial_distvol | workbench |  }|{OUT|<outoutfile> out_file}"];
+anat_ribbon_wfmake_ribbon [label="{IN|<inpialdistvols> pial_distvols|<inwhitedistvols> white_distvols}|{ make_ribbon | surf |  }|{OUT|<outribbon> ribbon}"];
+anat_ribbon_wfoutputnode [label="{IN|<inanatribbon> anat_ribbon}|{ outputnode | utility |  }|{OUT}"];
+anat_ribbon_wfcreate_pial_distvol:outoutfile:e -> anat_ribbon_wfmake_ribbon:inpialdistvols:w;
+anat_ribbon_wfcreate_wm_distvol:outoutfile:e -> anat_ribbon_wfmake_ribbon:inwhitedistvols:w;
+anat_ribbon_wfinputnode:outpial:e -> anat_ribbon_wfcreate_pial_distvol:insurffile:w;
+anat_ribbon_wfinputnode:outreffile:e -> anat_ribbon_wfcreate_pial_distvol:inreffile:w;
+anat_ribbon_wfinputnode:outreffile:e -> anat_ribbon_wfcreate_wm_distvol:inreffile:w;
+anat_ribbon_wfinputnode:outwhite:e -> anat_ribbon_wfcreate_wm_distvol:insurffile:w;
+anat_ribbon_wfmake_ribbon:outribbon:e -> anat_ribbon_wfoutputnode:inanatribbon:w;
+}

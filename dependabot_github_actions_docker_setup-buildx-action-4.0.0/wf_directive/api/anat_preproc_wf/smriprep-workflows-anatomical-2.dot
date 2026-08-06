@@ -1,0 +1,24 @@
+strict digraph {
+"inputnode (utility)";
+"anat_fit_wf";
+"outputnode (utility)";
+"template_iterator_wf";
+"ds_anat_volumes_wf";
+"surface_derivatives_wf";
+"ds_surfaces_wf";
+"ds_curv_wf";
+"ds_fs_segs_wf";
+"inputnode (utility)" -> "anat_fit_wf";
+"anat_fit_wf" -> "outputnode (utility)";
+"anat_fit_wf" -> "template_iterator_wf";
+"anat_fit_wf" -> "ds_anat_volumes_wf";
+"anat_fit_wf" -> "surface_derivatives_wf";
+"anat_fit_wf" -> "ds_surfaces_wf";
+"anat_fit_wf" -> "ds_curv_wf";
+"anat_fit_wf" -> "ds_fs_segs_wf";
+"template_iterator_wf" -> "ds_anat_volumes_wf";
+"surface_derivatives_wf" -> "ds_surfaces_wf";
+"surface_derivatives_wf" -> "ds_curv_wf";
+"surface_derivatives_wf" -> "ds_fs_segs_wf";
+"surface_derivatives_wf" -> "outputnode (utility)";
+}

@@ -1,0 +1,24 @@
+strict digraph {
+"inputnode (utility)";
+"select_surfaces (utility)";
+"abs_thickness (gifti)";
+"fill_holes (workbench)";
+"native_roi (workbench)";
+"combine_sources (utility)";
+"itersource (utility)";
+"initial_roi (gifti)";
+"outputnode (utility)";
+"inputnode (utility)" -> "select_surfaces (utility)";
+"select_surfaces (utility)" -> "abs_thickness (gifti)";
+"select_surfaces (utility)" -> "fill_holes (workbench)";
+"select_surfaces (utility)" -> "native_roi (workbench)";
+"select_surfaces (utility)" -> "combine_sources (utility)";
+"abs_thickness (gifti)" -> "initial_roi (gifti)";
+"fill_holes (workbench)" -> "native_roi (workbench)";
+"native_roi (workbench)" -> "outputnode (utility)";
+"combine_sources (utility)" -> "outputnode (utility)";
+"itersource (utility)" -> "select_surfaces (utility)";
+"itersource (utility)" -> "abs_thickness (gifti)";
+"itersource (utility)" -> "initial_roi (gifti)";
+"initial_roi (gifti)" -> "fill_holes (workbench)";
+}

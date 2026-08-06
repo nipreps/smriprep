@@ -1,0 +1,7 @@
+smriprep.interfaces.fsl module
+==============================
+
+.. automodule:: smriprep.interfaces.fsl
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,6 @@
+digraph structs {
+node [shape=record];
+smriprep_wffsdir_run_testrun [label="{IN}|{ fsdir_run_testrun | bids |  }|{OUT|<outsubjectsdir> subjects_dir}"];
+smriprep_wfsub-smripreptest_wf [label="{IN|<ininputnodesubjectsdir> inputnode.subjects_dir}|{ sub-smripreptest_wf |  |  }|{OUT}"];
+smriprep_wffsdir_run_testrun:outsubjectsdir:e -> smriprep_wfsub-smripreptest_wf:ininputnodesubjectsdir:w;
+}

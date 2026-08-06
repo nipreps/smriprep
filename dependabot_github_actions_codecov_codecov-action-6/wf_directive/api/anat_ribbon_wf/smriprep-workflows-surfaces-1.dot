@@ -1,0 +1,12 @@
+strict digraph {
+"inputnode (utility)";
+"create_wm_distvol (workbench)";
+"create_pial_distvol (workbench)";
+"make_ribbon (surf)";
+"outputnode (utility)";
+"inputnode (utility)" -> "create_wm_distvol (workbench)";
+"inputnode (utility)" -> "create_pial_distvol (workbench)";
+"create_wm_distvol (workbench)" -> "make_ribbon (surf)";
+"create_pial_distvol (workbench)" -> "make_ribbon (surf)";
+"make_ribbon (surf)" -> "outputnode (utility)";
+}

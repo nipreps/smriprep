@@ -1,0 +1,15 @@
+digraph structs {
+node [shape=record];
+refinement_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outantssegs> ants_segs|<outfsnative2anatxfm> fsnative2anat_xfm|<outreferenceimage> reference_image|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+refinement_wfsegs_to_native_wf_aseg [label="{IN|<ininputnodefsnative2anatxfm> inputnode.fsnative2anat_xfm|<ininputnodeinfile> inputnode.in_file|<ininputnodesubjectid> inputnode.subject_id|<ininputnodesubjectsdir> inputnode.subjects_dir}|{ segs_to_native_wf_aseg |  |  }|{OUT|<outoutputnodeoutfile> outputnode.out_file}"];
+refinement_wfrefine [label="{IN|<ininanat> in_anat|<ininants> in_ants|<ininaseg> in_aseg}|{ refine | freesurfer |  }|{OUT|<outoutfile> out_file}"];
+refinement_wfoutputnode [label="{IN|<inoutbrainmask> out_brainmask}|{ outputnode | utility |  }|{OUT}"];
+refinement_wfinputnode:outantssegs:e -> refinement_wfrefine:ininants:w;
+refinement_wfinputnode:outfsnative2anatxfm:e -> refinement_wfsegs_to_native_wf_aseg:ininputnodefsnative2anatxfm:w;
+refinement_wfinputnode:outreferenceimage:e -> refinement_wfrefine:ininanat:w;
+refinement_wfinputnode:outreferenceimage:e -> refinement_wfsegs_to_native_wf_aseg:ininputnodeinfile:w;
+refinement_wfinputnode:outsubjectid:e -> refinement_wfsegs_to_native_wf_aseg:ininputnodesubjectid:w;
+refinement_wfinputnode:outsubjectsdir:e -> refinement_wfsegs_to_native_wf_aseg:ininputnodesubjectsdir:w;
+refinement_wfrefine:outoutfile:e -> refinement_wfoutputnode:inoutbrainmask:w;
+refinement_wfsegs_to_native_wf_aseg:outoutputnodeoutfile:e -> refinement_wfrefine:ininaseg:w;
+}

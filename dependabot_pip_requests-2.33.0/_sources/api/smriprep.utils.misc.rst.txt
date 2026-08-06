@@ -1,0 +1,7 @@
+smriprep.utils.misc module
+==========================
+
+.. automodule:: smriprep.utils.misc
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; smriprep 0.19.3.dev122 documentation</title>
+  <title>Usage &mdash; smriprep 0.19.3.dev127 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
@@ -49,22 +49,22 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#execution-and-the-bids-format">Execution and the BIDS format</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#command-line-arguments">Command-Line Arguments</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-positional-arguments">Positional Arguments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-named-arguments">Named Arguments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-options-for-filtering-bids-queries">Options for filtering BIDS queries</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-options-to-handle-performance">Options to handle performance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-workflow-configuration">Workflow configuration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-specific-options-for-ants-registrations">Specific options for ANTs registrations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-specific-options-for-freesurfer-preprocessing">Specific options for FreeSurfer preprocessing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-surface-preprocessing-options">Surface preprocessing options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep.cli.run-get_parser-other-options">Other options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-positional-arguments">Positional Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-options-for-filtering-bids-queries">Options for filtering BIDS queries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-options-to-handle-performance">Options to handle performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-workflow-configuration">Workflow configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-specific-options-for-ants-registrations">Specific options for ANTs registrations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-specific-options-for-freesurfer-preprocessing">Specific options for FreeSurfer preprocessing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-surface-preprocessing-options">Surface preprocessing options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-other-options">Other options</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#the-command-line-interface-of-the-docker-wrapper">The command-line interface of the docker wrapper</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep_docker-get_parser-positional-arguments">Positional Arguments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep_docker-get_parser-named-arguments">Named Arguments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep_docker-get_parser-wrapper-options">Wrapper options</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#smriprep_docker-get_parser-developer-options">Developer options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-docker-positional-arguments">Positional Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-docker-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-docker-wrapper-options">Wrapper options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smriprep-docker-developer-options">Developer options</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#the-freesurfer-license">The FreeSurfer license</a></li>
@@ -128,7 +128,7 @@ Example:</p>
 <h2>Command-Line Arguments<a class="headerlink" href="#command-line-arguments" title="Link to this heading"></a></h2>
 <p><p>sMRIPrep: Structural MRI PREProcessing workflows</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
+<div class="highlight-default notranslate" id="smriprep"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">--</span><span class="n">participant</span><span class="o">-</span><span class="n">label</span> <span class="n">PARTICIPANT_LABEL</span> <span class="p">[</span><span class="n">PARTICIPANT_LABEL</span> <span class="o">...</span><span class="p">]]</span>
                 <span class="p">[</span><span class="o">--</span><span class="n">session</span><span class="o">-</span><span class="n">label</span> <span class="n">SESSION_LABEL</span> <span class="p">[</span><span class="n">SESSION_LABEL</span> <span class="o">...</span><span class="p">]]</span>
                 <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="p">[</span><span class="n">PATH</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">bids</span><span class="o">-</span><span class="nb">filter</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span>
@@ -148,8 +148,8 @@ Example:</p>
                 <span class="n">bids_dir</span> <span class="n">output_dir</span> <span class="p">{</span><span class="n">participant</span><span class="p">}</span>
 </pre></div>
 </div>
-<section id="smriprep.cli.run-get_parser-positional-arguments">
-<h3>Positional Arguments<a class="headerlink" href="#smriprep.cli.run-get_parser-positional-arguments" title="Link to this heading"></a></h3>
+<section id="smriprep-positional-arguments">
+<span id="smriprep.cli.run-get_parser-positional-arguments"></span><h3>Positional Arguments<a class="headerlink" href="#smriprep-positional-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>bids_dir</kbd></dt>
 <dd><p>the root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder).</p>
@@ -163,16 +163,16 @@ Example:</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep.cli.run-get_parser-named-arguments">
-<h3>Named Arguments<a class="headerlink" href="#smriprep.cli.run-get_parser-named-arguments" title="Link to this heading"></a></h3>
+<section id="smriprep-named-arguments">
+<span id="smriprep.cli.run-get_parser-named-arguments"></span><h3>Named Arguments<a class="headerlink" href="#smriprep-named-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--version</kbd></dt>
 <dd><p>show program’s version number and exit</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep.cli.run-get_parser-options-for-filtering-bids-queries">
-<h3>Options for filtering BIDS queries<a class="headerlink" href="#smriprep.cli.run-get_parser-options-for-filtering-bids-queries" title="Link to this heading"></a></h3>
+<section id="smriprep-options-for-filtering-bids-queries">
+<span id="smriprep.cli.run-get_parser-options-for-filtering-bids-queries"></span><h3>Options for filtering BIDS queries<a class="headerlink" href="#smriprep-options-for-filtering-bids-queries" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--participant-label, --participant_label</kbd></dt>
 <dd><p>a space delimited list of participant identifiers or a single identifier (the sub- prefix can be removed)</p>
@@ -197,8 +197,8 @@ Example:</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep.cli.run-get_parser-options-to-handle-performance">
-<h3>Options to handle performance<a class="headerlink" href="#smriprep.cli.run-get_parser-options-to-handle-performance" title="Link to this heading"></a></h3>
+<section id="smriprep-options-to-handle-performance">
+<span id="smriprep.cli.run-get_parser-options-to-handle-performance"></span><h3>Options to handle performance<a class="headerlink" href="#smriprep-options-to-handle-performance" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--nprocs, --ncpus, --nthreads, --n_cpus, -n-cpus</kbd></dt>
 <dd><p>number of CPUs to be used.</p>
@@ -223,8 +223,8 @@ Example:</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep.cli.run-get_parser-workflow-configuration">
-<h3>Workflow configuration<a class="headerlink" href="#smriprep.cli.run-get_parser-workflow-configuration" title="Link to this heading"></a></h3>
+<section id="smriprep-workflow-configuration">
+<span id="smriprep.cli.run-get_parser-workflow-configuration"></span><h3>Workflow configuration<a class="headerlink" href="#smriprep-workflow-configuration" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--output-spaces</kbd></dt>
 <dd><p>paths or keywords prescribing output spaces - standard spaces will be extracted for spatial normalization.</p>
@@ -234,8 +234,8 @@ Example:</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep.cli.run-get_parser-specific-options-for-ants-registrations">
-<h3>Specific options for ANTs registrations<a class="headerlink" href="#smriprep.cli.run-get_parser-specific-options-for-ants-registrations" title="Link to this heading"></a></h3>
+<section id="smriprep-specific-options-for-ants-registrations">
+<span id="smriprep.cli.run-get_parser-specific-options-for-ants-registrations"></span><h3>Specific options for ANTs registrations<a class="headerlink" href="#smriprep-specific-options-for-ants-registrations" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--skull-strip-template</kbd></dt>
 <dd><p>select a template for skull-stripping with antsBrainExtraction</p>
@@ -249,8 +249,8 @@ Example:</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep.cli.run-get_parser-specific-options-for-freesurfer-preprocessing">
-<h3>Specific options for FreeSurfer preprocessing<a class="headerlink" href="#smriprep.cli.run-get_parser-specific-options-for-freesurfer-preprocessing" title="Link to this heading"></a></h3>
+<section id="smriprep-specific-options-for-freesurfer-preprocessing">
+<span id="smriprep.cli.run-get_parser-specific-options-for-freesurfer-preprocessing"></span><h3>Specific options for FreeSurfer preprocessing<a class="headerlink" href="#smriprep-specific-options-for-freesurfer-preprocessing" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--fs-license-file</kbd></dt>
 <dd><p>Path to FreeSurfer license key file. Get it (for free) by registering at <a class="reference external" href="https://surfer.nmr.mgh.harvard.edu/registration.html">https://surfer.nmr.mgh.harvard.edu/registration.html</a></p>
@@ -267,8 +267,8 @@ Example:</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep.cli.run-get_parser-surface-preprocessing-options">
-<h3>Surface preprocessing options<a class="headerlink" href="#smriprep.cli.run-get_parser-surface-preprocessing-options" title="Link to this heading"></a></h3>
+<section id="smriprep-surface-preprocessing-options">
+<span id="smriprep.cli.run-get_parser-surface-preprocessing-options"></span><h3>Surface preprocessing options<a class="headerlink" href="#smriprep-surface-preprocessing-options" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--no-submm-recon</kbd></dt>
 <dd><p>disable sub-millimeter (hires) reconstruction</p>
@@ -281,8 +281,8 @@ Example:</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep.cli.run-get_parser-other-options">
-<h3>Other options<a class="headerlink" href="#smriprep.cli.run-get_parser-other-options" title="Link to this heading"></a></h3>
+<section id="smriprep-other-options">
+<span id="smriprep.cli.run-get_parser-other-options"></span><h3>Other options<a class="headerlink" href="#smriprep-other-options" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>-w, --work-dir</kbd></dt>
 <dd><p>path where intermediate results should be stored</p>
@@ -329,15 +329,15 @@ forget to credit all the authors of software that sMRIPrep
 uses (consider using the citation boilerplate included in the
 individual reports).</p>
 </p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span><span class="o">-</span><span class="n">docker</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WORK_DIR</span><span class="p">]</span>
+<div class="highlight-default notranslate" id="smriprep-docker"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">smriprep</span><span class="o">-</span><span class="n">docker</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="n">IMG</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WORK_DIR</span><span class="p">]</span>
                        <span class="p">[</span><span class="o">--</span><span class="n">fs</span><span class="o">-</span><span class="n">license</span><span class="o">-</span><span class="n">file</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">use</span><span class="o">-</span><span class="n">plugin</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">PATH</span><span class="p">]</span>
                        <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">shell</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">config</span> <span class="n">PATH</span><span class="p">]</span>
                        <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENV_VAR</span> <span class="n">value</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">u</span> <span class="n">USER</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">tty</span><span class="p">]</span>
                        <span class="p">[</span><span class="n">bids_dir</span><span class="p">]</span> <span class="p">[</span><span class="n">output_dir</span><span class="p">]</span> <span class="p">[{</span><span class="n">participant</span><span class="p">}]</span>
 </pre></div>
 </div>
-<section id="smriprep_docker-get_parser-positional-arguments">
-<h3>Positional Arguments<a class="headerlink" href="#smriprep_docker-get_parser-positional-arguments" title="Link to this heading"></a></h3>
+<section id="smriprep-docker-positional-arguments">
+<span id="smriprep_docker-get_parser-positional-arguments"></span><h3>Positional Arguments<a class="headerlink" href="#smriprep-docker-positional-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>bids_dir</kbd></dt>
 <dd></dd>
@@ -348,8 +348,8 @@ individual reports).</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep_docker-get_parser-named-arguments">
-<h3>Named Arguments<a class="headerlink" href="#smriprep_docker-get_parser-named-arguments" title="Link to this heading"></a></h3>
+<section id="smriprep-docker-named-arguments">
+<span id="smriprep_docker-get_parser-named-arguments"></span><h3>Named Arguments<a class="headerlink" href="#smriprep-docker-named-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>-h, --help</kbd></dt>
 <dd><p>show this help message and exit</p>
@@ -362,8 +362,8 @@ individual reports).</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep_docker-get_parser-wrapper-options">
-<h3>Wrapper options<a class="headerlink" href="#smriprep_docker-get_parser-wrapper-options" title="Link to this heading"></a></h3>
+<section id="smriprep-docker-wrapper-options">
+<span id="smriprep_docker-get_parser-wrapper-options"></span><h3>Wrapper options<a class="headerlink" href="#smriprep-docker-wrapper-options" title="Link to this heading"></a></h3>
 <p>Standard options that require mapping files into the container</p>
 <dl class="option-list">
 <dt><kbd>-w, --work-dir</kbd></dt>
@@ -377,8 +377,8 @@ individual reports).</p>
 </dd>
 </dl>
 </section>
-<section id="smriprep_docker-get_parser-developer-options">
-<h3>Developer options<a class="headerlink" href="#smriprep_docker-get_parser-developer-options" title="Link to this heading"></a></h3>
+<section id="smriprep-docker-developer-options">
+<span id="smriprep_docker-get_parser-developer-options"></span><h3>Developer options<a class="headerlink" href="#smriprep-docker-developer-options" title="Link to this heading"></a></h3>
 <p>Tools for testing and debugging sMRIPrep</p>
 <dl class="option-list">
 <dt><kbd>-f, --patch-smriprep</kbd></dt>
@@ -524,11 +524,22 @@ RUNNING: docker run --rm -it -v /path/to/data/dir:/data:ro \
         </dl>
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../dependabot_github_actions_codecov_codecov-action-6/usage.html">dependabot/github_actions/codecov/codecov-action-6</a></dd>
+            <dd><a href="../dependabot_github_actions_docker_build-push-action-7.0.0/usage.html">dependabot/github_actions/docker/build-push-action-7.0.0</a></dd>
+            <dd><a href="../dependabot_github_actions_docker_login-action-4.0.0/usage.html">dependabot/github_actions/docker/login-action-4.0.0</a></dd>
+            <dd><a href="../dependabot_github_actions_docker_metadata-action-6.0.0/usage.html">dependabot/github_actions/docker/metadata-action-6.0.0</a></dd>
+            <dd><a href="../dependabot_github_actions_docker_setup-buildx-action-4.0.0/usage.html">dependabot/github_actions/docker/setup-buildx-action-4.0.0</a></dd>
+            <dd><a href="../dependabot_pip_idna-3.15/usage.html">dependabot/pip/idna-3.15</a></dd>
+            <dd><a href="../dependabot_pip_lxml-6.1.0/usage.html">dependabot/pip/lxml-6.1.0</a></dd>
+            <dd><a href="../dependabot_pip_pillow-12.2.0/usage.html">dependabot/pip/pillow-12.2.0</a></dd>
+            <dd><a href="../dependabot_pip_requests-2.33.0/usage.html">dependabot/pip/requests-2.33.0</a></dd>
+            <dd><a href="../dependabot_pip_urllib3-2.7.0/usage.html">dependabot/pip/urllib3-2.7.0</a></dd>
             <dd><a href="../dev-nibabies/usage.html">dev-nibabies</a></dd>
             <dd><a href="../enh_calabel/usage.html">enh/calabel</a></dd>
             <dd><a href="../enh_split-surfaces/usage.html">enh/split-surfaces</a></dd>
             <dd><a href="../fix_parcstats/usage.html">fix/parcstats</a></dd>
             <dd><a href="../fix_recon-report/usage.html">fix/recon-report</a></dd>
+            <dd><a href="../fix_reuse-sphere-reg/usage.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../fix_tfselect-resless/usage.html">fix/tfselect-resless</a></dd>
             <dd><a href="../maint_0.12.x/usage.html">maint/0.12.x</a></dd>
             <dd><a href="../maint_0.13.x/usage.html">maint/0.13.x</a></dd>
@@ -540,6 +551,7 @@ RUNNING: docker run --rm -it -v /path/to/data/dir:/data:ro \
             <dd><a href="../maint_0.8.x/usage.html">maint/0.8.x</a></dd>
             <dd><a href="usage.html">maint/0.9.x</a></dd>
             <dd><a href="../master/usage.html">master</a></dd>
+            <dd><a href="../pre-commit-ci-update-config/usage.html">pre-commit-ci-update-config</a></dd>
             <dd><a href="../rel_0.16.1/usage.html">rel/0.16.1</a></dd>
             <dd><a href="../rel_0.8.0rc1/usage.html">rel/0.8.0rc1</a></dd>
         </dl>
