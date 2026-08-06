@@ -65,7 +65,7 @@ def test_fs_isRunning_warns_on_cleanup(tmp_path):
         def __init__(self):
             self.msg = None
 
-        def warn(self, msg):
+        def warning(self, msg):
             self.msg = msg
 
     logger = _Logger()

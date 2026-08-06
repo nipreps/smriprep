@@ -93,7 +93,7 @@ and proceed to delete the files listed above."""
     for fl in isrunning:
         fl.unlink()
     if logger:
-        logger.warn(f'Removed "IsRunning*" files found under {subj_dir}')
+        logger.warning(f'Removed "IsRunning*" files found under {subj_dir}')
     return subjects_dir
 
 

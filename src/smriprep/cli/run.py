@@ -744,7 +744,7 @@ def build_workflow(opts, retval):
         str(log_dir / 'CITATION.html'),
     ]
     try:
-        check_call(cmd, timeout=10)  # noqa: S603
+        check_call(cmd, timeout=10)
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning('Could not generate CITATION.html file:\n%s', ' '.join(cmd))
 
@@ -760,7 +760,7 @@ def build_workflow(opts, retval):
         str(log_dir / 'CITATION.tex'),
     ]
     try:
-        check_call(cmd, timeout=10)  # noqa: S603
+        check_call(cmd, timeout=10)
     except (FileNotFoundError, CalledProcessError, TimeoutExpired):
         logger.warning('Could not generate CITATION.tex file:\n%s', ' '.join(cmd))
     else:
