@@ -61,10 +61,12 @@ dataset_description:
     extension: .surf.gii
   - suffix: sphere
     hemi: L
+    space: fsaverage
     desc: reg
     extension: .surf.gii
   - suffix: sphere
     hemi: R
+    space: fsaverage
     desc: reg
     extension: .surf.gii
   - suffix: sphere
