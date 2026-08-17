@@ -46,17 +46,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      # Pin to a specific v2 commit because floating @v2 can regress.
-      # This commit currently carries tooling that is Python 3.14 compatible.
-      # We also remove /tmp/baipp before each invocation as a temporary
-      # compatibility guard for cached-venv reuse until upstream behavior is
-      # stable across repeated invocations in one job.
-      #
-      # https://github.com/astral-sh/uv/issues/5450
-      # or https://github.com/hynek/build-and-inspect-python-package/issues/155
       - name: Clean up baipp virtualenv path (main build)
         run: rm -rf /tmp/baipp
-      - uses: hynek/build-and-inspect-python-package@efb823f52190ad02594531168b7a2d5790e66516 # v2
+      - uses: hynek/build-and-inspect-python-package@2abe76da66d0a6a4a227101f9348ee855797cfa5 # v3.0.1
         id: build-smriprep
         with:
           upload-name-suffix: -main
@@ -67,7 +59,7 @@ jobs:
           DIST: ${{ steps.build-smriprep.outputs.dist }}
       - name: Clean up baipp virtualenv path (wrapper build)
         run: rm -rf /tmp/baipp
-      - uses: hynek/build-and-inspect-python-package@efb823f52190ad02594531168b7a2d5790e66516 # v2
+      - uses: hynek/build-and-inspect-python-package@2abe76da66d0a6a4a227101f9348ee855797cfa5 # v3.0.1
         id: build-wrapper
         with:
           path: wrapper
