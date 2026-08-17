@@ -181,4 +181,4 @@ inline-quotes = "single"
 quote-style = "single"
 
 [tool.codespell]
-skip = "*/data/*,*/docs/_build/*,*.svg,*/docs/_static/*"
+skip = "*/data/*,*docs/_build/*,*.svg,*docs/_static/*"
