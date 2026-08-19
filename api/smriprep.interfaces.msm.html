@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.msm module &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.interfaces.msm module &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -124,15 +124,15 @@ optimisation framework (FastPD Komodakis 2007), which significantly reduces the 
 space of possible deformations for each vertex, and allows flexibility with regards to the
 choice of similarity metric used to match the images.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">msm</span> <span class="o">=</span> <span class="n">MSM</span><span class="p">(</span>
-<span class="gp">... </span>  <span class="n">config_file</span><span class="o">=</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;msm/MSMSulcStrainFinalconf&#39;</span><span class="p">),</span>
-<span class="gp">... </span>  <span class="n">in_mesh</span><span class="o">=</span><span class="s1">&#39;sub-01_hemi-L_sphere.surf.gii&#39;</span><span class="p">,</span>
-<span class="gp">... </span>  <span class="n">reference_mesh</span><span class="o">=</span><span class="s1">&#39;tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii&#39;</span><span class="p">,</span>
-<span class="gp">... </span>  <span class="n">in_data</span><span class="o">=</span><span class="s1">&#39;sub-01_hemi-L_sulc.shape.gii&#39;</span><span class="p">,</span>
-<span class="gp">... </span>  <span class="n">reference_data</span><span class="o">=</span><span class="s1">&#39;tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii&#39;</span><span class="p">,</span>
-<span class="gp">... </span>  <span class="n">out_base</span><span class="o">=</span><span class="s1">&#39;L.&#39;</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">config_file</span><span class="o">=</span><span class="n">load</span><span class="p">(</span><span class="s1">'msm/MSMSulcStrainFinalconf'</span><span class="p">),</span>
+<span class="gp">... </span>  <span class="n">in_mesh</span><span class="o">=</span><span class="s1">'sub-01_hemi-L_sphere.surf.gii'</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">reference_mesh</span><span class="o">=</span><span class="s1">'tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii'</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">in_data</span><span class="o">=</span><span class="s1">'sub-01_hemi-L_sulc.shape.gii'</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">reference_data</span><span class="o">=</span><span class="s1">'tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii'</span><span class="p">,</span>
+<span class="gp">... </span>  <span class="n">out_base</span><span class="o">=</span><span class="s1">'L.'</span><span class="p">,</span>
 <span class="gp">... </span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">msm</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;msm --conf=.../MSMSulcStrainFinalconf     --indata=sub-01_hemi-L_sulc.shape.gii     --inmesh=sub-01_hemi-L_sphere.surf.gii     --out=L.     --refdata=tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii     --refmesh=tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii&#39;</span>
+<span class="go">'msm --conf=.../MSMSulcStrainFinalconf     --indata=sub-01_hemi-L_sulc.shape.gii     --inmesh=sub-01_hemi-L_sphere.surf.gii     --out=L.     --refdata=tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii     --refmesh=tpl-fsaverage_hemi-L_den-164k_desc-std_sphere.surf.gii'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -268,7 +268,6 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
             <dd><a href="../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../fix_reuse-sphere-reg/api/smriprep.interfaces.msm.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
             <dd><a href="../maint_0.12.x/index.html">maint/0.12.x</a></dd>
             <dd><a href="../maint_0.13.x/api/smriprep.interfaces.msm.html">maint/0.13.x</a></dd>

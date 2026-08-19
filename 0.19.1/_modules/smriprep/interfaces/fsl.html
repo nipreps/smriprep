@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.fsl &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.interfaces.fsl &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -88,14 +88,14 @@
 <span class="c1">#</span>
 <span class="c1"># Copyright The NiPreps Developers &lt;nipreps@gmail.com&gt;</span>
 <span class="c1">#</span>
-<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="c1"># you may not use this file except in compliance with the License.</span>
 <span class="c1"># You may obtain a copy of the License at</span>
 <span class="c1">#</span>
 <span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
 <span class="c1">#</span>
 <span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
-<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
@@ -114,25 +114,25 @@
     <span class="n">bias_iters</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">Range</span><span class="p">(</span>
         <span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">high</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-        <span class="n">argstr</span><span class="o">=</span><span class="s1">&#39;-I </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span>
-        <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;number of main-loop iterations during bias-field removal&#39;</span><span class="p">,</span>
+        <span class="n">argstr</span><span class="o">=</span><span class="s1">'-I </span><span class="si">%d</span><span class="s1">'</span><span class="p">,</span>
+        <span class="n">desc</span><span class="o">=</span><span class="s1">'number of main-loop iterations during bias-field removal'</span><span class="p">,</span>
     <span class="p">)</span>
 
 
 <div class="viewcode-block" id="FAST">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.fsl.html#smriprep.interfaces.fsl.FAST">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FAST</span><span class="p">(</span><span class="n">_FAST</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A replacement for nipype.interfaces.fsl.preprocess.FAST that allows</span>
 <span class="sd">    `bias_iters=0` to disable bias field correction entirely</span>
 
 <span class="sd">    &gt;&gt;&gt; from smriprep.interfaces.fsl import FAST</span>
 <span class="sd">    &gt;&gt;&gt; fast = FAST()</span>
-<span class="sd">    &gt;&gt;&gt; fast.inputs.in_files = &#39;sub-01_desc-warped_T1w.nii.gz&#39;</span>
+<span class="sd">    &gt;&gt;&gt; fast.inputs.in_files = 'sub-01_desc-warped_T1w.nii.gz'</span>
 <span class="sd">    &gt;&gt;&gt; fast.inputs.bias_iters = 0</span>
 <span class="sd">    &gt;&gt;&gt; fast.cmdline</span>
-<span class="sd">    &#39;fast -I 0 -S 1 sub-01_desc-warped_T1w.nii.gz&#39;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    'fast -I 0 -S 1 sub-01_desc-warped_T1w.nii.gz'</span>
+<span class="sd">    """</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_FixTraitFASTInputSpec</span></div>
 
@@ -216,7 +216,6 @@
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../../../../fix_reuse-sphere-reg/index.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
             <dd><a href="../../../../maint_0.13.x/index.html">maint/0.13.x</a></dd>

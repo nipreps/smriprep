@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.misc &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.utils.misc &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -87,14 +87,14 @@
 <span class="c1">#</span>
 <span class="c1"># Copyright The NiPreps Developers &lt;nipreps@gmail.com&gt;</span>
 <span class="c1">#</span>
-<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="c1"># you may not use this file except in compliance with the License.</span>
 <span class="c1"># You may obtain a copy of the License at</span>
 <span class="c1">#</span>
 <span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
 <span class="c1">#</span>
 <span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
-<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
@@ -104,13 +104,13 @@
 <span class="c1">#</span>
 <span class="c1">#     https://www.nipreps.org/community/licensing/</span>
 <span class="c1">#</span>
-<span class="sd">&quot;&quot;&quot;Self-contained utilities to be used within Function nodes.&quot;&quot;&quot;</span>
+<span class="sd">"""Self-contained utilities to be used within Function nodes."""</span>
 
 
 <div class="viewcode-block" id="apply_lut">
 <a class="viewcode-back" href="../../../api/smriprep.utils.misc.html#smriprep.utils.misc.apply_lut">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">apply_lut</span><span class="p">(</span><span class="n">in_dseg</span><span class="p">,</span> <span class="n">lut</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map the input discrete segmentation to a new label set (lookup table, LUT).&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Map the input discrete segmentation to a new label set (lookup table, LUT)."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nb</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.utils.filemanip</span><span class="w"> </span><span class="kn">import</span> <span class="n">fname_presuffix</span>
@@ -120,14 +120,14 @@
 
         <span class="n">newpath</span> <span class="o">=</span> <span class="n">getcwd</span><span class="p">()</span>
 
-    <span class="n">out_file</span> <span class="o">=</span> <span class="n">fname_presuffix</span><span class="p">(</span><span class="n">in_dseg</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_dseg&#39;</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="n">newpath</span><span class="p">)</span>
-    <span class="n">lut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lut</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int16&#39;</span><span class="p">)</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">fname_presuffix</span><span class="p">(</span><span class="n">in_dseg</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">'_dseg'</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="n">newpath</span><span class="p">)</span>
+    <span class="n">lut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lut</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'int16'</span><span class="p">)</span>
 
     <span class="n">segm</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_dseg</span><span class="p">)</span>
     <span class="n">hdr</span> <span class="o">=</span> <span class="n">segm</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">hdr</span><span class="o">.</span><span class="n">set_data_dtype</span><span class="p">(</span><span class="s1">&#39;int16&#39;</span><span class="p">)</span>
+    <span class="n">hdr</span><span class="o">.</span><span class="n">set_data_dtype</span><span class="p">(</span><span class="s1">'int16'</span><span class="p">)</span>
     <span class="n">segm</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
-        <span class="n">lut</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">segm</span><span class="o">.</span><span class="n">dataobj</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int16&#39;</span><span class="p">),</span> <span class="n">segm</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">hdr</span>
+        <span class="n">lut</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asanyarray</span><span class="p">(</span><span class="n">segm</span><span class="o">.</span><span class="n">dataobj</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'int16'</span><span class="p">),</span> <span class="n">segm</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">hdr</span>
     <span class="p">)</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">out_file</span></div>
@@ -137,7 +137,7 @@
 <div class="viewcode-block" id="fs_isRunning">
 <a class="viewcode-back" href="../../../api/smriprep.utils.misc.html#smriprep.utils.misc.fs_isRunning">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fs_isRunning</span><span class="p">(</span><span class="n">subjects_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">mtime_tol</span><span class="o">=</span><span class="mi">86400</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Checks FreeSurfer subjects dir for presence of recon-all blocking ``IsRunning`` files,</span>
 <span class="sd">    and optionally removes any based on the modification time.</span>
 
@@ -154,7 +154,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    subjects_dir : os.PathLike or None</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
@@ -164,25 +164,25 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">subj_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">return</span> <span class="n">subjects_dir</span>
 
-    <span class="n">isrunning</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">subj_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;scripts/IsRunning*&#39;</span><span class="p">))</span>
+    <span class="n">isrunning</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">subj_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">'scripts/IsRunning*'</span><span class="p">))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">isrunning</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">subjects_dir</span>
-    <span class="n">reconlog</span> <span class="o">=</span> <span class="n">subj_dir</span> <span class="o">/</span> <span class="s1">&#39;scripts&#39;</span> <span class="o">/</span> <span class="s1">&#39;recon-all.log&#39;</span>
-    <span class="c1"># if recon log doesn&#39;t exist, just clear IsRunning</span>
+    <span class="n">reconlog</span> <span class="o">=</span> <span class="n">subj_dir</span> <span class="o">/</span> <span class="s1">'scripts'</span> <span class="o">/</span> <span class="s1">'recon-all.log'</span>
+    <span class="c1"># if recon log doesn't exist, just clear IsRunning</span>
     <span class="n">mtime</span> <span class="o">=</span> <span class="n">reconlog</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span> <span class="k">if</span> <span class="n">reconlog</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="k">else</span> <span class="mi">0</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">mtime</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">mtime_tol</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">The FreeSurfer&#39;s subject folder &lt;</span><span class="si">{</span><span class="n">subj_dir</span><span class="si">}</span><span class="s2">&gt; contains IsRunning files that </span><span class="se">\</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="se">\</span>
+<span class="s2">The FreeSurfer's subject folder &lt;</span><span class="si">{</span><span class="n">subj_dir</span><span class="si">}</span><span class="s2">&gt; contains IsRunning files that </span><span class="se">\</span>
 <span class="s2">may pertain to a current or past execution: </span><span class="si">{</span><span class="n">isrunning</span><span class="si">}</span><span class="s2">.</span>
 <span class="s2">FreeSurfer cannot run if these are present, to avoid interfering with a running </span><span class="se">\</span>
 <span class="s2">process. Please, make sure no other process is running ``recon-all`` on this subject </span><span class="se">\</span>
-<span class="s2">and proceed to delete the files listed above.&quot;&quot;&quot;</span>
+<span class="s2">and proceed to delete the files listed above."""</span>
         <span class="p">)</span>
     <span class="k">for</span> <span class="n">fl</span> <span class="ow">in</span> <span class="n">isrunning</span><span class="p">:</span>
         <span class="n">fl</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Removed &quot;IsRunning*&quot; files found under </span><span class="si">{</span><span class="n">subj_dir</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Removed "IsRunning*" files found under </span><span class="si">{</span><span class="n">subj_dir</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">subjects_dir</span></div>
 
 
@@ -190,36 +190,36 @@
 <div class="viewcode-block" id="stringify_sessions">
 <a class="viewcode-back" href="../../../api/smriprep.utils.misc.html#smriprep.utils.misc.stringify_sessions">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">stringify_sessions</span><span class="p">(</span><span class="n">lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">digest_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convert a list of session into a string identifier.</span>
 
 <span class="sd">    If the list has only one element, it returns that element.</span>
-<span class="sd">    If the list has more than one element, it concatenates them with &#39;+&#39;.</span>
+<span class="sd">    If the list has more than one element, it concatenates them with '+'.</span>
 <span class="sd">    If the concatenated string exceeds `max_length`, it returns a</span>
-<span class="sd">    string starting with &#39;multi+&#39; followed by a BLAKE2b hash of the concatenated string.</span>
+<span class="sd">    string starting with 'multi+' followed by a BLAKE2b hash of the concatenated string.</span>
 
 <span class="sd">    Example</span>
 <span class="sd">    -------</span>
-<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;])</span>
-<span class="sd">    &#39;a&#39;</span>
-<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;])</span>
-<span class="sd">    &#39;a-b-c&#39;</span>
-<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;, &#39;b&#39;, &#39;toolong&#39;])</span>
-<span class="sd">    &#39;multi-32b3&#39;</span>
-<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;, &#39;b&#39;, &#39;toolong&#39;], max_length=12)</span>
-<span class="sd">    &#39;a-b-toolong&#39;</span>
-<span class="sd">    &gt;&gt;&gt; stringify_sessions([&#39;a&#39;, &#39;b&#39;, &#39;toolong&#39;], digest_size=4)</span>
-<span class="sd">    &#39;multi-f1edd4fd&#39;</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions(['a'])</span>
+<span class="sd">    'a'</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions(['a', 'b', 'c'])</span>
+<span class="sd">    'a-b-c'</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions(['a', 'b', 'toolong'])</span>
+<span class="sd">    'multi-32b3'</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions(['a', 'b', 'toolong'], max_length=12)</span>
+<span class="sd">    'a-b-toolong'</span>
+<span class="sd">    &gt;&gt;&gt; stringify_sessions(['a', 'b', 'toolong'], digest_size=4)</span>
+<span class="sd">    'multi-f1edd4fd'</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">lst</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="n">ses_str</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+    <span class="n">ses_str</span> <span class="o">=</span> <span class="s1">'-'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ses_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_length</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">hashlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">blake2b</span>
 
-        <span class="n">ses_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;multi-</span><span class="si">{</span><span class="n">blake2b</span><span class="p">(</span><span class="n">ses_str</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span><span class="w"> </span><span class="n">digest_size</span><span class="o">=</span><span class="n">digest_size</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">ses_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'multi-</span><span class="si">{</span><span class="n">blake2b</span><span class="p">(</span><span class="n">ses_str</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span><span class="w"> </span><span class="n">digest_size</span><span class="o">=</span><span class="n">digest_size</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span>
     <span class="k">return</span> <span class="n">ses_str</span></div>
 
 </pre></div>
@@ -302,7 +302,6 @@
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../../../../fix_reuse-sphere-reg/index.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
             <dd><a href="misc.html">maint/0.13.x</a></dd>

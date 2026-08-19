@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.workbench module &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.interfaces.workbench module &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -137,7 +137,7 @@ inside if the total is odd, negative, or nonzero, respectively.</p>
       <span class="n">value</span>
       <span class="o">&lt;</span><span class="n">roi</span><span class="o">-</span><span class="n">vol</span><span class="o">&gt;</span> <span class="o">-</span> <span class="n">output</span> <span class="o">-</span> <span class="n">the</span> <span class="n">output</span> <span class="n">roi</span> <span class="n">volume</span>
 
-   <span class="p">[</span><span class="o">-</span><span class="n">fill</span><span class="o">-</span><span class="n">value</span><span class="p">]</span> <span class="o">-</span> <span class="n">specify</span> <span class="n">a</span> <span class="n">value</span> <span class="n">to</span> <span class="n">put</span> <span class="ow">in</span> <span class="nb">all</span> <span class="n">voxels</span> <span class="n">that</span> <span class="n">don</span><span class="s1">&#39;t get</span>
+   <span class="p">[</span><span class="o">-</span><span class="n">fill</span><span class="o">-</span><span class="n">value</span><span class="p">]</span> <span class="o">-</span> <span class="n">specify</span> <span class="n">a</span> <span class="n">value</span> <span class="n">to</span> <span class="n">put</span> <span class="ow">in</span> <span class="nb">all</span> <span class="n">voxels</span> <span class="n">that</span> <span class="n">don</span><span class="s1">'t get</span>
       <span class="n">assigned</span> <span class="n">a</span> <span class="n">distance</span>
       <span class="o">&lt;</span><span class="n">value</span><span class="o">&gt;</span> <span class="o">-</span> <span class="n">value</span> <span class="n">to</span> <span class="n">fill</span> <span class="k">with</span> <span class="p">(</span><span class="n">default</span> <span class="mi">0</span><span class="p">)</span>
 
@@ -157,7 +157,7 @@ inside if the total is odd, negative, or nonzero, respectively.</p>
    <span class="n">Computes</span> <span class="n">the</span> <span class="n">signed</span> <span class="n">distance</span> <span class="n">function</span> <span class="n">of</span> <span class="n">the</span> <span class="n">surface</span><span class="o">.</span>  <span class="n">Exact</span> <span class="n">distance</span> <span class="ow">is</span>
    <span class="n">calculated</span> <span class="n">by</span> <span class="n">finding</span> <span class="n">the</span> <span class="n">closest</span> <span class="n">point</span> <span class="n">on</span> <span class="nb">any</span> <span class="n">surface</span> <span class="n">triangle</span> <span class="n">to</span> <span class="n">the</span>
    <span class="n">center</span> <span class="n">of</span> <span class="n">the</span> <span class="n">voxel</span><span class="o">.</span>  <span class="n">Approximate</span> <span class="n">distance</span> <span class="ow">is</span> <span class="n">calculated</span> <span class="n">starting</span> <span class="k">with</span>
-   <span class="n">these</span> <span class="n">distances</span><span class="p">,</span> <span class="n">using</span> <span class="n">dijkstra</span><span class="s1">&#39;s method with a neighborhood of voxels.</span>
+   <span class="n">these</span> <span class="n">distances</span><span class="p">,</span> <span class="n">using</span> <span class="n">dijkstra</span><span class="s1">'s method with a neighborhood of voxels.</span>
    <span class="n">Specifying</span> <span class="n">too</span> <span class="n">small</span> <span class="n">of</span> <span class="n">an</span> <span class="n">exact</span> <span class="n">distance</span> <span class="n">may</span> <span class="n">produce</span> <span class="n">unexpected</span> <span class="n">results</span><span class="o">.</span>
    <span class="n">Valid</span> <span class="n">specifiers</span> <span class="k">for</span> <span class="n">winding</span> <span class="n">methods</span> <span class="n">are</span> <span class="k">as</span> <span class="n">follows</span><span class="p">:</span>
 
@@ -237,10 +237,10 @@ warped source surface. Note that this has a bias to shrink the surface
 that is being warped. The output is written as a NIFTI ‘world’ matrix,
 see -convert-affine to convert it for use in other software.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sar</span> <span class="o">=</span> <span class="n">SurfaceAffineRegression</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sar</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_surface</span> <span class="o">=</span> <span class="s1">&#39;sub-01_hemi-L_sulc.shape.gii&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sar</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">target_surface</span> <span class="o">=</span> <span class="s1">&#39;tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sar</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_surface</span> <span class="o">=</span> <span class="s1">'sub-01_hemi-L_sulc.shape.gii'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sar</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">target_surface</span> <span class="o">=</span> <span class="s1">'tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sar</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;wb_command -surface-affine-regression     sub-01_hemi-L_sulc.shape.gii     tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii     sub-01_hemi-L_sulc.shape_xfm&#39;</span>
+<span class="go">'wb_command -surface-affine-regression     sub-01_hemi-L_sulc.shape.gii     tpl-fsaverage_hemi-L_den-164k_sulc.shape.gii     sub-01_hemi-L_sulc.shape_xfm'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -290,20 +290,20 @@ matrices are not a complete description of the coordinate transform they
 represent.  If the -flirt option is not present, the affine must be a
 nifti ‘world’ affine, which can be obtained with the -convert-affine
 command, or aff_conv from the 4dfp suite.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="s1">&#39;affine.txt&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="s1">'affine.txt'</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">' '</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">saa</span> <span class="o">=</span> <span class="n">SurfaceApplyAffine</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">saa</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_surface</span> <span class="o">=</span> <span class="s1">&#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">saa</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_affine</span> <span class="o">=</span> <span class="s1">&#39;affine.txt&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">saa</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_surface</span> <span class="o">=</span> <span class="s1">'sub-01_hemi-L_sphere.surf.gii'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">saa</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_affine</span> <span class="o">=</span> <span class="s1">'affine.txt'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">saa</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;wb_command -surface-apply-affine     sub-01_hemi-L_sphere.surf.gii     affine.txt     sub-01_hemi-L_sphere.surf_xformed.surf.gii&#39;</span>
+<span class="go">'wb_command -surface-apply-affine     sub-01_hemi-L_sphere.surf.gii     affine.txt     sub-01_hemi-L_sphere.surf_xformed.surf.gii'</span>
 </pre></div>
 </div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="s1">&#39;affine.txt&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="s1">'affine.txt'</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -361,10 +361,10 @@ displacements in the fnirt warpfield.</p>
 ‘world’ warpfield, which can be obtained with the -convert-warpfield
 command.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">saw</span> <span class="o">=</span> <span class="n">SurfaceApplyWarpfield</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">saw</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_surface</span> <span class="o">=</span> <span class="s1">&#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">saw</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">warpfield</span> <span class="o">=</span> <span class="s1">&#39;sub-01_desc-warped_T1w.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">saw</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_surface</span> <span class="o">=</span> <span class="s1">'sub-01_hemi-L_sphere.surf.gii'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">saw</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">warpfield</span> <span class="o">=</span> <span class="s1">'sub-01_desc-warped_T1w.nii.gz'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">saw</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;wb_command -surface-apply-warpfield     sub-01_hemi-L_sphere.surf.gii     sub-01_desc-warped_T1w.nii.gz     sub-01_hemi-L_sphere.surf_warped.surf.gii&#39;</span>
+<span class="go">'wb_command -surface-apply-warpfield     sub-01_hemi-L_sphere.surf.gii     sub-01_desc-warped_T1w.nii.gz     sub-01_hemi-L_sphere.surf_warped.surf.gii'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -415,10 +415,10 @@ before changing the radius, which is likely to be undesirable.</p>
 <p>If &lt;sphere-in&gt; is not close to spherical, or not centered around the
 origin and -recenter is not used, a warning is printed.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sms</span> <span class="o">=</span> <span class="n">SurfaceModifySphere</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sms</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_surface</span> <span class="o">=</span> <span class="s1">&#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sms</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_surface</span> <span class="o">=</span> <span class="s1">'sub-01_hemi-L_sphere.surf.gii'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sms</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sms</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;wb_command -surface-modify-sphere     sub-01_hemi-L_sphere.surf.gii 100 sub-01_hemi-L_sphere.surf_mod.surf.gii&#39;</span>
+<span class="go">'wb_command -surface-modify-sphere     sub-01_hemi-L_sphere.surf.gii 100 sub-01_hemi-L_sphere.surf_mod.surf.gii'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -457,12 +457,12 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">SurfaceResample</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span> <span class="o">=</span> <span class="n">SurfaceResample</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">surface_in</span> <span class="o">=</span> <span class="s1">&#39;sub-01_hemi-L_midthickness.surf.gii&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">current_sphere</span> <span class="o">=</span> <span class="s1">&#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">new_sphere</span> <span class="o">=</span> <span class="s1">&#39;tpl-fsLR_hemi-L_den-32k_sphere.surf.gii&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;BARYCENTRIC&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">surface_in</span> <span class="o">=</span> <span class="s1">'sub-01_hemi-L_midthickness.surf.gii'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">current_sphere</span> <span class="o">=</span> <span class="s1">'sub-01_hemi-L_sphere.surf.gii'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">new_sphere</span> <span class="o">=</span> <span class="s1">'tpl-fsLR_hemi-L_den-32k_sphere.surf.gii'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="s1">'BARYCENTRIC'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">surface_resample</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;wb_command -surface-resample sub-01_hemi-L_midthickness.surf.gii     sub-01_hemi-L_sphere.surf.gii tpl-fsLR_hemi-L_den-32k_sphere.surf.gii     BARYCENTRIC sub-01_hemi-L_midthickness.surf_resampled.surf.gii&#39;</span>
+<span class="go">'wb_command -surface-resample sub-01_hemi-L_midthickness.surf.gii     sub-01_hemi-L_sphere.surf.gii tpl-fsLR_hemi-L_den-32k_sphere.surf.gii     BARYCENTRIC sub-01_hemi-L_midthickness.surf_resampled.surf.gii'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -507,11 +507,11 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">SurfaceSphereProjectUnproject</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sphere_project</span> <span class="o">=</span> <span class="n">SurfaceSphereProjectUnproject</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sphere_project</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">sphere_in</span> <span class="o">=</span> <span class="s1">&#39;sub-01_hemi-L_sphere.surf.gii&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sphere_project</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">sphere_project_to</span> <span class="o">=</span> <span class="s1">&#39;tpl-fsLR_hemi-L_den-32k_sphere.surf.gii&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sphere_project</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">sphere_unproject_from</span> <span class="o">=</span> <span class="s1">&#39;lh.sphere.reg.surf.gii&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sphere_project</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">sphere_in</span> <span class="o">=</span> <span class="s1">'sub-01_hemi-L_sphere.surf.gii'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sphere_project</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">sphere_project_to</span> <span class="o">=</span> <span class="s1">'tpl-fsLR_hemi-L_den-32k_sphere.surf.gii'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sphere_project</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">sphere_unproject_from</span> <span class="o">=</span> <span class="s1">'lh.sphere.reg.surf.gii'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">sphere_project</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;wb_command -surface-sphere-project-unproject sub-01_hemi-L_sphere.surf.gii     tpl-fsLR_hemi-L_den-32k_sphere.surf.gii lh.sphere.reg.surf.gii     sub-01_hemi-L_sphere.surf_unprojected.surf.gii&#39;</span>
+<span class="go">'wb_command -surface-sphere-project-unproject sub-01_hemi-L_sphere.surf.gii     tpl-fsLR_hemi-L_den-32k_sphere.surf.gii lh.sphere.reg.surf.gii     sub-01_hemi-L_sphere.surf_unprojected.surf.gii'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -619,7 +619,6 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
             <dd><a href="../../enh_split-surfaces/api/smriprep.interfaces.workbench.html">enh/split-surfaces</a></dd>
             <dd><a href="../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../../fix_reuse-sphere-reg/api/smriprep.interfaces.workbench.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../maint_0.12.x/api/smriprep.interfaces.workbench.html">maint/0.12.x</a></dd>
             <dd><a href="../../maint_0.13.x/api/smriprep.interfaces.workbench.html">maint/0.13.x</a></dd>

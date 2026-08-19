@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.surf &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.interfaces.surf &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -88,14 +88,14 @@
 <span class="c1">#</span>
 <span class="c1"># Copyright The NiPreps Developers &lt;nipreps@gmail.com&gt;</span>
 <span class="c1">#</span>
-<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="c1"># you may not use this file except in compliance with the License.</span>
 <span class="c1"># You may obtain a copy of the License at</span>
 <span class="c1">#</span>
 <span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
 <span class="c1">#</span>
 <span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
-<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
@@ -105,7 +105,7 @@
 <span class="c1">#</span>
 <span class="c1">#     https://www.nipreps.org/community/licensing/</span>
 <span class="c1">#</span>
-<span class="sd">&quot;&quot;&quot;Handling surfaces.&quot;&quot;&quot;</span>
+<span class="sd">"""Handling surfaces."""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -125,18 +125,18 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_NormalizeSurfInputSpec</span><span class="p">(</span><span class="n">BaseInterfaceInputSpec</span><span class="p">):</span>
-    <span class="n">in_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Freesurfer-generated GIFTI file&#39;</span><span class="p">)</span>
-    <span class="n">transform_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;FSL, LTA or ITK affine transform file&#39;</span><span class="p">)</span>
+    <span class="n">in_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Freesurfer-generated GIFTI file'</span><span class="p">)</span>
+    <span class="n">transform_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'FSL, LTA or ITK affine transform file'</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_NormalizeSurfOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
-    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;output file with re-centered GIFTI coordinates&#39;</span><span class="p">)</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">'output file with re-centered GIFTI coordinates'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="NormalizeSurf">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.surf.html#smriprep.interfaces.surf.NormalizeSurf">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NormalizeSurf</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Normalize a FreeSurfer-generated GIFTI image.</span>
 
 <span class="sd">    FreeSurfer includes volume geometry metadata that serves as an affine</span>
@@ -163,9 +163,9 @@
 <span class="sd">    generated from the ``?h.white``/``?h.smoothwm`` and ``?h.pial`` surfaces,</span>
 <span class="sd">    as well as externally-generated ``?h.midthickness``/``?h.graymid`` files.</span>
 <span class="sd">    In principle, this should apply safely to any other surface, although it is</span>
-<span class="sd">    less relevant to surfaces that don&#39;t describe an anatomical structure.</span>
+<span class="sd">    less relevant to surfaces that don't describe an anatomical structure.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">_NormalizeSurfInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">_NormalizeSurfOutputSpec</span>
@@ -174,7 +174,7 @@
         <span class="n">transform_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">transform_file</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">isdefined</span><span class="p">(</span><span class="n">transform_file</span><span class="p">):</span>
             <span class="n">transform_file</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalize_surfs</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">'out_file'</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalize_surfs</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span><span class="p">,</span> <span class="n">transform_file</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="n">runtime</span><span class="o">.</span><span class="n">cwd</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">runtime</span></div>
@@ -182,51 +182,51 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">FixGiftiMetadataInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
-    <span class="n">in_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Freesurfer-generated GIFTI file&#39;</span><span class="p">)</span>
+    <span class="n">in_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Freesurfer-generated GIFTI file'</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">FixGiftiMetadataOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
-    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;output file with fixed metadata&#39;</span><span class="p">)</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">'output file with fixed metadata'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="FixGiftiMetadata">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.surf.html#smriprep.interfaces.surf.FixGiftiMetadata">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FixGiftiMetadata</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fix known incompatible metadata in GIFTI files.</span>
+<span class="w">    </span><span class="sd">"""Fix known incompatible metadata in GIFTI files.</span>
 
 <span class="sd">    Currently resolves:</span>
 
 <span class="sd">    * FreeSurfer setting GeometryType to Sphere instead of Spherical</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">FixGiftiMetadataInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">FixGiftiMetadataOutputSpec</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;out_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fix_gifti_metadata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="n">runtime</span><span class="o">.</span><span class="n">cwd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">'out_file'</span><span class="p">]</span> <span class="o">=</span> <span class="n">fix_gifti_metadata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="n">runtime</span><span class="o">.</span><span class="n">cwd</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">runtime</span></div>
 
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">AggregateSurfacesInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
-    <span class="n">surfaces</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Input surfaces&#39;</span><span class="p">)</span>
-    <span class="n">morphometrics</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Input morphometrics&#39;</span><span class="p">)</span>
+    <span class="n">surfaces</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Input surfaces'</span><span class="p">)</span>
+    <span class="n">morphometrics</span> <span class="o">=</span> <span class="n">InputMultiObject</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Input morphometrics'</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">AggregateSurfacesOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
-    <span class="n">pial</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Pial surfaces&#39;</span><span class="p">)</span>
-    <span class="n">white</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;White surfaces&#39;</span><span class="p">)</span>
-    <span class="n">inflated</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Inflated surfaces&#39;</span><span class="p">)</span>
-    <span class="n">midthickness</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Midthickness (or graymid) surfaces&#39;</span><span class="p">)</span>
-    <span class="n">thickness</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Cortical thickness maps&#39;</span><span class="p">)</span>
-    <span class="n">sulc</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Sulcal depth maps&#39;</span><span class="p">)</span>
-    <span class="n">curv</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Curvature maps&#39;</span><span class="p">)</span>
+    <span class="n">pial</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Pial surfaces'</span><span class="p">)</span>
+    <span class="n">white</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'White surfaces'</span><span class="p">)</span>
+    <span class="n">inflated</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Inflated surfaces'</span><span class="p">)</span>
+    <span class="n">midthickness</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Midthickness (or graymid) surfaces'</span><span class="p">)</span>
+    <span class="n">thickness</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Cortical thickness maps'</span><span class="p">)</span>
+    <span class="n">sulc</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Sulcal depth maps'</span><span class="p">)</span>
+    <span class="n">curv</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">File</span><span class="p">(),</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Curvature maps'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="AggregateSurfaces">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.surf.html#smriprep.interfaces.surf.AggregateSurfaces">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AggregateSurfaces</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregate and group surfaces &amp; morphometrics into left/right pairs.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Aggregate and group surfaces &amp; morphometrics into left/right pairs."""</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">AggregateSurfacesInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">AggregateSurfacesOutputSpec</span>
@@ -239,12 +239,12 @@
         <span class="n">container</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
         <span class="n">inputs</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">surfaces</span> <span class="ow">or</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">morphometrics</span> <span class="ow">or</span> <span class="p">[])</span>
         <span class="n">findre</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-            <span class="sa">r</span><span class="s1">&#39;(?:^|[^d])(?P&lt;name&gt;white|pial|inflated|midthickness|thickness|sulc|curv)&#39;</span>
+            <span class="sa">r</span><span class="s1">'(?:^|[^d])(?P&lt;name&gt;white|pial|inflated|midthickness|thickness|sulc|curv)'</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">surface</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">):</span>
             <span class="n">match</span> <span class="o">=</span> <span class="n">findre</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">surface</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
-                <span class="n">container</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">surface</span><span class="p">)</span>
+                <span class="n">container</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">'name'</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">surface</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">container</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">files</span>
         <span class="k">return</span> <span class="n">runtime</span></div>
@@ -253,27 +253,27 @@
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MakeRibbonInputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
     <span class="n">white_distvols</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span>
-        <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">minlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;White matter distance volumes&#39;</span>
+        <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">minlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'White matter distance volumes'</span>
     <span class="p">)</span>
     <span class="n">pial_distvols</span> <span class="o">=</span> <span class="n">traits</span><span class="o">.</span><span class="n">List</span><span class="p">(</span>
-        <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">minlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Pial matter distance volumes&#39;</span>
+        <span class="n">File</span><span class="p">(</span><span class="n">exists</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">minlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'Pial matter distance volumes'</span>
     <span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MakeRibbonOutputSpec</span><span class="p">(</span><span class="n">TraitedSpec</span><span class="p">):</span>
-    <span class="n">ribbon</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Binary ribbon mask&#39;</span><span class="p">)</span>
+    <span class="n">ribbon</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s1">'Binary ribbon mask'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="MakeRibbon">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.surf.html#smriprep.interfaces.surf.MakeRibbon">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MakeRibbon</span><span class="p">(</span><span class="n">SimpleInterface</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a binary ribbon mask from white and pial distance volumes.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Create a binary ribbon mask from white and pial distance volumes."""</span>
 
     <span class="n">input_spec</span> <span class="o">=</span> <span class="n">MakeRibbonInputSpec</span>
     <span class="n">output_spec</span> <span class="o">=</span> <span class="n">MakeRibbonOutputSpec</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_run_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runtime</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;ribbon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_ribbon</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">'ribbon'</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_ribbon</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">white_distvols</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">pial_distvols</span><span class="p">,</span> <span class="n">newpath</span><span class="o">=</span><span class="n">runtime</span><span class="o">.</span><span class="n">cwd</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">runtime</span></div>
@@ -283,7 +283,7 @@
 <div class="viewcode-block" id="normalize_surfs">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.surf.html#smriprep.interfaces.surf.normalize_surfs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_surfs</span><span class="p">(</span><span class="n">in_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">transform_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">newpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Update GIFTI metadata and apply rigid coordinate correction.</span>
 
 <span class="sd">    This function removes volume geometry metadata that FreeSurfer includes.</span>
@@ -292,34 +292,34 @@
 <span class="sd">    reading with ``freeview``.</span>
 
 <span class="sd">    For midthickness surfaces, add MidThickness metadata</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">img</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">transform_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">transform</span> <span class="o">=</span> <span class="n">nt</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">Affine</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">xfm_fmt</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;.txt&#39;</span><span class="p">:</span> <span class="s1">&#39;itk&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;.mat&#39;</span><span class="p">:</span> <span class="s1">&#39;fsl&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;.lta&#39;</span><span class="p">:</span> <span class="s1">&#39;fs&#39;</span><span class="p">,</span>
+            <span class="s1">'.txt'</span><span class="p">:</span> <span class="s1">'itk'</span><span class="p">,</span>
+            <span class="s1">'.mat'</span><span class="p">:</span> <span class="s1">'fsl'</span><span class="p">,</span>
+            <span class="s1">'.lta'</span><span class="p">:</span> <span class="s1">'fs'</span><span class="p">,</span>
         <span class="p">}[</span><span class="n">Path</span><span class="p">(</span><span class="n">transform_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="p">]</span>
         <span class="n">transform</span> <span class="o">=</span> <span class="n">nt</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">transform_file</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="n">xfm_fmt</span><span class="p">)</span>
-    <span class="n">pointset</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_arrays_from_intent</span><span class="p">(</span><span class="s1">&#39;NIFTI_INTENT_POINTSET&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">pointset</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_arrays_from_intent</span><span class="p">(</span><span class="s1">'NIFTI_INTENT_POINTSET'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">transform</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)):</span>
         <span class="n">pointset</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">pointset</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;graymid&#39;</span> <span class="ow">in</span> <span class="n">fname</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+    <span class="k">if</span> <span class="s1">'graymid'</span> <span class="ow">in</span> <span class="n">fname</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
         <span class="c1"># Rename graymid to midthickness</span>
-        <span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;graymid&#39;</span><span class="p">,</span> <span class="s1">&#39;midthickness&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;midthickness&#39;</span> <span class="ow">in</span> <span class="n">fname</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-        <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;AnatomicalStructureSecondary&#39;</span><span class="p">,</span> <span class="s1">&#39;MidThickness&#39;</span><span class="p">)</span>
-        <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;GeometricType&#39;</span><span class="p">,</span> <span class="s1">&#39;Anatomical&#39;</span><span class="p">)</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'graymid'</span><span class="p">,</span> <span class="s1">'midthickness'</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">'midthickness'</span> <span class="ow">in</span> <span class="n">fname</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'AnatomicalStructureSecondary'</span><span class="p">,</span> <span class="s1">'MidThickness'</span><span class="p">)</span>
+        <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'GeometricType'</span><span class="p">,</span> <span class="s1">'Anatomical'</span><span class="p">)</span>
 
-    <span class="c1"># FreeSurfer incorrectly uses &quot;Sphere&quot; for spherical surfaces</span>
-    <span class="k">if</span> <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;GeometricType&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Sphere&#39;</span><span class="p">:</span>
-        <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;GeometricType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Spherical&#39;</span>
+    <span class="c1"># FreeSurfer incorrectly uses "Sphere" for spherical surfaces</span>
+    <span class="k">if</span> <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GeometricType'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'Sphere'</span><span class="p">:</span>
+        <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">'GeometricType'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Spherical'</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># mris_convert --to-scanner removes VolGeom transform from coordinates,</span>
         <span class="c1"># but not metadata.</span>
@@ -328,9 +328,9 @@
         <span class="c1"># Following the lead of HCP pipelines, we only adjust the coordinates</span>
         <span class="c1"># for anatomical surfaces. To ensure consistent treatment by FreeSurfer,</span>
         <span class="c1"># we leave the metadata for spherical surfaces intact.</span>
-        <span class="k">for</span> <span class="n">XYZC</span> <span class="ow">in</span> <span class="s1">&#39;XYZC&#39;</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">RAS</span> <span class="ow">in</span> <span class="s1">&#39;RAS&#39;</span><span class="p">:</span>
-                <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;VolGeom</span><span class="si">{</span><span class="n">XYZC</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">RAS</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">XYZC</span> <span class="ow">in</span> <span class="s1">'XYZC'</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">RAS</span> <span class="ow">in</span> <span class="s1">'RAS'</span><span class="p">:</span>
+                <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="sa">f</span><span class="s1">'VolGeom</span><span class="si">{</span><span class="n">XYZC</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">RAS</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">newpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">newpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
@@ -343,21 +343,21 @@
 <div class="viewcode-block" id="fix_gifti_metadata">
 <a class="viewcode-back" href="../../../api/smriprep.interfaces.surf.html#smriprep.interfaces.surf.fix_gifti_metadata">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fix_gifti_metadata</span><span class="p">(</span><span class="n">in_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">newpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fix known incompatible metadata in GIFTI files.</span>
+<span class="w">    </span><span class="sd">"""Fix known incompatible metadata in GIFTI files.</span>
 
 <span class="sd">    Currently resolves:</span>
 
 <span class="sd">    * FreeSurfer setting GeometryType to Sphere instead of Spherical</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">img</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">GiftiImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="n">in_file</span><span class="p">)</span>
-    <span class="n">pointset</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_arrays_from_intent</span><span class="p">(</span><span class="s1">&#39;NIFTI_INTENT_POINTSET&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">pointset</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_arrays_from_intent</span><span class="p">(</span><span class="s1">'NIFTI_INTENT_POINTSET'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="c1"># FreeSurfer incorrectly uses &quot;Sphere&quot; for spherical surfaces</span>
+    <span class="c1"># FreeSurfer incorrectly uses "Sphere" for spherical surfaces</span>
     <span class="c1"># This is not fixed as of FreeSurfer 7.4.0</span>
     <span class="c1"># https://github.com/freesurfer/freesurfer/pull/1112</span>
-    <span class="k">if</span> <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;GeometricType&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Sphere&#39;</span><span class="p">:</span>
-        <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;GeometricType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Spherical&#39;</span>
+    <span class="k">if</span> <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'GeometricType'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'Sphere'</span><span class="p">:</span>
+        <span class="n">pointset</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">'GeometricType'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Spherical'</span>
 
     <span class="k">if</span> <span class="n">newpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">newpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
@@ -376,7 +376,7 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">base_img</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">white_distvols</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">header</span> <span class="o">=</span> <span class="n">base_img</span><span class="o">.</span><span class="n">header</span>
-    <span class="n">header</span><span class="o">.</span><span class="n">set_data_dtype</span><span class="p">(</span><span class="s1">&#39;uint8&#39;</span><span class="p">)</span>
+    <span class="n">header</span><span class="o">.</span><span class="n">set_data_dtype</span><span class="p">(</span><span class="s1">'uint8'</span><span class="p">)</span>
 
     <span class="n">ribbons</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">white</span><span class="p">)</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">pial</span><span class="p">)</span><span class="o">.</span><span class="n">dataobj</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
@@ -385,7 +385,7 @@
 
     <span class="k">if</span> <span class="n">newpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">newpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
-    <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">newpath</span><span class="p">,</span> <span class="s1">&#39;ribbon.nii.gz&#39;</span><span class="p">)</span>
+    <span class="n">out_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">newpath</span><span class="p">,</span> <span class="s1">'ribbon.nii.gz'</span><span class="p">)</span>
 
     <span class="n">ribbon_data</span> <span class="o">=</span> <span class="n">ribbons</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">|</span> <span class="n">ribbons</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">ribbon</span> <span class="o">=</span> <span class="n">base_img</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">ribbon_data</span><span class="p">,</span> <span class="n">base_img</span><span class="o">.</span><span class="n">affine</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
@@ -472,7 +472,6 @@
             <dd><a href="surf.html">enh/split-surfaces</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../../../../fix_reuse-sphere-reg/index.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
             <dd><a href="../../../../maint_0.13.x/index.html">maint/0.13.x</a></dd>

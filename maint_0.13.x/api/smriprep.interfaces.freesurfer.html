@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -293,20 +293,20 @@ number of threads requested by the user, as tests indicate that cores are underu
 by a factor of 2/3.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MakeMidthickness</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span> <span class="o">=</span> <span class="n">MakeMidthickness</span><span class="p">(</span><span class="n">thickness</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span> <span class="o">=</span> <span class="s1">&#39;lh.white&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span> <span class="o">=</span> <span class="s1">'lh.white'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;mris_expand -thickness lh.white 0.5 lh.expanded&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">out_name</span> <span class="o">=</span> <span class="s1">&#39;graymid&#39;</span>
+<span class="go">'mris_expand -thickness lh.white 0.5 lh.expanded'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">out_name</span> <span class="o">=</span> <span class="s1">'graymid'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;mris_expand -thickness lh.white 0.5 lh.graymid&#39;</span>
+<span class="go">'mris_expand -thickness lh.white 0.5 lh.graymid'</span>
 </pre></div>
 </div>
 <blockquote>
 <div><p>Explicit hemisphere labels should still be respected:</p>
 </div></blockquote>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">out_name</span> <span class="o">=</span> <span class="s1">&#39;rh.graymid&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">out_name</span> <span class="o">=</span> <span class="s1">'rh.graymid'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mris_expand</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;mris_expand -thickness lh.white 0.5 rh.graymid&#39;</span>
+<span class="go">'mris_expand -thickness lh.white 0.5 rh.graymid'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -629,7 +629,6 @@ validates arguments and generates command line</p>
             <dd><a href="../../enh_split-surfaces/api/smriprep.interfaces.freesurfer.html">enh/split-surfaces</a></dd>
             <dd><a href="../../fix_parcstats/api/smriprep.interfaces.freesurfer.html">fix/parcstats</a></dd>
             <dd><a href="../../fix_recon-report/api/smriprep.interfaces.freesurfer.html">fix/recon-report</a></dd>
-            <dd><a href="../../fix_reuse-sphere-reg/api/smriprep.interfaces.freesurfer.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../../fix_tfselect-resless/api/smriprep.interfaces.freesurfer.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../maint_0.12.x/api/smriprep.interfaces.freesurfer.html">maint/0.12.x</a></dd>
             <dd><a href="smriprep.interfaces.freesurfer.html">maint/0.13.x</a></dd>

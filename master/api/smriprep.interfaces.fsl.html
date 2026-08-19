@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.fsl module &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.interfaces.fsl module &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -115,10 +115,10 @@
 <cite>bias_iters=0</cite> to disable bias field correction entirely</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.fsl</span><span class="w"> </span><span class="kn">import</span> <span class="n">FAST</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fast</span> <span class="o">=</span> <span class="n">FAST</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fast</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_files</span> <span class="o">=</span> <span class="s1">&#39;sub-01_desc-warped_T1w.nii.gz&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fast</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_files</span> <span class="o">=</span> <span class="s1">'sub-01_desc-warped_T1w.nii.gz'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fast</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">bias_iters</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fast</span><span class="o">.</span><span class="n">cmdline</span>
-<span class="go">&#39;fast -I 0 -S 1 sub-01_desc-warped_T1w.nii.gz&#39;</span>
+<span class="go">'fast -I 0 -S 1 sub-01_desc-warped_T1w.nii.gz'</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -276,7 +276,6 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
             <dd><a href="../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../../fix_reuse-sphere-reg/api/smriprep.interfaces.fsl.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
             <dd><a href="../../maint_0.13.x/index.html">maint/0.13.x</a></dd>

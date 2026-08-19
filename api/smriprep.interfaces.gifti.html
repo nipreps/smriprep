@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.gifti module &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.interfaces.gifti module &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -115,10 +115,10 @@
 <p>This interface mirrors the action of the following portion
 of FreeSurfer2CaretConvertAndRegisterNonlinear.sh:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>wb_command -set-structure ${metric_file} CORTEX_[LEFT|RIGHT]
-wb_command -metric-math &quot;var * -1&quot; ${metric_file} -var var ${metric_file}
+wb_command -metric-math "var * -1" ${metric_file} -var var ${metric_file}
 wb_command -set-map-names ${metric_file} -map 1 ${subject}_[L|R]_${metric}
 # If abs:
-wb_command -metric-math &quot;abs(var)&quot; ${metric_file} -var var ${metric_file}
+wb_command -metric-math "abs(var)" ${metric_file} -var var ${metric_file}
 </pre></div>
 </div>
 <p>We do not add palette information to the output file.</p>
@@ -226,7 +226,6 @@ wb_command -metric-math &quot;abs(var)&quot; ${metric_file} -var var ${metric_fi
             <dd><a href="../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../fix_reuse-sphere-reg/api/smriprep.interfaces.gifti.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
             <dd><a href="../maint_0.12.x/index.html">maint/0.12.x</a></dd>
             <dd><a href="../maint_0.13.x/api/smriprep.interfaces.gifti.html">maint/0.13.x</a></dd>

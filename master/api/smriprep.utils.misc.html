@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.misc module &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.utils.misc module &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -136,16 +136,16 @@ If the list has more than one element, it concatenates them with ‘+’.
 If the concatenated string exceeds <cite>max_length</cite>, it returns a
 string starting with ‘multi+’ followed by a BLAKE2b hash of the concatenated string.</p>
 <p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">])</span>
-<span class="go">&#39;a&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">])</span>
-<span class="go">&#39;a-b-c&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;toolong&#39;</span><span class="p">])</span>
-<span class="go">&#39;multi-32b3&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;toolong&#39;</span><span class="p">],</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
-<span class="go">&#39;a-b-toolong&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;toolong&#39;</span><span class="p">],</span> <span class="n">digest_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-<span class="go">&#39;multi-f1edd4fd&#39;</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">'a'</span><span class="p">])</span>
+<span class="go">'a'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">'a'</span><span class="p">,</span> <span class="s1">'b'</span><span class="p">,</span> <span class="s1">'c'</span><span class="p">])</span>
+<span class="go">'a-b-c'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">'a'</span><span class="p">,</span> <span class="s1">'b'</span><span class="p">,</span> <span class="s1">'toolong'</span><span class="p">])</span>
+<span class="go">'multi-32b3'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">'a'</span><span class="p">,</span> <span class="s1">'b'</span><span class="p">,</span> <span class="s1">'toolong'</span><span class="p">],</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="go">'a-b-toolong'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stringify_sessions</span><span class="p">([</span><span class="s1">'a'</span><span class="p">,</span> <span class="s1">'b'</span><span class="p">,</span> <span class="s1">'toolong'</span><span class="p">],</span> <span class="n">digest_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">'multi-f1edd4fd'</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -234,7 +234,6 @@ string starting with ‘multi+’ followed by a BLAKE2b hash of the concatenated
             <dd><a href="../../enh_split-surfaces/api/smriprep.utils.misc.html">enh/split-surfaces</a></dd>
             <dd><a href="../../fix_parcstats/api/smriprep.utils.misc.html">fix/parcstats</a></dd>
             <dd><a href="../../fix_recon-report/api/smriprep.utils.misc.html">fix/recon-report</a></dd>
-            <dd><a href="../../fix_reuse-sphere-reg/api/smriprep.utils.misc.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../../fix_tfselect-resless/api/smriprep.utils.misc.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../maint_0.12.x/api/smriprep.utils.misc.html">maint/0.12.x</a></dd>
             <dd><a href="../../maint_0.13.x/api/smriprep.utils.misc.html">maint/0.13.x</a></dd>

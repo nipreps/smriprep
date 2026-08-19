@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>Usage &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
@@ -110,8 +110,7 @@
 <h2>Execution and the BIDS format<a class="headerlink" href="#execution-and-the-bids-format" title="Link to this heading"></a></h2>
 <p>The <em>sMRIPrep</em> workflow takes as principal input the path of the dataset
 that is to be processed.
-The input dataset is required to be in valid <abbr title="Brain Imaging Data Structure">BIDS</abbr> format, and it must include at least one T1w structural image and
-(unless disabled with a flag) a BOLD series.
+The input dataset is required to be in valid <abbr title="Brain Imaging Data Structure">BIDS</abbr> format, and it must include at least one T1w (or T2w) structural image.
 We highly recommend that you validate your dataset with the free, online
 <a class="reference external" href="https://bids-standard.github.io/bids-validator/">BIDS Validator</a>.</p>
 <p>The exact command to run <em>sMRIPrep</em> depends on the <a class="reference external" href="installation.html">Installation</a> method.
@@ -537,7 +536,6 @@ RUNNING: docker run --rm -it -v /path/to/data/dir:/data:ro \
             <dd><a href="../enh_split-surfaces/usage.html">enh/split-surfaces</a></dd>
             <dd><a href="../fix_parcstats/usage.html">fix/parcstats</a></dd>
             <dd><a href="../fix_recon-report/usage.html">fix/recon-report</a></dd>
-            <dd><a href="../fix_reuse-sphere-reg/usage.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../fix_tfselect-resless/usage.html">fix/tfselect-resless</a></dd>
             <dd><a href="../maint_0.12.x/usage.html">maint/0.12.x</a></dd>
             <dd><a href="../maint_0.13.x/usage.html">maint/0.13.x</a></dd>

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.fit.registration &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.workflows.fit.registration &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/banner.css?v=fd51b7f5" />
@@ -84,14 +84,14 @@
 <span class="c1">#</span>
 <span class="c1"># Copyright The NiPreps Developers &lt;nipreps@gmail.com&gt;</span>
 <span class="c1">#</span>
-<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="c1"># you may not use this file except in compliance with the License.</span>
 <span class="c1"># You may obtain a copy of the License at</span>
 <span class="c1">#</span>
 <span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
 <span class="c1">#</span>
 <span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
-<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
@@ -101,7 +101,7 @@
 <span class="c1">#</span>
 <span class="c1">#     https://www.nipreps.org/community/licensing/</span>
 <span class="c1">#</span>
-<span class="sd">&quot;&quot;&quot;Spatial normalization workflows.&quot;&quot;&quot;</span>
+<span class="sd">"""Spatial normalization workflows."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 
@@ -119,16 +119,16 @@
 
 <div class="viewcode-block" id="init_register_template_wf">
 <a class="viewcode-back" href="../../../../api/smriprep.workflows.fit.registration.html#smriprep.workflows.fit.registration.init_register_template_wf">[docs]</a>
-<span class="nd">@tag</span><span class="p">(</span><span class="s1">&#39;anat.register-template&#39;</span><span class="p">)</span>
+<span class="nd">@tag</span><span class="p">(</span><span class="s1">'anat.register-template'</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">init_register_template_wf</span><span class="p">(</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">sloppy</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">omp_nthreads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">templates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">image_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span>
-    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;register_template_wf&#39;</span><span class="p">,</span>
+    <span class="n">image_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">'T1w'</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">'register_template_wf'</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Build an individual spatial normalization workflow using ``antsRegistration``.</span>
 
 <span class="sd">    Workflow Graph</span>
@@ -140,7 +140,7 @@
 <span class="sd">            wf = init_register_template_wf(</span>
 <span class="sd">                sloppy=False,</span>
 <span class="sd">                omp_nthreads=1,</span>
-<span class="sd">                templates=[&#39;MNI152NLin2009cAsym&#39;, &#39;MNI152NLin6Asym&#39;],</span>
+<span class="sd">                templates=['MNI152NLin2009cAsym', 'MNI152NLin6Asym'],</span>
 <span class="sd">            )</span>
 
 <span class="sd">    .. important::</span>
@@ -190,140 +190,140 @@
 <span class="sd">        Template specifications extracted from the input parameter ``template``, for</span>
 <span class="sd">        further use in downstream nodes.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">ntpls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">templates</span><span class="p">)</span>
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">templates</span><span class="p">:</span>
-        <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+        <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">=</span> <span class="s2">"""</span><span class="se">\</span>
 <span class="s2">Volume-based spatial normalization to </span><span class="si">{targets}</span><span class="s2"> (</span><span class="si">{targets_id}</span><span class="s2">) was performed through</span>
 <span class="s2">nonlinear registration with `antsRegistration` (ANTs </span><span class="si">{ants_ver}</span><span class="s2">),</span>
 <span class="s2">using brain-extracted versions of both T1w reference and the T1w template.</span>
 <span class="s2">The following template</span><span class="si">{tpls}</span><span class="s2"> were selected for spatial normalization</span>
 <span class="s2">and accessed with *TemplateFlow* [</span><span class="si">{tf_ver}</span><span class="s2">, @templateflow]:</span>
-<span class="s2">&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">ants_ver</span><span class="o">=</span><span class="n">ANTsInfo</span><span class="o">.</span><span class="n">version</span><span class="p">()</span> <span class="ow">or</span> <span class="s1">&#39;(version unknown)&#39;</span><span class="p">,</span>
-            <span class="n">targets</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> standard space</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">defaultdict</span><span class="p">(</span><span class="s1">&#39;several&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">&#39;one&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;two&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s1">&#39;three&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;four&#39;</span><span class="p">})[</span><span class="n">ntpls</span><span class="p">],</span>
-                <span class="s1">&#39;s&#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">ntpls</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">),</span>
+<span class="s2">"""</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">ants_ver</span><span class="o">=</span><span class="n">ANTsInfo</span><span class="o">.</span><span class="n">version</span><span class="p">()</span> <span class="ow">or</span> <span class="s1">'(version unknown)'</span><span class="p">,</span>
+            <span class="n">targets</span><span class="o">=</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> standard space</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">defaultdict</span><span class="p">(</span><span class="s1">'several'</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s1">'one'</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">'two'</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s1">'three'</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s1">'four'</span><span class="p">})[</span><span class="n">ntpls</span><span class="p">],</span>
+                <span class="s1">'s'</span> <span class="o">*</span> <span class="p">(</span><span class="n">ntpls</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">),</span>
             <span class="p">),</span>
-            <span class="n">targets_id</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates</span><span class="p">),</span>
+            <span class="n">targets_id</span><span class="o">=</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">templates</span><span class="p">),</span>
             <span class="n">tf_ver</span><span class="o">=</span><span class="n">tf_ver</span><span class="p">,</span>
-            <span class="n">tpls</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39; was&#39;</span><span class="p">,</span> <span class="s1">&#39;s were&#39;</span><span class="p">)[</span><span class="n">ntpls</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">tpls</span><span class="o">=</span><span class="p">(</span><span class="s1">' was'</span><span class="p">,</span> <span class="s1">'s were'</span><span class="p">)[</span><span class="n">ntpls</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">],</span>
         <span class="p">)</span>
 
         <span class="c1"># Append template citations to description</span>
         <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
-            <span class="n">template_meta</span> <span class="o">=</span> <span class="n">get_metadata</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="n">template_refs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;@</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())]</span>
+            <span class="n">template_meta</span> <span class="o">=</span> <span class="n">get_metadata</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">':'</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">template_refs</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'@</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">':'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">())]</span>
 
-            <span class="k">if</span> <span class="n">template_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;RRID&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="n">template_refs</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;RRID:</span><span class="si">{</span><span class="n">template_meta</span><span class="p">[</span><span class="s2">&quot;RRID&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">template_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'RRID'</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">template_refs</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'RRID:</span><span class="si">{</span><span class="n">template_meta</span><span class="p">[</span><span class="s2">"RRID"</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span><span class="p">]</span>
 
-            <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">+=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">*</span><span class="si">{template_name}</span><span class="s2">* [</span><span class="si">{template_refs}</span><span class="s2">; TemplateFlow ID: </span><span class="si">{template}</span><span class="s2">]&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">+=</span> <span class="s2">"""</span><span class="se">\</span>
+<span class="s2">*</span><span class="si">{template_name}</span><span class="s2">* [</span><span class="si">{template_refs}</span><span class="s2">; TemplateFlow ID: </span><span class="si">{template}</span><span class="s2">]"""</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">template</span><span class="o">=</span><span class="n">template</span><span class="p">,</span>
-                <span class="n">template_name</span><span class="o">=</span><span class="n">template_meta</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">],</span>
-                <span class="n">template_refs</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_refs</span><span class="p">),</span>
+                <span class="n">template_name</span><span class="o">=</span><span class="n">template_meta</span><span class="p">[</span><span class="s1">'Name'</span><span class="p">],</span>
+                <span class="n">template_refs</span><span class="o">=</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">template_refs</span><span class="p">),</span>
             <span class="p">)</span>
-            <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">+=</span> <span class="s1">&#39;.</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">template</span> <span class="o">==</span> <span class="n">templates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;, &#39;</span>
+            <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">+=</span> <span class="s1">'.</span><span class="se">\n</span><span class="s1">'</span> <span class="k">if</span> <span class="n">template</span> <span class="o">==</span> <span class="n">templates</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="s1">', '</span>
 
     <span class="n">inputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span>
             <span class="n">fields</span><span class="o">=</span><span class="p">[</span>
-                <span class="s1">&#39;lesion_mask&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;moving_image&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;moving_mask&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;template&#39;</span><span class="p">,</span>
+                <span class="s1">'lesion_mask'</span><span class="p">,</span>
+                <span class="s1">'moving_image'</span><span class="p">,</span>
+                <span class="s1">'moving_mask'</span><span class="p">,</span>
+                <span class="s1">'template'</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="p">),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputnode&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'inputnode'</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">inputnode</span><span class="o">.</span><span class="n">iterables</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;template&#39;</span><span class="p">,</span> <span class="n">templates</span><span class="p">)]</span>
+    <span class="n">inputnode</span><span class="o">.</span><span class="n">iterables</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">'template'</span><span class="p">,</span> <span class="n">templates</span><span class="p">)]</span>
 
     <span class="n">out_fields</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;anat2std_xfm&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;std2anat_xfm&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;template&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;template_spec&#39;</span><span class="p">,</span>
+        <span class="s1">'anat2std_xfm'</span><span class="p">,</span>
+        <span class="s1">'std2anat_xfm'</span><span class="p">,</span>
+        <span class="s1">'template'</span><span class="p">,</span>
+        <span class="s1">'template_spec'</span><span class="p">,</span>
     <span class="p">]</span>
-    <span class="n">outputnode</span> <span class="o">=</span> <span class="n">_make_outputnode</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="n">out_fields</span><span class="p">,</span> <span class="n">joinsource</span><span class="o">=</span><span class="s1">&#39;inputnode&#39;</span><span class="p">)</span>
+    <span class="n">outputnode</span> <span class="o">=</span> <span class="n">_make_outputnode</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="n">out_fields</span><span class="p">,</span> <span class="n">joinsource</span><span class="o">=</span><span class="s1">'inputnode'</span><span class="p">)</span>
 
-    <span class="n">split_desc</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">TemplateDesc</span><span class="p">(),</span> <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;split_desc&#39;</span><span class="p">)</span>
+    <span class="n">split_desc</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">TemplateDesc</span><span class="p">(),</span> <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">'split_desc'</span><span class="p">)</span>
 
     <span class="n">tf_select</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">TemplateFlowSelect</span><span class="p">(</span><span class="n">resolution</span><span class="o">=</span><span class="mi">1</span> <span class="o">+</span> <span class="n">sloppy</span><span class="p">),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tf_select&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'tf_select'</span><span class="p">,</span>
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">set_reference</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span>
             <span class="n">function</span><span class="o">=</span><span class="n">_set_reference</span><span class="p">,</span>
-            <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;reference_type&#39;</span><span class="p">,</span> <span class="s1">&#39;use_histogram_matching&#39;</span><span class="p">],</span>
+            <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">'reference_type'</span><span class="p">,</span> <span class="s1">'use_histogram_matching'</span><span class="p">],</span>
         <span class="p">),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;set_reference&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'set_reference'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">set_reference</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">image_type</span> <span class="o">=</span> <span class="n">image_type</span>
 
     <span class="c1"># With the improvements from nipreps/niworkflows#342 this truncation is now necessary</span>
     <span class="n">trunc_mov</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
-        <span class="n">ants</span><span class="o">.</span><span class="n">ImageMath</span><span class="p">(</span><span class="n">operation</span><span class="o">=</span><span class="s1">&#39;TruncateImageIntensity&#39;</span><span class="p">,</span> <span class="n">op2</span><span class="o">=</span><span class="s1">&#39;0.01 0.999 256&#39;</span><span class="p">),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;trunc_mov&#39;</span><span class="p">,</span>
+        <span class="n">ants</span><span class="o">.</span><span class="n">ImageMath</span><span class="p">(</span><span class="n">operation</span><span class="o">=</span><span class="s1">'TruncateImageIntensity'</span><span class="p">,</span> <span class="n">op2</span><span class="o">=</span><span class="s1">'0.01 0.999 256'</span><span class="p">),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'trunc_mov'</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">registration</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">SpatialNormalization</span><span class="p">(</span>
             <span class="nb">float</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">flavor</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;precise&#39;</span><span class="p">,</span> <span class="s1">&#39;testing&#39;</span><span class="p">][</span><span class="n">sloppy</span><span class="p">],</span>
+            <span class="n">flavor</span><span class="o">=</span><span class="p">[</span><span class="s1">'precise'</span><span class="p">,</span> <span class="s1">'testing'</span><span class="p">][</span><span class="n">sloppy</span><span class="p">],</span>
         <span class="p">),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;registration&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'registration'</span><span class="p">,</span>
         <span class="n">n_procs</span><span class="o">=</span><span class="n">omp_nthreads</span><span class="p">,</span>
         <span class="n">mem_gb</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">fmt_cohort</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
-        <span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">_fmt_cohort</span><span class="p">,</span> <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;template&#39;</span><span class="p">,</span> <span class="s1">&#39;spec&#39;</span><span class="p">]),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fmt_cohort&#39;</span><span class="p">,</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="n">function</span><span class="o">=</span><span class="n">_fmt_cohort</span><span class="p">,</span> <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">'template'</span><span class="p">,</span> <span class="s1">'spec'</span><span class="p">]),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'fmt_cohort'</span><span class="p">,</span>
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># fmt:off</span>
     <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
-        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">split_desc</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;template&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">trunc_mov</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;moving_image&#39;</span><span class="p">,</span> <span class="s1">&#39;op1&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">split_desc</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'template'</span><span class="p">,</span> <span class="s1">'template'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">trunc_mov</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'moving_image'</span><span class="p">,</span> <span class="s1">'op1'</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">registration</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;moving_mask&#39;</span><span class="p">,</span> <span class="s1">&#39;moving_mask&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;lesion_mask&#39;</span><span class="p">,</span> <span class="s1">&#39;lesion_mask&#39;</span><span class="p">)]),</span>
+            <span class="p">(</span><span class="s1">'moving_mask'</span><span class="p">,</span> <span class="s1">'moving_mask'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'lesion_mask'</span><span class="p">,</span> <span class="s1">'lesion_mask'</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">split_desc</span><span class="p">,</span> <span class="n">tf_select</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;spec&#39;</span><span class="p">,</span> <span class="s1">&#39;template_spec&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'template'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'spec'</span><span class="p">,</span> <span class="s1">'template_spec'</span><span class="p">),</span>
         <span class="p">]),</span>
         <span class="p">(</span><span class="n">tf_select</span><span class="p">,</span> <span class="n">set_reference</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;t1w_file&#39;</span><span class="p">,</span> <span class="s1">&#39;template_t1w&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;t2w_file&#39;</span><span class="p">,</span> <span class="s1">&#39;template_t2w&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'t1w_file'</span><span class="p">,</span> <span class="s1">'template_t1w'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'t2w_file'</span><span class="p">,</span> <span class="s1">'template_t2w'</span><span class="p">),</span>
         <span class="p">]),</span>
         <span class="p">(</span><span class="n">set_reference</span><span class="p">,</span> <span class="n">registration</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;reference_type&#39;</span><span class="p">,</span> <span class="s1">&#39;reference&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;use_histogram_matching&#39;</span><span class="p">,</span> <span class="s1">&#39;use_histogram_matching&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'reference_type'</span><span class="p">,</span> <span class="s1">'reference'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'use_histogram_matching'</span><span class="p">,</span> <span class="s1">'use_histogram_matching'</span><span class="p">),</span>
         <span class="p">]),</span>
         <span class="p">(</span><span class="n">split_desc</span><span class="p">,</span> <span class="n">registration</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;spec&#39;</span><span class="p">,</span> <span class="s1">&#39;template_spec&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'template'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'spec'</span><span class="p">,</span> <span class="s1">'template_spec'</span><span class="p">),</span>
         <span class="p">]),</span>
         <span class="p">(</span><span class="n">trunc_mov</span><span class="p">,</span> <span class="n">registration</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;output_image&#39;</span><span class="p">,</span> <span class="s1">&#39;moving_image&#39;</span><span class="p">)]),</span>
+            <span class="p">(</span><span class="s1">'output_image'</span><span class="p">,</span> <span class="s1">'moving_image'</span><span class="p">)]),</span>
         <span class="p">(</span><span class="n">split_desc</span><span class="p">,</span> <span class="n">fmt_cohort</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;spec&#39;</span><span class="p">,</span> <span class="s1">&#39;spec&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'template'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'spec'</span><span class="p">,</span> <span class="s1">'spec'</span><span class="p">),</span>
         <span class="p">]),</span>
         <span class="p">(</span><span class="n">fmt_cohort</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;template&#39;</span><span class="p">,</span> <span class="s1">&#39;template&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;spec&#39;</span><span class="p">,</span> <span class="s1">&#39;template_spec&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'template'</span><span class="p">,</span> <span class="s1">'template'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'spec'</span><span class="p">,</span> <span class="s1">'template_spec'</span><span class="p">),</span>
         <span class="p">]),</span>
         <span class="p">(</span><span class="n">registration</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[</span>
-            <span class="p">(</span><span class="s1">&#39;composite_transform&#39;</span><span class="p">,</span> <span class="s1">&#39;anat2std_xfm&#39;</span><span class="p">),</span>
-            <span class="p">(</span><span class="s1">&#39;inverse_composite_transform&#39;</span><span class="p">,</span> <span class="s1">&#39;std2anat_xfm&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'composite_transform'</span><span class="p">,</span> <span class="s1">'anat2std_xfm'</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">'inverse_composite_transform'</span><span class="p">,</span> <span class="s1">'std2anat_xfm'</span><span class="p">),</span>
         <span class="p">]),</span>
     <span class="p">])</span>
     <span class="c1"># fmt:on</span>
@@ -334,24 +334,24 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_make_outputnode</span><span class="p">(</span><span class="n">workflow</span><span class="p">,</span> <span class="n">out_fields</span><span class="p">,</span> <span class="n">joinsource</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">joinsource</span><span class="p">:</span>
-        <span class="n">pout</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">out_fields</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;poutputnode&#39;</span><span class="p">)</span>
+        <span class="n">pout</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">out_fields</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'poutputnode'</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">JoinNode</span><span class="p">(</span>
-            <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">out_fields</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputnode&#39;</span><span class="p">,</span> <span class="n">joinsource</span><span class="o">=</span><span class="n">joinsource</span>
+            <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">out_fields</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'outputnode'</span><span class="p">,</span> <span class="n">joinsource</span><span class="o">=</span><span class="n">joinsource</span>
         <span class="p">)</span>
         <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([(</span><span class="n">pout</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="p">[(</span><span class="n">f</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">out_fields</span><span class="p">])])</span>
         <span class="k">return</span> <span class="n">pout</span>
-    <span class="k">return</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">out_fields</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;outputnode&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">out_fields</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'outputnode'</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_fmt_cohort</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
-    <span class="n">cohort</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;cohort&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">cohort</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'cohort'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cohort</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">template</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">template</span><span class="si">}</span><span class="s1">:cohort-</span><span class="si">{</span><span class="n">cohort</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">template</span><span class="si">}</span><span class="s1">:cohort-</span><span class="si">{</span><span class="n">cohort</span><span class="si">}</span><span class="s1">'</span>
     <span class="k">return</span> <span class="n">template</span><span class="p">,</span> <span class="n">spec</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_set_reference</span><span class="p">(</span><span class="n">image_type</span><span class="p">,</span> <span class="n">template_t1w</span><span class="p">,</span> <span class="n">template_t2w</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Determine the normalization reference and whether histogram matching will be used.</span>
 
 <span class="sd">    Parameters</span>
@@ -364,14 +364,14 @@
 <span class="sd">    -------</span>
 <span class="sd">    reference_type : modality of template reference (T1w, T2w)</span>
 <span class="sd">    histogram_matching : False when image_type does not match reference image, otherwise Undefined</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">nipype.interfaces.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Undefined</span>
 
-    <span class="k">if</span> <span class="n">image_type</span> <span class="o">==</span> <span class="s1">&#39;T2w&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">image_type</span> <span class="o">==</span> <span class="s1">'T2w'</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">template_t2w</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;T2w&#39;</span><span class="p">,</span> <span class="n">Undefined</span>
-        <span class="k">return</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="s1">&#39;T1w&#39;</span><span class="p">,</span> <span class="n">Undefined</span>
+            <span class="k">return</span> <span class="s1">'T2w'</span><span class="p">,</span> <span class="n">Undefined</span>
+        <span class="k">return</span> <span class="s1">'T1w'</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="s1">'T1w'</span><span class="p">,</span> <span class="n">Undefined</span>
 </pre></div>
 
            </div>
@@ -452,7 +452,6 @@
             <dd><a href="../../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../../../../../fix_reuse-sphere-reg/index.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="../../../../../fix_tfselect-resless/index.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../../../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
             <dd><a href="../../../../../maint_0.13.x/index.html">maint/0.13.x</a></dd>

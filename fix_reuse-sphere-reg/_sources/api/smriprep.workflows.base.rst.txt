@@ -1,7 +1,0 @@
-smriprep.workflows.base module
-==============================
-
-.. automodule:: smriprep.workflows.base
-   :members:
-   :show-inheritance:
-   :undoc-members:

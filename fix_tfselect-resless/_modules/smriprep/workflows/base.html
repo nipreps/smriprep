@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.base &mdash; smriprep 0.19.3.dev127 documentation</title>
+  <title>smriprep.workflows.base &mdash; smriprep 0.19.3.dev138 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -87,14 +87,14 @@
 <span class="c1">#</span>
 <span class="c1"># Copyright The NiPreps Developers &lt;nipreps@gmail.com&gt;</span>
 <span class="c1">#</span>
-<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the "License");</span>
 <span class="c1"># you may not use this file except in compliance with the License.</span>
 <span class="c1"># You may obtain a copy of the License at</span>
 <span class="c1">#</span>
 <span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
 <span class="c1">#</span>
 <span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
-<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># distributed under the License is distributed on an "AS IS" BASIS,</span>
 <span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
@@ -104,7 +104,7 @@
 <span class="c1">#</span>
 <span class="c1">#     https://www.nipreps.org/community/licensing/</span>
 <span class="c1">#</span>
-<span class="sd">&quot;&quot;&quot;*sMRIPrep* base processing workflows.&quot;&quot;&quot;</span>
+<span class="sd">"""*sMRIPrep* base processing workflows."""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -150,10 +150,10 @@
     <span class="n">bids_filters</span><span class="p">,</span>
     <span class="n">cifti_output</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Create the execution graph of *sMRIPrep*, with a sub-workflow for each subject.</span>
 
-<span class="sd">    If FreeSurfer&#39;s ``recon-all`` is to be run, a FreeSurfer derivatives folder is</span>
+<span class="sd">    If FreeSurfer's ``recon-all`` is to be run, a FreeSurfer derivatives folder is</span>
 <span class="sd">    created and populated with any needed template subjects.</span>
 
 <span class="sd">    Workflow Graph</span>
@@ -163,11 +163,11 @@
 
 <span class="sd">            import os</span>
 <span class="sd">            from collections import namedtuple</span>
-<span class="sd">            BIDSLayout = namedtuple(&#39;BIDSLayout&#39;, [&#39;root&#39;])</span>
-<span class="sd">            os.environ[&#39;FREESURFER_HOME&#39;] = os.getcwd()</span>
+<span class="sd">            BIDSLayout = namedtuple('BIDSLayout', ['root'])</span>
+<span class="sd">            os.environ['FREESURFER_HOME'] = os.getcwd()</span>
 <span class="sd">            from smriprep.workflows.base import init_smriprep_wf</span>
 <span class="sd">            from niworkflows.utils.spaces import SpatialReferences, Reference</span>
-<span class="sd">            spaces = SpatialReferences(spaces=[&#39;MNI152NLin2009cAsym&#39;, &#39;fsaverage5&#39;])</span>
+<span class="sd">            spaces = SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5'])</span>
 <span class="sd">            spaces.checkpoint()</span>
 <span class="sd">            wf = init_smriprep_wf(</span>
 <span class="sd">                sloppy=False,</span>
@@ -177,19 +177,19 @@
 <span class="sd">                fs_subjects_dir=None,</span>
 <span class="sd">                hires=True,</span>
 <span class="sd">                fs_no_resume=False,</span>
-<span class="sd">                layout=BIDSLayout(&#39;.&#39;),</span>
+<span class="sd">                layout=BIDSLayout('.'),</span>
 <span class="sd">                longitudinal=False,</span>
 <span class="sd">                low_mem=False,</span>
 <span class="sd">                msm_sulc=False,</span>
 <span class="sd">                omp_nthreads=1,</span>
-<span class="sd">                output_dir=&#39;.&#39;,</span>
-<span class="sd">                run_uuid=&#39;testrun&#39;,</span>
+<span class="sd">                output_dir='.',</span>
+<span class="sd">                run_uuid='testrun',</span>
 <span class="sd">                skull_strip_fixed_seed=False,</span>
-<span class="sd">                skull_strip_mode=&#39;force&#39;,</span>
-<span class="sd">                skull_strip_template=Reference(&#39;OASIS30ANTs&#39;),</span>
+<span class="sd">                skull_strip_mode='force',</span>
+<span class="sd">                skull_strip_template=Reference('OASIS30ANTs'),</span>
 <span class="sd">                spaces=spaces,</span>
-<span class="sd">                subject_session_list=[(&#39;smripreptest&#39;, None)],</span>
-<span class="sd">                work_dir=&#39;.&#39;,</span>
+<span class="sd">                subject_session_list=[('smripreptest', None)],</span>
+<span class="sd">                work_dir='.',</span>
 <span class="sd">                bids_filters=None,</span>
 <span class="sd">                cifti_output=None,</span>
 <span class="sd">            )</span>
@@ -244,29 +244,29 @@
 <span class="sd">        Provides finer specification of the pipeline input files through pybids entities filters.</span>
 <span class="sd">        A dict with the following structure {&lt;suffix&gt;:{&lt;entity&gt;:&lt;filter&gt;,...},...}</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">smriprep_wf</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;smriprep_wf&#39;</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="n">smriprep_wf</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'smriprep_wf'</span><span class="p">)</span>
     <span class="n">smriprep_wf</span><span class="o">.</span><span class="n">base_dir</span> <span class="o">=</span> <span class="n">work_dir</span>
 
     <span class="k">if</span> <span class="n">freesurfer</span><span class="p">:</span>
         <span class="n">fsdir</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
             <span class="n">BIDSFreeSurferDir</span><span class="p">(</span>
                 <span class="n">derivatives</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
-                <span class="n">freesurfer_home</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;FREESURFER_HOME&#39;</span><span class="p">),</span>
+                <span class="n">freesurfer_home</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'FREESURFER_HOME'</span><span class="p">),</span>
                 <span class="n">spaces</span><span class="o">=</span><span class="n">spaces</span><span class="o">.</span><span class="n">get_fs_spaces</span><span class="p">(),</span>
             <span class="p">),</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fsdir_run_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">run_uuid</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">'fsdir_run_</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">run_uuid</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'-'</span><span class="p">,</span> <span class="s1">'_'</span><span class="p">)),</span>
             <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">fs_subjects_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">fsdir</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">subjects_dir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fs_subjects_dir</span><span class="o">.</span><span class="n">absolute</span><span class="p">())</span>
 
     <span class="k">for</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">session_ids</span> <span class="ow">in</span> <span class="n">subject_session_list</span><span class="p">:</span>
-        <span class="c1"># (&#39;01&#39;, None) -&gt; sub-01_wf</span>
-        <span class="c1"># (&#39;01&#39;, &#39;pre&#39;) -&gt; sub-01_ses-pre_wf</span>
-        <span class="c1"># (&#39;01&#39;, [&#39;pre&#39;, &#39;post&#39;]) -&gt; sub-01_ses-pre-post_wf</span>
+        <span class="c1"># ('01', None) -&gt; sub-01_wf</span>
+        <span class="c1"># ('01', 'pre') -&gt; sub-01_ses-pre_wf</span>
+        <span class="c1"># ('01', ['pre', 'post']) -&gt; sub-01_ses-pre-post_wf</span>
 
-        <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;sub-</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">_wf&#39;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'sub-</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">_wf'</span>
         <span class="k">if</span> <span class="n">session_ids</span><span class="p">:</span>
             <span class="n">ses_str</span> <span class="o">=</span> <span class="n">session_ids</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">session_ids</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -274,7 +274,7 @@
 
                 <span class="n">ses_str</span> <span class="o">=</span> <span class="n">stringify_sessions</span><span class="p">(</span><span class="n">session_ids</span><span class="p">)</span>
 
-            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;sub-</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">_ses-</span><span class="si">{</span><span class="n">ses_str</span><span class="si">}</span><span class="s1">_wf&#39;</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'sub-</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">_ses-</span><span class="si">{</span><span class="n">ses_str</span><span class="si">}</span><span class="s1">_wf'</span>
 
         <span class="n">single_subject_wf</span> <span class="o">=</span> <span class="n">init_single_subject_wf</span><span class="p">(</span>
             <span class="n">sloppy</span><span class="o">=</span><span class="n">sloppy</span><span class="p">,</span>
@@ -300,13 +300,13 @@
             <span class="n">cifti_output</span><span class="o">=</span><span class="n">cifti_output</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="n">single_subject_wf</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;execution&#39;</span><span class="p">][</span><span class="s1">&#39;crashdump_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">output_dir</span><span class="p">,</span> <span class="s1">&#39;smriprep&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;sub-</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">run_uuid</span>
+        <span class="n">single_subject_wf</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'execution'</span><span class="p">][</span><span class="s1">'crashdump_dir'</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">output_dir</span><span class="p">,</span> <span class="s1">'smriprep'</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'sub-</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'log'</span><span class="p">,</span> <span class="n">run_uuid</span>
         <span class="p">)</span>
         <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">single_subject_wf</span><span class="o">.</span><span class="n">_get_all_nodes</span><span class="p">():</span>
             <span class="n">node</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">single_subject_wf</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">freesurfer</span><span class="p">:</span>
-            <span class="n">smriprep_wf</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">fsdir</span><span class="p">,</span> <span class="s1">&#39;subjects_dir&#39;</span><span class="p">,</span> <span class="n">single_subject_wf</span><span class="p">,</span> <span class="s1">&#39;inputnode.subjects_dir&#39;</span><span class="p">)</span>
+            <span class="n">smriprep_wf</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">fsdir</span><span class="p">,</span> <span class="s1">'subjects_dir'</span><span class="p">,</span> <span class="n">single_subject_wf</span><span class="p">,</span> <span class="s1">'inputnode.subjects_dir'</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">smriprep_wf</span><span class="o">.</span><span class="n">add_nodes</span><span class="p">([</span><span class="n">single_subject_wf</span><span class="p">])</span>
 
@@ -340,7 +340,7 @@
     <span class="n">bids_filters</span><span class="p">,</span>
     <span class="n">cifti_output</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Create a single subject workflow.</span>
 
 <span class="sd">    This workflow organizes the preprocessing pipeline for a single subject.</span>
@@ -360,8 +360,8 @@
 <span class="sd">            from collections import namedtuple</span>
 <span class="sd">            from niworkflows.utils.spaces import SpatialReferences, Reference</span>
 <span class="sd">            from smriprep.workflows.base import init_single_subject_wf</span>
-<span class="sd">            BIDSLayout = namedtuple(&#39;BIDSLayout&#39;, [&#39;root&#39;])</span>
-<span class="sd">            spaces = SpatialReferences(spaces=[&#39;MNI152NLin2009cAsym&#39;, &#39;fsaverage5&#39;])</span>
+<span class="sd">            BIDSLayout = namedtuple('BIDSLayout', ['root'])</span>
+<span class="sd">            spaces = SpatialReferences(spaces=['MNI152NLin2009cAsym', 'fsaverage5'])</span>
 <span class="sd">            spaces.checkpoint()</span>
 <span class="sd">            wf = init_single_subject_wf(</span>
 <span class="sd">                sloppy=False,</span>
@@ -370,18 +370,18 @@
 <span class="sd">                derivatives=[],</span>
 <span class="sd">                hires=True,</span>
 <span class="sd">                fs_no_resume=False,</span>
-<span class="sd">                layout=BIDSLayout(&#39;.&#39;),</span>
+<span class="sd">                layout=BIDSLayout('.'),</span>
 <span class="sd">                longitudinal=False,</span>
 <span class="sd">                low_mem=False,</span>
 <span class="sd">                msm_sulc=False,</span>
-<span class="sd">                name=&#39;single_subject_wf&#39;,</span>
+<span class="sd">                name='single_subject_wf',</span>
 <span class="sd">                omp_nthreads=1,</span>
-<span class="sd">                output_dir=&#39;.&#39;,</span>
+<span class="sd">                output_dir='.',</span>
 <span class="sd">                skull_strip_fixed_seed=False,</span>
-<span class="sd">                skull_strip_mode=&#39;force&#39;,</span>
-<span class="sd">                skull_strip_template=Reference(&#39;OASIS30ANTs&#39;),</span>
+<span class="sd">                skull_strip_mode='force',</span>
+<span class="sd">                skull_strip_template=Reference('OASIS30ANTs'),</span>
 <span class="sd">                spaces=spaces,</span>
-<span class="sd">                subject_id=&#39;test&#39;,</span>
+<span class="sd">                subject_id='test',</span>
 <span class="sd">                session_id=None,</span>
 <span class="sd">                bids_filters=None,</span>
 <span class="sd">                cifti_output=None,</span>
@@ -439,87 +439,87 @@
 <span class="sd">    subjects_dir</span>
 <span class="sd">        FreeSurfer SUBJECTS_DIR</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.reports</span><span class="w"> </span><span class="kn">import</span> <span class="n">AboutSummary</span><span class="p">,</span> <span class="n">SubjectSummary</span>
 
-    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;single_subject_wf&#39;</span><span class="p">,</span> <span class="s1">&#39;sub-smripreptest_wf&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">'single_subject_wf'</span><span class="p">,</span> <span class="s1">'sub-smripreptest_wf'</span><span class="p">):</span>
         <span class="c1"># for documentation purposes</span>
         <span class="n">subject_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;t1w&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;/completely/made/up/path/sub-01_T1w.nii.gz&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;t2w&#39;</span><span class="p">:</span> <span class="p">[],</span>
-            <span class="s1">&#39;flair&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">'t1w'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'/completely/made/up/path/sub-01_T1w.nii.gz'</span><span class="p">],</span>
+            <span class="s1">'t2w'</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">'flair'</span><span class="p">:</span> <span class="p">[],</span>
         <span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">subject_data</span> <span class="o">=</span> <span class="n">collect_data</span><span class="p">(</span>
             <span class="n">layout</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span> <span class="n">bids_filters</span><span class="o">=</span><span class="n">bids_filters</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">subject_data</span><span class="p">[</span><span class="s1">&#39;t1w&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subject_data</span><span class="p">[</span><span class="s1">'t1w'</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;No T1w images found for participant </span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">. All workflows require T1w images.&#39;</span>
+            <span class="sa">f</span><span class="s1">'No T1w images found for participant </span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">. All workflows require T1w images.'</span>
         <span class="p">)</span>
 
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
-    <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">workflow</span><span class="o">.</span><span class="n">__desc__</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span>
 <span class="s2">Results included in this manuscript come from preprocessing</span>
 <span class="s2">performed using *sMRIPrep* </span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span>
 <span class="s2">(@fmriprep1; @fmriprep2; RRID:SCR_016216),</span>
 <span class="s2">which is based on *Nipype* </span><span class="si">{</span><span class="n">nipype_ver</span><span class="si">}</span>
 <span class="s2">(@nipype1; @nipype2; RRID:SCR_002502).</span>
 
-<span class="s2">&quot;&quot;&quot;</span>
-    <span class="n">workflow</span><span class="o">.</span><span class="n">__postdesc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">"""</span>
+    <span class="n">workflow</span><span class="o">.</span><span class="n">__postdesc__</span> <span class="o">=</span> <span class="s2">"""</span>
 
 <span class="s2">For more details of the pipeline, see [the section corresponding</span>
-<span class="s2">to workflows in *sMRIPrep*&#39;s documentation]</span><span class="se">\</span>
+<span class="s2">to workflows in *sMRIPrep*'s documentation]</span><span class="se">\</span>
 <span class="s2">(https://smriprep.readthedocs.io/en/latest/workflows.html </span><span class="se">\</span>
-<span class="s2">&quot;sMRIPrep&#39;s documentation&quot;).</span>
+<span class="s2">"sMRIPrep's documentation").</span>
 
 
 <span class="s2">### References</span>
 
-<span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">"""</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_derivatives</span>
 
     <span class="n">deriv_cache</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">std_spaces</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">get_spaces</span><span class="p">(</span><span class="n">nonstandard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
-    <span class="n">std_spaces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;fsnative&#39;</span><span class="p">)</span>
+    <span class="n">std_spaces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'fsnative'</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">deriv_dir</span> <span class="ow">in</span> <span class="n">derivatives</span><span class="p">:</span>
         <span class="n">deriv_cache</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
             <span class="n">collect_derivatives</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">std_spaces</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">)</span>
         <span class="p">)</span>
 
-    <span class="n">inputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;inputnode&#39;</span><span class="p">)</span>
+    <span class="n">inputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">'subjects_dir'</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'inputnode'</span><span class="p">)</span>
 
-    <span class="n">bidssrc</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">BIDSDataGrabber</span><span class="p">(</span><span class="n">subject_data</span><span class="o">=</span><span class="n">subject_data</span><span class="p">,</span> <span class="n">anat_only</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;bidssrc&#39;</span><span class="p">)</span>
+    <span class="n">bidssrc</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">BIDSDataGrabber</span><span class="p">(</span><span class="n">subject_data</span><span class="o">=</span><span class="n">subject_data</span><span class="p">,</span> <span class="n">anat_only</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'bidssrc'</span><span class="p">)</span>
 
     <span class="n">bids_info</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
-        <span class="n">BIDSInfo</span><span class="p">(</span><span class="n">bids_dir</span><span class="o">=</span><span class="n">layout</span><span class="o">.</span><span class="n">root</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;bids_info&#39;</span><span class="p">,</span> <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">BIDSInfo</span><span class="p">(</span><span class="n">bids_dir</span><span class="o">=</span><span class="n">layout</span><span class="o">.</span><span class="n">root</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'bids_info'</span><span class="p">,</span> <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
 
     <span class="n">summary</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">SubjectSummary</span><span class="p">(</span><span class="n">output_spaces</span><span class="o">=</span><span class="n">spaces</span><span class="o">.</span><span class="n">get_spaces</span><span class="p">(</span><span class="n">nonstandard</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;summary&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'summary'</span><span class="p">,</span>
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">about</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
-        <span class="n">AboutSummary</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">__version__</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;about&#39;</span><span class="p">,</span>
+        <span class="n">AboutSummary</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">__version__</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'about'</span><span class="p">,</span>
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">dismiss_entities</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;session&#39;</span><span class="p">,)</span> <span class="k">if</span> <span class="n">session_id</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">dismiss_entities</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'session'</span><span class="p">,)</span> <span class="k">if</span> <span class="n">session_id</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="n">ds_report_summary</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">DerivativesDataSink</span><span class="p">(</span>
             <span class="n">base_directory</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
             <span class="n">dismiss_entities</span><span class="o">=</span><span class="n">dismiss_entities</span><span class="p">,</span>
-            <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;summary&#39;</span><span class="p">,</span>
-            <span class="n">datatype</span><span class="o">=</span><span class="s1">&#39;figures&#39;</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="s1">'summary'</span><span class="p">,</span>
+            <span class="n">datatype</span><span class="o">=</span><span class="s1">'figures'</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_report_summary&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'ds_report_summary'</span><span class="p">,</span>
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -527,10 +527,10 @@
         <span class="n">DerivativesDataSink</span><span class="p">(</span>
             <span class="n">base_directory</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
             <span class="n">dismiss_entities</span><span class="o">=</span><span class="n">dismiss_entities</span><span class="p">,</span>
-            <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;about&#39;</span><span class="p">,</span>
-            <span class="n">datatype</span><span class="o">=</span><span class="s1">&#39;figures&#39;</span><span class="p">,</span>
+            <span class="n">desc</span><span class="o">=</span><span class="s1">'about'</span><span class="p">,</span>
+            <span class="n">datatype</span><span class="o">=</span><span class="s1">'figures'</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ds_report_about&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'ds_report_about'</span><span class="p">,</span>
         <span class="n">run_without_submitting</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -545,10 +545,10 @@
         <span class="n">fs_no_resume</span><span class="o">=</span><span class="n">fs_no_resume</span><span class="p">,</span>
         <span class="n">longitudinal</span><span class="o">=</span><span class="n">longitudinal</span><span class="p">,</span>
         <span class="n">msm_sulc</span><span class="o">=</span><span class="n">msm_sulc</span><span class="p">,</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;anat_preproc_wf&#39;</span><span class="p">,</span>
-        <span class="n">t1w</span><span class="o">=</span><span class="n">subject_data</span><span class="p">[</span><span class="s1">&#39;t1w&#39;</span><span class="p">],</span>
-        <span class="n">t2w</span><span class="o">=</span><span class="n">subject_data</span><span class="p">[</span><span class="s1">&#39;t2w&#39;</span><span class="p">],</span>
-        <span class="n">flair</span><span class="o">=</span><span class="n">subject_data</span><span class="p">[</span><span class="s1">&#39;flair&#39;</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'anat_preproc_wf'</span><span class="p">,</span>
+        <span class="n">t1w</span><span class="o">=</span><span class="n">subject_data</span><span class="p">[</span><span class="s1">'t1w'</span><span class="p">],</span>
+        <span class="n">t2w</span><span class="o">=</span><span class="n">subject_data</span><span class="p">[</span><span class="s1">'t2w'</span><span class="p">],</span>
+        <span class="n">flair</span><span class="o">=</span><span class="n">subject_data</span><span class="p">[</span><span class="s1">'flair'</span><span class="p">],</span>
         <span class="n">omp_nthreads</span><span class="o">=</span><span class="n">omp_nthreads</span><span class="p">,</span>
         <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
         <span class="n">skull_strip_fixed_seed</span><span class="o">=</span><span class="n">skull_strip_fixed_seed</span><span class="p">,</span>
@@ -559,21 +559,21 @@
     <span class="p">)</span>
 
     <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
-        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">anat_preproc_wf</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.subjects_dir&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">bids_info</span><span class="p">,</span> <span class="p">[((</span><span class="s1">&#39;t1w&#39;</span><span class="p">,</span> <span class="n">fix_multi_T1w_source_name</span><span class="p">),</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">summary</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;subjects_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;subjects_dir&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">summary</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;t1w&#39;</span><span class="p">,</span> <span class="s1">&#39;t1w&#39;</span><span class="p">),</span>
-                            <span class="p">(</span><span class="s1">&#39;t2w&#39;</span><span class="p">,</span> <span class="s1">&#39;t2w&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">bids_info</span><span class="p">,</span> <span class="n">summary</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;subject&#39;</span><span class="p">,</span> <span class="s1">&#39;subject_id&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">bids_info</span><span class="p">,</span> <span class="n">anat_preproc_wf</span><span class="p">,</span> <span class="p">[((</span><span class="s1">&#39;subject&#39;</span><span class="p">,</span> <span class="n">_prefix</span><span class="p">,</span> <span class="n">session_id</span><span class="p">),</span> <span class="s1">&#39;inputnode.subject_id&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">anat_preproc_wf</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;t1w&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.t1w&#39;</span><span class="p">),</span>
-                                    <span class="p">(</span><span class="s1">&#39;t2w&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.t2w&#39;</span><span class="p">),</span>
-                                    <span class="p">(</span><span class="s1">&#39;roi&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.roi&#39;</span><span class="p">),</span>
-                                    <span class="p">(</span><span class="s1">&#39;flair&#39;</span><span class="p">,</span> <span class="s1">&#39;inputnode.flair&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">ds_report_summary</span><span class="p">,</span> <span class="p">[((</span><span class="s1">&#39;t1w&#39;</span><span class="p">,</span> <span class="n">fix_multi_T1w_source_name</span><span class="p">),</span> <span class="s1">&#39;source_file&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">ds_report_summary</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out_report&#39;</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">ds_report_about</span><span class="p">,</span> <span class="p">[((</span><span class="s1">&#39;t1w&#39;</span><span class="p">,</span> <span class="n">fix_multi_T1w_source_name</span><span class="p">),</span> <span class="s1">&#39;source_file&#39;</span><span class="p">)]),</span>
-        <span class="p">(</span><span class="n">about</span><span class="p">,</span> <span class="n">ds_report_about</span><span class="p">,</span> <span class="p">[(</span><span class="s1">&#39;out_report&#39;</span><span class="p">,</span> <span class="s1">&#39;in_file&#39;</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">anat_preproc_wf</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'subjects_dir'</span><span class="p">,</span> <span class="s1">'inputnode.subjects_dir'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">bids_info</span><span class="p">,</span> <span class="p">[((</span><span class="s1">'t1w'</span><span class="p">,</span> <span class="n">fix_multi_T1w_source_name</span><span class="p">),</span> <span class="s1">'in_file'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">summary</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'subjects_dir'</span><span class="p">,</span> <span class="s1">'subjects_dir'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">summary</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'t1w'</span><span class="p">,</span> <span class="s1">'t1w'</span><span class="p">),</span>
+                            <span class="p">(</span><span class="s1">'t2w'</span><span class="p">,</span> <span class="s1">'t2w'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">bids_info</span><span class="p">,</span> <span class="n">summary</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'subject'</span><span class="p">,</span> <span class="s1">'subject_id'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">bids_info</span><span class="p">,</span> <span class="n">anat_preproc_wf</span><span class="p">,</span> <span class="p">[((</span><span class="s1">'subject'</span><span class="p">,</span> <span class="n">_prefix</span><span class="p">,</span> <span class="n">session_id</span><span class="p">),</span> <span class="s1">'inputnode.subject_id'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">anat_preproc_wf</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'t1w'</span><span class="p">,</span> <span class="s1">'inputnode.t1w'</span><span class="p">),</span>
+                                    <span class="p">(</span><span class="s1">'t2w'</span><span class="p">,</span> <span class="s1">'inputnode.t2w'</span><span class="p">),</span>
+                                    <span class="p">(</span><span class="s1">'roi'</span><span class="p">,</span> <span class="s1">'inputnode.roi'</span><span class="p">),</span>
+                                    <span class="p">(</span><span class="s1">'flair'</span><span class="p">,</span> <span class="s1">'inputnode.flair'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">ds_report_summary</span><span class="p">,</span> <span class="p">[((</span><span class="s1">'t1w'</span><span class="p">,</span> <span class="n">fix_multi_T1w_source_name</span><span class="p">),</span> <span class="s1">'source_file'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">ds_report_summary</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'out_report'</span><span class="p">,</span> <span class="s1">'in_file'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">bidssrc</span><span class="p">,</span> <span class="n">ds_report_about</span><span class="p">,</span> <span class="p">[((</span><span class="s1">'t1w'</span><span class="p">,</span> <span class="n">fix_multi_T1w_source_name</span><span class="p">),</span> <span class="s1">'source_file'</span><span class="p">)]),</span>
+        <span class="p">(</span><span class="n">about</span><span class="p">,</span> <span class="n">ds_report_about</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'out_report'</span><span class="p">,</span> <span class="s1">'in_file'</span><span class="p">)]),</span>
     <span class="p">])</span>  <span class="c1"># fmt:skip</span>
 
     <span class="k">return</span> <span class="n">workflow</span></div>
@@ -581,9 +581,9 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_prefix</span><span class="p">(</span><span class="n">subject_id</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create FreeSurfer subject ID.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">subject_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;sub-&#39;</span><span class="p">):</span>
-        <span class="n">subject_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;sub-</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">&#39;</span>
+<span class="w">    </span><span class="sd">"""Create FreeSurfer subject ID."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subject_id</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'sub-'</span><span class="p">):</span>
+        <span class="n">subject_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'sub-</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">'</span>
 
     <span class="k">if</span> <span class="n">session_id</span><span class="p">:</span>
         <span class="n">ses_str</span> <span class="o">=</span> <span class="n">session_id</span>
@@ -591,9 +591,9 @@
             <span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">stringify_sessions</span>
 
             <span class="n">ses_str</span> <span class="o">=</span> <span class="n">stringify_sessions</span><span class="p">(</span><span class="n">session_id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">ses_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;ses-&#39;</span><span class="p">):</span>
-            <span class="n">ses_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;ses-</span><span class="si">{</span><span class="n">ses_str</span><span class="si">}</span><span class="s1">&#39;</span>
-        <span class="n">subject_id</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">&#39;_</span><span class="si">{</span><span class="n">ses_str</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ses_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'ses-'</span><span class="p">):</span>
+            <span class="n">ses_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'ses-</span><span class="si">{</span><span class="n">ses_str</span><span class="si">}</span><span class="s1">'</span>
+        <span class="n">subject_id</span> <span class="o">+=</span> <span class="sa">f</span><span class="s1">'_</span><span class="si">{</span><span class="n">ses_str</span><span class="si">}</span><span class="s1">'</span>
     <span class="k">return</span> <span class="n">subject_id</span>
 </pre></div>
 
@@ -675,7 +675,6 @@
             <dd><a href="../../../../enh_split-surfaces/index.html">enh/split-surfaces</a></dd>
             <dd><a href="../../../../fix_parcstats/index.html">fix/parcstats</a></dd>
             <dd><a href="../../../../fix_recon-report/index.html">fix/recon-report</a></dd>
-            <dd><a href="../../../../fix_reuse-sphere-reg/index.html">fix/reuse-sphere-reg</a></dd>
             <dd><a href="base.html">fix/tfselect-resless</a></dd>
             <dd><a href="../../../../maint_0.12.x/index.html">maint/0.12.x</a></dd>
             <dd><a href="../../../../maint_0.13.x/index.html">maint/0.13.x</a></dd>
