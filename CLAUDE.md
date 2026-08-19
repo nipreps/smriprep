@@ -28,15 +28,10 @@ pytest --override-ini="addopts=" test/interfaces/test_surf.py
 ```
 
 ### Linting and Formatting
+Style, formatting, and spell checks run through pre-commit (locally and on pre-commit.ci).
 ```bash
-# Check style (ruff lint + format check)
-tox -e style
-
-# Auto-fix style issues
-tox -e style-fix
-
-# Spell check
-tox -e spellcheck
+# Run all hooks
+pre-commit run --all-files
 
 # Direct ruff usage
 ruff check --diff
