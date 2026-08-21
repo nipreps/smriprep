@@ -371,6 +371,7 @@ class ValidateSubjectDir(SimpleInterface):
     and sMRIPrep does not attempt to run recon-all, which would create the
     subject directory if it does not exist.
     """
+
     input_spec = ValidateSubjectDirInputSpec
     output_spec = ValidateSubjectDirOutputSpec
 
