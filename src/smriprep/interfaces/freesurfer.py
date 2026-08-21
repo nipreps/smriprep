@@ -27,7 +27,14 @@ import os
 from looseversion import LooseVersion
 from nipype import logging
 from nipype.interfaces import freesurfer as fs
-from nipype.interfaces.base import File, InputMultiObject, isdefined, traits
+from nipype.interfaces.base import (
+    File,
+    InputMultiObject,
+    SimpleInterface,
+    TraitedSpec,
+    isdefined,
+    traits,
+)
 from nipype.utils.filemanip import check_depends
 from niworkflows.interfaces import freesurfer as nwfs
 
@@ -338,3 +345,47 @@ class MakeMidthickness(nwfs.MakeMidthickness, fs.base.FSCommandOpenMP):
     def _num_threads_update(self):
         if self.inputs.num_threads:
             self.inputs.environ.update({'OMP_NUM_THREADS': str(self.inputs.num_threads * 3 // 2)})
+
+
+class ValidateSubjectDirInputSpec(TraitedSpec):
+    subjects_dir = traits.Directory(
+        exists=True,
+        mandatory=True,
+        desc='FreeSurfer subjects directory',
+    )
+    subject_id = traits.Str(
+        mandatory=True,
+        desc='FreeSurfer subject ID to validate',
+    )
+
+
+class ValidateSubjectDirOutputSpec(TraitedSpec):
+    subjects_dir = traits.Directory(desc='FreeSurfer subjects directory')
+    subject_id = traits.Str(desc='Validated FreeSurfer subject ID')
+
+
+class ValidateSubjectDir(SimpleInterface):
+    """Interface to validate the existence of a FreeSurfer subject directory.
+
+    The intended use case is when a FreeSurfer directory is provided as-is,
+    and sMRIPrep does not attempt to run recon-all, which would create the
+    subject directory if it does not exist.
+    """
+
+    input_spec = ValidateSubjectDirInputSpec
+    output_spec = ValidateSubjectDirOutputSpec
+
+    _always_run = True
+
+    def _run_interface(self, runtime):
+        subjects_dir = self.inputs.subjects_dir
+        subject_id = self.inputs.subject_id
+
+        if not os.path.isdir(os.path.join(subjects_dir, subject_id)):
+            raise RuntimeError(
+                f"Subject directory '{subject_id}' does not exist in '{subjects_dir}'."
+            )
+
+        self._results['subjects_dir'] = subjects_dir
+        self._results['subject_id'] = subject_id
+        return runtime
