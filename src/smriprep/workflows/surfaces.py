@@ -58,7 +58,7 @@ import smriprep
 from smriprep.interfaces.surf import MakeRibbon
 from smriprep.interfaces.workbench import SurfaceResample
 
-from ..interfaces.freesurfer import MakeMidthickness, ReconAll
+from ..interfaces.freesurfer import MakeMidthickness, MRIsConvertData, ReconAll, ValidateSubjectDir
 from ..interfaces.gifti import MetricMath
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
@@ -286,11 +286,16 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
             ]),
         ])  # fmt:skip
     else:
+        validate_subject_dir = ValidateSubjectDir()
         # Pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
         fs_base_inputs = autorecon1 = pe.Node(FreeSurferSource(), name='fs_base_inputs')
 
         workflow.connect([
-            (inputnode, fs_base_inputs, [
+            (inputnode, validate_subject_dir, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
+            (validate_subject_dir, fs_base_inputs, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
             ]),
@@ -972,8 +977,6 @@ def init_gifti_morphometrics_wf(
         Left and right GIFTIs for each morphometry type passed to ``morphometrics``
 
     """
-    from ..interfaces.freesurfer import MRIsConvertData
-
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
