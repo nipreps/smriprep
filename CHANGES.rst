@@ -1,3 +1,17 @@
+0.19.4 (August 24, 2026)
+========================
+Bug-fix release in the 0.19.x series.
+
+This release addresses failures to collect some precomputed derivatives, resulting
+in undesired recalculation.
+
+We also realized that PR 580 from the previous release duplicated the prior effort
+in PR 504. The latter PR has been backported and the logic of the two PRs merged.
+
+* ENH: Add node to check for subject's Freesurfer directory (#504)
+* FIX: Query io_spec masks in collect_derivatives. (#511)
+* FIX: Allow reuse of sphere reg derivatives (#576)
+
 0.19.3 (August 24, 2026)
 ========================
 Bug-fix release in the 0.19.x series.
@@ -7,7 +21,6 @@ This release adds a minor feature to produce a more informative error message if
 Previously, downstream nodes would indicate empty inputs.
 
 * ENH: Validate subject directory exists if --fs-no-resume (#580)
-
 
 0.19.2 (September 24, 2025)
 ===========================
