@@ -11,13 +11,13 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Image Recognition",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-license = {file = "LICENSE"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
     "acres >= 0.2",
@@ -53,17 +53,16 @@ doc = [
     "sphinx",
     "sphinx-argparse",
     "sphinx_rtd_theme",
-    "sphinxcontrib-apidoc ~= 0.3.0",
     "sphinxcontrib-napoleon",
     "sphinxcontrib-versioning",
 ]
 duecredit = ["duecredit"]
 test = [
-    "coverage[toml] >= 5.2.1",
-    "pytest >= 8.1",
-    "pytest-cov >= 2.11",
-    "pytest-env",
-    "pytest-xdist >= 2.5",
+    "coverage[toml] >= 7.6.2",
+    "pytest >= 8.3.3",
+    "pytest-cov >= 6.0.0",
+    "pytest-env >= 1.1.4",
+    "pytest-xdist >= 3.7.0",
 ]
 style = ["flake8"]
 # Aliases
@@ -86,9 +85,6 @@ exclude = [".git_archival.txt"]  # No longer needed in sdist
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/smriprep"]
-exclude = [
-    "src/smriprep/data/tests/work",  # Large test data directory
-]
 
 ##  The following two sections configure setuptools_scm in the hatch way
 
@@ -189,4 +185,4 @@ inline-quotes = "single"
 quote-style = "single"
 
 [tool.codespell]
-skip = "*/data/*,*/docs/_build/*,*.svg,*/docs/_static/*"
+skip = "*/data/*,*docs/_build/*,*.svg,*docs/_static/*"
