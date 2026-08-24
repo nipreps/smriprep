@@ -25,7 +25,7 @@
 import nipype.interfaces.freesurfer as fs
 import pytest
 
-from ..freesurfer import MRICoreg, ValidateSubjectDir
+from smriprep.interfaces.freesurfer import MRICoreg, ValidateSubjectDir
 
 
 def test_mricoreg_no_xor_constraint():
