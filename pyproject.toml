@@ -53,7 +53,6 @@ doc = [
     "sphinx",
     "sphinx-argparse",
     "sphinx_rtd_theme",
-    "sphinxcontrib-apidoc ~= 0.3.0",
     "sphinxcontrib-napoleon",
     "sphinxcontrib-versioning",
 ]

@@ -55,7 +55,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinxarg.ext',  # argparse extension
-    'sphinxcontrib.apidoc',
+    'sphinx.ext.apidoc',
     'nipype.sphinxext.plot_workflow',
     'nipype.sphinxext.apidoc',
 ]
@@ -229,18 +229,20 @@ epub_exclude_files = ['search.html']
 
 # -- Extension configuration -------------------------------------------------
 
-apidoc_module_dir = '../src/smriprep'
-apidoc_output_dir = 'api'
-apidoc_excluded_paths = [
-    'conftest.py',
-    '*/conftest.py',
-    '*/tests/*',
-    'tests/*',
-    'data/*',
-    'conf/*',
+apidoc_modules = [
+    {
+        'path': '../src/smriprep',
+        'destination': 'api/',
+        'exclude_patterns': [
+            '**/conftest.py',
+            '**/test*',
+            '**/conf/*',
+            '**/data/*',
+        ],
+        'max_depth': 1,
+        'separate_modules': True,
+    }
 ]
-apidoc_separate_modules = True
-apidoc_extra_args = ['--module-first', '-d 1', '-T']
 
 # Options for github links
 # The following is used by sphinx.ext.linkcode to provide links to github
