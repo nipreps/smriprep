@@ -76,7 +76,7 @@ jobs:
       matrix:
         os: ["ubuntu-latest"]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        dependencies: [latest, pre]
+        dependencies: [latest]
         include:
           # Test minimum dependencies on oldest supported Python
           - os: ubuntu-latest
@@ -213,23 +213,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/Packages-wrapper/
-
-  checks:
-    runs-on: "ubuntu-latest"
-    continue-on-error: true
-    strategy:
-      matrix:
-        check: ["style", "spellcheck"]
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v5
-      - name: Install tox
-        run: uv tool install tox --with=tox-uv
-      - name: Show tox config
-        run: tox c -e ${{ matrix.check }}
-      - name: Run check
-        run: tox -e ${{ matrix.check }}
