@@ -23,8 +23,9 @@
 """Tests for patched FreeSurfer interfaces."""
 
 import nipype.interfaces.freesurfer as fs
+import pytest
 
-from smriprep.interfaces.freesurfer import MRICoreg
+from ..freesurfer import MRICoreg, ValidateSubjectDir
 
 
 def test_mricoreg_no_xor_constraint():
@@ -77,3 +78,15 @@ def test_upstream_mricoreg_xor_exists():
     subj_trait = coreg.inputs.trait('subject_id')
     assert 'subject_id' in (getattr(ref_trait, 'xor', None) or [])
     assert 'reference_file' in (getattr(subj_trait, 'xor', None) or [])
+
+
+def test_validate_subject_dir(tmp_path):
+    validate = ValidateSubjectDir(subjects_dir=tmp_path, subject_id='sub-01')
+    with pytest.raises(FileNotFoundError, match='.* does not exist .*'):
+        validate.run()
+
+    tmp_path.joinpath('sub-01').mkdir()
+
+    ret = validate.run()
+    assert ret.outputs.subjects_dir == str(tmp_path)
+    assert ret.outputs.subject_id == 'sub-01'

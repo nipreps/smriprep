@@ -23,11 +23,19 @@
 """Nipype's recon-all replacement."""
 
 import os
+from pathlib import Path
 
 from looseversion import LooseVersion
 from nipype import logging
 from nipype.interfaces import freesurfer as fs
-from nipype.interfaces.base import File, InputMultiObject, isdefined, traits
+from nipype.interfaces.base import (
+    File,
+    InputMultiObject,
+    SimpleInterface,
+    TraitedSpec,
+    isdefined,
+    traits,
+)
 from nipype.utils.filemanip import check_depends
 from niworkflows.interfaces import freesurfer as nwfs
 
@@ -376,3 +384,45 @@ class MRICoreg(fs.MRICoreg):
     """
 
     input_spec = _MRICoregInputSpec
+
+
+class ValidateSubjectDirInputSpec(TraitedSpec):
+    subjects_dir = traits.Directory(
+        exists=True,
+        mandatory=True,
+        desc='FreeSurfer subjects directory',
+    )
+    subject_id = traits.Str(
+        mandatory=True,
+        desc='FreeSurfer subject ID to validate',
+    )
+
+
+class ValidateSubjectDirOutputSpec(TraitedSpec):
+    subjects_dir = traits.Directory(desc='FreeSurfer subjects directory')
+    subject_id = traits.Str(desc='Validated FreeSurfer subject ID')
+
+
+class ValidateSubjectDir(SimpleInterface):
+    """Interface to validate the existence of a FreeSurfer subject directory.
+
+    The intended use case is when a FreeSurfer directory is provided as-is,
+    and sMRIPrep does not attempt to run recon-all, which would create the
+    subject directory if it does not exist.
+    """
+
+    input_spec = ValidateSubjectDirInputSpec
+    output_spec = ValidateSubjectDirOutputSpec
+
+    _always_run = True
+
+    def _run_interface(self, runtime):
+        subject_id = self.inputs.subject_id
+
+        subjects_dir = Path(self.inputs.subjects_dir)
+        if not (subjects_dir / subject_id).exists():
+            raise FileNotFoundError(f"Subject '{subject_id}' does not exist in '{subjects_dir}'.")
+
+        self._results['subjects_dir'] = str(subjects_dir)
+        self._results['subject_id'] = subject_id
+        return runtime

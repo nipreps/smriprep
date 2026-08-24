@@ -58,7 +58,7 @@ import smriprep
 from smriprep.interfaces.surf import MakeRibbon
 from smriprep.interfaces.workbench import SurfaceResample
 
-from ..interfaces.freesurfer import MakeMidthickness, ReconAll
+from ..interfaces.freesurfer import MakeMidthickness, MRIsConvertData, ReconAll, ValidateSubjectDir
 from ..interfaces.gifti import MetricMath
 from ..interfaces.workbench import CreateSignedDistanceVolume
 
@@ -287,29 +287,22 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ])  # fmt:skip
     else:
         # Check that the subject directory exists
-        check_subjects_dir = pe.Node(
-            niu.Function(
-                function=_check_subjects_dir,
-                input_names=['subjects_dir', 'subject_id'],
-                output_names=['subjects_dir', 'subject_id'],
-            ),
-            name='check_subjects_dir',
-        )
+        validate_subject_dir = pe.Node(ValidateSubjectDir(), name='validate_subject_dir')
 
         # Hook up get_surfaces immediately,
         # pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP
         autorecon1 = get_surfaces
 
         workflow.connect([
-            (inputnode, check_subjects_dir, [
+            (inputnode, validate_subject_dir, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
             ]),
-            (check_subjects_dir, get_surfaces, [
+            (validate_subject_dir, get_surfaces, [
                 ('subjects_dir', 'subjects_dir'),
                 ('subject_id', 'subject_id'),
             ]),
-            (check_subjects_dir, save_midthickness, [
+            (validate_subject_dir, save_midthickness, [
                 ('subjects_dir', 'base_directory'),
                 ('subject_id', 'container'),
             ]),
@@ -982,8 +975,6 @@ def init_gifti_morphometrics_wf(
         Left and right GIFTIs for each morphometry type passed to ``morphometrics``
 
     """
-    from ..interfaces.freesurfer import MRIsConvertData
-
     workflow = Workflow(name=name)
 
     inputnode = pe.Node(
