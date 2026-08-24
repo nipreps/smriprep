@@ -23,6 +23,7 @@
 """Nipype's recon-all replacement."""
 
 import os
+from pathlib import Path
 
 from looseversion import LooseVersion
 from nipype import logging
@@ -378,14 +379,12 @@ class ValidateSubjectDir(SimpleInterface):
     _always_run = True
 
     def _run_interface(self, runtime):
-        subjects_dir = self.inputs.subjects_dir
         subject_id = self.inputs.subject_id
 
-        if not os.path.isdir(os.path.join(subjects_dir, subject_id)):
-            raise RuntimeError(
-                f"Subject directory '{subject_id}' does not exist in '{subjects_dir}'."
-            )
+        subjects_dir = Path(self.inputs.subjects_dir)
+        if not (subjects_dir / subject_id).exists():
+            raise FileNotFoundError(f"Subject '{subject_id}' does not exist in '{subjects_dir}'.")
 
-        self._results['subjects_dir'] = subjects_dir
+        self._results['subjects_dir'] = str(subjects_dir)
         self._results['subject_id'] = subject_id
         return runtime
