@@ -1,3 +1,14 @@
+0.19.3 (August 24, 2026)
+========================
+Bug-fix release in the 0.19.x series.
+
+This release adds a minor feature to produce a more informative error message if
+``--fs-no-resume`` is used and the subject directory does not exist.
+Previously, downstream nodes would indicate empty inputs.
+
+* ENH: Validate subject directory exists if --fs-no-resume (#580)
+
+
 0.19.2 (September 24, 2025)
 ===========================
 Bug-fix release in the 0.19.x series.
