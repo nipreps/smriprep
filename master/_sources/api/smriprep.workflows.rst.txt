@@ -1,11 +1,6 @@
 smriprep.workflows package
 ==========================
 
-.. automodule:: smriprep.workflows
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 Subpackages
 -----------
 
@@ -24,3 +19,11 @@ Submodules
    smriprep.workflows.base
    smriprep.workflows.outputs
    smriprep.workflows.surfaces
+
+Module contents
+---------------
+
+.. automodule:: smriprep.workflows
+   :members:
+   :show-inheritance:
+   :undoc-members:

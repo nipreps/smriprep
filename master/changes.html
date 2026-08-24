@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>What’s new? &mdash; smriprep 0.19.3.dev138 documentation</title>
+  <title>What’s new? &mdash; smriprep 0.19.5.dev140 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
@@ -48,9 +48,11 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#august-24-2026">0.19.4 (August 24, 2026)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">0.19.3 (August 24, 2026)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#september-24-2025">0.19.2 (September 24, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#september-12-2025">0.19.1 (September 12, 2025)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id1">0.19.0 (September 12, 2025)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">0.19.0 (September 12, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#may-08-2025">0.18.0 (May 08, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#december-19-2024">0.17.0 (December 19, 2024)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#august-26-2024">0.16.1 (August 26, 2024)</a></li>
@@ -95,7 +97,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#july-12-2019">0.3.0 (July 12, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#july-9-2019">0.2.4 (July 9, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#june-5-2019">0.2.3 (June 5, 2019)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id2">0.2.2 (June 5, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">0.2.2 (June 5, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#may-6-2019">0.2.1 (May 6, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#may-3-2019">0.2.0 (May 3, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#march-22-2019">0.1.1 (March 22, 2019)</a></li>
@@ -142,6 +144,29 @@
 
 <section id="what-s-new">
 <h1>What’s new?<a class="headerlink" href="#what-s-new" title="Link to this heading"></a></h1>
+<section id="august-24-2026">
+<h2>0.19.4 (August 24, 2026)<a class="headerlink" href="#august-24-2026" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.19.x series.</p>
+<p>This release addresses failures to collect some precomputed derivatives, resulting
+in undesired recalculation.</p>
+<p>We also realized that PR 580 from the previous release duplicated the prior effort
+in PR 504. The latter PR has been backported and the logic of the two PRs merged.</p>
+<ul class="simple">
+<li><p>ENH: Add node to check for subject’s Freesurfer directory (#504)</p></li>
+<li><p>FIX: Query io_spec masks in collect_derivatives. (#511)</p></li>
+<li><p>FIX: Allow reuse of sphere reg derivatives (#576)</p></li>
+</ul>
+</section>
+<section id="id1">
+<h2>0.19.3 (August 24, 2026)<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p>Bug-fix release in the 0.19.x series.</p>
+<p>This release adds a minor feature to produce a more informative error message if
+<code class="docutils literal notranslate"><span class="pre">--fs-no-resume</span></code> is used and the subject directory does not exist.
+Previously, downstream nodes would indicate empty inputs.</p>
+<ul class="simple">
+<li><p>ENH: Validate subject directory exists if –fs-no-resume (#580)</p></li>
+</ul>
+</section>
 <section id="september-24-2025">
 <h2>0.19.2 (September 24, 2025)<a class="headerlink" href="#september-24-2025" title="Link to this heading"></a></h2>
 <p>Bug-fix release in the 0.19.x series.</p>
@@ -160,8 +185,8 @@ recalculate the transform to benefit from this fix.</p>
 <p>Bug-fix release in the 0.19.x series.</p>
 <p>Fixed a package metadata error.</p>
 </section>
-<section id="id1">
-<h2>0.19.0 (September 12, 2025)<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<section id="id2">
+<h2>0.19.0 (September 12, 2025)<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>New feature release in the 0.19.x series.</p>
 <p>This release enables per-session processing and more flexible surfacet resampling.</p>
 <ul class="simple">
@@ -717,8 +742,8 @@ We’ve also moved to a <code class="docutils literal notranslate"><span class="
 <li><p>ENH: Allow template modifiers (a la <code class="docutils literal notranslate"><span class="pre">--output-spaces</span></code>) in skull-stripping (#89) &#64;oesteban</p></li>
 </ul>
 </section>
-<section id="id2">
-<h3>0.2.2 (June 5, 2019)<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<section id="id3">
+<h3>0.2.2 (June 5, 2019)<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <p>Enable latest templates added to TemplateFlow.</p>
 <ul class="simple">
 <li><p>PIN: templateflow-0.3.0, which includes infant/pediatric templates (#88) &#64;oesteban</p></li>
@@ -843,6 +868,8 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
             <dd><a href="../0.19.0/changes.html">0.19.0</a></dd>
             <dd><a href="../0.19.1/changes.html">0.19.1</a></dd>
             <dd><a href="../0.19.2/changes.html">0.19.2</a></dd>
+            <dd><a href="../0.19.3/changes.html">0.19.3</a></dd>
+            <dd><a href="../0.19.4/changes.html">0.19.4</a></dd>
             <dd><a href="../0.8.0/changes.html">0.8.0</a></dd>
             <dd><a href="../0.8.0rc1/changes.html">0.8.0rc1</a></dd>
             <dd><a href="../0.8.0rc2/changes.html">0.8.0rc2</a></dd>

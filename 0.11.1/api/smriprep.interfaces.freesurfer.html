@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.19.3.dev138 documentation</title>
+  <title>smriprep.interfaces.freesurfer module &mdash; smriprep 0.19.5.dev140 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -110,7 +110,7 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.MRICoreg">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">MRICoreg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#MRICoreg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.MRICoreg" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.freesurfer.registration.html#nipype.interfaces.freesurfer.registration.MRICoreg" title="(in nipype v1.11.1.dev9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MRICoreg</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.freesurfer.registration.html#nipype.interfaces.freesurfer.registration.MRICoreg" title="(in nipype v1.11.1.dev32)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MRICoreg</span></code></a></p>
 <p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">mri_coreg</span></code>.</p>
 <p>Patched <code class="docutils literal notranslate"><span class="pre">MRICoreg</span></code> allowing both <code class="docutils literal notranslate"><span class="pre">reference_file</span></code> and <code class="docutils literal notranslate"><span class="pre">subject_id</span></code>.</p>
 <p>The upstream nipype interface incorrectly declares these fields as
@@ -206,7 +206,7 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 <dl class="py class">
 <dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.MRIsConvertData">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">MRIsConvertData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#MRIsConvertData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.MRIsConvertData" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.freesurfer.utils.html#nipype.interfaces.freesurfer.utils.MRIsConvert" title="(in nipype v1.11.1.dev9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MRIsConvert</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.freesurfer.utils.html#nipype.interfaces.freesurfer.utils.MRIsConvert" title="(in nipype v1.11.1.dev32)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MRIsConvert</span></code></a></p>
 <p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">mris_convert</span></code>.</p>
 <p>Convert surface data files (label, curvature, functional, etc)
 Wraps mris_convert to automatically select the correct ?h.white surface if
@@ -280,7 +280,7 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 <dl class="py class">
 <dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.MakeMidthickness">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">MakeMidthickness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#MakeMidthickness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.MakeMidthickness" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.interfaces.freesurfer.html#niworkflows.interfaces.freesurfer.MakeMidthickness" title="(in niworkflows v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MakeMidthickness</span></code></a>, <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.freesurfer.base.html#nipype.interfaces.freesurfer.base.FSCommandOpenMP" title="(in nipype v1.11.1.dev9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">FSCommandOpenMP</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://www.nipreps.org/niworkflows/api/niworkflows.interfaces.freesurfer.html#niworkflows.interfaces.freesurfer.MakeMidthickness" title="(in niworkflows v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MakeMidthickness</span></code></a>, <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.freesurfer.base.html#nipype.interfaces.freesurfer.base.FSCommandOpenMP" title="(in nipype v1.11.1.dev32)"><code class="xref py py-class docutils literal notranslate"><span class="pre">FSCommandOpenMP</span></code></a></p>
 <p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">mris_expand</span></code>.</p>
 <p>Patched MakeMidthickness interface</p>
 <p>Ensures output filenames are specified with hemisphere labels, when appropriate.
@@ -361,7 +361,7 @@ Maps to a command-line argument: <code class="code docutils literal notranslate"
 <dl class="py class">
 <dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.ReconAll">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">ReconAll</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminal_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cmdline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#ReconAll"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.ReconAll" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.freesurfer.preprocess.html#nipype.interfaces.freesurfer.preprocess.ReconAll" title="(in nipype v1.11.1.dev9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReconAll</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.freesurfer.preprocess.html#nipype.interfaces.freesurfer.preprocess.ReconAll" title="(in nipype v1.11.1.dev32)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReconAll</span></code></a></p>
 <p>Wrapped executable: <code class="docutils literal notranslate"><span class="pre">recon-all</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Optional Inputs<span class="colon">:</span></dt>
@@ -543,6 +543,30 @@ validates arguments and generates command line</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="smriprep.interfaces.freesurfer.ValidateSubjectDir">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">smriprep.interfaces.freesurfer.</span></span><span class="sig-name descname"><span class="pre">ValidateSubjectDir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_monitor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/interfaces/freesurfer.html#ValidateSubjectDir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.interfaces.freesurfer.ValidateSubjectDir" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://nipype.readthedocs.io/en/latest/api/generated/nipype.interfaces.base.core.html#nipype.interfaces.base.core.SimpleInterface" title="(in nipype v1.11.1.dev32)"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterface</span></code></a></p>
+<p>Interface to validate the existence of a FreeSurfer subject directory.</p>
+<p>The intended use case is when a FreeSurfer directory is provided as-is,
+and sMRIPrep does not attempt to run recon-all, which would create the
+subject directory if it does not exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Mandatory Inputs<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subject_id</strong> (<em>a string</em>) – FreeSurfer subject ID to validate.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a string or os.PathLike object referring to an existing directory</em>) – FreeSurfer subjects directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Outputs<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>subject_id</strong> (<em>a string</em>) – Validated FreeSurfer subject ID.</p></li>
+<li><p><strong>subjects_dir</strong> (<em>a string or os.PathLike object</em>) – FreeSurfer subjects directory.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -599,6 +623,8 @@ validates arguments and generates command line</p>
             <dd><a href="../../0.19.0/api/smriprep.interfaces.freesurfer.html">0.19.0</a></dd>
             <dd><a href="../../0.19.1/api/smriprep.interfaces.freesurfer.html">0.19.1</a></dd>
             <dd><a href="../../0.19.2/api/smriprep.interfaces.freesurfer.html">0.19.2</a></dd>
+            <dd><a href="../../0.19.3/api/smriprep.interfaces.freesurfer.html">0.19.3</a></dd>
+            <dd><a href="../../0.19.4/api/smriprep.interfaces.freesurfer.html">0.19.4</a></dd>
             <dd><a href="../../0.8.0/api/smriprep.interfaces.freesurfer.html">0.8.0</a></dd>
             <dd><a href="../../0.8.0rc1/api/smriprep.interfaces.freesurfer.html">0.8.0rc1</a></dd>
             <dd><a href="../../0.8.0rc2/api/smriprep.interfaces.freesurfer.html">0.8.0rc2</a></dd>

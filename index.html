@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>sMRIPrep: Structural MRI PREProcessing pipeline &mdash; smriprep 0.19.3.dev138 documentation</title>
+  <title>sMRIPrep: Structural MRI PREProcessing pipeline &mdash; smriprep 0.19.5.dev140 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
@@ -181,28 +181,33 @@ analysis.</p></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/smriprep.cli.html">smriprep.cli package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/smriprep.cli.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.cli.html#module-smriprep.cli">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/smriprep.interfaces.html">smriprep.interfaces package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/smriprep.interfaces.html#smriprep.interfaces.DerivativesDataSink"><code class="docutils literal notranslate"><span class="pre">DerivativesDataSink</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/smriprep.interfaces.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.interfaces.html#module-smriprep.interfaces">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/smriprep.utils.html">smriprep.utils package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/smriprep.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.utils.html#module-smriprep.utils">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/smriprep.workflows.html">smriprep.workflows package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/smriprep.workflows.html#subpackages">Subpackages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/smriprep.workflows.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/smriprep.workflows.html#module-smriprep.workflows">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">What’s new?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#august-24-2026">0.19.4 (August 24, 2026)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#id1">0.19.3 (August 24, 2026)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#september-24-2025">0.19.2 (September 24, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#september-12-2025">0.19.1 (September 12, 2025)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changes.html#id1">0.19.0 (September 12, 2025)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changes.html#id2">0.19.0 (September 12, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#may-08-2025">0.18.0 (May 08, 2025)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#december-19-2024">0.17.0 (December 19, 2024)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changes.html#august-26-2024">0.16.1 (August 26, 2024)</a></li>
@@ -247,7 +252,7 @@ analysis.</p></li>
 <li class="toctree-l3"><a class="reference internal" href="changes.html#july-12-2019">0.3.0 (July 12, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changes.html#july-9-2019">0.2.4 (July 9, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changes.html#june-5-2019">0.2.3 (June 5, 2019)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="changes.html#id2">0.2.2 (June 5, 2019)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="changes.html#id3">0.2.2 (June 5, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changes.html#may-6-2019">0.2.1 (May 6, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changes.html#may-3-2019">0.2.0 (May 3, 2019)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="changes.html#march-22-2019">0.1.1 (March 22, 2019)</a></li>
@@ -318,6 +323,8 @@ analysis.</p></li>
             <dd><a href="0.19.0/index.html">0.19.0</a></dd>
             <dd><a href="0.19.1/index.html">0.19.1</a></dd>
             <dd><a href="0.19.2/index.html">0.19.2</a></dd>
+            <dd><a href="0.19.3/index.html">0.19.3</a></dd>
+            <dd><a href="0.19.4/index.html">0.19.4</a></dd>
             <dd><a href="0.8.0/index.html">0.8.0</a></dd>
             <dd><a href="0.8.0rc1/index.html">0.8.0rc1</a></dd>
             <dd><a href="0.8.0rc2/index.html">0.8.0rc2</a></dd>

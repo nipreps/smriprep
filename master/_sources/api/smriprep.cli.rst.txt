@@ -1,11 +1,6 @@
 smriprep.cli package
 ====================
 
-.. automodule:: smriprep.cli
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 Submodules
 ----------
 
@@ -13,3 +8,11 @@ Submodules
    :maxdepth: 1
 
    smriprep.cli.run
+
+Module contents
+---------------
+
+.. automodule:: smriprep.cli
+   :members:
+   :show-inheritance:
+   :undoc-members:

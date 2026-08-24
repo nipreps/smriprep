@@ -1,11 +1,6 @@
 smriprep.interfaces package
 ===========================
 
-.. automodule:: smriprep.interfaces
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 Submodules
 ----------
 
@@ -21,3 +16,11 @@ Submodules
    smriprep.interfaces.surf
    smriprep.interfaces.templateflow
    smriprep.interfaces.workbench
+
+Module contents
+---------------
+
+.. automodule:: smriprep.interfaces
+   :members:
+   :show-inheritance:
+   :undoc-members:

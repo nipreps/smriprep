@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.surfaces &mdash; smriprep 0.19.3.dev138 documentation</title>
+  <title>smriprep.workflows.surfaces &mdash; smriprep 0.19.5.dev140 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -142,7 +142,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.surf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MakeRibbon</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">smriprep.interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">SurfaceResample</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MakeMidthickness</span><span class="p">,</span> <span class="n">ReconAll</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MakeMidthickness</span><span class="p">,</span> <span class="n">MRIsConvertData</span><span class="p">,</span> <span class="n">ReconAll</span><span class="p">,</span> <span class="n">ValidateSubjectDir</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.gifti</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricMath</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.workbench</span><span class="w"> </span><span class="kn">import</span> <span class="n">CreateSignedDistanceVolume</span>
 
@@ -373,29 +373,22 @@
         <span class="p">])</span>  <span class="c1"># fmt:skip</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Check that the subject directory exists</span>
-        <span class="n">check_subjects_dir</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
-            <span class="n">niu</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span>
-                <span class="n">function</span><span class="o">=</span><span class="n">_check_subjects_dir</span><span class="p">,</span>
-                <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s1">'subjects_dir'</span><span class="p">,</span> <span class="s1">'subject_id'</span><span class="p">],</span>
-                <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s1">'subjects_dir'</span><span class="p">,</span> <span class="s1">'subject_id'</span><span class="p">],</span>
-            <span class="p">),</span>
-            <span class="n">name</span><span class="o">=</span><span class="s1">'check_subjects_dir'</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="n">validate_subject_dir</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">ValidateSubjectDir</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'validate_subject_dir'</span><span class="p">)</span>
 
         <span class="c1"># Hook up get_surfaces immediately,</span>
         <span class="c1"># pretend to be the autorecon1 node so fsnative2t1w_xfm gets run ASAP</span>
         <span class="n">autorecon1</span> <span class="o">=</span> <span class="n">get_surfaces</span>
 
         <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
-            <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">check_subjects_dir</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">validate_subject_dir</span><span class="p">,</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s1">'subjects_dir'</span><span class="p">,</span> <span class="s1">'subjects_dir'</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">'subject_id'</span><span class="p">,</span> <span class="s1">'subject_id'</span><span class="p">),</span>
             <span class="p">]),</span>
-            <span class="p">(</span><span class="n">check_subjects_dir</span><span class="p">,</span> <span class="n">get_surfaces</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">validate_subject_dir</span><span class="p">,</span> <span class="n">get_surfaces</span><span class="p">,</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s1">'subjects_dir'</span><span class="p">,</span> <span class="s1">'subjects_dir'</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">'subject_id'</span><span class="p">,</span> <span class="s1">'subject_id'</span><span class="p">),</span>
             <span class="p">]),</span>
-            <span class="p">(</span><span class="n">check_subjects_dir</span><span class="p">,</span> <span class="n">save_midthickness</span><span class="p">,</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">validate_subject_dir</span><span class="p">,</span> <span class="n">save_midthickness</span><span class="p">,</span> <span class="p">[</span>
                 <span class="p">(</span><span class="s1">'subjects_dir'</span><span class="p">,</span> <span class="s1">'base_directory'</span><span class="p">),</span>
                 <span class="p">(</span><span class="s1">'subject_id'</span><span class="p">,</span> <span class="s1">'container'</span><span class="p">),</span>
             <span class="p">]),</span>
@@ -1089,8 +1082,6 @@
 <span class="sd">        Left and right GIFTIs for each morphometry type passed to ``morphometrics``</span>
 
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">..interfaces.freesurfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">MRIsConvertData</span>
-
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
     <span class="n">inputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
@@ -2029,6 +2020,8 @@
             <dd><a href="../../../../0.19.0/index.html">0.19.0</a></dd>
             <dd><a href="../../../../0.19.1/index.html">0.19.1</a></dd>
             <dd><a href="../../../../0.19.2/index.html">0.19.2</a></dd>
+            <dd><a href="../../../../0.19.3/index.html">0.19.3</a></dd>
+            <dd><a href="../../../../0.19.4/index.html">0.19.4</a></dd>
             <dd><a href="../../../../0.8.0/index.html">0.8.0</a></dd>
             <dd><a href="surfaces.html">0.8.0rc1</a></dd>
             <dd><a href="../../../../0.8.0rc2/index.html">0.8.0rc2</a></dd>

@@ -1,0 +1,32 @@
+strict digraph {
+"inputnode (utility)";
+"recon_config (freesurfer)";
+"autorecon1 (freesurfer)";
+"fov_check (utility)";
+"skull_strip_extern (freesurfer)";
+"fsnative2t1w_xfm (freesurfer)";
+"autorecon_resume_wf";
+"get_surfaces (patches)";
+"save_midthickness (io)";
+"midthickness (freesurfer)";
+"sync (utility)";
+"outputnode (utility)";
+"inputnode (utility)" -> "recon_config (freesurfer)";
+"inputnode (utility)" -> "autorecon1 (freesurfer)";
+"inputnode (utility)" -> "fov_check (utility)";
+"inputnode (utility)" -> "skull_strip_extern (freesurfer)";
+"inputnode (utility)" -> "fsnative2t1w_xfm (freesurfer)";
+"recon_config (freesurfer)" -> "autorecon1 (freesurfer)";
+"recon_config (freesurfer)" -> "autorecon_resume_wf";
+"autorecon1 (freesurfer)" -> "skull_strip_extern (freesurfer)";
+"autorecon1 (freesurfer)" -> "fsnative2t1w_xfm (freesurfer)";
+"fov_check (utility)" -> "autorecon1 (freesurfer)";
+"skull_strip_extern (freesurfer)" -> "autorecon_resume_wf";
+"fsnative2t1w_xfm (freesurfer)" -> "outputnode (utility)";
+"autorecon_resume_wf" -> "get_surfaces (patches)";
+"autorecon_resume_wf" -> "save_midthickness (io)";
+"get_surfaces (patches)" -> "midthickness (freesurfer)";
+"save_midthickness (io)" -> "sync (utility)";
+"midthickness (freesurfer)" -> "save_midthickness (io)";
+"sync (utility)" -> "outputnode (utility)";
+}

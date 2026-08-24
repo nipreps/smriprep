@@ -1,11 +1,6 @@
 smriprep.utils package
 ======================
 
-.. automodule:: smriprep.utils
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 Submodules
 ----------
 
@@ -14,3 +9,11 @@ Submodules
 
    smriprep.utils.bids
    smriprep.utils.misc
+
+Module contents
+---------------
+
+.. automodule:: smriprep.utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
