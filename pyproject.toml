@@ -181,3 +181,54 @@ quote-style = "single"
 
 [tool.codespell]
 skip = "*/data/*,*docs/_build/*,*.svg,*docs/_static/*"
+
+[tool.pixi.workspace]
+channels = ["https://fsl.fmrib.ox.ac.uk/fsldownloads/fslconda/public", "conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.activation.env]
+FSLDIR = "$CONDA_PREFIX"
+
+[tool.pixi.environments]
+# Local installs will use editable
+default = { features = ["editable"], solve-group = "default" }
+test = { features = ["editable", "test"], solve-group = "default" }
+# Use "smriprep" feature for production environment, so it is identifiable
+smriprep = { features = ["production", "container"], solve-group = "production" }
+
+[tool.pixi.feature.editable.pypi-dependencies]
+smriprep = { path = ".", editable = true }
+[tool.pixi.feature.production.pypi-dependencies]
+smriprep = { path = ".", editable = false }
+
+[tool.pixi.tasks]
+
+[tool.pixi.pypi-options.dependency-overrides]
+numpy = ">=2.2"
+
+[tool.pixi.dependencies]
+python = "3.12.*"
+nodejs = "20.*"
+mkl = "2024.2.2.*"
+mkl-service = "2.4.2.*"
+numpy = "2.2.*"
+scipy = "1.15.*"
+matplotlib = "3.10.*"
+pandas = "2.2.*"
+h5py = "3.13.*"
+scikit-image = "0.25.*"
+scikit-learn = "1.6.*"
+ants = "2.6.*"
+connectome-workbench-cli = { version = "2.0.*", build = "*qt6*" }
+fsl-bet2 = "2111.8.*"
+fsl-flirt = "2111.4.*"
+fsl-fast4 = "2111.3.*"
+fsl-miscmaths = "2412.4.*"
+graphviz = "12.2.*"
+pandoc = "3.7.*"
+
+[tool.pixi.feature.container.dependencies]
+git = "*"
+
+[tool.pixi.feature.container.pypi-dependencies]
+git-annex = ">=10.20250721"

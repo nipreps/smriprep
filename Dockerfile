@@ -25,99 +25,97 @@
 ARG BASE_IMAGE=ghcr.io/nipreps/smriprep-base:20251104
 
 #
-# Build wheel
+# Build pixi environment
+# The Pixi environment includes:
+#   - Python
+#     - Scientific Python stack (via conda-forge)
+#     - General Python dependencies (via PyPI)
+#   - NodeJS
+#     - bids-validator
+#     - svgo
+#   - FSL (via fslconda)
+#   - ants (via conda-forge)
+#   - connectome-workbench (via conda-forge)
+#   - ...
 #
-FROM ghcr.io/astral-sh/uv:python3.13-alpine AS src
-RUN apk add --no-cache git
-COPY . /src
-RUN uvx --from=build pyproject-build --installer=uv /src
-
-#
-# Download stages
-#
-
-# Utilities for downloading packages
-FROM ubuntu:jammy-20240125 AS downloader
-# Bump the date to current to refresh curl/certificates/etc
-RUN echo "2023.07.20"
+FROM ghcr.io/prefix-dev/pixi:0.77.1 AS build
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-                    binutils \
-                    bzip2 \
                     ca-certificates \
-                    curl \
-                    unzip && \
+                    git && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Micromamba
-FROM downloader AS micromamba
+# Run post-link scripts during install, but use global to keep out of source tree
+RUN pixi config set --global run-post-link-scripts insecure
 
-WORKDIR /
-# Bump the date to current to force update micromamba
-RUN echo "2024.03.08"
-RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+# Install dependencies before the package itself to leverage caching
+RUN mkdir /app
+COPY pixi.lock pyproject.toml /app
+WORKDIR /app
+RUN --mount=type=cache,target=/root/.cache/rattler pixi install -e smriprep -e test --frozen --skip smriprep
+RUN --mount=type=cache,target=/root/.npm pixi run --as-is -e smriprep npm install -g svgo@^3.2.0 bids-validator@1.14.10
+# Note that PATH gets hard-coded. Remove it and re-apply in final image
+RUN pixi shell-hook -e smriprep --as-is | grep -v PATH > /shell-hook.sh
+RUN pixi shell-hook -e test --as-is | grep -v PATH > /test-shell-hook.sh
 
-ENV MAMBA_ROOT_PREFIX="/opt/conda"
-COPY env.yml /tmp/env.yml
-COPY requirements.txt /tmp/requirements.txt
-WORKDIR /tmp
-RUN micromamba create -y -f /tmp/env.yml && \
-    micromamba clean -y -a
+# Finally, install the package
+COPY . /app
+RUN --mount=type=cache,target=/root/.cache/rattler pixi install -e smriprep -e test --frozen
 
-# UV_USE_IO_URING for apparent race-condition (https://github.com/nodejs/node/issues/48444)
-# Check if this is still necessary when updating the base image.
-ENV PATH="/opt/conda/envs/smriprep/bin:$PATH" \
-    UV_USE_IO_URING=0
-RUN npm install -g svgo@^3.2.0 bids-validator@^1.14.0 && \
-    rm -r ~/.npm
+#
+# Pre-fetch templates
+#
+FROM ghcr.io/astral-sh/uv:python3.12-alpine AS templates
+ENV TEMPLATEFLOW_HOME="/templateflow"
+RUN uv pip install --system templateflow
+COPY scripts/fetch_templates.py fetch_templates.py
+RUN python fetch_templates.py
+
 
 #
 # Main stage
 #
-FROM ${BASE_IMAGE} AS smriprep
+FROM ${BASE_IMAGE} AS base
 
 # Create a shared $HOME directory
 RUN useradd -m -s /bin/bash -G users smriprep
 WORKDIR /home/smriprep
 ENV HOME="/home/smriprep"
 
-COPY --from=micromamba /bin/micromamba /bin/micromamba
-COPY --from=micromamba /opt/conda/envs/smriprep /opt/conda/envs/smriprep
+COPY --link --from=templates /templateflow /home/smriprep/.cache/templateflow
 
-ENV MAMBA_ROOT_PREFIX="/opt/conda"
-RUN micromamba shell init -s bash && \
-    echo "micromamba activate smriprep" >> $HOME/.bashrc
-ENV PATH="/opt/conda/envs/smriprep/bin:$PATH"
-
-# Precaching atlases
-COPY scripts/fetch_templates.py fetch_templates.py
-RUN python fetch_templates.py && \
-    rm fetch_templates.py && \
-    find $HOME/.cache/templateflow -type d -exec chmod go=u {} + && \
-    find $HOME/.cache/templateflow -type f -exec chmod go=u {} +
-
-# FSL environment
-ENV FSLDIR="/opt/conda/envs/smriprep"
+RUN chmod -R go=u $HOME
 
 # Unless otherwise specified each process should only use one thread - nipype
 # will handle parallelization
 ENV MKL_NUM_THREADS=1 \
     OMP_NUM_THREADS=1
 
-# Installing SMRIPREP
-COPY --from=src /src/dist/*.whl .
-RUN pip install --no-cache-dir $( ls *.whl )[telemetry,test]
+WORKDIR /tmp
 
-RUN find $HOME -type d -exec chmod go=u {} + && \
-    find $HOME -type f -exec chmod go=u {} + && \
-    rm -rf $HOME/.npm $HOME/.conda $HOME/.empty
+FROM base AS test
+
+COPY --link --from=build /app/.pixi/envs/test /app/.pixi/envs/test
+COPY --link --from=build /test-shell-hook.sh /shell-hook.sh
+RUN cat /shell-hook.sh >> $HOME/.bashrc
+ENV PATH="/app/.pixi/envs/test/bin:$PATH"
+
+ENV FSLDIR="/app/.pixi/envs/test"
+
+FROM base AS smriprep
+
+# Keep synced with wrapper's PKG_PATH
+COPY --link --from=build /app/.pixi/envs/smriprep /app/.pixi/envs/smriprep
+COPY --link --from=build /shell-hook.sh /shell-hook.sh
+RUN cat /shell-hook.sh >> $HOME/.bashrc
+ENV PATH="/app/.pixi/envs/smriprep/bin:$PATH"
+
+ENV FSLDIR="/app/.pixi/envs/smriprep"
 
 # For detecting the container
 ENV IS_DOCKER_8395080871=1
 
-RUN ldconfig
-WORKDIR /tmp
-ENTRYPOINT ["/opt/conda/envs/smriprep/bin/smriprep"]
+ENTRYPOINT ["/app/.pixi/envs/smriprep/bin/smriprep"]
 
 ARG BUILD_DATE
 ARG VCS_REF
