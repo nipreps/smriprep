@@ -1,0 +1,27 @@
+digraph structs {
+node [shape=record];
+cortex_masks_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outmidthickness> midthickness|<outthickness> thickness}"];
+cortex_masks_wfitersource [label="{IN}|{ itersource | utility |  }|{OUT|<outhemi> hemi}"];
+cortex_masks_wfselect_surfaces [label="{IN|<inkey> key|<inmidthickness> midthickness|<inthickness> thickness}|{ select_surfaces | utility |  }|{OUT|<outmidthickness> midthickness|<outthickness> thickness}"];
+cortex_masks_wfabs_thickness [label="{IN|<inhemisphere> hemisphere|<inmetricfile> metric_file}|{ abs_thickness | gifti |  }|{OUT|<outmetricfile> metric_file}"];
+cortex_masks_wfcombine_sources [label="{IN|<inin1> in1|<inin2> in2}|{ combine_sources | utility |  }|{OUT|<outout> out}"];
+cortex_masks_wfinitial_roi [label="{IN|<inhemisphere> hemisphere|<inmetricfile> metric_file}|{ initial_roi | gifti |  }|{OUT|<outmetricfile> metric_file}"];
+cortex_masks_wffill_holes [label="{IN|<inmetricfile> metric_file|<insurfacefile> surface_file}|{ fill_holes | workbench |  }|{OUT|<outoutfile> out_file}"];
+cortex_masks_wfnative_roi [label="{IN|<inmetricfile> metric_file|<insurfacefile> surface_file}|{ native_roi | workbench |  }|{OUT|<outoutfile> out_file}"];
+cortex_masks_wfoutputnode [label="{IN|<incortexmasks> cortex_masks|<insourcefiles> source_files}|{ outputnode | utility |  }|{OUT}"];
+cortex_masks_wfabs_thickness:outmetricfile:e -> cortex_masks_wfinitial_roi:inmetricfile:w;
+cortex_masks_wfcombine_sources:outout:e -> cortex_masks_wfoutputnode:insourcefiles:w;
+cortex_masks_wffill_holes:outoutfile:e -> cortex_masks_wfnative_roi:inmetricfile:w;
+cortex_masks_wfinitial_roi:outmetricfile:e -> cortex_masks_wffill_holes:inmetricfile:w;
+cortex_masks_wfinputnode:outmidthickness:e -> cortex_masks_wfselect_surfaces:inmidthickness:w;
+cortex_masks_wfinputnode:outthickness:e -> cortex_masks_wfselect_surfaces:inthickness:w;
+cortex_masks_wfitersource:outhemi:e -> cortex_masks_wfabs_thickness:inhemisphere:w;
+cortex_masks_wfitersource:outhemi:e -> cortex_masks_wfinitial_roi:inhemisphere:w;
+cortex_masks_wfitersource:outhemi:e -> cortex_masks_wfselect_surfaces:inkey:w;
+cortex_masks_wfnative_roi:outoutfile:e -> cortex_masks_wfoutputnode:incortexmasks:w;
+cortex_masks_wfselect_surfaces:outmidthickness:e -> cortex_masks_wfcombine_sources:inin1:w;
+cortex_masks_wfselect_surfaces:outmidthickness:e -> cortex_masks_wffill_holes:insurfacefile:w;
+cortex_masks_wfselect_surfaces:outmidthickness:e -> cortex_masks_wfnative_roi:insurfacefile:w;
+cortex_masks_wfselect_surfaces:outthickness:e -> cortex_masks_wfabs_thickness:inmetricfile:w;
+cortex_masks_wfselect_surfaces:outthickness:e -> cortex_masks_wfcombine_sources:inin2:w;
+}

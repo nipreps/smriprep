@@ -1,0 +1,20 @@
+digraph structs {
+node [shape=record];
+gifti_morphometrics_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outsubjectid> subject_id|<outsubjectsdir> subjects_dir}"];
+gifti_morphometrics_wfget_surfaces [label="{IN|<insubjectid> subject_id|<insubjectsdir> subjects_dir}|{ get_surfaces | patches |  }|{OUT|<outcurv> curv|<outsulc> sulc|<outthickness> thickness}"];
+gifti_morphometrics_wfsurfmorph_list [label="{IN|<inin1> in1|<inin2> in2|<inin3> in3}|{ surfmorph_list | utility |  }|{OUT|<outout> out}"];
+gifti_morphometrics_wfmorphs2gii [label="{IN|<inscalarcurvfile> scalarcurv_file}|{ morphs2gii | freesurfer |  }|{OUT|<outconverted> converted}"];
+gifti_morphometrics_wfmorph_groups [label="{IN|<ininlist> inlist}|{ morph_groups | utility |  }|{OUT|<outout1> out1|<outout2> out2|<outout3> out3}"];
+gifti_morphometrics_wfoutputnode [label="{IN|<incurv> curv|<inmorphometrics> morphometrics|<insulc> sulc|<inthickness> thickness}|{ outputnode | utility |  }|{OUT}"];
+gifti_morphometrics_wfget_surfaces:outcurv:e -> gifti_morphometrics_wfsurfmorph_list:inin2:w;
+gifti_morphometrics_wfget_surfaces:outsulc:e -> gifti_morphometrics_wfsurfmorph_list:inin3:w;
+gifti_morphometrics_wfget_surfaces:outthickness:e -> gifti_morphometrics_wfsurfmorph_list:inin1:w;
+gifti_morphometrics_wfinputnode:outsubjectid:e -> gifti_morphometrics_wfget_surfaces:insubjectid:w;
+gifti_morphometrics_wfinputnode:outsubjectsdir:e -> gifti_morphometrics_wfget_surfaces:insubjectsdir:w;
+gifti_morphometrics_wfmorph_groups:outout1:e -> gifti_morphometrics_wfoutputnode:inthickness:w;
+gifti_morphometrics_wfmorph_groups:outout2:e -> gifti_morphometrics_wfoutputnode:incurv:w;
+gifti_morphometrics_wfmorph_groups:outout3:e -> gifti_morphometrics_wfoutputnode:insulc:w;
+gifti_morphometrics_wfmorphs2gii:outconverted:e -> gifti_morphometrics_wfmorph_groups:ininlist:w;
+gifti_morphometrics_wfmorphs2gii:outconverted:e -> gifti_morphometrics_wfoutputnode:inmorphometrics:w;
+gifti_morphometrics_wfsurfmorph_list:outout:e -> gifti_morphometrics_wfmorphs2gii:inscalarcurvfile:w;
+}

@@ -1,0 +1,35 @@
+digraph structs {
+node [shape=record];
+register_template_wfinputnode [label="{IN}|{ inputnode | utility |  }|{OUT|<outlesionmask> lesion_mask|<outmovingimage> moving_image|<outmovingmask> moving_mask|<outtemplate> template}"];
+register_template_wfsplit_desc [label="{IN|<intemplate> template}|{ split_desc | templateflow |  }|{OUT|<outname> name|<outspec> spec}"];
+register_template_wftrunc_mov [label="{IN|<inop1> op1}|{ trunc_mov | ants |  }|{OUT|<outoutputimage> output_image}"];
+register_template_wftf_select [label="{IN|<intemplate> template|<intemplatespec> template_spec}|{ tf_select | templateflow |  }|{OUT|<outt1wfile> t1w_file|<outt2wfile> t2w_file}"];
+register_template_wffmt_cohort [label="{IN|<inspec> spec|<intemplate> template}|{ fmt_cohort | utility |  }|{OUT|<outspec> spec|<outtemplate> template}"];
+register_template_wfset_reference [label="{IN|<intemplatet1w> template_t1w|<intemplatet2w> template_t2w}|{ set_reference | utility |  }|{OUT|<outreferencetype> reference_type|<outusehistogrammatching> use_histogram_matching}"];
+register_template_wfregistration [label="{IN|<inlesionmask> lesion_mask|<inmovingimage> moving_image|<inmovingmask> moving_mask|<inreference> reference|<intemplate> template|<intemplatespec> template_spec|<inusehistogrammatching> use_histogram_matching}|{ registration | norm |  }|{OUT|<outcompositetransform> composite_transform|<outinversecompositetransform> inverse_composite_transform}"];
+register_template_wfpoutputnode [label="{IN|<inanat2stdxfm> anat2std_xfm|<instd2anatxfm> std2anat_xfm|<intemplate> template|<intemplatespec> template_spec}|{ poutputnode | utility |  }|{OUT|<outanat2stdxfm> anat2std_xfm|<outstd2anatxfm> std2anat_xfm|<outtemplate> template|<outtemplatespec> template_spec}"];
+register_template_wfoutputnode [label="{IN|<inanat2stdxfm> anat2std_xfm|<instd2anatxfm> std2anat_xfm|<intemplate> template|<intemplatespec> template_spec}|{ outputnode | utility |  }|{OUT}"];
+register_template_wffmt_cohort:outspec:e -> register_template_wfpoutputnode:intemplatespec:w;
+register_template_wffmt_cohort:outtemplate:e -> register_template_wfpoutputnode:intemplate:w;
+register_template_wfinputnode:outlesionmask:e -> register_template_wfregistration:inlesionmask:w;
+register_template_wfinputnode:outmovingimage:e -> register_template_wftrunc_mov:inop1:w;
+register_template_wfinputnode:outmovingmask:e -> register_template_wfregistration:inmovingmask:w;
+register_template_wfinputnode:outtemplate:e -> register_template_wfsplit_desc:intemplate:w;
+register_template_wfpoutputnode:outanat2stdxfm:e -> register_template_wfoutputnode:inanat2stdxfm:w;
+register_template_wfpoutputnode:outstd2anatxfm:e -> register_template_wfoutputnode:instd2anatxfm:w;
+register_template_wfpoutputnode:outtemplate:e -> register_template_wfoutputnode:intemplate:w;
+register_template_wfpoutputnode:outtemplatespec:e -> register_template_wfoutputnode:intemplatespec:w;
+register_template_wfregistration:outcompositetransform:e -> register_template_wfpoutputnode:inanat2stdxfm:w;
+register_template_wfregistration:outinversecompositetransform:e -> register_template_wfpoutputnode:instd2anatxfm:w;
+register_template_wfset_reference:outreferencetype:e -> register_template_wfregistration:inreference:w;
+register_template_wfset_reference:outusehistogrammatching:e -> register_template_wfregistration:inusehistogrammatching:w;
+register_template_wfsplit_desc:outname:e -> register_template_wffmt_cohort:intemplate:w;
+register_template_wfsplit_desc:outname:e -> register_template_wfregistration:intemplate:w;
+register_template_wfsplit_desc:outname:e -> register_template_wftf_select:intemplate:w;
+register_template_wfsplit_desc:outspec:e -> register_template_wffmt_cohort:inspec:w;
+register_template_wfsplit_desc:outspec:e -> register_template_wfregistration:intemplatespec:w;
+register_template_wfsplit_desc:outspec:e -> register_template_wftf_select:intemplatespec:w;
+register_template_wftf_select:outt1wfile:e -> register_template_wfset_reference:intemplatet1w:w;
+register_template_wftf_select:outt2wfile:e -> register_template_wfset_reference:intemplatet2w:w;
+register_template_wftrunc_mov:outoutputimage:e -> register_template_wfregistration:inmovingimage:w;
+}

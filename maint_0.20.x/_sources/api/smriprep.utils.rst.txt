@@ -1,0 +1,19 @@
+smriprep.utils package
+======================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   smriprep.utils.bids
+   smriprep.utils.misc
+
+Module contents
+---------------
+
+.. automodule:: smriprep.utils
+   :members:
+   :show-inheritance:
+   :undoc-members:

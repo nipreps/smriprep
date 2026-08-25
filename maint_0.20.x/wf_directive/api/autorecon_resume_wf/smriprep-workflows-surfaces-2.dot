@@ -1,0 +1,18 @@
+strict digraph {
+"inputnode (utility)";
+"cortribbon (freesurfer)";
+"gcareg (freesurfer)";
+"parcstats (freesurfer)";
+"autorecon2_vol (freesurfer)";
+"autorecon_surfs (freesurfer)";
+"autorecon3 (freesurfer)";
+"outputnode (utility)";
+"inputnode (utility)" -> "cortribbon (freesurfer)";
+"inputnode (utility)" -> "gcareg (freesurfer)";
+"cortribbon (freesurfer)" -> "parcstats (freesurfer)";
+"gcareg (freesurfer)" -> "autorecon2_vol (freesurfer)";
+"parcstats (freesurfer)" -> "autorecon3 (freesurfer)";
+"autorecon2_vol (freesurfer)" -> "autorecon_surfs (freesurfer)";
+"autorecon_surfs (freesurfer)" -> "cortribbon (freesurfer)";
+"autorecon3 (freesurfer)" -> "outputnode (utility)";
+}

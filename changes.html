@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>What’s new? &mdash; smriprep 0.19.5.dev142 documentation</title>
+  <title>What’s new? &mdash; smriprep 0.20.1.dev1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/banner.css?v=fd51b7f5" />
@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Library API (application program interface)</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">What’s new?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#august-25-2026">0.20.0 (August 25, 2026)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#august-24-2026">0.19.4 (August 24, 2026)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id1">0.19.3 (August 24, 2026)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#september-24-2025">0.19.2 (September 24, 2025)</a></li>
@@ -144,6 +145,20 @@
 
 <section id="what-s-new">
 <h1>What’s new?<a class="headerlink" href="#what-s-new" title="Link to this heading"></a></h1>
+<section id="august-25-2026">
+<h2>0.20.0 (August 25, 2026)<a class="headerlink" href="#august-25-2026" title="Link to this heading"></a></h2>
+<p>New feature release in the 0.20.x series.</p>
+<p>This release adopts SPEC 0, subsequently dropping support for Python 3.11 and earlier.</p>
+<ul class="simple">
+<li><p>ENH: Upstream <code class="docutils literal notranslate"><span class="pre">MRICoreg</span></code> from fMRIPrep (#543)</p></li>
+<li><p>ENH: Add base Docker image (#505)</p></li>
+<li><p>ENH: Collect preprocessed T2w image in <code class="docutils literal notranslate"><span class="pre">collect_derivatives</span></code> (#512)</p></li>
+<li><p>FIX: Correct notation for longitudinal arg value (#508)</p></li>
+<li><p>REF: Rename <code class="docutils literal notranslate"><span class="pre">space</span></code> output to <code class="docutils literal notranslate"><span class="pre">template</span></code> and add new <code class="docutils literal notranslate"><span class="pre">space</span></code> output to <code class="docutils literal notranslate"><span class="pre">template_iterator_wf</span></code> (#526)</p></li>
+<li><p>DOC: Remove BOLD from BIDS input requirement in usage docs (#570)</p></li>
+<li><p>MAINT: Adopt SPEC-0, bump minimum dependencies, and test on Python 3.14 (#579)</p></li>
+</ul>
+</section>
 <section id="august-24-2026">
 <h2>0.19.4 (August 24, 2026)<a class="headerlink" href="#august-24-2026" title="Link to this heading"></a></h2>
 <p>Bug-fix release in the 0.19.x series.</p>
@@ -870,6 +885,7 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
             <dd><a href="0.19.2/changes.html">0.19.2</a></dd>
             <dd><a href="0.19.3/changes.html">0.19.3</a></dd>
             <dd><a href="0.19.4/changes.html">0.19.4</a></dd>
+            <dd><a href="0.20.0/changes.html">0.20.0</a></dd>
             <dd><a href="0.8.0/changes.html">0.8.0</a></dd>
             <dd><a href="0.8.0rc1/changes.html">0.8.0rc1</a></dd>
             <dd><a href="0.8.0rc2/changes.html">0.8.0rc2</a></dd>
@@ -906,6 +922,7 @@ in <a class="reference external" href="https://github.com/nipreps/fmriprep/issue
             <dd><a href="maint_0.17.x/changes.html">maint/0.17.x</a></dd>
             <dd><a href="maint_0.18.x/changes.html">maint/0.18.x</a></dd>
             <dd><a href="maint_0.19.x/changes.html">maint/0.19.x</a></dd>
+            <dd><a href="maint_0.20.x/changes.html">maint/0.20.x</a></dd>
             <dd><a href="maint_0.8.x/changes.html">maint/0.8.x</a></dd>
             <dd><a href="maint_0.9.x/changes.html">maint/0.9.x</a></dd>
             <dd><a href="master/changes.html">master</a></dd>
