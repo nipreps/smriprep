@@ -1,3 +1,18 @@
+0.20.0 (August 25, 2026)
+========================
+New feature release in the 0.20.x series.
+
+This release adopts SPEC 0, subsequently dropping support for Python 3.11 and earlier.
+
+* ENH: Upstream ``MRICoreg`` from fMRIPrep (#543)
+* ENH: Add base Docker image (#505)
+* ENH: Collect preprocessed T2w image in ``collect_derivatives`` (#512)
+* FIX: Correct notation for longitudinal arg value (#508)
+* REF: Rename ``space`` output to ``template`` and add new ``space`` output to ``template_iterator_wf`` (#526)
+* DOC: Remove BOLD from BIDS input requirement in usage docs (#570)
+* MAINT: Adopt SPEC-0, bump minimum dependencies, and test on Python 3.14 (#579)
+
+
 0.19.4 (August 24, 2026)
 ========================
 Bug-fix release in the 0.19.x series.
