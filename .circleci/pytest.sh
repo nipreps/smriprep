@@ -7,7 +7,7 @@ docker run --rm -it \
     -v /tmp/src/smriprep/.circleci/nipype.cfg:/home/smriprep/.nipype/nipype.cfg \
     -e FS_LICENSE=/tmp/fslicense/license.txt \
     --entrypoint=pytest \
-    nipreps/smriprep:latest \
+    nipreps/smriprep:test \
     -v --doctest-modules --pyargs smriprep \
     --cov smriprep --cov-report=xml:/tmp/data/pytest_cov.xml \
     ${@:1}

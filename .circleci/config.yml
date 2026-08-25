@@ -43,6 +43,12 @@ _pull_from_registry: &pull_from_registry
     docker pull localhost:5000/smriprep
     docker tag localhost:5000/smriprep nipreps/smriprep:latest
 
+_pull_test_image_from_registry: &pull_test_image_from_registry
+  name: Pull and tag image from local registry
+  command: |
+    docker pull localhost:5000/smriprep-test
+    docker tag localhost:5000/smriprep-test nipreps/smriprep:test
+
 version: 2.1
 orbs:
   docker: circleci/docker@2.2.0
@@ -114,9 +120,42 @@ jobs:
                 --build-arg VCS_REF=`git rev-parse --short HEAD` \
                 --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" .
       - run:
+          name: Build Docker image (production environment)
+          no_output_timeout: 60m
+          command: |
+            pyenv local 3
+            pip install hatch
+            # Get version, update files.
+            THISVERSION=$( hatch version )
+            if [[ ${THISVERSION:0:1} == "0" ]] ; then
+              echo "WARNING: latest git tag could not be found"
+              echo "Please, make sure you fetch all tags from upstream with"
+              echo "the command ``git fetch --tags --verbose`` and push"
+              echo "them to your fork with ``git push origin --tags``"
+            fi
+            # Build docker image
+            docker buildx build --load \
+                --cache-from localhost:5000/smriprep \
+                --cache-from nipreps/smriprep:latest \
+                -t nipreps/smriprep:latest \
+                --platform linux/amd64 \
+                --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+                --build-arg VCS_REF=`git rev-parse --short HEAD` \
+                --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" .
+      - run:
+          name: Build Docker image (test environment)
+          no_output_timeout: 60m
+          command: |
+            docker buildx build --load \
+                --cache-from localhost:5000/smriprep \
+                --cache-from nipreps/smriprep:latest \
+                -t nipreps/smriprep:test \
+                --platform linux/amd64 \
+                --target test .
+      - run:
           command: docker images
       - run:
-          name: Check Docker image
+          name: Check Docker image (production)
           command: |
             pyenv local 3
             # Get version, update files.
@@ -129,11 +168,18 @@ jobs:
             set -e
             test "$BUILT_VERSION" = "$THISVERSION"
       - run:
+          name: Check Docker image (test)
+          command: |
+            docker run --rm nipreps/smriprep:test smriprep --version
+            docker run --rm nipreps/smriprep:test pytest --version
+      - run:
           name: Docker push to local registry
           no_output_timeout: 40m
           command: |
             docker tag nipreps/smriprep:latest localhost:5000/smriprep
+            docker tag nipreps/smriprep:test localhost:5000/smriprep-test
             docker push localhost:5000/smriprep
+            docker push localhost:5000/smriprep-test
       - run:
           name: Docker registry garbage collection
           command: |
@@ -144,34 +190,14 @@ jobs:
           root: /tmp
           paths:
             - src/smriprep
-      - save_cache:
-          key: build-v1-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /tmp/docker
-            - /tmp/images
-
-      - run:
-          name: Docker push to local registry
-          no_output_timeout: 40m
-          command: |
-            docker tag nipreps/smriprep:latest localhost:5000/smriprep
-            docker push localhost:5000/smriprep
-      - run:
-          name: Docker registry garbage collection
-          command: |
-            docker exec -it registry /bin/registry garbage-collect --delete-untagged \
-                /etc/docker/registry/config.yml
-      - save_cache:
-          key: build-v1-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - /tmp/docker
-            - /tmp/images
-
-      - persist_to_workspace:
-          root: /tmp
-          paths:
-            - src/smriprep
             - .force
+
+      - save_cache:
+          key: build-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /tmp/docker
+            - /tmp/images
+
       - run:
           name: Test smriprep-wrapper (Python 3)
           command: |
@@ -306,7 +332,7 @@ jobs:
       - docker/install-docker-credential-helper
       - run: *docker_auth
       - run: *setup_docker_registry
-      - run: *pull_from_registry
+      - run: *pull_test_image_from_registry
       - restore_cache:
           keys:
             - ds005-anat-v1-{{ .Branch }}-{{ epoch }}
@@ -345,7 +371,7 @@ jobs:
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
-                nipreps/smriprep:latest \
+                nipreps/smriprep:test \
                 combine /tmp/ds005/work/.coverage.*
             # Convert to XML to freeze
             docker run -it -e FMRIPREP_DEV=1 -u $(id -u) \
@@ -356,7 +382,7 @@ jobs:
                 -e COVERAGE_FILE=/tmp/ds005/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
-                nipreps/smriprep:latest \
+                nipreps/smriprep:test \
                 xml
       # CODECOV_TOKEN is provided by the nipreps-common CircleCI context.
       - codecov/upload:
@@ -462,7 +488,7 @@ jobs:
       - docker/install-docker-credential-helper
       - run: *docker_auth
       - run: *setup_docker_registry
-      - run: *pull_from_registry
+      - run: *pull_test_image_from_registry
       - restore_cache:
           keys:
             - ds054-anat-v9-{{ .Branch }}-{{ epoch }}
@@ -498,7 +524,7 @@ jobs:
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
-                nipreps/smriprep:latest \
+                nipreps/smriprep:test \
                 combine /tmp/ds054/work/.coverage.*
             # Convert to XML to freeze
             docker run --rm=false -it \
@@ -510,7 +536,7 @@ jobs:
                 -e COVERAGE_FILE=/tmp/ds054/work/.coverage \
                 -e COVERAGE_RCFILE=/src/smriprep/docker/multiproc.coveragerc \
                 --entrypoint=coverage \
-                nipreps/smriprep:latest \
+                nipreps/smriprep:test \
                 xml
       # CODECOV_TOKEN is provided by the nipreps-common CircleCI context.
       - codecov/upload:
