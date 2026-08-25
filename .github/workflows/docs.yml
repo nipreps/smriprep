@@ -27,7 +27,7 @@ jobs:
       force_versioned: ${{ steps.resolve.outputs.force_versioned }}
     steps:
       - name: Checkout repository for ref and tag resolution
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -153,7 +153,7 @@ jobs:
       has_versioned_docs: ${{ steps.has-versioned.outputs.has_versioned_docs }}
     steps:
       - name: Checkout source revision
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -166,7 +166,7 @@ jobs:
           sudo apt -y install graphviz
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
 
@@ -180,7 +180,7 @@ jobs:
         run: make -C docs NO_ET=1 SPHINXOPTS="-W" BUILDDIR="_build/no_version_html" html
 
       - name: Upload unversioned docs artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: docs-unversioned-html
           path: docs/_build/no_version_html/html
@@ -210,7 +210,7 @@ jobs:
       - name: Restore versioned docs cache
         if: steps.versioned.outputs.build_versioned == 'true'
         id: docs-cache-restore
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: docs/_build
           key: docs-v2-${{ needs.resolve_context.outputs.source_ref_name }}-${{ needs.resolve_context.outputs.source_sha }}
@@ -227,14 +227,14 @@ jobs:
 
       - name: Save versioned docs cache
         if: steps.versioned.outputs.build_versioned == 'true' && steps.docs-cache-restore.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: docs/_build
           key: docs-v2-${{ needs.resolve_context.outputs.source_ref_name }}-${{ needs.resolve_context.outputs.source_sha }}
 
       - name: Upload versioned docs artifact
         if: steps.versioned.outputs.build_versioned == 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: docs-versioned-html
           path: docs/_build/html
@@ -256,7 +256,7 @@ jobs:
       contents: write
     steps:
       - name: Download versioned docs artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: docs-versioned-html
           path: /tmp/docs-site
@@ -273,7 +273,7 @@ jobs:
           printf 'docs_root=%s\n' "$docs_root" >> "$GITHUB_OUTPUT"
 
       - name: Checkout gh-pages branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: gh-pages
           fetch-depth: 0
@@ -309,7 +309,7 @@ jobs:
       contents: write
     steps:
       - name: Download versioned docs artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: docs-versioned-html
           path: /tmp/docs-site
@@ -326,7 +326,7 @@ jobs:
           printf 'docs_root=%s\n' "$docs_root" >> "$GITHUB_OUTPUT"
 
       - name: Checkout gh-pages branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: gh-pages
           fetch-depth: 0
