@@ -78,7 +78,7 @@ looseversion==1.3.0
     #   smriprep (pyproject.toml)
     #   nipype
     #   niworkflows
-lxml==5.3.1
+lxml==6.1.0
     # via
     #   nilearn
     #   prov
