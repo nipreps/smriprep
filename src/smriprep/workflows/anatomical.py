@@ -628,11 +628,11 @@ Anatomical data preprocessing
 : A total of {num_t1w} T1-weighted (T1w) images were found within the input
 BIDS dataset."""
 
-    have_t1w = 't1w_preproc' in precomputed
-    have_t2w = 't2w_preproc' in precomputed
-    have_mask = 't1w_mask' in precomputed
-    have_dseg = 't1w_dseg' in precomputed
-    have_tpms = 't1w_tpms' in precomputed
+    images = precomputed.get('images', {})
+    t1w_preproc = images.get('t1w_preproc')
+    brain_mask = images.get('mask')
+    dseg = images.get('dseg')
+    tpms = images.get('tpms')
 
     # Organization
     # ------------
@@ -775,7 +775,7 @@ BIDS dataset."""
     # Stage 1: Conform images and validate
     # If desc-preproc_T1w.nii.gz is provided, just validate it
     anat_validate = pe.Node(ValidateImage(), name='anat_validate', run_without_submitting=True)
-    if not have_t1w:
+    if not t1w_preproc:
         LOGGER.info('ANAT Stage 1: Adding template workflow')
         ants_ver = ANTsInfo.version() or '(version unknown)'
         desc += f"""\
@@ -817,8 +817,8 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
 and used as T1w-reference throughout the workflow.
 """
 
-        anat_validate.inputs.in_file = precomputed['t1w_preproc']
-        sourcefile_buffer.inputs.source_files = [precomputed['t1w_preproc']]
+        anat_validate.inputs.in_file = t1w_preproc
+        sourcefile_buffer.inputs.source_files = [t1w_preproc]
 
         workflow.connect([
             (anat_validate, t1w_buffer, [('out_file', 't1w_preproc')]),
@@ -828,7 +828,7 @@ and used as T1w-reference throughout the workflow.
     # Stage 2: INU correction and masking
     # We always need to generate t1w_brain; how to do that depends on whether we have
     # a pre-corrected T1w or precomputed mask, or are given an already masked image
-    if not have_mask:
+    if not brain_mask:
         LOGGER.info('ANAT Stage 2: Preparing brain extraction workflow')
         if skull_strip_mode == 'auto':
             run_skull_strip = not all(_is_skull_stripped(img) for img in t1w)
@@ -857,14 +857,14 @@ as target template.
                     ('outputnode.out_segm', 'ants_seg'),
                 ]),
             ])  # fmt:skip
-            if not have_t1w:
+            if not t1w_preproc:
                 workflow.connect([
                     (brain_extraction_wf, t1w_buffer, [
                         (('outputnode.bias_corrected', _pop), 't1w_preproc'),
                     ]),
                 ])  # fmt:skip
         # Determine mask from T1w and uniformize
-        elif not have_t1w:
+        elif not t1w_preproc:
             LOGGER.info('ANAT Stage 2: Skipping skull-strip, INU-correction only')
             desc += """\
 The provided T1w image was previously skull-stripped; a brain mask was
@@ -913,12 +913,12 @@ derived from the input image.
         desc += """\
 A pre-computed brain mask was provided as input and used throughout the workflow.
 """
-        t1w_buffer.inputs.t1w_mask = precomputed['t1w_mask']
+        t1w_buffer.inputs.t1w_mask = brain_mask
         # If we have a mask, always apply it
-        apply_mask = pe.Node(ApplyMask(in_mask=precomputed['t1w_mask']), name='apply_mask')
+        apply_mask = pe.Node(ApplyMask(in_mask=brain_mask), name='apply_mask')
         workflow.connect([(anat_validate, apply_mask, [('out_file', 'in_file')])])
         # Run N4 if it hasn't been pre-run
-        if not have_t1w:
+        if not t1w_preproc:
             LOGGER.info('ANAT Skipping skull-strip, INU-correction only')
             n4_only_wf = init_n4_only_wf(
                 omp_nthreads=omp_nthreads,
@@ -937,7 +937,7 @@ A pre-computed brain mask was provided as input and used throughout the workflow
         workflow.connect([(refined_buffer, outputnode, [('t1w_mask', 't1w_mask')])])
 
     # Stage 3: Segmentation
-    if not (have_dseg and have_tpms):
+    if not (dseg and tpms):
         LOGGER.info('ANAT Stage 3: Preparing segmentation workflow')
         fsl_ver = FAST().version or '(version unknown)'
         desc += f"""\
@@ -959,7 +959,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         )
         workflow.connect([(refined_buffer, fast, [('t1w_brain', 'in_files')])])
 
-        if not have_dseg:
+        if not dseg:
             ds_dseg_wf = init_ds_dseg_wf(output_dir=output_dir)
             workflow.connect([
                 (fast, lut_t1w_dseg, [('partial_volume_map', 'in_dseg')]),
@@ -967,7 +967,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
                 (lut_t1w_dseg, ds_dseg_wf, [('out', 'inputnode.anat_dseg')]),
                 (ds_dseg_wf, seg_buffer, [('outputnode.anat_dseg', 't1w_dseg')]),
             ])  # fmt:skip
-        if not have_tpms:
+        if not tpms:
             ds_tpms_wf = init_ds_tpms_wf(output_dir=output_dir)
             workflow.connect([
                 (fast, fast2bids, [('partial_volume_files', 'inlist')]),
@@ -977,14 +977,14 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
             ])  # fmt:skip
     else:
         LOGGER.info('ANAT Skipping Stage 3')
-    if have_dseg:
+    if dseg:
         LOGGER.info('ANAT Found discrete segmentation')
         desc += 'Precomputed discrete tissue segmentations were provided as inputs.\n'
-        seg_buffer.inputs.t1w_dseg = precomputed['t1w_dseg']
-    if have_tpms:
+        seg_buffer.inputs.t1w_dseg = dseg
+    if tpms:
         LOGGER.info('ANAT Found tissue probability maps')
         desc += 'Precomputed tissue probabiilty maps were provided as inputs.\n'
-        seg_buffer.inputs.t1w_tpms = precomputed['t1w_tpms']
+        seg_buffer.inputs.t1w_tpms = tpms
 
     # Stage 4: Normalization
     templates = []
@@ -1031,7 +1031,7 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         LOGGER.info(f'ANAT Stage 4: Found pre-computed registrations for {found_xfms}')
 
     # Do not attempt refinement (Stage 6, below)
-    if have_mask or not freesurfer:
+    if brain_mask or not freesurfer:
         workflow.connect([
             (t1w_buffer, refined_buffer, [
                 ('t1w_mask', 't1w_mask'),
@@ -1106,7 +1106,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             'Found a T1w-to-fsnative transform without the reverse. Time to handle this.'
         )
 
-    if not have_mask:
+    if not brain_mask:
         LOGGER.info('ANAT Stage 6: Preparing mask refinement workflow')
         # Stage 6: Refine ANTs mask with FreeSurfer segmentation
         refinement_wf = init_refinement_wf()
@@ -1132,7 +1132,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
     else:
         LOGGER.info('ANAT Found brain mask - skipping Stage 6')
 
-    if t2w and not have_t2w:
+    if t2w and not images.get('t2w_preproc'):
         LOGGER.info('ANAT Stage 7: Creating T2w template')
         t2w_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
@@ -1202,11 +1202,13 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
     needed_metrics = ['thickness', 'sulc']
     needed_spheres = ['sphere_reg', 'sphere']
 
+    surfaces = precomputed.get('surfaces', {})
+
     # Detect pre-computed surfaces
     found_surfs = {
-        surf: sorted(precomputed[surf])
+        surf: surfaces[surf]
         for surf in needed_anat_surfs + needed_metrics + needed_spheres
-        if len(precomputed.get(surf, [])) == 2
+        if surf in surfaces
     }
     if found_surfs:
         LOGGER.info(f'ANAT Stage 8: Found pre-converted surfaces for {list(found_surfs)}')
@@ -1279,7 +1281,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             ]),
         ])  # fmt:skip
 
-    if 'anat_ribbon' not in precomputed:
+    if (ribbon := images.get('ribbon')) is None:
         LOGGER.info('ANAT Stage 8a: Creating cortical ribbon mask')
         anat_ribbon_wf = init_anat_ribbon_wf()
         ds_ribbon_mask_wf = init_ds_mask_wf(
@@ -1304,10 +1306,10 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         ])  # fmt:skip
     else:
         LOGGER.info('ANAT Stage 8a: Found pre-computed cortical ribbon mask')
-        outputnode.inputs.anat_ribbon = precomputed['anat_ribbon']
+        outputnode.inputs.anat_ribbon = ribbon
 
     # Stage 9: Baseline fsLR registration
-    if len(precomputed.get('sphere_reg_fsLR', [])) < 2:
+    if not (sphere_reg_fsLR := surfaces.get('sphere_reg_fsLR')):
         LOGGER.info('ANAT Stage 9: Creating fsLR registration sphere')
         fsLR_reg_wf = init_fsLR_reg_wf()
         ds_fsLR_reg_wf = init_ds_surfaces_wf(
@@ -1326,10 +1328,10 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         ])  # fmt:skip
     else:
         LOGGER.info('ANAT Stage 9: Found pre-computed fsLR registration sphere')
-        fsLR_buffer.inputs.sphere_reg_fsLR = sorted(precomputed['sphere_reg_fsLR'])
+        fsLR_buffer.inputs.sphere_reg_fsLR = sphere_reg_fsLR
 
     # Stage 10: MSMSulc
-    if msm_sulc and len(precomputed.get('sphere_reg_msm', [])) < 2:
+    if not (sphere_reg_msm := surfaces.get('sphere_reg_msm')) and msm_sulc:
         LOGGER.info('ANAT Stage 10: Creating MSM-Sulc registration sphere')
         msm_sulc_wf = init_msm_sulc_wf(sloppy=sloppy)
         ds_msmsulc_wf = init_ds_surfaces_wf(
@@ -1352,12 +1354,12 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         ])  # fmt:skip
     elif msm_sulc:
         LOGGER.info('ANAT Stage 10: Found pre-computed MSM-Sulc registration sphere')
-        msm_buffer.inputs.sphere_reg_msm = sorted(precomputed['sphere_reg_msm'])
+        msm_buffer.inputs.sphere_reg_msm = sphere_reg_msm
     else:
         LOGGER.info('ANAT Stage 10: MSM-Sulc disabled')
 
     # Stage 11: Cortical surface mask
-    if len(precomputed.get('cortex_mask', [])) < 2:
+    if not (cortex_mask := surfaces.get('cortex_mask')):
         LOGGER.info('ANAT Stage 11: Creating cortical surface mask')
 
         cortex_masks_wf = init_cortex_masks_wf()
@@ -1380,7 +1382,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         ])  # fmt:skip
     else:
         LOGGER.info('ANAT Stage 11: Found pre-computed cortical surface mask')
-        outputnode.inputs.cortex_mask = sorted(precomputed['cortex_mask'])
+        outputnode.inputs.cortex_mask = cortex_mask
 
     return workflow
 
