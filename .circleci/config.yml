@@ -313,10 +313,10 @@ jobs:
       - run: *pull_test_image_from_registry
       - restore_cache:
           keys:
-            - ds005-anat-v1-{{ .Branch }}-{{ epoch }}
-            - ds005-anat-v1-{{ .Branch }}
-            - ds005-anat-v1-master
-            - ds005-anat-v1-next
+            - ds005-anat-v2-{{ .Branch }}-{{ epoch }}
+            - ds005-anat-v2-{{ .Branch }}
+            - ds005-anat-v2-master
+            - ds005-anat-v2-next
       - restore_cache:
           keys:
             - testdata-v2-{{ .Branch }}-{{ epoch }}
@@ -375,7 +375,7 @@ jobs:
             rm -rf /tmp/ds005/work/reportlets
             rm -rf /tmp/ds005/work/smriprep_wf/fsdir_run_*/
       - save_cache:
-          key: ds005-anat-v1-{{ .Branch }}-{{ epoch }}
+          key: ds005-anat-v2-{{ .Branch }}-{{ epoch }}
           paths:
             - /tmp/ds005/work
 
