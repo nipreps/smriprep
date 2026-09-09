@@ -20,3 +20,8 @@ work/**/*
 work
 out/**/*
 out/
+
+.pixi
+.tox
+.venv
+.*_cache
