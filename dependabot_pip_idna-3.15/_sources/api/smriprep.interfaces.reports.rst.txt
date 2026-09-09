@@ -1,7 +1,0 @@
-smriprep.interfaces.reports module
-==================================
-
-.. automodule:: smriprep.interfaces.reports
-   :members:
-   :show-inheritance:
-   :undoc-members:
