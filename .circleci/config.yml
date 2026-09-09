@@ -98,28 +98,6 @@ jobs:
                   -f Dockerfile.base .
             fi
       - run:
-          name: Build Docker image
-          no_output_timeout: 60m
-          command: |
-            pyenv local 3
-            pip install hatch
-            # Get version, update files.
-            THISVERSION=$( hatch version )
-            if [[ ${THISVERSION:0:1} == "0" ]] ; then
-              echo "WARNING: latest git tag could not be found"
-              echo "Please, make sure you fetch all tags from upstream with"
-              echo "the command ``git fetch --tags --verbose`` and push"
-              echo "them to your fork with ``git push origin --tags``"
-            fi
-            # Build docker image
-            docker buildx build --load \
-                --cache-from localhost:5000/smriprep \
-                --cache-from nipreps/smriprep:latest \
-                -t nipreps/smriprep:latest \
-                --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
-                --build-arg VCS_REF=`git rev-parse --short HEAD` \
-                --build-arg VERSION="${CIRCLE_TAG:-$THISVERSION}" .
-      - run:
           name: Build Docker image (production environment)
           no_output_timeout: 60m
           command: |
