@@ -1,0 +1,152 @@
+images:
+  queries:
+    t1w_preproc:
+      entities:
+        - datatype: anat
+          space: null
+          desc: preproc
+          suffix: T1w
+          extension: [.nii.gz, .nii]
+    t2w_preproc:
+      entities:
+        - datatype: anat
+          space: null
+          desc: preproc
+          suffix: T2w
+          extension: [.nii.gz, .nii]
+    mask:
+      entities:
+        - datatype: anat
+          space: null
+          desc: brain
+          suffix: mask
+          extension: [.nii.gz, .nii]
+    dseg:
+      entities:
+        - datatype: anat
+          space: null
+          desc: null
+          suffix: dseg
+          extension: [.nii.gz, .nii]
+    tpms:
+      entities:
+        - datatype: anat
+          space: null
+          label: [GM, WM, CSF]
+          suffix: probseg
+          extension: [.nii.gz, .nii]
+      multi: { order: label }
+    ribbon:
+      entities:
+        - datatype: anat
+          space: null
+          desc: ribbon
+          suffix: mask
+          extension: [.nii.gz, .nii]
+surfaces:
+  queries:
+    white:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: null
+          suffix: white
+          extension: .surf.gii
+      multi: { order: hemi }
+    pial:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: null
+          suffix: pial
+          extension: .surf.gii
+      multi: { order: hemi }
+    midthickness:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: null
+          suffix: midthickness
+          extension: .surf.gii
+      multi: { order: hemi }
+    sphere:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: null
+          suffix: sphere
+          extension: .surf.gii
+      multi: { order: hemi }
+    sphere_reg:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: [null, fsaverage]
+          desc: reg
+          suffix: sphere
+          extension: .surf.gii
+      multi: { order: hemi }
+    sphere_reg_fsLR:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: fsLR
+          desc: reg
+          suffix: sphere
+          extension: .surf.gii
+      multi: { order: hemi }
+    sphere_reg_msm:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: fsLR
+          desc: msmsulc
+          suffix: sphere
+          extension: .surf.gii
+      multi: { order: hemi }
+    thickness:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: null
+          suffix: thickness
+          extension: .shape.gii
+      multi: { order: hemi }
+    sulc:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: null
+          suffix: sulc
+          extension: .shape.gii
+      multi: { order: hemi }
+    curv:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: null
+          suffix: curv
+          extension: .shape.gii
+      multi: { order: hemi }
+    cortex:
+      entities:
+        - datatype: anat
+          hemi: [L, R]
+          space: null
+          desc: cortex
+          suffix: mask
+          extension: .label.gii
+      multi: { order: hemi }
+transforms:
+  per: space
+  queries:
+    forward:
+      entities:
+        - from: T1w
+          to: "{space}"
+          suffix: xfm
+    reverse:
+      entities:
+        - from: "{space}"
+          to: T1w
+          suffix: xfm

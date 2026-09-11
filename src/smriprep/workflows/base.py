@@ -34,6 +34,7 @@ from niworkflows.interfaces.bids import BIDSDataGrabber, BIDSFreeSurferDir, BIDS
 from niworkflows.utils.bids import collect_data
 from niworkflows.utils.misc import fix_multi_T1w_source_name
 
+from .. import data
 from ..__about__ import __version__
 from ..interfaces import DerivativesDataSink
 from .anatomical import init_anat_preproc_wf
@@ -391,14 +392,18 @@ to workflows in *sMRIPrep*'s documentation]\
 
 """
 
-    from ..utils.bids import collect_derivatives
+    from nipost.bids import collect_derivatives, load_spec
+
+    entities = {'subject': subject_id}
+    if session_id:
+        entities['session'] = session_id
+    params = {'space': [*spaces.get_spaces(nonstandard=False, dim=(3,)), 'fsnative']}
+    spec = load_spec(data.load('anat_spec.yml'))
 
     deriv_cache = {}
-    std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
-    std_spaces.append('fsnative')
     for deriv_dir in derivatives:
         deriv_cache.update(
-            collect_derivatives(deriv_dir, subject_id, std_spaces, session_id=session_id)
+            collect_derivatives(deriv_dir, spec=spec, entities=entities, params=params)
         )
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']), name='inputnode')
