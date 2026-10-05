@@ -141,12 +141,16 @@ def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=Non
         Paths to precomputed derivatives, as returned by :func:`collect_derivatives`.
     """
     deriv_cache = {}
+    transforms = {}
     for deriv_dir in derivatives:
-        deriv_cache.update(
-            collect_derivatives(
-                deriv_dir, subject_id, [*std_spaces, 'fsnative'], session_id=session_id
-            )
+        collected = collect_derivatives(
+            deriv_dir, subject_id, [*std_spaces, 'fsnative'], session_id=session_id
         )
+        # Merge per space and direction, so later datasets only override what they provide
+        for space, xfms in collected.pop('transforms', {}).items():
+            transforms.setdefault(space, {}).update(xfms)
+        deriv_cache.update(collected)
+    deriv_cache['transforms'] = transforms
     return deriv_cache
 
 
