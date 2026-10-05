@@ -168,6 +168,38 @@ def test_collect_anat_derivatives_cohort(deriv_dset):
     assert _entity(xfms['reverse'], 'from') == 'MNIPediatricAsym+3'
 
 
+def test_collect_anat_derivatives_multiple_datasets(deriv_dset):
+    """Derivatives are merged across datasets, with later datasets taking precedence."""
+    first = deriv_dset(['t1w_mask', 't1w_dseg', 'white', 'xfm_MNI152NLin2009cAsym'], name='first')
+    second = deriv_dset(['t1w_mask', 'pial', 'xfm_fsnative'], name='second')
+
+    collected = collect_anat_derivatives([first, second], '01', ['MNI152NLin2009cAsym'])
+
+    assert collected['t1w_dseg'].startswith(str(first))
+    assert collected['t1w_mask'].startswith(str(second))
+    assert 'white' in collected
+    assert 'pial' in collected
+
+    xfms = collected['transforms']
+    assert xfms['MNI152NLin2009cAsym']['forward'].startswith(str(first))
+    assert xfms['fsnative']['reverse'].startswith(str(second))
+
+
+def test_collect_anat_derivatives_split_transform_pair(deriv_dset):
+    """A forward and reverse transform from different datasets make a pair."""
+    first = deriv_dset({'xfm_MNI152NLin2009cAsym': 1}, name='first')  # forward only
+    second = deriv_dset(['xfm_MNI152NLin2009cAsym'], name='second')
+    # Leave only the reverse transform in the second dataset
+    for path in (second / 'sub-01' / 'anat').glob('*_from-T1w_*'):
+        path.unlink()
+
+    collected = collect_anat_derivatives([first, second], '01', ['MNI152NLin2009cAsym'])
+
+    xfms = collected['transforms']['MNI152NLin2009cAsym']
+    assert xfms['forward'].startswith(str(first))
+    assert xfms['reverse'].startswith(str(second))
+
+
 def test_collect_derivatives(deriv_dset):
     output_spaces = ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3']
     collected = collect_derivatives(deriv_dset(), '01', output_spaces)
@@ -214,7 +246,7 @@ def test_collect_derivatives(deriv_dset):
 def test_collect_anat_derivatives_reuses_sphere_reg(
     tmp_path, caplog, sphere_reg_entities, expected, warns
 ):
-    """The fsaverage registration sphere is reusable under both naming conventions."""
+    """The fsaverage sphere is reusable under either naming convention, but not both."""
     skeleton = {
         '01': [
             {
