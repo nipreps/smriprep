@@ -28,6 +28,9 @@ from pathlib import Path
 import nibabel as nb
 import numpy as np
 import pytest
+from niworkflows.utils.testing import generate_bids_skeleton
+
+from .utils import deriv_skeleton
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -119,5 +122,23 @@ def make_gifti_surface():
                 pointset.meta[key] = value
         nb.GiftiImage(darrays=[pointset, triangles]).to_filename(path)
         return str(path)
+
+    return _make
+
+
+@pytest.fixture
+def deriv_dset(tmp_path):
+    """Factory that writes a skeleton of sMRIPrep derivatives and returns its root.
+
+    Arguments are passed to :func:`test.utils.deriv_skeleton`; by default,
+    every derivative in ``test/utils/derivatives.yml`` is written.
+
+    Each call needs a distinct ``name``; datasets are written under ``tmp_path / name``.
+    """
+
+    def _make(include=None, *, name='derivatives', **kwargs):
+        deriv_dir = tmp_path / name
+        generate_bids_skeleton(deriv_dir, deriv_skeleton(include, **kwargs))
+        return deriv_dir
 
     return _make

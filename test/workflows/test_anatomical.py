@@ -22,14 +22,15 @@
 #
 from pathlib import Path
 
-import nibabel as nb
-import numpy as np
 import pytest
 from nipype.pipeline.engine.utils import generate_expanded_graph
 from niworkflows.utils.spaces import Reference, SpatialReferences
 from niworkflows.utils.testing import generate_bids_skeleton
 
+from smriprep.utils.bids import collect_anat_derivatives
 from smriprep.workflows.anatomical import init_anat_fit_wf, init_anat_preproc_wf
+
+from ..utils import DERIV_GROUPS
 
 BASE_LAYOUT = {
     '01': {
@@ -150,29 +151,17 @@ def test_anat_fit_wf(
 @pytest.mark.parametrize('t1w', [1, 2])
 @pytest.mark.parametrize('t2w', [0, 1])
 @pytest.mark.parametrize('skull_strip_mode', ['skip', 'force'])
-@pytest.mark.parametrize('t1w_preproc', [False, True])
-@pytest.mark.parametrize('t2w_preproc', [False, True])
-@pytest.mark.parametrize('t1w_mask', [False, True])
-@pytest.mark.parametrize('t1w_dseg', [False, True])
-@pytest.mark.parametrize('t1w_tpms', [False, True])
-@pytest.mark.parametrize('xfms', [False, True])
-@pytest.mark.parametrize('sphere_reg_msm', [0, 1, 2])
+@pytest.mark.parametrize('include', [None, *DERIV_GROUPS])
 def test_anat_fit_precomputes(
     bids_root: Path,
     tmp_path: Path,
+    deriv_dset,
     t1w: int,
     t2w: int,
     skull_strip_mode: str,
-    t1w_preproc: bool,
-    t2w_preproc: bool,
-    t1w_mask: bool,
-    t1w_dseg: bool,
-    t1w_tpms: bool,
-    xfms: bool,
-    sphere_reg_msm: int,
+    include: str | None,
 ):
-    """Test as many combinations of precomputed files and input
-    configurations as possible."""
+    """Test precomputed inputs one-by-one with a few input configurations."""
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
 
@@ -183,44 +172,9 @@ def test_anat_fit_precomputes(
     ][:t1w]
     t2w_list = [str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')][:t2w]
 
-    # Construct precomputed files
-    empty_img = nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4))
-    precomputed = {}
-    if t1w_preproc:
-        precomputed['t1w_preproc'] = str(tmp_path / 't1w_preproc.nii.gz')
-    if t2w_preproc:
-        precomputed['t2w_preproc'] = str(tmp_path / 't2w_preproc.nii.gz')
-    if t1w_mask:
-        precomputed['t1w_mask'] = str(tmp_path / 't1w_mask.nii.gz')
-    if t1w_dseg:
-        precomputed['t1w_dseg'] = str(tmp_path / 't1w_dseg.nii.gz')
-    if t1w_tpms:
-        precomputed['t1w_tpms'] = str(tmp_path / 't1w_tpms.nii.gz')
-
-    for path in precomputed.values():
-        empty_img.to_filename(path)
-
-    precomputed['sphere_reg_msm'] = [
-        str(tmp_path / f'sub-01_hemi-{hemi}_desc-msm_sphere.surf.gii') for hemi in ['L', 'R']
-    ][:sphere_reg_msm]
-    for path in precomputed['sphere_reg_msm']:
-        Path(path).touch()
-
-    if xfms:
-        transforms = precomputed['transforms'] = {}
-        transforms['MNI152NLin2009cAsym'] = {
-            'forward': str(tmp_path / 'MNI152NLin2009cAsym_forward_xfm.txt'),
-            'reverse': str(tmp_path / 'MNI152NLin2009cAsym_reverse_xfm.txt'),
-        }
-        transforms['fsnative'] = {
-            'forward': str(tmp_path / 'fsnative_forward_xfm.txt'),
-            'reverse': str(tmp_path / 'fsnative_reverse_xfm.txt'),
-        }
-
-        # Write dummy transforms
-        for xfm in transforms.values():
-            for path in xfm.values():
-                Path(path).touch()
+    # Collect precomputed files from a derivatives dataset
+    deriv_dir = deriv_dset([include] if include else [])
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
 
     # Create workflow
     wf = init_anat_fit_wf(
@@ -244,3 +198,79 @@ def test_anat_fit_precomputes(
 
     flatgraph = wf._create_flat_graph()
     generate_expanded_graph(flatgraph)
+
+
+@pytest.mark.parametrize('omit', [None, *DERIV_GROUPS])
+def test_anat_fit_precomputes_omit_one(
+    bids_root: Path,
+    tmp_path: Path,
+    deriv_dset,
+    omit: str | None,
+):
+    """Build the fit workflow from a complete set of derivatives, less at most one."""
+    output_dir = tmp_path / 'output'
+    output_dir.mkdir()
+
+    deriv_dir = deriv_dset([group for group in DERIV_GROUPS if group != omit])
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+
+    collected = {key for key in precomputed if key != 'transforms'}
+    collected.update(f'xfm_{space}' for space, xfms in precomputed['transforms'].items() if xfms)
+    # Transforms are only collected for requested spaces
+    assert collected == set(DERIV_GROUPS) - {omit, 'xfm_MNIPediatricAsym+3'}
+
+    wf = init_anat_fit_wf(
+        bids_root=str(bids_root),
+        output_dir=str(output_dir),
+        freesurfer=True,
+        hires=False,
+        longitudinal=False,
+        msm_sulc=True,
+        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
+        t2w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')],
+        skull_strip_mode='force',
+        skull_strip_template=Reference('OASIS30ANTs'),
+        spaces=SpatialReferences(
+            spaces=['MNI152NLin2009cAsym', 'fsaverage5'],
+            checkpoint=True,
+        ),
+        precomputed=precomputed,
+        omp_nthreads=1,
+    )
+
+    flatgraph = wf._create_flat_graph()
+    generate_expanded_graph(flatgraph)
+
+
+def test_anat_fit_precomputes_fsnative_forward_only(
+    bids_root: Path,
+    tmp_path: Path,
+    deriv_dset,
+):
+    """A T1w-to-fsnative transform without its reverse is not silently used."""
+    output_dir = tmp_path / 'output'
+    output_dir.mkdir()
+
+    deriv_dir = deriv_dset({'xfm_fsnative': 1})  # forward (T1w-to-fsnative) only
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+    assert sorted(precomputed['transforms']['fsnative']) == ['forward']
+
+    with pytest.raises(RuntimeError, match='without the reverse'):
+        init_anat_fit_wf(
+            bids_root=str(bids_root),
+            output_dir=str(output_dir),
+            freesurfer=True,
+            hires=False,
+            longitudinal=False,
+            msm_sulc=True,
+            t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
+            t2w=[],
+            skull_strip_mode='force',
+            skull_strip_template=Reference('OASIS30ANTs'),
+            spaces=SpatialReferences(
+                spaces=['MNI152NLin2009cAsym', 'fsaverage5'],
+                checkpoint=True,
+            ),
+            precomputed=precomputed,
+            omp_nthreads=1,
+        )

@@ -119,6 +119,41 @@ def collect_derivatives(
     return derivs_cache
 
 
+def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=None):
+    """Gather precomputed anatomical derivatives from one or more datasets.
+
+    Parameters
+    ----------
+    derivatives : :obj:`list` of :obj:`os.PathLike`
+        Derivatives datasets to search. Later datasets take precedence for each
+        derivative they provide; transforms are merged per space and direction.
+    subject_id : :obj:`str`
+        Subject label, without ``sub-``.
+    std_spaces : :obj:`list` of :obj:`str`
+        Standard spaces to look for transforms to and from.
+        Transforms to ``fsnative`` are always searched for.
+    session_id : :obj:`str` or :obj:`None`
+        Session label, without ``ses-``.
+
+    Returns
+    -------
+    :obj:`dict`
+        Paths to precomputed derivatives, as returned by :func:`collect_derivatives`.
+    """
+    deriv_cache = {}
+    transforms = {}
+    for deriv_dir in derivatives:
+        collected = collect_derivatives(
+            deriv_dir, subject_id, [*std_spaces, 'fsnative'], session_id=session_id
+        )
+        # Merge per space and direction, so later datasets only override what they provide
+        for space, xfms in collected.pop('transforms', {}).items():
+            transforms[space] = xfms
+        deriv_cache.update(collected)
+    deriv_cache['transforms'] = transforms
+    return deriv_cache
+
+
 def write_bidsignore(deriv_dir):
     bids_ignore = [
         '*.html',

@@ -391,15 +391,14 @@ to workflows in *sMRIPrep*'s documentation]\
 
 """
 
-    from ..utils.bids import collect_derivatives
+    from ..utils.bids import collect_anat_derivatives
 
-    deriv_cache = {}
-    std_spaces = spaces.get_spaces(nonstandard=False, dim=(3,))
-    std_spaces.append('fsnative')
-    for deriv_dir in derivatives:
-        deriv_cache.update(
-            collect_derivatives(deriv_dir, subject_id, std_spaces, session_id=session_id)
-        )
+    deriv_cache = collect_anat_derivatives(
+        derivatives,
+        subject_id,
+        spaces.get_spaces(nonstandard=False, dim=(3,)),
+        session_id=session_id,
+    )
 
     inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']), name='inputnode')
 
