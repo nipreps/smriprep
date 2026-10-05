@@ -240,3 +240,37 @@ def test_anat_fit_precomputes_omit_one(
 
     flatgraph = wf._create_flat_graph()
     generate_expanded_graph(flatgraph)
+
+
+def test_anat_fit_precomputes_fsnative_forward_only(
+    bids_root: Path,
+    tmp_path: Path,
+    deriv_dset,
+):
+    """A T1w-to-fsnative transform without its reverse is not silently used."""
+    output_dir = tmp_path / 'output'
+    output_dir.mkdir()
+
+    deriv_dir = deriv_dset({'xfm_fsnative': 1})  # forward (T1w-to-fsnative) only
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+    assert sorted(precomputed['transforms']['fsnative']) == ['forward']
+
+    with pytest.raises(RuntimeError, match='without the reverse'):
+        init_anat_fit_wf(
+            bids_root=str(bids_root),
+            output_dir=str(output_dir),
+            freesurfer=True,
+            hires=False,
+            longitudinal=False,
+            msm_sulc=True,
+            t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
+            t2w=[],
+            skull_strip_mode='force',
+            skull_strip_template=Reference('OASIS30ANTs'),
+            spaces=SpatialReferences(
+                spaces=['MNI152NLin2009cAsym', 'fsaverage5'],
+                checkpoint=True,
+            ),
+            precomputed=precomputed,
+            omp_nthreads=1,
+        )
