@@ -186,7 +186,7 @@ def test_collect_anat_derivatives_multiple_datasets(deriv_dset):
 
 
 def test_collect_anat_derivatives_split_transform_pair(deriv_dset):
-    """A forward and reverse transform from different datasets make a pair."""
+    """A forward and reverse transform from different datasets are not combined."""
     first = deriv_dset({'xfm_MNI152NLin2009cAsym': 1}, name='first')  # forward only
     second = deriv_dset(['xfm_MNI152NLin2009cAsym'], name='second')
     # Leave only the reverse transform in the second dataset
@@ -196,7 +196,7 @@ def test_collect_anat_derivatives_split_transform_pair(deriv_dset):
     collected = collect_anat_derivatives([first, second], '01', ['MNI152NLin2009cAsym'])
 
     xfms = collected['transforms']['MNI152NLin2009cAsym']
-    assert xfms['forward'].startswith(str(first))
+    assert 'forward' not in xfms
     assert xfms['reverse'].startswith(str(second))
 
 

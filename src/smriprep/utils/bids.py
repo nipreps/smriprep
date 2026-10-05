@@ -148,7 +148,7 @@ def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=Non
         )
         # Merge per space and direction, so later datasets only override what they provide
         for space, xfms in collected.pop('transforms', {}).items():
-            transforms.setdefault(space, {}).update(xfms)
+            transforms[space] = xfms
         deriv_cache.update(collected)
     deriv_cache['transforms'] = transforms
     return deriv_cache
