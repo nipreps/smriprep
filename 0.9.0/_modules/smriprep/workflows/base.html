@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.base &mdash; smriprep 0.20.1.dev10 documentation</title>
+  <title>smriprep.workflows.base &mdash; smriprep 0.20.1.dev11 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -480,15 +480,14 @@
 
 <span class="s2">"""</span>
 
-    <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_derivatives</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_anat_derivatives</span>
 
-    <span class="n">deriv_cache</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">std_spaces</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">get_spaces</span><span class="p">(</span><span class="n">nonstandard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
-    <span class="n">std_spaces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'fsnative'</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">deriv_dir</span> <span class="ow">in</span> <span class="n">derivatives</span><span class="p">:</span>
-        <span class="n">deriv_cache</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-            <span class="n">collect_derivatives</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">std_spaces</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">)</span>
-        <span class="p">)</span>
+    <span class="n">deriv_cache</span> <span class="o">=</span> <span class="n">collect_anat_derivatives</span><span class="p">(</span>
+        <span class="n">derivatives</span><span class="p">,</span>
+        <span class="n">subject_id</span><span class="p">,</span>
+        <span class="n">spaces</span><span class="o">.</span><span class="n">get_spaces</span><span class="p">(</span><span class="n">nonstandard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,)),</span>
+        <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">inputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">'subjects_dir'</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'inputnode'</span><span class="p">)</span>
 

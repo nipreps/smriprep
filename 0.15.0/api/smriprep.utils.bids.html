@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.bids module &mdash; smriprep 0.20.1.dev10 documentation</title>
+  <title>smriprep.utils.bids module &mdash; smriprep 0.20.1.dev11 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -102,6 +102,30 @@
 <section id="module-smriprep.utils.bids">
 <span id="smriprep-utils-bids-module"></span><h1>smriprep.utils.bids module<a class="headerlink" href="#module-smriprep.utils.bids" title="Link to this heading"></a></h1>
 <p>Utilities to handle BIDS inputs.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="smriprep.utils.bids.collect_anat_derivatives">
+<span class="sig-prename descclassname"><span class="pre">smriprep.utils.bids.</span></span><span class="sig-name descname"><span class="pre">collect_anat_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">derivatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_spaces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/utils/bids.html#collect_anat_derivatives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.utils.bids.collect_anat_derivatives" title="Link to this definition"></a></dt>
+<dd><p>Gather precomputed anatomical derivatives from one or more datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>derivatives</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/os.html#os.PathLike" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">os.PathLike</span></code></a>) – Derivatives datasets to search. Later datasets take precedence for each
+derivative they provide; transforms are merged per space and direction.</p></li>
+<li><p><strong>subject_id</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Subject label, without <code class="docutils literal notranslate"><span class="pre">sub-</span></code>.</p></li>
+<li><p><strong>std_spaces</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – Standard spaces to look for transforms to and from.
+Transforms to <code class="docutils literal notranslate"><span class="pre">fsnative</span></code> are always searched for.</p></li>
+<li><p><strong>session_id</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>) – Session label, without <code class="docutils literal notranslate"><span class="pre">ses-</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Paths to precomputed derivatives, as returned by <a class="reference internal" href="#smriprep.utils.bids.collect_derivatives" title="smriprep.utils.bids.collect_derivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_derivatives()</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="smriprep.utils.bids.collect_derivatives">
 <span class="sig-prename descclassname"><span class="pre">smriprep.utils.bids.</span></span><span class="sig-name descname"><span class="pre">collect_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">derivatives_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">std_spaces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patterns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/smriprep/utils/bids.html#collect_derivatives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smriprep.utils.bids.collect_derivatives" title="Link to this definition"></a></dt>

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.bids &mdash; smriprep 0.20.1.dev10 documentation</title>
+  <title>smriprep.utils.bids &mdash; smriprep 0.20.1.dev11 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -203,6 +203,44 @@
         <span class="n">derivs_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">derivs_cache</span></div>
+
+
+
+<div class="viewcode-block" id="collect_anat_derivatives">
+<a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.collect_anat_derivatives">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">collect_anat_derivatives</span><span class="p">(</span><span class="n">derivatives</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">std_spaces</span><span class="p">,</span> <span class="n">session_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Gather precomputed anatomical derivatives from one or more datasets.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    derivatives : :obj:`list` of :obj:`os.PathLike`</span>
+<span class="sd">        Derivatives datasets to search. Later datasets take precedence for each</span>
+<span class="sd">        derivative they provide; transforms are merged per space and direction.</span>
+<span class="sd">    subject_id : :obj:`str`</span>
+<span class="sd">        Subject label, without ``sub-``.</span>
+<span class="sd">    std_spaces : :obj:`list` of :obj:`str`</span>
+<span class="sd">        Standard spaces to look for transforms to and from.</span>
+<span class="sd">        Transforms to ``fsnative`` are always searched for.</span>
+<span class="sd">    session_id : :obj:`str` or :obj:`None`</span>
+<span class="sd">        Session label, without ``ses-``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    :obj:`dict`</span>
+<span class="sd">        Paths to precomputed derivatives, as returned by :func:`collect_derivatives`.</span>
+<span class="sd">    """</span>
+    <span class="n">deriv_cache</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">transforms</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">deriv_dir</span> <span class="ow">in</span> <span class="n">derivatives</span><span class="p">:</span>
+        <span class="n">collected</span> <span class="o">=</span> <span class="n">collect_derivatives</span><span class="p">(</span>
+            <span class="n">deriv_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">std_spaces</span><span class="p">,</span> <span class="s1">'fsnative'</span><span class="p">],</span> <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span>
+        <span class="p">)</span>
+        <span class="c1"># Merge per space and direction, so later datasets only override what they provide</span>
+        <span class="k">for</span> <span class="n">space</span><span class="p">,</span> <span class="n">xfms</span> <span class="ow">in</span> <span class="n">collected</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'transforms'</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">transforms</span><span class="p">[</span><span class="n">space</span><span class="p">]</span> <span class="o">=</span> <span class="n">xfms</span>
+        <span class="n">deriv_cache</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">collected</span><span class="p">)</span>
+    <span class="n">deriv_cache</span><span class="p">[</span><span class="s1">'transforms'</span><span class="p">]</span> <span class="o">=</span> <span class="n">transforms</span>
+    <span class="k">return</span> <span class="n">deriv_cache</span></div>
 
 
 
