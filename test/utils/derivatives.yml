@@ -1,103 +1,156 @@
+# Skeleton of sMRIPrep anatomical derivatives, for use with ``deriv_skeleton()``.
+#
+# Files are grouped by the key that collects them in the ``precomputed`` dictionary,
+# so tests can toggle individual derivatives on and off.
+# Transforms are grouped as ``xfm_<space>``, using the BIDS form of the space name.
+# Within a group, files are listed in the order the collector returns them.
 dataset_description:
   Name: smriprep-outputs
   BIDSVersion: 1.9.0
   DatasetType: derivative
-'01':
-  anat:
-  - suffix: mask
-    desc: brain
-  - suffix: T1w
-    desc: preproc
-  - suffix: dseg
-  - suffix: probseg
-    label: CSF
-  - suffix: probseg
-    label: GM
-  - suffix: probseg
-    label: WM
-  - suffix: xfm
-    from: MNI152NLin2009cAsym
-    to: T1w
-    mode: image
-    extension: .h5
-  - suffix: xfm
-    from: T1w
-    to: MNI152NLin2009cAsym
-    mode: image
-    extension: .h5
-  - suffix: xfm
-    from: T1w
-    to: MNIPediatricAsym+3
-    mode: image
-    extension: .h5
-  - suffix: xfm
-    from: MNIPediatricAsym+3
-    to: T1w
-    mode: image
-    extension: .h5
-  - suffix: white
-    hemi: L
-    extension: .surf.gii
-  - suffix: white
-    hemi: R
-    extension: .surf.gii
-  - suffix: pial
-    hemi: L
-    extension: .surf.gii
-  - suffix: pial
-    hemi: R
-    extension: .surf.gii
-  - suffix: midthickness
-    hemi: L
-    extension: .surf.gii
-  - suffix: midthickness
-    hemi: R
-    extension: .surf.gii
-  - suffix: sphere
-    hemi: L
-    extension: .surf.gii
-  - suffix: sphere
-    hemi: R
-    extension: .surf.gii
-  - suffix: sphere
-    hemi: L
-    space: fsaverage
-    desc: reg
-    extension: .surf.gii
-  - suffix: sphere
-    hemi: R
-    space: fsaverage
-    desc: reg
-    extension: .surf.gii
-  - suffix: sphere
-    hemi: L
-    space: fsLR
-    desc: reg
-    extension: .surf.gii
-  - suffix: sphere
-    hemi: R
-    space: fsLR
-    desc: reg
-    extension: .surf.gii
-  - suffix: sphere
-    hemi: L
-    space: fsLR
-    desc: msmsulc
-    extension: .surf.gii
-  - suffix: sphere
-    hemi: R
-    space: fsLR
-    desc: msmsulc
-    extension: .surf.gii
-  - suffix: thickness
-    hemi: L
-    extension: .shape.gii
-  - suffix: thickness
-    hemi: R
-    extension: .shape.gii
-  - suffix: sulc
-    hemi: L
-    extension: .shape.gii
-  - suffix: sulc
-    hemi: R
-    extension: .shape.gii
+anat:
+  t1w_preproc:
+    - suffix: T1w
+      desc: preproc
+  t2w_preproc:
+    - suffix: T2w
+      desc: preproc
+  t1w_mask:
+    - suffix: mask
+      desc: brain
+  t1w_dseg:
+    - suffix: dseg
+  t1w_tpms:
+    - suffix: probseg
+      label: GM
+    - suffix: probseg
+      label: WM
+    - suffix: probseg
+      label: CSF
+  anat_ribbon:
+    - suffix: mask
+      desc: ribbon
+  white:
+    - suffix: white
+      hemi: L
+      extension: .surf.gii
+    - suffix: white
+      hemi: R
+      extension: .surf.gii
+  pial:
+    - suffix: pial
+      hemi: L
+      extension: .surf.gii
+    - suffix: pial
+      hemi: R
+      extension: .surf.gii
+  midthickness:
+    - suffix: midthickness
+      hemi: L
+      extension: .surf.gii
+    - suffix: midthickness
+      hemi: R
+      extension: .surf.gii
+  sphere:
+    - suffix: sphere
+      hemi: L
+      extension: .surf.gii
+    - suffix: sphere
+      hemi: R
+      extension: .surf.gii
+  sphere_reg:
+    - suffix: sphere
+      hemi: L
+      space: fsaverage
+      desc: reg
+      extension: .surf.gii
+    - suffix: sphere
+      hemi: R
+      space: fsaverage
+      desc: reg
+      extension: .surf.gii
+  sphere_reg_fsLR:
+    - suffix: sphere
+      hemi: L
+      space: fsLR
+      desc: reg
+      extension: .surf.gii
+    - suffix: sphere
+      hemi: R
+      space: fsLR
+      desc: reg
+      extension: .surf.gii
+  sphere_reg_msm:
+    - suffix: sphere
+      hemi: L
+      space: fsLR
+      desc: msmsulc
+      extension: .surf.gii
+    - suffix: sphere
+      hemi: R
+      space: fsLR
+      desc: msmsulc
+      extension: .surf.gii
+  thickness:
+    - suffix: thickness
+      hemi: L
+      extension: .shape.gii
+    - suffix: thickness
+      hemi: R
+      extension: .shape.gii
+  sulc:
+    - suffix: sulc
+      hemi: L
+      extension: .shape.gii
+    - suffix: sulc
+      hemi: R
+      extension: .shape.gii
+  curv:
+    - suffix: curv
+      hemi: L
+      extension: .shape.gii
+    - suffix: curv
+      hemi: R
+      extension: .shape.gii
+  cortex_mask:
+    - suffix: mask
+      hemi: L
+      desc: cortex
+      extension: .label.gii
+    - suffix: mask
+      hemi: R
+      desc: cortex
+      extension: .label.gii
+  xfm_MNI152NLin2009cAsym:
+    - suffix: xfm
+      from: T1w
+      to: MNI152NLin2009cAsym
+      mode: image
+      extension: .h5
+    - suffix: xfm
+      from: MNI152NLin2009cAsym
+      to: T1w
+      mode: image
+      extension: .h5
+  xfm_MNIPediatricAsym+3:
+    - suffix: xfm
+      from: T1w
+      to: MNIPediatricAsym+3
+      mode: image
+      extension: .h5
+    - suffix: xfm
+      from: MNIPediatricAsym+3
+      to: T1w
+      mode: image
+      extension: .h5
+  xfm_fsnative:
+    - suffix: xfm
+      from: T1w
+      to: fsnative
+      mode: image
+      extension: .txt
+    - suffix: xfm
+      from: fsnative
+      to: T1w
+      mode: image
+      extension: .txt
