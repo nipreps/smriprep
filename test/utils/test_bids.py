@@ -158,16 +158,6 @@ def test_collect_anat_derivatives_subject(deriv_dset):
     assert _paths(collect_anat_derivatives([deriv_dir], '02', [])) == []
 
 
-def test_collect_anat_derivatives_cohort(deriv_dset):
-    """Transforms are found for cohort spaces, keyed by their TemplateFlow name."""
-    collected = collect_anat_derivatives(
-        [deriv_dset()], '01', ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3']
-    )
-    xfms = collected['transforms']['MNIPediatricAsym:cohort-3']
-    assert _entity(xfms['forward'], 'to') == 'MNIPediatricAsym+3'
-    assert _entity(xfms['reverse'], 'from') == 'MNIPediatricAsym+3'
-
-
 def test_collect_anat_derivatives_multiple_datasets(deriv_dset):
     """Derivatives are merged across datasets, with later datasets taking precedence."""
     first = deriv_dset(['t1w_mask', 't1w_dseg', 'white', 'xfm_MNI152NLin2009cAsym'], name='first')
@@ -274,15 +264,15 @@ def test_collect_anat_derivatives_reuses_sphere_reg(
     assert any('legacy sphere_reg' in record.message for record in caplog.records) is warns
 
 
-def test_collect_derivatives_transforms(deriv_dset):
+def test_collect_anat_derivatives_transforms(deriv_dset):
     """Ensure transforms are collected for the right spaces."""
     output_spaces = ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3']
-    collected = collect_derivatives(deriv_dset(), '01', output_spaces)
+    collected = collect_anat_derivatives([deriv_dset()], '01', output_spaces)
     xfms = collected['transforms']
     for space in output_spaces:
-        template = space.split(':')[0]
-        assert template in xfms[space]['reverse']
-        assert template in xfms[space]['forward']
+        template = space.replace(':cohort-', '+')
+        assert _entity(xfms[space]['reverse'], 'from') == template
+        assert _entity(xfms[space]['forward'], 'to') == template
 
 
 class _FakeItem:
