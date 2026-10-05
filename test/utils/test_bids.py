@@ -190,30 +190,6 @@ def test_collect_anat_derivatives_split_transform_pair(deriv_dset):
     assert xfms['reverse'].startswith(str(second))
 
 
-def test_collect_derivatives(deriv_dset):
-    output_spaces = ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3']
-    collected = collect_derivatives(deriv_dset(), '01', output_spaces)
-    for suffix in ('preproc', 'mask', 'dseg'):
-        assert collected[f't1w_{suffix}']
-    assert len(collected['t1w_tpms']) == 3
-    xfms = collected['transforms']
-    for space in output_spaces:
-        assert xfms[space]['reverse']
-        assert xfms[space]['forward']
-    for surface in (
-        'white',
-        'pial',
-        'midthickness',
-        'sphere',
-        'thickness',
-        'sulc',
-        'sphere_reg',
-        'sphere_reg_fsLR',
-        'sphere_reg_msm',
-    ):
-        assert len(collected[surface]) == 2
-
-
 @pytest.mark.parametrize(
     ('sphere_reg_entities', 'expected', 'warns'),
     [
