@@ -26,11 +26,11 @@ from pathlib import Path
 import pytest
 from niworkflows.utils.testing import generate_bids_skeleton
 
-from smriprep.utils.bids import collect_anat_derivatives, collect_derivatives
+from smriprep.utils.bids import collect_anat_derivatives
 
 from . import deriv_skeleton
 
-IMAGES = ['t1w_preproc', 't2w_preproc', 't1w_mask', 't1w_dseg', 't1w_tpms', 'anat_ribbon']
+IMAGES = ['t1w_preproc', 't2w_preproc', 'mask', 'dseg', 'tpms', 'ribbon']
 SURFACES = [
     'white',
     'pial',
@@ -42,7 +42,7 @@ SURFACES = [
     'thickness',
     'sulc',
     'curv',
-    'cortex_mask',
+    'cortex',
 ]
 
 
@@ -80,12 +80,12 @@ def test_deriv_skeleton_include():
     } in anat
 
     assert deriv_skeleton([])['01'][0]['anat'] == []
-    assert len(deriv_skeleton(['t1w_tpms'])['01'][0]['anat']) == 3
+    assert len(deriv_skeleton(['tpms'])['01'][0]['anat']) == 3
     # 2 TPMs + 1 mask
-    partial = deriv_skeleton({'t1w_tpms': 2, 't1w_mask': True, 't1w_dseg': False})
+    partial = deriv_skeleton({'tpms': 2, 'mask': True, 'dseg': False})
     assert len(partial['01'][0]['anat']) == 3
 
-    with_session = deriv_skeleton(['t1w_mask'], subject='02', session='A')
+    with_session = deriv_skeleton(['mask'], subject='02', session='A')
     assert with_session['02'] == [{'session': 'A', 'anat': [{'suffix': 'mask', 'desc': 'brain'}]}]
 
     with pytest.raises(KeyError, match='masque'):
@@ -95,10 +95,13 @@ def test_deriv_skeleton_include():
 def test_collect_anat_derivatives(deriv_dset):
     collected = collect_anat_derivatives([deriv_dset()], '01', ['MNI152NLin2009cAsym'])
 
-    assert sorted(set(collected) - {'transforms'}) == sorted(IMAGES + SURFACES)
-    assert [_entity(path, 'label') for path in collected['t1w_tpms']] == ['GM', 'WM', 'CSF']
+    assert sorted(collected) == ['images', 'surfaces', 'transforms']
+    assert sorted(collected['images']) == sorted(IMAGES)
+    assert sorted(collected['surfaces']) == sorted(SURFACES)
+    tpms = collected['images']['tpms']
+    assert [_entity(path, 'label') for path in tpms] == ['GM', 'WM', 'CSF']
     for surface in SURFACES:
-        assert [_entity(path, 'hemi') for path in collected[surface]] == ['L', 'R']
+        assert [_entity(path, 'hemi') for path in collected['surfaces'][surface]] == ['L', 'R']
 
     xfms = collected['transforms']
     assert sorted(xfms) == ['MNI152NLin2009cAsym', 'fsnative']
@@ -118,23 +121,16 @@ def test_collect_anat_derivatives_nothing(deriv_dset, derivatives):
 @pytest.mark.parametrize(
     ('include', 'key'),
     [
-        pytest.param(
-            {'t1w_tpms': 2},
-            't1w_tpms',
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason='collect_derivatives does not check the number of tissue probability maps',
-            ),
-        ),
+        ({'tpms': 2}, 'tpms'),
         ({'white': 1}, 'white'),
         ({'sphere_reg_msm': 1}, 'sphere_reg_msm'),
-        ({'cortex_mask': 1}, 'cortex_mask'),
+        ({'cortex': 1}, 'cortex'),
     ],
 )
 def test_collect_anat_derivatives_incomplete(deriv_dset, include, key):
     """A multi-file derivative with missing files is not collected."""
     collected = collect_anat_derivatives([deriv_dset(include)], '01', [])
-    assert key not in collected
+    assert key not in collected['images'] | collected['surfaces']
 
 
 def test_collect_anat_derivatives_one_direction(deriv_dset):
@@ -144,10 +140,10 @@ def test_collect_anat_derivatives_one_direction(deriv_dset):
 
 
 def test_collect_anat_derivatives_session(deriv_dset):
-    deriv_dir = deriv_dset(['t1w_mask'], session='A')
+    deriv_dir = deriv_dset(['mask'], session='A')
 
     collected = collect_anat_derivatives([deriv_dir], '01', [], session_id='A')
-    assert _entity(collected['t1w_mask'], 'ses') == 'A'
+    assert _entity(collected['images']['mask'], 'ses') == 'A'
 
     collected = collect_anat_derivatives([deriv_dir], '01', [], session_id='B')
     assert _paths(collected) == []
@@ -155,27 +151,27 @@ def test_collect_anat_derivatives_session(deriv_dset):
 
 def test_collect_anat_derivatives_any_session(deriv_dset):
     """Without a session label, derivatives under any session are found."""
-    deriv_dir = deriv_dset(['t1w_mask'], session='A')
+    deriv_dir = deriv_dset(['mask'], session='A')
     collected = collect_anat_derivatives([deriv_dir], '01', [])
-    assert _entity(collected['t1w_mask'], 'ses') == 'A'
+    assert _entity(collected['images']['mask'], 'ses') == 'A'
 
 
 def test_collect_anat_derivatives_subject(deriv_dset):
-    deriv_dir = deriv_dset(['t1w_mask'])
+    deriv_dir = deriv_dset(['mask'])
     assert _paths(collect_anat_derivatives([deriv_dir], '02', [])) == []
 
 
 def test_collect_anat_derivatives_multiple_datasets(deriv_dset):
     """Derivatives are merged across datasets, with later datasets taking precedence."""
-    first = deriv_dset(['t1w_mask', 't1w_dseg', 'white', 'xfm_MNI152NLin2009cAsym'], name='first')
-    second = deriv_dset(['t1w_mask', 'pial', 'xfm_fsnative'], name='second')
+    first = deriv_dset(['mask', 'dseg', 'white', 'xfm_MNI152NLin2009cAsym'], name='first')
+    second = deriv_dset(['mask', 'pial', 'xfm_fsnative'], name='second')
 
     collected = collect_anat_derivatives([first, second], '01', ['MNI152NLin2009cAsym'])
 
-    assert collected['t1w_dseg'].startswith(str(first))
-    assert collected['t1w_mask'].startswith(str(second))
-    assert 'white' in collected
-    assert 'pial' in collected
+    assert collected['images']['dseg'].startswith(str(first))
+    assert collected['images']['mask'].startswith(str(second))
+    assert 'white' in collected['surfaces']
+    assert 'pial' in collected['surfaces']
 
     xfms = collected['transforms']
     assert xfms['MNI152NLin2009cAsym']['forward'].startswith(str(first))
@@ -213,34 +209,44 @@ def _sphere_reg_dset(deriv_dir, entities):
     [
         pytest.param(LEGACY_SPHERE_REG, [None, None], True, id='without-fsaverage'),
         pytest.param(FSAVERAGE_SPHERE_REG, ['fsaverage', 'fsaverage'], False, id='with-fsaverage'),
-        # Four matching files is ambiguous, so nothing is reused
-        pytest.param(LEGACY_SPHERE_REG + FSAVERAGE_SPHERE_REG, None, False, id='both'),
+        # Current naming takes precedence over legacy naming
+        pytest.param(
+            LEGACY_SPHERE_REG + FSAVERAGE_SPHERE_REG,
+            ['fsaverage', 'fsaverage'],
+            False,
+            id='both',
+        ),
     ],
 )
 def test_collect_anat_derivatives_reuses_sphere_reg(
     tmp_path, caplog, sphere_reg_entities, expected, warns
 ):
-    """The fsaverage sphere is reusable under either naming convention, but not both."""
+    """The fsaverage sphere is reusable under either naming convention, preferring the
+    current one.
+    """
     deriv_dir = _sphere_reg_dset(tmp_path / 'derivatives', sphere_reg_entities)
 
     with caplog.at_level(logging.WARNING, logger='nipype.workflow'):
         collected = collect_anat_derivatives([deriv_dir], '01', [])
 
-    spheres = collected.get('sphere_reg')
+    spheres = collected['surfaces'].get('sphere_reg')
     assert ([_entity(path, 'space') for path in spheres] if spheres else None) == expected
     assert any('legacy sphere_reg' in record.message for record in caplog.records) is warns
 
 
-def test_collect_anat_derivatives_sphere_reg_later_dataset(tmp_path):
+def test_collect_anat_derivatives_sphere_reg_later_dataset(tmp_path, caplog):
     """A later dataset's fsaverage sphere replaces an earlier legacy one."""
     first = _sphere_reg_dset(tmp_path / 'first', LEGACY_SPHERE_REG)
     second = _sphere_reg_dset(tmp_path / 'second', FSAVERAGE_SPHERE_REG)
 
-    collected = collect_anat_derivatives([first, second], '01', [])
+    with caplog.at_level(logging.WARNING, logger='nipype.workflow'):
+        collected = collect_anat_derivatives([first, second], '01', [])
 
-    spheres = collected['sphere_reg']
+    spheres = collected['surfaces']['sphere_reg']
     assert [_entity(path, 'space') for path in spheres] == ['fsaverage', 'fsaverage']
     assert all(path.startswith(str(second)) for path in spheres)
+    # The overridden legacy sphere is not used, so it is not reported
+    assert not any('legacy sphere_reg' in record.message for record in caplog.records)
 
 
 def test_collect_anat_derivatives_sphere_reg_incomplete_fsaverage(tmp_path):
@@ -248,7 +254,7 @@ def test_collect_anat_derivatives_sphere_reg_incomplete_fsaverage(tmp_path):
     deriv_dir = _sphere_reg_dset(
         tmp_path / 'derivatives', LEGACY_SPHERE_REG + FSAVERAGE_SPHERE_REG[:1]
     )
-    assert collect_anat_derivatives([deriv_dir], '01', []).get('sphere_reg') is None
+    assert collect_anat_derivatives([deriv_dir], '01', [])['surfaces'].get('sphere_reg') is None
 
 
 def test_collect_anat_derivatives_transforms(deriv_dset):
@@ -260,164 +266,3 @@ def test_collect_anat_derivatives_transforms(deriv_dset):
         template = space.replace(':cohort-', '+')
         assert _entity(xfms[space]['reverse'], 'from') == template
         assert _entity(xfms[space]['forward'], 'to') == template
-
-
-class _FakeItem:
-    def __init__(self, path, label=None):
-        self.path = path
-        self.entities = {}
-        if label is not None:
-            self.entities['label'] = label
-
-
-def test_collect_derivatives_respects_session_id(monkeypatch):
-    class _FakeLayout:
-        def __init__(self, *_args, **_kwargs):
-            self.calls = []
-
-        def get(self, return_type=None, **qry):
-            self.calls.append(qry)
-            if qry.get('suffix') == 'T1w' and qry.get('desc') == 'preproc':
-                return [_FakeItem('/mock/sub-01_ses-pre_desc-preproc_T1w.nii.gz')]
-            if qry.get('suffix') == 'xfm':
-                path = '/mock/sub-01_ses-pre_from-T1w_to-MNI152NLin2009cAsym_xfm.h5'
-                return [path] if return_type == 'filename' else [_FakeItem(path)]
-            return []
-
-    fake_layout = _FakeLayout()
-    monkeypatch.setattr('smriprep.utils.bids.BIDSLayout', lambda *_a, **_k: fake_layout)
-    monkeypatch.setattr('smriprep.utils.bids.nwf_load', lambda *_a, **_k: 'nipreps.json')
-
-    spec = {
-        'baseline': {'preproc': {'suffix': 'T1w', 'desc': 'preproc'}},
-        'transforms': {
-            'forward': {'suffix': 'xfm', 'from': 'T1w', 'to': None},
-        },
-        'surfaces': {},
-        'masks': {},
-    }
-
-    collected = collect_derivatives(
-        '/mock/derivs',
-        '01',
-        ['MNI152NLin2009cAsym'],
-        spec=spec,
-        patterns={},
-        session_id='pre',
-    )
-
-    assert collected['t1w_preproc'].endswith('desc-preproc_T1w.nii.gz')
-    assert collected['transforms']['MNI152NLin2009cAsym']['forward'].endswith('_xfm.h5')
-    assert all(call.get('session') == 'pre' for call in fake_layout.calls)
-
-
-def test_collect_derivatives_partial_transforms(monkeypatch):
-    class _FakeLayout:
-        def __init__(self, *_args, **_kwargs):
-            pass
-
-        def get(self, return_type=None, **qry):
-            from_space = qry.get('from')
-            to_space = qry.get('to')
-            if qry.get('suffix') != 'xfm':
-                return []
-            if from_space == 'T1w' and to_space == 'MNI152NLin2009cAsym':
-                return (
-                    ['/mock/fwd-mni.h5']
-                    if return_type == 'filename'
-                    else [_FakeItem('/mock/fwd-mni.h5')]
-                )
-            if from_space == 'MNIPediatricAsym+3' and to_space == 'T1w':
-                return (
-                    ['/mock/rev-pediatric.h5']
-                    if return_type == 'filename'
-                    else [_FakeItem('/mock/rev-pediatric.h5')]
-                )
-            return []
-
-    monkeypatch.setattr('smriprep.utils.bids.BIDSLayout', _FakeLayout)
-    monkeypatch.setattr('smriprep.utils.bids.nwf_load', lambda *_a, **_k: 'nipreps.json')
-
-    spec = {
-        'baseline': {},
-        'transforms': {
-            'forward': {'suffix': 'xfm', 'from': 'T1w', 'to': None},
-            'reverse': {'suffix': 'xfm', 'from': None, 'to': 'T1w'},
-        },
-        'surfaces': {},
-        'masks': {},
-    }
-
-    collected = collect_derivatives(
-        '/mock/derivs',
-        '01',
-        ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3'],
-        spec=spec,
-        patterns={},
-    )
-    assert collected['transforms']['MNI152NLin2009cAsym'] == {'forward': '/mock/fwd-mni.h5'}
-    assert collected['transforms']['MNIPediatricAsym:cohort-3'] == {
-        'reverse': '/mock/rev-pediatric.h5'
-    }
-
-
-def test_collect_derivatives_enforces_surface_and_mask_cardinality(monkeypatch):
-    class _FakeLayout:
-        def __init__(self, *_args, **_kwargs):
-            pass
-
-        def get(self, return_type=None, **qry):
-            if qry.get('suffix') == 'white':
-                files = ['/mock/lh.white.surf.gii']  # Missing right hemisphere
-                return files if return_type == 'filename' else [_FakeItem(files[0])]
-            if qry.get('suffix') == 'mask':
-                files = ['/mock/ribbon1.nii.gz', '/mock/ribbon2.nii.gz']  # Should be exactly one
-                return files if return_type == 'filename' else [_FakeItem(fl) for fl in files]
-            return []
-
-    monkeypatch.setattr('smriprep.utils.bids.BIDSLayout', _FakeLayout)
-    monkeypatch.setattr('smriprep.utils.bids.nwf_load', lambda *_a, **_k: 'nipreps.json')
-
-    spec = {
-        'baseline': {},
-        'transforms': {},
-        'surfaces': {'white': {'suffix': 'white'}},
-        'masks': {'anat_ribbon': {'suffix': 'mask'}},
-    }
-    collected = collect_derivatives('/mock/derivs', '01', [], spec=spec, patterns={})
-    assert 'white' not in collected
-    assert 'anat_ribbon' not in collected
-
-
-def test_collect_derivatives_respects_label_query_order(monkeypatch):
-    class _FakeLayout:
-        def __init__(self, *_args, **_kwargs):
-            pass
-
-        def get(self, return_type=None, **qry):
-            if qry.get('suffix') == 'probseg':
-                items = [
-                    _FakeItem('/mock/label-CSF_probseg.nii.gz', label='CSF'),
-                    _FakeItem('/mock/label-GM_probseg.nii.gz', label='GM'),
-                    _FakeItem('/mock/label-WM_probseg.nii.gz', label='WM'),
-                ]
-                return items
-            return []
-
-    monkeypatch.setattr('smriprep.utils.bids.BIDSLayout', _FakeLayout)
-    monkeypatch.setattr('smriprep.utils.bids.nwf_load', lambda *_a, **_k: 'nipreps.json')
-
-    spec = {
-        'baseline': {
-            'tpms': {'suffix': 'probseg', 'label': ['GM', 'WM', 'CSF']},
-        },
-        'transforms': {},
-        'surfaces': {},
-        'masks': {},
-    }
-    collected = collect_derivatives('/mock/derivs', '01', [], spec=spec, patterns={})
-    assert collected['t1w_tpms'] == [
-        '/mock/label-GM_probseg.nii.gz',
-        '/mock/label-WM_probseg.nii.gz',
-        '/mock/label-CSF_probseg.nii.gz',
-    ]

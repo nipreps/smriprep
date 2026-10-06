@@ -214,8 +214,9 @@ def test_anat_fit_precomputes_omit_one(
     deriv_dir = deriv_dset([group for group in DERIV_GROUPS if group != omit])
     precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
 
-    collected = {key for key in precomputed if key != 'transforms'}
-    collected.update(f'xfm_{space}' for space, xfms in precomputed['transforms'].items() if xfms)
+    collected = {*precomputed['images'], *precomputed['surfaces']}
+    # Spaces without transforms are left out entirely
+    collected.update(f'xfm_{space}' for space in precomputed['transforms'])
     # Transforms are only collected for requested spaces
     assert collected == set(DERIV_GROUPS) - {omit, 'xfm_MNIPediatricAsym+3'}
 

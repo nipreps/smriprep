@@ -1,9 +1,9 @@
 # Skeleton of sMRIPrep anatomical derivatives, for use with ``deriv_skeleton()``.
 #
-# Files are grouped by the key that collects them in the ``precomputed`` dictionary,
+# Files are grouped by the query that collects them in ``smriprep/data/anat_spec.yml``,
 # so tests can toggle individual derivatives on and off.
 # Transforms are grouped as ``xfm_<space>``, using the BIDS form of the space name.
-# Within a group, files are listed in the order the collector returns them.
+# Within a group, files are listed in the order the query returns them.
 dataset_description:
   Name: smriprep-outputs
   BIDSVersion: 1.9.0
@@ -15,19 +15,19 @@ anat:
   t2w_preproc:
     - suffix: T2w
       desc: preproc
-  t1w_mask:
+  mask:
     - suffix: mask
       desc: brain
-  t1w_dseg:
+  dseg:
     - suffix: dseg
-  t1w_tpms:
+  tpms:
     - suffix: probseg
       label: GM
     - suffix: probseg
       label: WM
     - suffix: probseg
       label: CSF
-  anat_ribbon:
+  ribbon:
     - suffix: mask
       desc: ribbon
   white:
@@ -112,7 +112,7 @@ anat:
     - suffix: curv
       hemi: R
       extension: .shape.gii
-  cortex_mask:
+  cortex:
     - suffix: mask
       hemi: L
       desc: cortex
