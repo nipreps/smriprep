@@ -1013,7 +1013,7 @@ def init_ds_anat_volumes_wf(
 
     # CRITICAL: the sequence of labels here (CSF-GM-WM) is that of the output of FSL-FAST
     #           (intensity mean, per tissue). This order HAS to be matched also by the ``tpms``
-    #           output in the data/io_spec.json file.
+    #           query in the data/anat_spec.yml file.
     ds_std_tpms.inputs.label = tpm_labels
 
     workflow.connect([
