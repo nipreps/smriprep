@@ -268,6 +268,41 @@ def test_collect_anat_derivatives_sphere_reg_incomplete_fsaverage(tmp_path):
     assert collect_anat_derivatives([deriv_dir], '01', [])['surfaces'].get('sphere_reg') is None
 
 
+def test_collect_anat_derivatives_legacy_sphere_reg_with_sphere(deriv_dset):
+    """Legacy registration spheres are told apart from native spheres."""
+    deriv_dir = deriv_dset(['sphere', 'sphere_reg'])
+    anat_dir = deriv_dir / 'sub-01' / 'anat'
+    for path in anat_dir.glob('*_space-fsaverage_desc-reg_sphere.surf.gii'):
+        path.rename(path.with_name(path.name.replace('_space-fsaverage', '')))
+
+    surfaces = collect_anat_derivatives([deriv_dir], '01', [])['surfaces']
+
+    assert [_entity(path, 'desc') for path in surfaces['sphere']] == [None, None]
+    assert [_entity(path, 'desc') for path in surfaces['sphere_reg']] == ['reg', 'reg']
+    assert [_entity(path, 'space') for path in surfaces['sphere_reg']] == [None, None]
+
+
+@pytest.mark.parametrize(
+    ('mode', 'extension'),
+    [
+        pytest.param('image', '.json', id='sidecar'),
+        pytest.param('points', '.h5', id='points'),
+    ],
+)
+def test_collect_anat_derivatives_ignores_other_transform_files(deriv_dset, mode, extension):
+    """Only image-mode .h5/.txt transforms are collected, not sidecars or other modes."""
+    deriv_dir = deriv_dset(['xfm_MNI152NLin2009cAsym'])
+    anat_dir = deriv_dir / 'sub-01' / 'anat'
+    Path.write_text(
+        anat_dir / f'sub-01_from-T1w_to-MNI152NLin2009cAsym_mode-{mode}_xfm{extension}', '{}'
+    )
+
+    collected = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+
+    forward = collected['transforms']['MNI152NLin2009cAsym']['forward']
+    assert Path(forward).name == 'sub-01_from-T1w_to-MNI152NLin2009cAsym_mode-image_xfm.h5'
+
+
 def test_collect_anat_derivatives_transforms(deriv_dset):
     """Ensure transforms are collected for the right spaces."""
     output_spaces = ['MNI152NLin2009cAsym', 'MNIPediatricAsym:cohort-3']
