@@ -204,6 +204,27 @@ def test_collect_anat_derivatives_split_transform_pair(deriv_dset):
     assert xfms['reverse'].startswith(str(second))
 
 
+def test_collect_anat_derivatives_logs_overrides(deriv_dset, caplog):
+    """Only derivatives replaced by a later dataset are logged, at DEBUG level."""
+    first = deriv_dset(['mask', 'dseg', 'xfm_MNI152NLin2009cAsym'], name='first')
+    second = deriv_dset(['mask', 'xfm_MNI152NLin2009cAsym', 'xfm_fsnative'], name='second')
+
+    with caplog.at_level(logging.DEBUG, logger='nipype.workflow'):
+        collected = collect_anat_derivatives([first, second], '01', ['MNI152NLin2009cAsym'])
+
+    messages = [
+        record.getMessage()
+        for record in caplog.records
+        if record.name == 'nipype.workflow' and record.levelno == logging.DEBUG
+    ]
+    # dseg and the fsnative transforms are found once, so they are not logged
+    assert len(messages) == 2
+    assert f'image mask found in {second}, replacing {first}' in messages[0]
+    assert f'transforms for MNI152NLin2009cAsym found in {second}, replacing' in messages[1]
+    assert str(first) in messages[1]
+    assert collected['images']['mask'].startswith(str(second))
+
+
 LEGACY_SPHERE_REG = [{'hemi': hemi, 'desc': 'reg'} for hemi in ('L', 'R')]
 FSAVERAGE_SPHERE_REG = [{'hemi': hemi, 'space': 'fsaverage', 'desc': 'reg'} for hemi in ('L', 'R')]
 
@@ -216,21 +237,20 @@ def _sphere_reg_dset(deriv_dir, entities):
 
 
 @pytest.mark.parametrize(
-    ('sphere_reg_entities', 'expected', 'warns'),
+    ('sphere_reg_entities', 'expected'),
     [
-        pytest.param(LEGACY_SPHERE_REG, [None, None], True, id='without-fsaverage'),
-        pytest.param(FSAVERAGE_SPHERE_REG, ['fsaverage', 'fsaverage'], False, id='with-fsaverage'),
+        pytest.param(LEGACY_SPHERE_REG, [None, None], id='without-fsaverage'),
+        pytest.param(FSAVERAGE_SPHERE_REG, ['fsaverage', 'fsaverage'], id='with-fsaverage'),
         # Current naming takes precedence over legacy naming
         pytest.param(
             LEGACY_SPHERE_REG + FSAVERAGE_SPHERE_REG,
             ['fsaverage', 'fsaverage'],
-            False,
             id='both',
         ),
     ],
 )
 def test_collect_anat_derivatives_reuses_sphere_reg(
-    tmp_path, caplog, sphere_reg_entities, expected, warns
+    tmp_path, caplog, sphere_reg_entities, expected
 ):
     """The fsaverage sphere is reusable under either naming convention, preferring the
     current one.
@@ -242,22 +262,20 @@ def test_collect_anat_derivatives_reuses_sphere_reg(
 
     spheres = collected['surfaces'].get('sphere_reg')
     assert ([_entity(path, 'space') for path in spheres] if spheres else None) == expected
-    assert any('legacy sphere_reg' in record.message for record in caplog.records) is warns
+    # Legacy naming is reported when the workflow is built, not during collection
+    assert not any('legacy sphere_reg' in record.message for record in caplog.records)
 
 
-def test_collect_anat_derivatives_sphere_reg_later_dataset(tmp_path, caplog):
+def test_collect_anat_derivatives_sphere_reg_later_dataset(tmp_path):
     """A later dataset's fsaverage sphere replaces an earlier legacy one."""
     first = _sphere_reg_dset(tmp_path / 'first', LEGACY_SPHERE_REG)
     second = _sphere_reg_dset(tmp_path / 'second', FSAVERAGE_SPHERE_REG)
 
-    with caplog.at_level(logging.WARNING, logger='nipype.workflow'):
-        collected = collect_anat_derivatives([first, second], '01', [])
+    collected = collect_anat_derivatives([first, second], '01', [])
 
     spheres = collected['surfaces']['sphere_reg']
     assert [_entity(path, 'space') for path in spheres] == ['fsaverage', 'fsaverage']
     assert all(path.startswith(str(second)) for path in spheres)
-    # The overridden legacy sphere is not used, so it is not reported
-    assert not any('legacy sphere_reg' in record.message for record in caplog.records)
 
 
 def test_collect_anat_derivatives_sphere_reg_incomplete_fsaverage(tmp_path):

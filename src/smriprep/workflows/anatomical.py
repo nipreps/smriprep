@@ -23,6 +23,7 @@
 """Anatomical reference preprocessing workflows."""
 
 import typing as ty
+from pathlib import Path
 
 from nipype import logging
 from nipype.interfaces import (
@@ -633,6 +634,8 @@ BIDS dataset."""
     brain_mask = images.get('mask')
     dseg = images.get('dseg')
     tpms = images.get('tpms')
+
+    _report_precomputed(precomputed)
 
     # Organization
     # ------------
@@ -1559,6 +1562,36 @@ An anatomical {image_type}-reference map was computed after registration of
         (concat_xfms, outputnode, [('out_xfm', 'anat_realign_xfm')]),
     ])  # fmt:skip
     return workflow
+
+
+def _report_precomputed(precomputed):
+    """Log the precomputed derivatives found for a workflow, and warn about legacy names."""
+    found = [
+        f'{name}: {", ".join([paths] if isinstance(paths, str) else paths)}'
+        for kind in ('images', 'surfaces')
+        for name, paths in precomputed.get(kind, {}).items()
+    ]
+    found.extend(
+        f'{direction} transform for {space}: {path}'
+        for space, xfms in precomputed.get('transforms', {}).items()
+        for direction, path in xfms.items()
+    )
+    if found:
+        listing = '\n\t'.join(found)
+        LOGGER.info(f'ANAT Found precomputed derivatives:\n\t{listing}')
+
+    legacy = [
+        path
+        for path in precomputed.get('surfaces', {}).get('sphere_reg', [])
+        if '_space-' not in Path(path).name
+    ]
+    if legacy:
+        files = ', '.join(sorted(Path(path).name for path in legacy))
+        LOGGER.warning(
+            "Found legacy sphere_reg derivative(s) that lack a 'space' entity; this "
+            'naming is deprecated and may not be recognized in a future release. '
+            f'Rename or regenerate these derivatives with sMRIPrep >= 0.16.0. Files: {files}'
+        )
 
 
 def _pop(inlist):
