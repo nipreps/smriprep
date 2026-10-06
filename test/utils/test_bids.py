@@ -156,6 +156,17 @@ def test_collect_anat_derivatives_any_session(deriv_dset):
     assert _entity(collected['images']['mask'], 'ses') == 'A'
 
 
+def test_collect_anat_derivatives_ambiguous(tmp_path):
+    """Derivatives from several sessions, without a session label, are an error."""
+    skeleton = deriv_skeleton(['mask'], session='A')
+    skeleton['01'] += deriv_skeleton(['mask'], session='B')['01']
+    deriv_dir = tmp_path / 'derivatives'
+    generate_bids_skeleton(deriv_dir, skeleton)
+
+    with pytest.raises(ValueError, match='expected at most one match'):
+        collect_anat_derivatives([deriv_dir], '01', [])
+
+
 def test_collect_anat_derivatives_subject(deriv_dset):
     deriv_dir = deriv_dset(['mask'])
     assert _paths(collect_anat_derivatives([deriv_dir], '02', [])) == []
