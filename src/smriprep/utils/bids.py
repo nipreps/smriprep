@@ -32,6 +32,16 @@ from .. import data
 LOGGER = logging.getLogger('nipype.workflow')
 
 
+def _merge(merged, found, kind, deriv_dir):
+    """Update ``merged`` with ``found``, logging any derivative that is replaced."""
+    for name, value in found.items():
+        if name in merged:
+            LOGGER.debug(
+                f'Precomputed {kind} {name} found in {deriv_dir}, replacing {merged[name]}'
+            )
+        merged[name] = value
+
+
 def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=None):
     """Gather precomputed anatomical derivatives from one or more datasets.
 
@@ -41,6 +51,7 @@ def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=Non
         Derivatives datasets to search. Later datasets take precedence for each
         image and surface they provide, and for each space they have transforms for.
         Forward and reverse transforms for a space are never combined across datasets.
+        Each derivative a later dataset replaces is logged at DEBUG level.
     subject_id : :obj:`str`
         Subject label, without ``sub-``.
     std_spaces : :obj:`list` of :obj:`str`
@@ -55,6 +66,12 @@ def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=Non
         ``images`` and ``surfaces`` map query names in ``anat_spec.yml`` to paths.
         ``transforms`` maps each space with precomputed transforms to its
         ``forward`` and/or ``reverse`` transform.
+
+    Raises
+    ------
+    ValueError
+        If a query matches more than one file in a dataset, for example derivatives
+        from several sessions when ``session_id`` is not given.
     """
     entities = {'subject': subject_id}
     if session_id:
@@ -67,26 +84,14 @@ def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=Non
     deriv_cache = {'images': {}, 'surfaces': {}, 'transforms': {}}
     for deriv_dir in derivatives:
         collected = collect_derivatives(deriv_dir, spec=spec, entities=entities, params=params)
-        deriv_cache['images'].update(collected['images'])
-        deriv_cache['surfaces'].update(collected['surfaces'])
+        _merge(deriv_cache['images'], collected['images'], 'image', deriv_dir)
+        _merge(deriv_cache['surfaces'], collected['surfaces'], 'surface', deriv_dir)
         # Replace whole spaces, so a transform pair always comes from one dataset.
         # Spaces this dataset has no transforms for are empty and must not replace others.
-        deriv_cache['transforms'].update(
-            (spaces[space], xfms) for space, xfms in collected['transforms'].items() if xfms
-        )
-
-    legacy = [
-        path
-        for path in deriv_cache['surfaces'].get('sphere_reg', [])
-        if '_space-' not in Path(path).name
-    ]
-    if legacy:
-        files = ', '.join(sorted(Path(path).name for path in legacy))
-        LOGGER.warning(
-            "Found legacy sphere_reg derivative(s) that lack a 'space' entity; this "
-            'naming is deprecated and may not be recognized in a future release. '
-            f'Rename or regenerate these derivatives with sMRIPrep >= 0.16.0. Files: {files}'
-        )
+        transforms = {
+            spaces[space]: xfms for space, xfms in collected['transforms'].items() if xfms
+        }
+        _merge(deriv_cache['transforms'], transforms, 'transforms for', deriv_dir)
 
     return deriv_cache
 
