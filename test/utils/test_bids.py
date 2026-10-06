@@ -153,6 +153,13 @@ def test_collect_anat_derivatives_session(deriv_dset):
     assert _paths(collected) == []
 
 
+def test_collect_anat_derivatives_any_session(deriv_dset):
+    """Without a session label, derivatives under any session are found."""
+    deriv_dir = deriv_dset(['t1w_mask'], session='A')
+    collected = collect_anat_derivatives([deriv_dir], '01', [])
+    assert _entity(collected['t1w_mask'], 'ses') == 'A'
+
+
 def test_collect_anat_derivatives_subject(deriv_dset):
     deriv_dir = deriv_dset(['t1w_mask'])
     assert _paths(collect_anat_derivatives([deriv_dir], '02', [])) == []
@@ -190,47 +197,31 @@ def test_collect_anat_derivatives_split_transform_pair(deriv_dset):
     assert xfms['reverse'].startswith(str(second))
 
 
+LEGACY_SPHERE_REG = [{'hemi': hemi, 'desc': 'reg'} for hemi in ('L', 'R')]
+FSAVERAGE_SPHERE_REG = [{'hemi': hemi, 'space': 'fsaverage', 'desc': 'reg'} for hemi in ('L', 'R')]
+
+
+def _sphere_reg_dset(deriv_dir, entities):
+    """Write a derivatives dataset containing only the given registration spheres."""
+    files = [{'suffix': 'sphere', 'extension': '.surf.gii', **ents} for ents in entities]
+    generate_bids_skeleton(deriv_dir, {'01': [{'anat': files}]})
+    return deriv_dir
+
+
 @pytest.mark.parametrize(
     ('sphere_reg_entities', 'expected', 'warns'),
     [
-        pytest.param([{'desc': 'reg'}], [None, None], True, id='without-fsaverage'),
-        pytest.param(
-            [{'space': 'fsaverage', 'desc': 'reg'}],
-            ['fsaverage', 'fsaverage'],
-            False,
-            id='with-fsaverage',
-        ),
+        pytest.param(LEGACY_SPHERE_REG, [None, None], True, id='without-fsaverage'),
+        pytest.param(FSAVERAGE_SPHERE_REG, ['fsaverage', 'fsaverage'], False, id='with-fsaverage'),
         # Four matching files is ambiguous, so nothing is reused
-        pytest.param(
-            [{'desc': 'reg'}, {'space': 'fsaverage', 'desc': 'reg'}],
-            None,
-            False,
-            id='both',
-        ),
+        pytest.param(LEGACY_SPHERE_REG + FSAVERAGE_SPHERE_REG, None, False, id='both'),
     ],
 )
 def test_collect_anat_derivatives_reuses_sphere_reg(
     tmp_path, caplog, sphere_reg_entities, expected, warns
 ):
     """The fsaverage sphere is reusable under either naming convention, but not both."""
-    skeleton = {
-        '01': [
-            {
-                'anat': [
-                    {
-                        'suffix': 'sphere',
-                        'hemi': hemi,
-                        'extension': '.surf.gii',
-                        **entities,
-                    }
-                    for entities in sphere_reg_entities
-                    for hemi in ('L', 'R')
-                ]
-            }
-        ]
-    }
-    deriv_dir = tmp_path / 'derivatives'
-    generate_bids_skeleton(deriv_dir, skeleton)
+    deriv_dir = _sphere_reg_dset(tmp_path / 'derivatives', sphere_reg_entities)
 
     with caplog.at_level(logging.WARNING, logger='nipype.workflow'):
         collected = collect_anat_derivatives([deriv_dir], '01', [])
@@ -238,6 +229,26 @@ def test_collect_anat_derivatives_reuses_sphere_reg(
     spheres = collected.get('sphere_reg')
     assert ([_entity(path, 'space') for path in spheres] if spheres else None) == expected
     assert any('legacy sphere_reg' in record.message for record in caplog.records) is warns
+
+
+def test_collect_anat_derivatives_sphere_reg_later_dataset(tmp_path):
+    """A later dataset's fsaverage sphere replaces an earlier legacy one."""
+    first = _sphere_reg_dset(tmp_path / 'first', LEGACY_SPHERE_REG)
+    second = _sphere_reg_dset(tmp_path / 'second', FSAVERAGE_SPHERE_REG)
+
+    collected = collect_anat_derivatives([first, second], '01', [])
+
+    spheres = collected['sphere_reg']
+    assert [_entity(path, 'space') for path in spheres] == ['fsaverage', 'fsaverage']
+    assert all(path.startswith(str(second)) for path in spheres)
+
+
+def test_collect_anat_derivatives_sphere_reg_incomplete_fsaverage(tmp_path):
+    """One fsaverage hemisphere prevents reuse, even next to complete legacy files."""
+    deriv_dir = _sphere_reg_dset(
+        tmp_path / 'derivatives', LEGACY_SPHERE_REG + FSAVERAGE_SPHERE_REG[:1]
+    )
+    assert collect_anat_derivatives([deriv_dir], '01', []).get('sphere_reg') is None
 
 
 def test_collect_anat_derivatives_transforms(deriv_dset):

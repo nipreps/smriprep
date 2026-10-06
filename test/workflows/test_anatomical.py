@@ -238,6 +238,10 @@ def test_anat_fit_precomputes_omit_one(
         omp_nthreads=1,
     )
 
+    # Without a precomputed fsnative transform, surface reconstruction estimates one
+    estimated = wf.get_node('surface_recon_wf.fsnative2t1w_xfm') is not None
+    assert estimated is (omit == 'xfm_fsnative')
+
     flatgraph = wf._create_flat_graph()
     generate_expanded_graph(flatgraph)
 
