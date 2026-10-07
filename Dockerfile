@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-ARG BASE_IMAGE=ghcr.io/nipreps/smriprep-base:20251104
+ARG BASE_IMAGE=ghcr.io/vferat/smriprep-base:20251104
 
 #
 # Build wheel
