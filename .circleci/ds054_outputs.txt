@@ -24,6 +24,7 @@ smriprep/sub-100185/anat/sub-100185_space-MNI152Lin_desc-brain_mask.json
 smriprep/sub-100185/anat/sub-100185_space-MNI152Lin_desc-brain_mask.nii.gz
 smriprep/sub-100185/anat/sub-100185_space-MNI152Lin_desc-preproc_T1w.json
 smriprep/sub-100185/anat/sub-100185_space-MNI152Lin_desc-preproc_T1w.nii.gz
+smriprep/sub-100185/anat/sub-100185_space-MNI152Lin_dseg.json
 smriprep/sub-100185/anat/sub-100185_space-MNI152Lin_dseg.nii.gz
 smriprep/sub-100185/anat/sub-100185_space-MNI152Lin_label-CSF_probseg.nii.gz
 smriprep/sub-100185/anat/sub-100185_space-MNI152Lin_label-GM_probseg.nii.gz
@@ -32,6 +33,7 @@ smriprep/sub-100185/anat/sub-100185_space-MNI152NLin2009cAsym_desc-brain_mask.js
 smriprep/sub-100185/anat/sub-100185_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz
 smriprep/sub-100185/anat/sub-100185_space-MNI152NLin2009cAsym_desc-preproc_T1w.json
 smriprep/sub-100185/anat/sub-100185_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz
+smriprep/sub-100185/anat/sub-100185_space-MNI152NLin2009cAsym_dseg.json
 smriprep/sub-100185/anat/sub-100185_space-MNI152NLin2009cAsym_dseg.nii.gz
 smriprep/sub-100185/anat/sub-100185_space-MNI152NLin2009cAsym_label-CSF_probseg.nii.gz
 smriprep/sub-100185/anat/sub-100185_space-MNI152NLin2009cAsym_label-GM_probseg.nii.gz
