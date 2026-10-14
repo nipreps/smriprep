@@ -303,7 +303,6 @@ freesurfer/bin/meanval
 freesurfer/bin/mergeseg
 freesurfer/bin/merge_stats_tables
 freesurfer/bin/minc2seqinfo
-freesurfer/bin/mkheadsurf
 freesurfer/bin/mkima_index.tcl
 freesurfer/bin/mkmnc_index.tcl
 freesurfer/bin/mksubjdirs
@@ -477,7 +476,6 @@ freesurfer/bin/mris_distance_map
 freesurfer/bin/mris_distance_to_label
 freesurfer/bin/mris_distance_transform
 freesurfer/bin/mri_segcentroids
-freesurfer/bin/mri_seghead
 freesurfer/bin/mri_segment_hypothalamic_subunits
 freesurfer/bin/mri_segment_tumor
 freesurfer/bin/mri_segment_wm_damage
@@ -746,7 +744,6 @@ freesurfer/diffusion
 freesurfer/docs/xml
 freesurfer/FreeSurferEnv.csh
 freesurfer/FreeSurferEnv.sh
-freesurfer/fsfast
 freesurfer/lib/bem/ic0.tri
 freesurfer/lib/bem/ic1.tri
 freesurfer/lib/bem/ic2.tri
@@ -807,8 +804,6 @@ freesurfer/mni/bin/mincview
 freesurfer/mni/bin/mincwindow
 freesurfer/mni/bin/mnc2nii
 freesurfer/mni/bin/mritoself
-freesurfer/mni/bin/mritotal
-freesurfer/mni/bin/mritotal~
 freesurfer/mni/bin/ncdump
 freesurfer/mni/bin/ncgen
 freesurfer/mni/bin/nii2mnc
