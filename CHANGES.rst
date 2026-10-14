@@ -1,3 +1,12 @@
+0.19.5 (October 14, 2026)
+=========================
+Bug-fix release in the 0.19.x series.
+
+Backported fixes from 0.20.x that can be included in long-term support releases.
+
+* FIX: Correct notation for longitudinal arg value (#508)
+* FIX: Collect preprocessed T2w image in collect_derivatives (#512)
+
 0.19.4 (August 24, 2026)
 ========================
 Bug-fix release in the 0.19.x series.
