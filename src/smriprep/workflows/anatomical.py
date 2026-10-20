@@ -1567,9 +1567,10 @@ An anatomical {image_type}-reference map was computed after registration of
 def _report_precomputed(precomputed):
     """Log the precomputed derivatives found for a workflow, and warn about legacy names."""
     found = [
-        f'{name}: {", ".join([paths] if isinstance(paths, str) else paths)}'
+        f'{name if not i else "":{len(name)}}: {path}'
         for kind in ('images', 'surfaces')
         for name, paths in precomputed.get(kind, {}).items()
+        for i, path in enumerate([paths] if isinstance(paths, str) else paths)
     ]
     found.extend(
         f'{direction} transform for {space}: {path}'
@@ -1586,11 +1587,12 @@ def _report_precomputed(precomputed):
         if '_space-' not in Path(path).name
     ]
     if legacy:
-        files = ', '.join(sorted(Path(path).name for path in legacy))
+        files = '\n       '.join(sorted(Path(path).name for path in legacy))
         LOGGER.warning(
             "Found legacy sphere_reg derivative(s) that lack a 'space' entity; this "
             'naming is deprecated and may not be recognized in a future release. '
-            f'Rename or regenerate these derivatives with sMRIPrep >= 0.16.0. Files: {files}'
+            'Rename or regenerate these derivatives with sMRIPrep >= 0.16.0.\n'
+            f'Files: {files}'
         )
 
 
