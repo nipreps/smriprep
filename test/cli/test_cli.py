@@ -148,3 +148,42 @@ def test_build_workflow(
 
     ret = build_workflow(pargs, {})
     assert ret['workflow']
+
+
+@pytest.mark.parametrize('precomputed', [False, True])
+def test_build_workflow_precomputed_surfaces(
+    monkeypatch,
+    tmp_path,
+    bids_no_session,
+    deriv_dset,
+    precomputed,
+):
+    """FreeSurfer is not run if all derivatives that depend on it were precomputed."""
+    args = [
+        str(bids_no_session),
+        str(tmp_path / 'output'),
+        'participant',
+        '--participant-label',
+        '01',
+    ]
+    if precomputed:
+        args += ['--derivatives', str(deriv_dset())]
+    pargs = get_parser().parse_args(args)
+
+    fs_dir = tmp_path / 'freesurfer'
+    fs_dir.mkdir()
+    monkeypatch.setenv('FREESURFER_HOME', str(fs_dir))
+    monkeypatch.setenv('SUBJECTS_DIR', str(fs_dir))
+
+    subject_wf = build_workflow(pargs, {})['workflow'].get_node('sub-01_wf')
+    nodes = subject_wf.list_node_names()
+    assert ('anat_preproc_wf.anat_fit_wf.surface_recon_wf.autorecon1' in nodes) is not precomputed
+
+    # The summary only inspects the FreeSurfer subject if one is reconstructed
+    summary = subject_wf.get_node('summary')
+    fields = {
+        dest
+        for *_, data in subject_wf._graph.in_edges(summary, data=True)
+        for _, dest in data['connect']
+    }
+    assert ('subjects_dir' in fields) is not precomputed

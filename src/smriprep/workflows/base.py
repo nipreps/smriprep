@@ -36,7 +36,7 @@ from niworkflows.utils.misc import fix_multi_T1w_source_name
 
 from ..__about__ import __version__
 from ..interfaces import DerivativesDataSink
-from .anatomical import init_anat_preproc_wf
+from .anatomical import init_anat_preproc_wf, needs_reconall
 
 
 def init_smriprep_wf(
@@ -471,7 +471,6 @@ to workflows in *sMRIPrep*'s documentation]\
     workflow.connect([
         (inputnode, anat_preproc_wf, [('subjects_dir', 'inputnode.subjects_dir')]),
         (bidssrc, bids_info, [(('t1w', fix_multi_T1w_source_name), 'in_file')]),
-        (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
         (bidssrc, summary, [('t1w', 't1w'),
                             ('t2w', 't2w')]),
         (bids_info, summary, [('subject', 'subject_id')]),
@@ -485,6 +484,10 @@ to workflows in *sMRIPrep*'s documentation]\
         (bidssrc, ds_report_about, [(('t1w', fix_multi_T1w_source_name), 'source_file')]),
         (about, ds_report_about, [('out_report', 'in_file')]),
     ])  # fmt:skip
+
+    # Without a reconstructed FreeSurfer subject, the summary reports FreeSurfer as not run
+    if freesurfer and needs_reconall(deriv_cache, t2w=bool(subject_data['t2w'])):
+        workflow.connect([(inputnode, summary, [('subjects_dir', 'subjects_dir')])])
 
     return workflow
 
