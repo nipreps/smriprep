@@ -175,9 +175,14 @@ def test_build_workflow_precomputed_surfaces(
     monkeypatch.setenv('FREESURFER_HOME', str(fs_dir))
     monkeypatch.setenv('SUBJECTS_DIR', str(fs_dir))
 
-    subject_wf = build_workflow(pargs, {})['workflow'].get_node('sub-01_wf')
+    workflow = build_workflow(pargs, {})['workflow']
+    subject_wf = workflow.get_node('sub-01_wf')
     nodes = subject_wf.list_node_names()
     assert ('anat_preproc_wf.anat_fit_wf.surface_recon_wf.autorecon1' in nodes) is not precomputed
+
+    # Nor is a subjects directory prepared, which would copy fsaverage into the outputs
+    has_fsdir = any(name.startswith('fsdir_run_') for name in workflow.list_node_names())
+    assert has_fsdir is not precomputed
 
     # The summary only inspects the FreeSurfer subject if one is reconstructed
     summary = subject_wf.get_node('summary')

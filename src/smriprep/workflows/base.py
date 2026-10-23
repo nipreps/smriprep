@@ -219,7 +219,9 @@ def init_smriprep_wf(
         )
         for node in single_subject_wf._get_all_nodes():
             node.config = deepcopy(single_subject_wf.config)
-        if freesurfer:
+        # Only subjects that run surface reconstruction take the subjects directory, so
+        # fsaverage is not copied into it when every subject's surfaces are precomputed
+        if freesurfer and single_subject_wf.get_node('inputnode'):
             smriprep_wf.connect(fsdir, 'subjects_dir', single_subject_wf, 'inputnode.subjects_dir')
         else:
             smriprep_wf.add_nodes([single_subject_wf])
@@ -348,7 +350,9 @@ def init_single_subject_wf(
     Inputs
     ------
     subjects_dir
-        FreeSurfer SUBJECTS_DIR
+        FreeSurfer SUBJECTS_DIR.  Only if surface reconstruction runs (see
+        :py:func:`~smriprep.workflows.anatomical.needs_reconall`); otherwise the
+        workflow has no ``inputnode``.
 
     """
     from ..interfaces.reports import AboutSummary, SubjectSummary
@@ -400,7 +404,8 @@ to workflows in *sMRIPrep*'s documentation]\
         session_id=session_id,
     )
 
-    inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']), name='inputnode')
+    # Nothing reads the FreeSurfer subjects directory unless surfaces are reconstructed
+    reconall = freesurfer and needs_reconall(deriv_cache, t2w=bool(subject_data['t2w']))
 
     bidssrc = pe.Node(BIDSDataGrabber(subject_data=subject_data, anat_only=True), name='bidssrc')
 
@@ -469,7 +474,6 @@ to workflows in *sMRIPrep*'s documentation]\
     )
 
     workflow.connect([
-        (inputnode, anat_preproc_wf, [('subjects_dir', 'inputnode.subjects_dir')]),
         (bidssrc, bids_info, [(('t1w', fix_multi_T1w_source_name), 'in_file')]),
         (bidssrc, summary, [('t1w', 't1w'),
                             ('t2w', 't2w')]),
@@ -486,8 +490,12 @@ to workflows in *sMRIPrep*'s documentation]\
     ])  # fmt:skip
 
     # Without a reconstructed FreeSurfer subject, the summary reports FreeSurfer as not run
-    if freesurfer and needs_reconall(deriv_cache, t2w=bool(subject_data['t2w'])):
-        workflow.connect([(inputnode, summary, [('subjects_dir', 'subjects_dir')])])
+    if reconall:
+        inputnode = pe.Node(niu.IdentityInterface(fields=['subjects_dir']), name='inputnode')
+        workflow.connect([
+            (inputnode, anat_preproc_wf, [('subjects_dir', 'inputnode.subjects_dir')]),
+            (inputnode, summary, [('subjects_dir', 'subjects_dir')]),
+        ])  # fmt:skip
 
     return workflow
 
