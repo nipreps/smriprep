@@ -1218,10 +1218,11 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
             (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
         ])  # fmt:skip
-    elif not t2w:
+    elif not have_t2w:
         LOGGER.info('ANAT No T2w images provided - skipping Stage 7')
     else:
         LOGGER.info('ANAT Found preprocessed T2w - skipping Stage 7')
+        outputnode.inputs.t2w_preproc = precomputed['t2w_preproc']
 
     # Stages 8-10: Surface conversion and registration
     # sphere_reg is needed to generate sphere_reg_fsLR

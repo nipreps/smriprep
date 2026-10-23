@@ -217,6 +217,40 @@ def test_anat_fit_precomputes(
     generate_expanded_graph(flatgraph)
 
 
+@pytest.mark.parametrize('t2w', [0, 1])
+def test_anat_fit_precomputed_t2w_output(
+    bids_root: Path,
+    tmp_path: Path,
+    deriv_dset,
+    t2w: int,
+):
+    """A precomputed T2w reaches the output node, with or without the raw T2w."""
+    output_dir = tmp_path / 'output'
+    output_dir.mkdir()
+
+    deriv_dir = deriv_dset(['t2w_preproc'])
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+
+    wf = init_anat_fit_wf(
+        bids_root=str(bids_root),
+        output_dir=str(output_dir),
+        freesurfer=True,
+        hires=False,
+        longitudinal=False,
+        msm_sulc=True,
+        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
+        t2w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')][:t2w],
+        skull_strip_mode='force',
+        skull_strip_template=Reference('OASIS30ANTs'),
+        spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym'], checkpoint=True),
+        precomputed=precomputed,
+        omp_nthreads=1,
+    )
+
+    assert wf.get_node('outputnode').inputs.t2w_preproc == precomputed['t2w_preproc']
+    assert 'ds_t2w_preproc' not in wf.list_node_names()
+
+
 @pytest.mark.parametrize('omit', [None, *DERIV_GROUPS])
 def test_anat_fit_precomputes_omit_one(
     bids_root: Path,
