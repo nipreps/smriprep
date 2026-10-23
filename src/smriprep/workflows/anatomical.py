@@ -1067,11 +1067,6 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         LOGGER.info('ANAT Skipping Stages 5+')
         return workflow
 
-    fs_isrunning = pe.Node(
-        niu.Function(function=_fs_isRunning), overwrite=True, name='fs_isrunning'
-    )
-    fs_isrunning.inputs.logger = LOGGER
-
     # Stage 5: Surface reconstruction (--fs-no-reconall not set)
     if not run_reconall:
         LOGGER.info('ANAT Stage 5: Found pre-computed surfaces - skipping surface reconstruction')
@@ -1097,16 +1092,11 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
 """
 
     workflow.connect([
-        (inputnode, fs_isrunning, [
-            ('subjects_dir', 'subjects_dir'),
-            ('subject_id', 'subject_id'),
-        ]),
         (inputnode, surface_recon_wf, [
             ('t2w', 'inputnode.t2w'),
             ('flair', 'inputnode.flair'),
             ('subject_id', 'inputnode.subject_id'),
         ]),
-        (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (t1w_buffer, surface_recon_wf, [('t1w_brain', 'inputnode.skullstripped_t1')]),
         (surface_recon_wf, outputnode, [
@@ -1114,6 +1104,23 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             ('outputnode.subject_id', 'subject_id'),
         ]),
     ])  # fmt:skip
+
+    if run_reconall:
+        fs_isrunning = pe.Node(
+            niu.Function(function=_fs_isRunning), overwrite=True, name='fs_isrunning'
+        )
+        fs_isrunning.inputs.logger = LOGGER
+        workflow.connect([
+            (inputnode, fs_isrunning, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
+            (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
+        ])  # fmt:skip
+    else:
+        # Nothing reads the subject, so its IsRunning files must neither stop the run
+        # nor be removed
+        workflow.connect(inputnode, 'subjects_dir', surface_recon_wf, 'inputnode.subjects_dir')
 
     fsnative_xfms = precomputed.get('transforms', {}).get('fsnative')
     if not fsnative_xfms:

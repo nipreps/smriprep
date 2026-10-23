@@ -295,11 +295,13 @@ def test_anat_fit_precomputes_omit_one(
     if omit in {*RECONALL_GROUPS, 't2w_preproc'}:
         assert 'surface_recon_wf.autorecon1' in nodes
         assert 'anat_reports_wf.recon_report' in nodes
+        assert 'fs_isrunning' in nodes
     else:
         assert surface_recon_wf.list_node_names() == ['inputnode', 'outputnode']
-        # Nothing reads from the FreeSurfer subject
+        # Nothing reads from the FreeSurfer subject, nor checks its lock files
         assert list(wf._graph.successors(surface_recon_wf)) == [wf.get_node('outputnode')]
         assert 'anat_reports_wf.recon_report' not in nodes
+        assert 'fs_isrunning' not in nodes
 
     flatgraph = wf._create_flat_graph()
     generate_expanded_graph(flatgraph)
