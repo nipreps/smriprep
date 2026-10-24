@@ -70,6 +70,7 @@ def init_surface_recon_wf(
     hires: bool,
     fs_no_resume: bool,
     precomputed: dict,
+    reconall: bool = True,
     name='surface_recon_wf',
 ):
     r"""
@@ -149,6 +150,11 @@ def init_surface_recon_wf(
     fs_no_resume : bool
         use precomputed freesurfer without attempting to resume
         (eg. for longitudinal base or fastsurfer)
+    reconall : bool
+        If ``False``, all derivatives of the reconstruction were precomputed
+        (see :py:func:`~smriprep.workflows.anatomical.needs_reconall`), so no
+        FreeSurfer nodes are created and ``subjects_dir`` and ``subject_id``
+        are passed through to the outputs (default: ``True``).
 
     Inputs
     ------
@@ -212,6 +218,19 @@ gray-matter of Mindboggle [RRID:SCR_002438, @mindboggle].
         ),
         name='outputnode',
     )
+
+    if not reconall:
+        workflow.__desc__ = """\
+Precomputed brain surfaces and morphometrics were provided as inputs, so surface
+reconstruction was not performed.
+"""
+        workflow.connect([
+            (inputnode, outputnode, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
+        ])  # fmt:skip
+        return workflow
 
     recon_config = pe.Node(FSDetectInputs(hires_enabled=hires), name='recon_config')
 

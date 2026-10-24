@@ -28,9 +28,26 @@ from niworkflows.utils.spaces import Reference, SpatialReferences
 from niworkflows.utils.testing import generate_bids_skeleton
 
 from smriprep.utils.bids import collect_anat_derivatives
-from smriprep.workflows.anatomical import init_anat_fit_wf, init_anat_preproc_wf
+from smriprep.workflows.anatomical import (
+    init_anat_fit_wf,
+    init_anat_preproc_wf,
+    needs_reconall,
+)
 
 from ..utils import DERIV_GROUPS
+
+# Derivatives that would otherwise be read from the FreeSurfer subject
+RECONALL_GROUPS = {
+    't1w_mask',
+    'xfm_fsnative',
+    'white',
+    'pial',
+    'midthickness',
+    'thickness',
+    'sulc',
+    'sphere_reg',
+    'sphere',
+}
 
 BASE_LAYOUT = {
     '01': {
@@ -200,6 +217,40 @@ def test_anat_fit_precomputes(
     generate_expanded_graph(flatgraph)
 
 
+@pytest.mark.parametrize('t2w', [0, 1])
+def test_anat_fit_precomputed_t2w_output(
+    bids_root: Path,
+    tmp_path: Path,
+    deriv_dset,
+    t2w: int,
+):
+    """A precomputed T2w reaches the output node, with or without the raw T2w."""
+    output_dir = tmp_path / 'output'
+    output_dir.mkdir()
+
+    deriv_dir = deriv_dset(['t2w_preproc'])
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+
+    wf = init_anat_fit_wf(
+        bids_root=str(bids_root),
+        output_dir=str(output_dir),
+        freesurfer=True,
+        hires=False,
+        longitudinal=False,
+        msm_sulc=True,
+        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
+        t2w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')][:t2w],
+        skull_strip_mode='force',
+        skull_strip_template=Reference('OASIS30ANTs'),
+        spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym'], checkpoint=True),
+        precomputed=precomputed,
+        omp_nthreads=1,
+    )
+
+    assert wf.get_node('outputnode').inputs.t2w_preproc == precomputed['t2w_preproc']
+    assert 'ds_t2w_preproc' not in wf.list_node_names()
+
+
 @pytest.mark.parametrize('omit', [None, *DERIV_GROUPS])
 def test_anat_fit_precomputes_omit_one(
     bids_root: Path,
@@ -237,6 +288,95 @@ def test_anat_fit_precomputes_omit_one(
         precomputed=precomputed,
         omp_nthreads=1,
     )
+
+    surface_recon_wf = wf.get_node('surface_recon_wf')
+    nodes = wf.list_node_names()
+    # A T2w image is given, so it must be precomputed too to skip reconstruction
+    if omit in {*RECONALL_GROUPS, 't2w_preproc'}:
+        assert 'surface_recon_wf.autorecon1' in nodes
+        assert 'anat_reports_wf.recon_report' in nodes
+        assert 'fs_isrunning' in nodes
+    else:
+        assert surface_recon_wf.list_node_names() == ['inputnode', 'outputnode']
+        # Nothing reads from the FreeSurfer subject, nor checks its lock files
+        assert list(wf._graph.successors(surface_recon_wf)) == [wf.get_node('outputnode')]
+        assert 'anat_reports_wf.recon_report' not in nodes
+        assert 'fs_isrunning' not in nodes
+
+    flatgraph = wf._create_flat_graph()
+    generate_expanded_graph(flatgraph)
+
+
+@pytest.mark.parametrize('t2w', [False, True])
+@pytest.mark.parametrize('omit', [None, *DERIV_GROUPS])
+def test_needs_reconall(deriv_dset, omit: str | None, t2w: bool):
+    """Reconstruction is needed if any derivative read from the FreeSurfer subject is missing."""
+    deriv_dir = deriv_dset([group for group in DERIV_GROUPS if group != omit])
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+
+    expected = omit in RECONALL_GROUPS or (t2w and omit == 't2w_preproc')
+    assert needs_reconall(precomputed, t2w=t2w) is expected
+
+
+def test_needs_reconall_fsnative_forward_only(deriv_dset):
+    """The fsnative-to-T1w transform cannot be replaced by its inverse."""
+    deriv_dir = deriv_dset({**dict.fromkeys(DERIV_GROUPS, True), 'xfm_fsnative': 1})
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+    assert sorted(precomputed['transforms']['fsnative']) == ['forward']
+
+    assert needs_reconall(precomputed)
+
+
+@pytest.mark.parametrize('cifti_output', [False, '91k'])
+@pytest.mark.parametrize('curv', [True, False])
+def test_anat_preproc_wf_skips_reconall(
+    bids_root: Path,
+    tmp_path: Path,
+    deriv_dset,
+    cifti_output: bool,
+    curv: bool,
+):
+    """Without a FreeSurfer subject, FreeSurfer outputs are not created."""
+    output_dir = tmp_path / 'output'
+    output_dir.mkdir()
+
+    deriv_dir = deriv_dset({**dict.fromkeys(DERIV_GROUPS, True), 'curv': curv})
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+
+    kwargs = {
+        'bids_root': str(bids_root),
+        'output_dir': str(output_dir),
+        'freesurfer': True,
+        'hires': False,
+        'longitudinal': False,
+        'msm_sulc': True,
+        't1w': [str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
+        't2w': [str(bids_root / 'sub-01' / 'anat' / 'sub-01_T2w.nii.gz')],
+        'skull_strip_mode': 'force',
+        'skull_strip_template': Reference('OASIS30ANTs'),
+        'spaces': SpatialReferences(
+            spaces=['MNI152NLin2009cAsym', 'fsaverage5'],
+            checkpoint=True,
+        ),
+        'precomputed': precomputed,
+        'omp_nthreads': 1,
+        'cifti_output': cifti_output,
+    }
+
+    # Curvature is only needed for CIFTI morphometrics
+    if cifti_output and not curv:
+        with pytest.raises(ValueError, match='curvature'):
+            init_anat_preproc_wf(**kwargs)
+        return
+
+    wf = init_anat_preproc_wf(**kwargs)
+
+    nodes = wf.list_node_names()
+    assert 'anat_fit_wf.surface_recon_wf.autorecon1' not in nodes
+    assert not any(node.startswith('surface_derivatives_wf.') for node in nodes)
+    if cifti_output:
+        hcp_morphometrics_wf = wf.get_node('hcp_morphometrics_wf')
+        assert hcp_morphometrics_wf.inputs.inputnode.curv == precomputed['curv']
 
     flatgraph = wf._create_flat_graph()
     generate_expanded_graph(flatgraph)
