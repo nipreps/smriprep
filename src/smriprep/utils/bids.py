@@ -23,100 +23,23 @@
 """Utilities to handle BIDS inputs."""
 
 import logging
-from json import loads
 from pathlib import Path
 
-from bids.layout import BIDSLayout
-from niworkflows.data import load as nwf_load
+from nipost.bids import collect_derivatives, load_spec, sanitize_space
 
-import smriprep
+from .. import data
 
 LOGGER = logging.getLogger('nipype.workflow')
 
 
-def collect_derivatives(
-    derivatives_dir,
-    subject_id,
-    std_spaces,
-    spec=None,
-    patterns=None,
-    session_id=None,
-):
-    """Gather existing derivatives and compose a cache."""
-    if spec is None or patterns is None:
-        _spec, _patterns = tuple(loads(smriprep.load_data('io_spec.json').read_text()).values())
-
-        if spec is None:
-            spec = _spec
-        if patterns is None:
-            patterns = _patterns
-
-    deriv_config = nwf_load('nipreps.json')
-    layout = BIDSLayout(derivatives_dir, config=deriv_config, validate=False)
-
-    derivs_cache = {}
-
-    # Subject and session (if available) will be added to all queries
-    qry_base = {'subject': subject_id}
-    if session_id:
-        qry_base['session'] = session_id
-
-    for key, qry in spec['baseline'].items():
-        qry = {**qry, **qry_base}
-        item = layout.get(**qry)
-        if not item:
-            continue
-
-        # Respect label order in queries
-        if 'label' in qry:
-            item = sorted(item, key=lambda x: qry['label'].index(x.entities['label']))
-
-        paths = [item.path for item in item]
-
-        if not key.startswith('t2w_'):
-            key = f't1w_{key}'
-        derivs_cache[key] = paths[0] if len(paths) == 1 else paths
-
-    transforms = derivs_cache.setdefault('transforms', {})
-    for _space in std_spaces:
-        space = _space.replace(':cohort-', '+')
-        for key, qry in spec['transforms'].items():
-            qry = {**qry, **qry_base}
-            qry['from'] = qry['from'] or space
-            qry['to'] = qry['to'] or space
-            item = layout.get(return_type='filename', **qry)
-            if not item:
-                continue
-            transforms.setdefault(_space, {})[key] = item[0] if len(item) == 1 else item
-
-    for key, qry in spec['surfaces'].items():
-        qry = {**qry, **qry_base}
-        item = layout.get(return_type='filename', **qry)
-        if not item or len(item) != 2:
-            continue
-
-        # sphere_reg added ``space-fsaverage`` in sMRIPrep 0.16.0
-        if key == 'sphere_reg':
-            legacy = [f for f in item if 'space' not in layout.parse_file_entities(f)]
-            if legacy:
-                LOGGER.warning(
-                    f"Found legacy {key} derivative(s) that lack a 'space' entity; this "
-                    'naming is deprecated and may not be recognized in a future release. '
-                    'Rename or regenerate these derivatives with sMRIPrep >= 0.16.0. Files: %s',
-                    ', '.join(sorted(Path(f).name for f in legacy)),
-                )
-
-        derivs_cache[key] = sorted(item)
-
-    for key, qry in spec['masks'].items():
-        qry = {**qry, **qry_base}
-        item = layout.get(return_type='filename', **qry)
-        if not item or len(item) != 1:
-            continue
-
-        derivs_cache[key] = item[0]
-
-    return derivs_cache
+def _merge(merged, found, kind, deriv_dir):
+    """Update ``merged`` with ``found``, logging any derivative that is replaced."""
+    for name, value in found.items():
+        if name in merged:
+            LOGGER.debug(
+                f'Precomputed {kind} {name} found in {deriv_dir}, replacing {merged[name]}'
+            )
+        merged[name] = value
 
 
 def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=None):
@@ -126,7 +49,9 @@ def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=Non
     ----------
     derivatives : :obj:`list` of :obj:`os.PathLike`
         Derivatives datasets to search. Later datasets take precedence for each
-        derivative they provide; transforms are merged per space and direction.
+        image and surface they provide, and for each space they have transforms for.
+        Forward and reverse transforms for a space are never combined across datasets.
+        Each derivative a later dataset replaces is logged at DEBUG level.
     subject_id : :obj:`str`
         Subject label, without ``sub-``.
     std_spaces : :obj:`list` of :obj:`str`
@@ -138,19 +63,36 @@ def collect_anat_derivatives(derivatives, subject_id, std_spaces, session_id=Non
     Returns
     -------
     :obj:`dict`
-        Paths to precomputed derivatives, as returned by :func:`collect_derivatives`.
+        ``images`` and ``surfaces`` map query names in ``anat_spec.yml`` to paths.
+        ``transforms`` maps each space with precomputed transforms to its
+        ``forward`` and/or ``reverse`` transform.
+
+    Raises
+    ------
+    ValueError
+        If a query matches more than one file in a dataset, for example derivatives
+        from several sessions when ``session_id`` is not given.
     """
-    deriv_cache = {}
-    transforms = {}
+    entities = {'subject': subject_id}
+    if session_id:
+        entities['session'] = session_id
+    # Filenames use the BIDS form of cohort spaces; workflows use the TemplateFlow form
+    spaces = {sanitize_space(space): space for space in [*std_spaces, 'fsnative']}
+    params = {'space': list(spaces)}
+    spec = load_spec(data.load('anat_spec.yml'))
+
+    deriv_cache = {'images': {}, 'surfaces': {}, 'transforms': {}}
     for deriv_dir in derivatives:
-        collected = collect_derivatives(
-            deriv_dir, subject_id, [*std_spaces, 'fsnative'], session_id=session_id
-        )
-        # Merge per space and direction, so later datasets only override what they provide
-        for space, xfms in collected.pop('transforms', {}).items():
-            transforms[space] = xfms
-        deriv_cache.update(collected)
-    deriv_cache['transforms'] = transforms
+        collected = collect_derivatives(deriv_dir, spec=spec, entities=entities, params=params)
+        _merge(deriv_cache['images'], collected['images'], 'image', deriv_dir)
+        _merge(deriv_cache['surfaces'], collected['surfaces'], 'surface', deriv_dir)
+        # Replace whole spaces, so a transform pair always comes from one dataset.
+        # Spaces this dataset has no transforms for are empty and must not replace others.
+        transforms = {
+            spaces[space]: xfms for space, xfms in collected['transforms'].items() if xfms
+        }
+        _merge(deriv_cache['transforms'], transforms, 'transforms for', deriv_dir)
+
     return deriv_cache
 
 

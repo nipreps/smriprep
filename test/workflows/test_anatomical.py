@@ -20,6 +20,7 @@
 #
 #     https://www.nipreps.org/community/licensing/
 #
+import logging
 from pathlib import Path
 
 import pytest
@@ -214,8 +215,9 @@ def test_anat_fit_precomputes_omit_one(
     deriv_dir = deriv_dset([group for group in DERIV_GROUPS if group != omit])
     precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
 
-    collected = {key for key in precomputed if key != 'transforms'}
-    collected.update(f'xfm_{space}' for space, xfms in precomputed['transforms'].items() if xfms)
+    collected = {*precomputed['images'], *precomputed['surfaces']}
+    # Spaces without transforms are left out entirely
+    collected.update(f'xfm_{space}' for space in precomputed['transforms'])
     # Transforms are only collected for requested spaces
     assert collected == set(DERIV_GROUPS) - {omit, 'xfm_MNIPediatricAsym+3'}
 
@@ -237,6 +239,10 @@ def test_anat_fit_precomputes_omit_one(
         precomputed=precomputed,
         omp_nthreads=1,
     )
+
+    # Without a precomputed fsnative transform, surface reconstruction estimates one
+    estimated = wf.get_node('surface_recon_wf.fsnative2t1w_xfm') is not None
+    assert estimated is (omit == 'xfm_fsnative')
 
     flatgraph = wf._create_flat_graph()
     generate_expanded_graph(flatgraph)
@@ -274,3 +280,73 @@ def test_anat_fit_precomputes_fsnative_forward_only(
             precomputed=precomputed,
             omp_nthreads=1,
         )
+
+
+def _init_fit_wf(bids_root: Path, tmp_path: Path, precomputed: dict):
+    """Build the anatomical fit workflow from one T1w and the given derivatives."""
+    output_dir = tmp_path / 'output'
+    output_dir.mkdir(exist_ok=True)
+    return init_anat_fit_wf(
+        bids_root=str(bids_root),
+        output_dir=str(output_dir),
+        freesurfer=True,
+        hires=False,
+        longitudinal=False,
+        msm_sulc=True,
+        t1w=[str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz')],
+        t2w=[],
+        skull_strip_mode='force',
+        skull_strip_template=Reference('OASIS30ANTs'),
+        spaces=SpatialReferences(
+            spaces=['MNI152NLin2009cAsym', 'fsaverage5'],
+            checkpoint=True,
+        ),
+        precomputed=precomputed,
+        omp_nthreads=1,
+    )
+
+
+def test_anat_fit_reports_precomputed(bids_root: Path, tmp_path: Path, deriv_dset, caplog):
+    """Building the fit workflow reports every precomputed derivative found."""
+    precomputed = collect_anat_derivatives([deriv_dset()], '01', ['MNI152NLin2009cAsym'])
+
+    with caplog.at_level(logging.INFO, logger='nipype.workflow'):
+        _init_fit_wf(bids_root, tmp_path, precomputed)
+
+    reports = [
+        record.getMessage()
+        for record in caplog.records
+        if record.getMessage().startswith('ANAT Found precomputed derivatives:')
+    ]
+    assert len(reports) == 1
+    paths = [
+        path
+        for kind in ('images', 'surfaces')
+        for value in precomputed[kind].values()
+        for path in ([value] if isinstance(value, str) else value)
+    ]
+    paths.extend(path for xfms in precomputed['transforms'].values() for path in xfms.values())
+    # Every file in the skeleton, except the transforms for an unrequested space
+    assert len(paths) == 34
+    for path in paths:
+        assert path in reports[0]
+
+
+@pytest.mark.parametrize('legacy', [False, True])
+def test_anat_fit_warns_legacy_sphere_reg(
+    bids_root: Path, tmp_path: Path, deriv_dset, caplog, legacy: bool
+):
+    """A sphere_reg without a space entity warns about deprecated naming."""
+    deriv_dir = deriv_dset()
+    if legacy:
+        anat_dir = deriv_dir / 'sub-01' / 'anat'
+        for path in anat_dir.glob('*_space-fsaverage_desc-reg_sphere.surf.gii'):
+            path.rename(path.with_name(path.name.replace('_space-fsaverage', '')))
+    precomputed = collect_anat_derivatives([deriv_dir], '01', ['MNI152NLin2009cAsym'])
+    assert len(precomputed['surfaces']['sphere_reg']) == 2
+
+    with caplog.at_level(logging.WARNING, logger='nipype.workflow'):
+        _init_fit_wf(bids_root, tmp_path, precomputed)
+
+    warnings = [r.getMessage() for r in caplog.records if 'legacy sphere_reg' in r.getMessage()]
+    assert len(warnings) == int(legacy)
