@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.utils.bids &mdash; smriprep 0.20.1.dev12 documentation</title>
+  <title>smriprep.utils.bids &mdash; smriprep 0.20.1.dev13 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -104,103 +104,23 @@
 <span class="sd">"""Utilities to handle BIDS inputs."""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="kn">import</span> <span class="n">loads</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">bids.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">BIDSLayout</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">niworkflows.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span> <span class="k">as</span> <span class="n">nwf_load</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nipost.bids</span><span class="w"> </span><span class="kn">import</span> <span class="n">collect_derivatives</span><span class="p">,</span> <span class="n">load_spec</span><span class="p">,</span> <span class="n">sanitize_space</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">smriprep</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">data</span>
 
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'nipype.workflow'</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="collect_derivatives">
-<a class="viewcode-back" href="../../../api/smriprep.utils.bids.html#smriprep.utils.bids.collect_derivatives">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">collect_derivatives</span><span class="p">(</span>
-    <span class="n">derivatives_dir</span><span class="p">,</span>
-    <span class="n">subject_id</span><span class="p">,</span>
-    <span class="n">std_spaces</span><span class="p">,</span>
-    <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">patterns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">session_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Gather existing derivatives and compose a cache."""</span>
-    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">patterns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">_spec</span><span class="p">,</span> <span class="n">_patterns</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">loads</span><span class="p">(</span><span class="n">smriprep</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="s1">'io_spec.json'</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-
-        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">spec</span> <span class="o">=</span> <span class="n">_spec</span>
-        <span class="k">if</span> <span class="n">patterns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">patterns</span> <span class="o">=</span> <span class="n">_patterns</span>
-
-    <span class="n">deriv_config</span> <span class="o">=</span> <span class="n">nwf_load</span><span class="p">(</span><span class="s1">'nipreps.json'</span><span class="p">)</span>
-    <span class="n">layout</span> <span class="o">=</span> <span class="n">BIDSLayout</span><span class="p">(</span><span class="n">derivatives_dir</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">deriv_config</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-    <span class="n">derivs_cache</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="c1"># Subject and session (if available) will be added to all queries</span>
-    <span class="n">qry_base</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'subject'</span><span class="p">:</span> <span class="n">subject_id</span><span class="p">}</span>
-    <span class="k">if</span> <span class="n">session_id</span><span class="p">:</span>
-        <span class="n">qry_base</span><span class="p">[</span><span class="s1">'session'</span><span class="p">]</span> <span class="o">=</span> <span class="n">session_id</span>
-
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">'baseline'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">qry</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">qry</span><span class="p">,</span> <span class="o">**</span><span class="n">qry_base</span><span class="p">}</span>
-        <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">qry</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="p">:</span>
-            <span class="k">continue</span>
-
-        <span class="c1"># Respect label order in queries</span>
-        <span class="k">if</span> <span class="s1">'label'</span> <span class="ow">in</span> <span class="n">qry</span><span class="p">:</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">qry</span><span class="p">[</span><span class="s1">'label'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">entities</span><span class="p">[</span><span class="s1">'label'</span><span class="p">]))</span>
-
-        <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'t2w_'</span><span class="p">):</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'t1w_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">'</span>
-        <span class="n">derivs_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">paths</span>
-
-    <span class="n">transforms</span> <span class="o">=</span> <span class="n">derivs_cache</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">'transforms'</span><span class="p">,</span> <span class="p">{})</span>
-    <span class="k">for</span> <span class="n">_space</span> <span class="ow">in</span> <span class="n">std_spaces</span><span class="p">:</span>
-        <span class="n">space</span> <span class="o">=</span> <span class="n">_space</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">':cohort-'</span><span class="p">,</span> <span class="s1">'+'</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">'transforms'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">qry</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">qry</span><span class="p">,</span> <span class="o">**</span><span class="n">qry_base</span><span class="p">}</span>
-            <span class="n">qry</span><span class="p">[</span><span class="s1">'from'</span><span class="p">]</span> <span class="o">=</span> <span class="n">qry</span><span class="p">[</span><span class="s1">'from'</span><span class="p">]</span> <span class="ow">or</span> <span class="n">space</span>
-            <span class="n">qry</span><span class="p">[</span><span class="s1">'to'</span><span class="p">]</span> <span class="o">=</span> <span class="n">qry</span><span class="p">[</span><span class="s1">'to'</span><span class="p">]</span> <span class="ow">or</span> <span class="n">space</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">return_type</span><span class="o">=</span><span class="s1">'filename'</span><span class="p">,</span> <span class="o">**</span><span class="n">qry</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">transforms</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">_space</span><span class="p">,</span> <span class="p">{})[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">item</span>
-
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">'surfaces'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">qry</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">qry</span><span class="p">,</span> <span class="o">**</span><span class="n">qry_base</span><span class="p">}</span>
-        <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">return_type</span><span class="o">=</span><span class="s1">'filename'</span><span class="p">,</span> <span class="o">**</span><span class="n">qry</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">continue</span>
-
-        <span class="c1"># sphere_reg added ``space-fsaverage`` in sMRIPrep 0.16.0</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">'sphere_reg'</span><span class="p">:</span>
-            <span class="n">legacy</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">if</span> <span class="s1">'space'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layout</span><span class="o">.</span><span class="n">parse_file_entities</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span>
-            <span class="k">if</span> <span class="n">legacy</span><span class="p">:</span>
-                <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"Found legacy </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> derivative(s) that lack a 'space' entity; this "</span>
-                    <span class="s1">'naming is deprecated and may not be recognized in a future release. '</span>
-                    <span class="s1">'Rename or regenerate these derivatives with sMRIPrep &gt;= 0.16.0. Files: </span><span class="si">%s</span><span class="s1">'</span><span class="p">,</span>
-                    <span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">legacy</span><span class="p">)),</span>
-                <span class="p">)</span>
-
-        <span class="n">derivs_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">qry</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">[</span><span class="s1">'masks'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">qry</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">qry</span><span class="p">,</span> <span class="o">**</span><span class="n">qry_base</span><span class="p">}</span>
-        <span class="n">item</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">return_type</span><span class="o">=</span><span class="s1">'filename'</span><span class="p">,</span> <span class="o">**</span><span class="n">qry</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">continue</span>
-
-        <span class="n">derivs_cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">derivs_cache</span></div>
-
+<span class="k">def</span><span class="w"> </span><span class="nf">_merge</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">found</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">deriv_dir</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Update ``merged`` with ``found``, logging any derivative that is replaced."""</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">found</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">merged</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">'Precomputed </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> found in </span><span class="si">{</span><span class="n">deriv_dir</span><span class="si">}</span><span class="s1">, replacing </span><span class="si">{</span><span class="n">merged</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span>
+            <span class="p">)</span>
+        <span class="n">merged</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
 
 <div class="viewcode-block" id="collect_anat_derivatives">
@@ -212,7 +132,9 @@
 <span class="sd">    ----------</span>
 <span class="sd">    derivatives : :obj:`list` of :obj:`os.PathLike`</span>
 <span class="sd">        Derivatives datasets to search. Later datasets take precedence for each</span>
-<span class="sd">        derivative they provide; transforms are merged per space and direction.</span>
+<span class="sd">        image and surface they provide, and for each space they have transforms for.</span>
+<span class="sd">        Forward and reverse transforms for a space are never combined across datasets.</span>
+<span class="sd">        Each derivative a later dataset replaces is logged at DEBUG level.</span>
 <span class="sd">    subject_id : :obj:`str`</span>
 <span class="sd">        Subject label, without ``sub-``.</span>
 <span class="sd">    std_spaces : :obj:`list` of :obj:`str`</span>
@@ -224,19 +146,36 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    :obj:`dict`</span>
-<span class="sd">        Paths to precomputed derivatives, as returned by :func:`collect_derivatives`.</span>
+<span class="sd">        ``images`` and ``surfaces`` map query names in ``anat_spec.yml`` to paths.</span>
+<span class="sd">        ``transforms`` maps each space with precomputed transforms to its</span>
+<span class="sd">        ``forward`` and/or ``reverse`` transform.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If a query matches more than one file in a dataset, for example derivatives</span>
+<span class="sd">        from several sessions when ``session_id`` is not given.</span>
 <span class="sd">    """</span>
-    <span class="n">deriv_cache</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">transforms</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">entities</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'subject'</span><span class="p">:</span> <span class="n">subject_id</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">session_id</span><span class="p">:</span>
+        <span class="n">entities</span><span class="p">[</span><span class="s1">'session'</span><span class="p">]</span> <span class="o">=</span> <span class="n">session_id</span>
+    <span class="c1"># Filenames use the BIDS form of cohort spaces; workflows use the TemplateFlow form</span>
+    <span class="n">spaces</span> <span class="o">=</span> <span class="p">{</span><span class="n">sanitize_space</span><span class="p">(</span><span class="n">space</span><span class="p">):</span> <span class="n">space</span> <span class="k">for</span> <span class="n">space</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">std_spaces</span><span class="p">,</span> <span class="s1">'fsnative'</span><span class="p">]}</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'space'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">spaces</span><span class="p">)}</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">load_spec</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'anat_spec.yml'</span><span class="p">))</span>
+
+    <span class="n">deriv_cache</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'images'</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">'surfaces'</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">'transforms'</span><span class="p">:</span> <span class="p">{}}</span>
     <span class="k">for</span> <span class="n">deriv_dir</span> <span class="ow">in</span> <span class="n">derivatives</span><span class="p">:</span>
-        <span class="n">collected</span> <span class="o">=</span> <span class="n">collect_derivatives</span><span class="p">(</span>
-            <span class="n">deriv_dir</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">std_spaces</span><span class="p">,</span> <span class="s1">'fsnative'</span><span class="p">],</span> <span class="n">session_id</span><span class="o">=</span><span class="n">session_id</span>
-        <span class="p">)</span>
-        <span class="c1"># Merge per space and direction, so later datasets only override what they provide</span>
-        <span class="k">for</span> <span class="n">space</span><span class="p">,</span> <span class="n">xfms</span> <span class="ow">in</span> <span class="n">collected</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">'transforms'</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">transforms</span><span class="p">[</span><span class="n">space</span><span class="p">]</span> <span class="o">=</span> <span class="n">xfms</span>
-        <span class="n">deriv_cache</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">collected</span><span class="p">)</span>
-    <span class="n">deriv_cache</span><span class="p">[</span><span class="s1">'transforms'</span><span class="p">]</span> <span class="o">=</span> <span class="n">transforms</span>
+        <span class="n">collected</span> <span class="o">=</span> <span class="n">collect_derivatives</span><span class="p">(</span><span class="n">deriv_dir</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">entities</span><span class="o">=</span><span class="n">entities</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">_merge</span><span class="p">(</span><span class="n">deriv_cache</span><span class="p">[</span><span class="s1">'images'</span><span class="p">],</span> <span class="n">collected</span><span class="p">[</span><span class="s1">'images'</span><span class="p">],</span> <span class="s1">'image'</span><span class="p">,</span> <span class="n">deriv_dir</span><span class="p">)</span>
+        <span class="n">_merge</span><span class="p">(</span><span class="n">deriv_cache</span><span class="p">[</span><span class="s1">'surfaces'</span><span class="p">],</span> <span class="n">collected</span><span class="p">[</span><span class="s1">'surfaces'</span><span class="p">],</span> <span class="s1">'surface'</span><span class="p">,</span> <span class="n">deriv_dir</span><span class="p">)</span>
+        <span class="c1"># Replace whole spaces, so a transform pair always comes from one dataset.</span>
+        <span class="c1"># Spaces this dataset has no transforms for are empty and must not replace others.</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">spaces</span><span class="p">[</span><span class="n">space</span><span class="p">]:</span> <span class="n">xfms</span> <span class="k">for</span> <span class="n">space</span><span class="p">,</span> <span class="n">xfms</span> <span class="ow">in</span> <span class="n">collected</span><span class="p">[</span><span class="s1">'transforms'</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">xfms</span>
+        <span class="p">}</span>
+        <span class="n">_merge</span><span class="p">(</span><span class="n">deriv_cache</span><span class="p">[</span><span class="s1">'transforms'</span><span class="p">],</span> <span class="n">transforms</span><span class="p">,</span> <span class="s1">'transforms for'</span><span class="p">,</span> <span class="n">deriv_dir</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">deriv_cache</span></div>
 
 
@@ -393,6 +332,7 @@
             <dd><a href="../../../0.19.2/index.html">0.19.2</a></dd>
             <dd><a href="../../../0.19.3/index.html">0.19.3</a></dd>
             <dd><a href="../../../0.19.4/index.html">0.19.4</a></dd>
+            <dd><a href="../../../0.19.5/index.html">0.19.5</a></dd>
             <dd><a href="../../../0.20.0/index.html">0.20.0</a></dd>
             <dd><a href="../../../0.8.0/index.html">0.8.0</a></dd>
             <dd><a href="../../../0.8.0rc1/index.html">0.8.0rc1</a></dd>
