@@ -39,7 +39,7 @@ from ..utils import DERIV_GROUPS
 
 # Derivatives that would otherwise be read from the FreeSurfer subject
 RECONALL_GROUPS = {
-    't1w_mask',
+    'mask',
     'xfm_fsnative',
     'white',
     'pial',
@@ -248,7 +248,7 @@ def test_anat_fit_precomputed_t2w_output(
         omp_nthreads=1,
     )
 
-    assert wf.get_node('outputnode').inputs.t2w_preproc == precomputed['t2w_preproc']
+    assert wf.get_node('outputnode').inputs.t2w_preproc == precomputed['images']['t2w_preproc']
     assert 'ds_t2w_preproc' not in wf.list_node_names()
 
 
@@ -290,6 +290,10 @@ def test_anat_fit_precomputes_omit_one(
         precomputed=precomputed,
         omp_nthreads=1,
     )
+
+    # Without a precomputed fsnative transform, surface reconstruction estimates one
+    estimated = wf.get_node('surface_recon_wf.fsnative2t1w_xfm') is not None
+    assert estimated is (omit == 'xfm_fsnative')
 
     surface_recon_wf = wf.get_node('surface_recon_wf')
     nodes = wf.list_node_names()
@@ -378,10 +382,7 @@ def test_anat_preproc_wf_skips_reconall(
     assert not any(node.startswith('surface_derivatives_wf.') for node in nodes)
     if cifti_output:
         hcp_morphometrics_wf = wf.get_node('hcp_morphometrics_wf')
-        assert hcp_morphometrics_wf.inputs.inputnode.curv == precomputed['curv']
-    # Without a precomputed fsnative transform, surface reconstruction estimates one
-    estimated = wf.get_node('surface_recon_wf.fsnative2t1w_xfm') is not None
-    assert estimated is (omit == 'xfm_fsnative')
+        assert hcp_morphometrics_wf.inputs.inputnode.curv == precomputed['surfaces']['curv']
 
     flatgraph = wf._create_flat_graph()
     generate_expanded_graph(flatgraph)

@@ -471,8 +471,8 @@ def init_anat_preproc_wf(
                         ('outputnode.curv', 'inputnode.curv'),
                     ]),
                 ])  # fmt:skip
-            elif len(precomputed.get('curv', [])) == 2:
-                hcp_morphometrics_wf.inputs.inputnode.curv = sorted(precomputed['curv'])
+            elif curv := precomputed.get('surfaces', {}).get('curv'):
+                hcp_morphometrics_wf.inputs.inputnode.curv = curv
             else:
                 raise ValueError(
                     'CIFTI morphometrics require curvature (hemi-{L,R}_curv.shape.gii), '
@@ -648,18 +648,14 @@ Anatomical data preprocessing
 : A total of {num_t1w} T1-weighted (T1w) images were found within the input
 BIDS dataset."""
 
-    have_t1w = 't1w_preproc' in precomputed
-    have_t2w = 't2w_preproc' in precomputed
-    have_mask = 't1w_mask' in precomputed
-    have_dseg = 't1w_dseg' in precomputed
-    have_tpms = 't1w_tpms' in precomputed
-    # Skip surface reconstruction if everything read from the FreeSurfer subject was precomputed
-    run_reconall = freesurfer and needs_reconall(precomputed, t2w=bool(t2w))
     images = precomputed.get('images', {})
     t1w_preproc = images.get('t1w_preproc')
+    t2w_preproc = images.get('t2w_preproc')
     brain_mask = images.get('mask')
     dseg = images.get('dseg')
     tpms = images.get('tpms')
+    # Skip surface reconstruction if everything read from the FreeSurfer subject was precomputed
+    run_reconall = freesurfer and needs_reconall(precomputed, t2w=bool(t2w))
 
     _report_precomputed(precomputed)
 
@@ -1178,7 +1174,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
     else:
         LOGGER.info('ANAT Found brain mask - skipping Stage 6')
 
-    if t2w and not images.get('t2w_preproc'):
+    if t2w and not t2w_preproc:
         LOGGER.info('ANAT Stage 7: Creating T2w template')
         t2w_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
@@ -1233,11 +1229,11 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
             (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
         ])  # fmt:skip
-    elif not have_t2w:
+    elif not t2w_preproc:
         LOGGER.info('ANAT No T2w images provided - skipping Stage 7')
     else:
         LOGGER.info('ANAT Found preprocessed T2w - skipping Stage 7')
-        outputnode.inputs.t2w_preproc = precomputed['t2w_preproc']
+        outputnode.inputs.t2w_preproc = t2w_preproc
 
     # Stages 8-10: Surface conversion and registration
     # sphere_reg is needed to generate sphere_reg_fsLR
@@ -1448,8 +1444,8 @@ def needs_reconall(precomputed: dict, t2w: bool = False) -> bool:
     Parameters
     ----------
     precomputed : :obj:`dict`
-        Dictionary mapping output specification attribute names and
-        paths to precomputed derivatives.
+        Precomputed derivatives, as returned by
+        :func:`~smriprep.utils.bids.collect_anat_derivatives`.
     t2w : :obj:`bool`
         Whether T2w images are to be preprocessed.
 
@@ -1459,13 +1455,16 @@ def needs_reconall(precomputed: dict, t2w: bool = False) -> bool:
         ``True`` if any of the above derivatives is missing.
 
     """
-    surfaces = ('white', 'pial', 'midthickness', 'thickness', 'sulc', 'sphere_reg', 'sphere')
+    needed_surfs = ('white', 'pial', 'midthickness', 'thickness', 'sulc', 'sphere_reg', 'sphere')
+    images = precomputed.get('images', {})
+    # Surfaces are only collected if both hemispheres are found
+    surfaces = precomputed.get('surfaces', {})
     fsnative_xfms = precomputed.get('transforms', {}).get('fsnative') or {}
     return not (
-        all(len(precomputed.get(surf, [])) == 2 for surf in surfaces)
+        all(surf in surfaces for surf in needed_surfs)
         and 'reverse' in fsnative_xfms
-        and 't1w_mask' in precomputed
-        and ('t2w_preproc' in precomputed or not t2w)
+        and 'mask' in images
+        and ('t2w_preproc' in images or not t2w)
     )
 
 
