@@ -27,9 +27,15 @@ from shutil import which
 import nibabel as nb
 import numpy as np
 import pytest
+from nipype.interfaces import utility as niu
 from nipype.pipeline import engine as pe
 
-from smriprep.workflows.surfaces import _select_seg, init_anat_ribbon_wf, init_gifti_surfaces_wf
+from smriprep.workflows.surfaces import (
+    _select_seg,
+    init_anat_ribbon_wf,
+    init_gifti_surfaces_wf,
+    init_surface_recon_wf,
+)
 from test.interfaces.data import load as load_test_data
 
 
@@ -74,6 +80,34 @@ def test_ribbon_workflow(tmp_path: Path):
     assert np.allclose(ribbon.affine, expected.affine)
     # Mask data is binary, so we can use np.array_equal
     assert np.array_equal(ribbon.dataobj, expected.dataobj)
+
+
+def test_surface_recon_wf_passthrough(tmp_path: Path):
+    """Without reconstruction, the FreeSurfer subject is passed through."""
+    surface_recon_wf = init_surface_recon_wf(
+        omp_nthreads=1,
+        hires=False,
+        fs_no_resume=False,
+        precomputed={},
+        reconall=False,
+    )
+    assert surface_recon_wf.list_node_names() == ['inputnode', 'outputnode']
+    surface_recon_wf.inputs.inputnode.subjects_dir = str(tmp_path)
+    surface_recon_wf.inputs.inputnode.subject_id = 'sub-01'
+
+    # Identity nodes do not run, so check what a downstream node receives
+    merge = pe.Node(niu.Merge(2), name='merge')
+    wf = pe.Workflow(name='test_passthrough_wf', base_dir=tmp_path)
+    wf.connect([
+        (surface_recon_wf, merge, [
+            ('outputnode.subjects_dir', 'in1'),
+            ('outputnode.subject_id', 'in2'),
+        ]),
+    ])  # fmt:skip
+    result = wf.run()
+
+    merge = next(node for node in result.nodes() if node.name == 'merge')
+    assert merge.result.outputs.out == [str(tmp_path), 'sub-01']
 
 
 @pytest.mark.parametrize(

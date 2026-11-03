@@ -159,7 +159,10 @@ def init_anat_preproc_wf(
         Directory in which to save derivatives
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (increases runtime by 6h,
-        at the very least)
+        at the very least). Reconstruction is skipped if all derivatives that
+        depend on it were precomputed (see :py:func:`needs_reconall`), in which
+        case FreeSurfer's segmentations, inflated surfaces and curvature are not
+        written.
     hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     longitudinal : :obj:`bool`
@@ -337,48 +340,51 @@ def init_anat_preproc_wf(
         ]),
     ])  # fmt:skip
 
+    # Without surface reconstruction, there is no FreeSurfer subject to read from
+    run_reconall = freesurfer and needs_reconall(precomputed, t2w=bool(t2w))
     if freesurfer:
-        ds_fs_segs_wf = init_ds_fs_segs_wf(
-            bids_root=bids_root,
-            output_dir=output_dir,
-        )
-        surface_derivatives_wf = init_surface_derivatives_wf()
-        ds_surfaces_wf = init_ds_surfaces_wf(output_dir=output_dir, surfaces=['inflated'])
-        ds_curv_wf = init_ds_surface_metrics_wf(
-            bids_root=bids_root, output_dir=output_dir, metrics=['curv'], name='ds_curv_wf'
-        )
+        if run_reconall:
+            ds_fs_segs_wf = init_ds_fs_segs_wf(
+                bids_root=bids_root,
+                output_dir=output_dir,
+            )
+            surface_derivatives_wf = init_surface_derivatives_wf()
+            ds_surfaces_wf = init_ds_surfaces_wf(output_dir=output_dir, surfaces=['inflated'])
+            ds_curv_wf = init_ds_surface_metrics_wf(
+                bids_root=bids_root, output_dir=output_dir, metrics=['curv'], name='ds_curv_wf'
+            )
 
-        workflow.connect([
-            (anat_fit_wf, surface_derivatives_wf, [
-                ('outputnode.t1w_preproc', 'inputnode.reference'),
-                ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
-                ('outputnode.subject_id', 'inputnode.subject_id'),
-                ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
-            ]),
-            (anat_fit_wf, ds_surfaces_wf, [
-                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
-            ]),
-            (surface_derivatives_wf, ds_surfaces_wf, [
-                ('outputnode.inflated', 'inputnode.inflated'),
-            ]),
-            (anat_fit_wf, ds_curv_wf, [
-                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
-            ]),
-            (surface_derivatives_wf, ds_curv_wf, [
-                ('outputnode.curv', 'inputnode.curv'),
-            ]),
-            (anat_fit_wf, ds_fs_segs_wf, [
-                ('outputnode.t1w_valid_list', 'inputnode.source_files'),
-            ]),
-            (surface_derivatives_wf, ds_fs_segs_wf, [
-                ('outputnode.out_aseg', 'inputnode.anat_fs_aseg'),
-                ('outputnode.out_aparc', 'inputnode.anat_fs_aparc'),
-            ]),
-            (surface_derivatives_wf, outputnode, [
-                ('outputnode.out_aseg', 't1w_aseg'),
-                ('outputnode.out_aparc', 't1w_aparc'),
-            ]),
-        ])  # fmt:skip
+            workflow.connect([
+                (anat_fit_wf, surface_derivatives_wf, [
+                    ('outputnode.t1w_preproc', 'inputnode.reference'),
+                    ('outputnode.subjects_dir', 'inputnode.subjects_dir'),
+                    ('outputnode.subject_id', 'inputnode.subject_id'),
+                    ('outputnode.fsnative2t1w_xfm', 'inputnode.fsnative2anat_xfm'),
+                ]),
+                (anat_fit_wf, ds_surfaces_wf, [
+                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ]),
+                (surface_derivatives_wf, ds_surfaces_wf, [
+                    ('outputnode.inflated', 'inputnode.inflated'),
+                ]),
+                (anat_fit_wf, ds_curv_wf, [
+                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ]),
+                (surface_derivatives_wf, ds_curv_wf, [
+                    ('outputnode.curv', 'inputnode.curv'),
+                ]),
+                (anat_fit_wf, ds_fs_segs_wf, [
+                    ('outputnode.t1w_valid_list', 'inputnode.source_files'),
+                ]),
+                (surface_derivatives_wf, ds_fs_segs_wf, [
+                    ('outputnode.out_aseg', 'inputnode.anat_fs_aseg'),
+                    ('outputnode.out_aparc', 'inputnode.anat_fs_aparc'),
+                ]),
+                (surface_derivatives_wf, outputnode, [
+                    ('outputnode.out_aseg', 't1w_aseg'),
+                    ('outputnode.out_aparc', 't1w_aparc'),
+                ]),
+            ])  # fmt:skip
 
         if cifti_output:
             hcp_morphometrics_wf = init_hcp_morphometrics_wf(omp_nthreads=omp_nthreads)
@@ -412,9 +418,6 @@ def init_anat_preproc_wf(
                     ('outputnode.sulc', 'inputnode.sulc'),
                     ('outputnode.thickness', 'inputnode.thickness'),
                     ('outputnode.midthickness', 'inputnode.midthickness'),
-                ]),
-                (surface_derivatives_wf, hcp_morphometrics_wf, [
-                    ('outputnode.curv', 'inputnode.curv'),
                 ]),
                 (anat_fit_wf, resample_surfaces_wf, [
                     ('outputnode.white', 'inputnode.white'),
@@ -461,6 +464,21 @@ def init_anat_preproc_wf(
                     ('outputnode.sulc_metadata', 'inputnode.sulc_metadata'),
                 ]),
             ])  # fmt:skip
+
+            if run_reconall:
+                workflow.connect([
+                    (surface_derivatives_wf, hcp_morphometrics_wf, [
+                        ('outputnode.curv', 'inputnode.curv'),
+                    ]),
+                ])  # fmt:skip
+            elif curv := precomputed.get('surfaces', {}).get('curv'):
+                hcp_morphometrics_wf.inputs.inputnode.curv = curv
+            else:
+                raise ValueError(
+                    'CIFTI morphometrics require curvature (hemi-{L,R}_curv.shape.gii), '
+                    'which is not computed without surface reconstruction. Provide it with '
+                    'the precomputed surfaces, or disable CIFTI output.'
+                )
 
     return workflow
 
@@ -536,7 +554,8 @@ def init_anat_fit_wf(
         Directory in which to save derivatives
     freesurfer : :obj:`bool`
         Enable FreeSurfer surface reconstruction (increases runtime by 6h,
-        at the very least)
+        at the very least). Reconstruction is skipped if all derivatives that
+        depend on it were precomputed (see :py:func:`needs_reconall`).
     hires : :obj:`bool`
         Enable sub-millimeter preprocessing in FreeSurfer
     longitudinal : :obj:`bool`
@@ -631,9 +650,12 @@ BIDS dataset."""
 
     images = precomputed.get('images', {})
     t1w_preproc = images.get('t1w_preproc')
+    t2w_preproc = images.get('t2w_preproc')
     brain_mask = images.get('mask')
     dseg = images.get('dseg')
     tpms = images.get('tpms')
+    # Skip surface reconstruction if everything read from the FreeSurfer subject was precomputed
+    run_reconall = freesurfer and needs_reconall(precomputed, t2w=bool(t2w))
 
     _report_precomputed(precomputed)
 
@@ -758,7 +780,8 @@ BIDS dataset."""
     # Reporting
     anat_reports_wf = init_anat_reports_wf(
         spaces=spaces,
-        freesurfer=freesurfer,
+        # The surface reconstruction report is drawn from the FreeSurfer subject
+        freesurfer=run_reconall,
         output_dir=output_dir,
         sloppy=sloppy,
     )
@@ -1048,37 +1071,36 @@ the brain-extracted T1w using `fast` [FSL {fsl_ver}, RRID:SCR_002823, @fsl_fast]
         LOGGER.info('ANAT Skipping Stages 5+')
         return workflow
 
-    fs_isrunning = pe.Node(
-        niu.Function(function=_fs_isRunning), overwrite=True, name='fs_isrunning'
-    )
-    fs_isrunning.inputs.logger = LOGGER
-
     # Stage 5: Surface reconstruction (--fs-no-reconall not set)
-    LOGGER.info('ANAT Stage 5: Preparing surface reconstruction workflow')
+    if not run_reconall:
+        LOGGER.info('ANAT Stage 5: Found pre-computed surfaces - skipping surface reconstruction')
+    elif not needs_reconall(precomputed):
+        LOGGER.info(
+            'ANAT Stage 5: Preparing surface reconstruction workflow, needed to coregister '
+            'T2w images (provide a preprocessed T2w image to skip it)'
+        )
+    else:
+        LOGGER.info('ANAT Stage 5: Preparing surface reconstruction workflow')
     surface_recon_wf = init_surface_recon_wf(
         name='surface_recon_wf',
         omp_nthreads=omp_nthreads,
         hires=hires,
         fs_no_resume=fs_no_resume,
         precomputed=precomputed,
+        reconall=run_reconall,
     )
-    if t2w or flair:
+    if run_reconall and (t2w or flair):
         t2w_or_flair = 'T2-weighted' if t2w else 'FLAIR'
         surface_recon_wf.__desc__ += f"""\
 A {t2w_or_flair} image was used to improve pial surface refinement.
 """
 
     workflow.connect([
-        (inputnode, fs_isrunning, [
-            ('subjects_dir', 'subjects_dir'),
-            ('subject_id', 'subject_id'),
-        ]),
         (inputnode, surface_recon_wf, [
             ('t2w', 'inputnode.t2w'),
             ('flair', 'inputnode.flair'),
             ('subject_id', 'inputnode.subject_id'),
         ]),
-        (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
         (anat_validate, surface_recon_wf, [('out_file', 'inputnode.t1w')]),
         (t1w_buffer, surface_recon_wf, [('t1w_brain', 'inputnode.skullstripped_t1')]),
         (surface_recon_wf, outputnode, [
@@ -1086,6 +1108,23 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             ('outputnode.subject_id', 'subject_id'),
         ]),
     ])  # fmt:skip
+
+    if run_reconall:
+        fs_isrunning = pe.Node(
+            niu.Function(function=_fs_isRunning), overwrite=True, name='fs_isrunning'
+        )
+        fs_isrunning.inputs.logger = LOGGER
+        workflow.connect([
+            (inputnode, fs_isrunning, [
+                ('subjects_dir', 'subjects_dir'),
+                ('subject_id', 'subject_id'),
+            ]),
+            (fs_isrunning, surface_recon_wf, [('out', 'inputnode.subjects_dir')]),
+        ])  # fmt:skip
+    else:
+        # Nothing reads the subject, so its IsRunning files must neither stop the run
+        # nor be removed
+        workflow.connect(inputnode, 'subjects_dir', surface_recon_wf, 'inputnode.subjects_dir')
 
     fsnative_xfms = precomputed.get('transforms', {}).get('fsnative')
     if not fsnative_xfms:
@@ -1135,7 +1174,7 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
     else:
         LOGGER.info('ANAT Found brain mask - skipping Stage 6')
 
-    if t2w and not images.get('t2w_preproc'):
+    if t2w and not t2w_preproc:
         LOGGER.info('ANAT Stage 7: Creating T2w template')
         t2w_template_wf = init_anat_template_wf(
             longitudinal=longitudinal,
@@ -1190,10 +1229,11 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
             (t2w_resample, ds_t2w_preproc, [('output_image', 'in_file')]),
             (ds_t2w_preproc, outputnode, [('out_file', 't2w_preproc')]),
         ])  # fmt:skip
-    elif not t2w:
+    elif not t2w_preproc:
         LOGGER.info('ANAT No T2w images provided - skipping Stage 7')
     else:
         LOGGER.info('ANAT Found preprocessed T2w - skipping Stage 7')
+        outputnode.inputs.t2w_preproc = t2w_preproc
 
     # Stages 8-10: Surface conversion and registration
     # sphere_reg is needed to generate sphere_reg_fsLR
@@ -1388,6 +1428,44 @@ A {t2w_or_flair} image was used to improve pial surface refinement.
         outputnode.inputs.cortex_mask = cortex_mask
 
     return workflow
+
+
+def needs_reconall(precomputed: dict, t2w: bool = False) -> bool:
+    """
+    Determine whether FreeSurfer surface reconstruction is needed.
+
+    :py:func:`init_anat_fit_wf` reads the FreeSurfer subject to estimate the
+    fsnative-to-T1w transform (Stage 5), to refine the brain mask (Stage 6),
+    to coregister T2w images with ``bbregister`` (Stage 7), and to convert
+    surfaces and morphometrics to GIFTI (Stage 8).
+    Later stages work on the GIFTI surfaces, so if all of these derivatives
+    were precomputed, no FreeSurfer subject is needed.
+
+    Parameters
+    ----------
+    precomputed : :obj:`dict`
+        Precomputed derivatives, as returned by
+        :func:`~smriprep.utils.bids.collect_anat_derivatives`.
+    t2w : :obj:`bool`
+        Whether T2w images are to be preprocessed.
+
+    Returns
+    -------
+    :obj:`bool`
+        ``True`` if any of the above derivatives is missing.
+
+    """
+    needed_surfs = ('white', 'pial', 'midthickness', 'thickness', 'sulc', 'sphere_reg', 'sphere')
+    images = precomputed.get('images', {})
+    # Surfaces are only collected if both hemispheres are found
+    surfaces = precomputed.get('surfaces', {})
+    fsnative_xfms = precomputed.get('transforms', {}).get('fsnative') or {}
+    return not (
+        all(surf in surfaces for surf in needed_surfs)
+        and 'reverse' in fsnative_xfms
+        and 'mask' in images
+        and ('t2w_preproc' in images or not t2w)
+    )
 
 
 def init_anat_template_wf(
