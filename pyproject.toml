@@ -25,14 +25,14 @@ dependencies = [
     "matplotlib >= 3.10",
     "nibabel >= 5.3.0",
     "nipost[bids] >= 0.1.0",
-    "nipype >= 1.9.0",
+    "nipype >= 1.9.1",
     "nireports >= 25.3.0",
     "nitransforms >= 25.0.1",
     "niworkflows >= 1.14.4",
     "numpy >= 2.2",
     "packaging >= 24.2",
     "pybids >= 0.21",
-    "pyyaml >= 6.0.1",
+    "pyyaml >= 6.0.2",
     "templateflow >= 25.0",
 ]
 dynamic = ["version"]
@@ -225,7 +225,7 @@ matplotlib = ">=3.10"
 nibabel = ">=5.3"
 numpy = ">=2.2"
 packaging = ">=24.2"
-pyyaml = ">=6.0.1"
+pyyaml = ">=6.0.2"
 # Indirect dependencies, but built against numpy (SPEC 0 floors)
 h5py = ">=3.13"
 pandas = ">=2.3"
