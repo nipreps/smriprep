@@ -250,7 +250,8 @@ smriprep = { path = ".", editable = true }
 smriprep = { path = ".", editable = false }
 
 [tool.pixi.feature.test.tasks]
-test = { cmd = "pytest --cov-report term-missing --durations=20 --durations-min=1.0 -n auto", env = { FSLOUTPUTTYPE = "NIFTI_GZ" } }
+fetch-templates = "python scripts/fetch_templates.py"
+test = { cmd = "pytest --cov-report term-missing --durations=20 --durations-min=1.0 -n auto", depends-on = ["fetch-templates"], env = { FSLOUTPUTTYPE = "NIFTI_GZ" } }
 
 [tool.pixi.feature.min]
 solve-strategy = "lowest-direct"
