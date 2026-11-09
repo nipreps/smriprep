@@ -345,6 +345,11 @@ def get_parser():
     )
     g_dev.add_argument("-u", "--user", action="store", help="Run container as a given user/uid")
     g_dev.add_argument("--no-tty", action="store_true", help="Run docker without TTY flag -it")
+    g_dev.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="print the docker command without running it",
+    )
 
     return parser
 
@@ -361,7 +366,8 @@ def main():
         opts.help = True
 
     # Stop if no docker / docker fails to run
-    check = check_docker()
+    # A dry run needs no docker, so skip the checks that depend on it
+    check = 1 if opts.dry_run else check_docker()
     if check < 1:
         if opts.version:
             print("smriprep wrapper {!s}".format(__version__))
@@ -374,7 +380,7 @@ def main():
         return 1
 
     # For --help or --version, ask before downloading an image
-    if not check_image(opts.image):
+    if not opts.dry_run and not check_image(opts.image):
         resp = "Y"
         if opts.version:
             print("smriprep wrapper {!s}".format(__version__))
@@ -391,7 +397,7 @@ def main():
         print("Downloading. This may take a while...")
 
     # Warn on low memory allocation
-    mem_total = check_memory(opts.image)
+    mem_total = 8000 if opts.dry_run else check_memory(opts.image)
     if mem_total == -1:
         print(
             "Could not detect memory capacity of Docker container.\n"
@@ -413,10 +419,13 @@ def main():
             if resp not in ("y", "Y", ""):
                 return 0
 
-    ret = subprocess.run(
-        ["docker", "version", "--format", "{{.Server.Version}}"], stdout=subprocess.PIPE
-    )
-    docker_version = ret.stdout.decode("ascii").strip()
+    if opts.dry_run:
+        docker_version = "unknown"
+    else:
+        ret = subprocess.run(
+            ["docker", "version", "--format", "{{.Server.Version}}"], stdout=subprocess.PIPE
+        )
+        docker_version = ret.stdout.decode("ascii").strip()
 
     command = [
         "docker",
@@ -498,6 +507,8 @@ def main():
         command.extend(unknown_args)
 
     print("RUNNING: " + " ".join(command))
+    if opts.dry_run:
+        return 0
     ret = subprocess.run(command)
     if ret.returncode:
         print("sMRIPrep: Please report errors to {}".format(__bugreports__))
