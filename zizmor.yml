@@ -10,6 +10,9 @@ rules:
   cache-poisoning:
    ignore:
     - build_test_deploy.yml
+  # pixi-lock-push.yml runs on workflow_run but executes no PR code, and
+  # validates its artifact before pushing it.
   dangerous-triggers:
    ignore:
     - docs.yml
+    - pixi-lock-push.yml
