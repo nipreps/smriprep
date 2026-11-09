@@ -34,7 +34,7 @@ __bugreports__ = "https://github.com/nipreps/smriprep/issues"
 MISSING = """
 Image '{}' is missing
 Would you like to download? [Y/n] """
-PKG_PATH = '/app/.pixi/envs/smriprep/lib/python3.12/site-packages'
+PATCH_PATH = '/patches'
 
 # Monkey-patch Py2 subprocess
 if not hasattr(subprocess, "DEVNULL"):
@@ -321,7 +321,7 @@ def get_parser():
         nargs="+",
         metavar="PACKAGE=PATH",
         action=ToDict,
-        help='local repository to use within container',
+        help='local repository to put on the container\'s PYTHONPATH',
     )
     g_dev.add_argument(
         "--shell",
@@ -438,10 +438,11 @@ def main():
     if not opts.no_tty:
         command.append("-it")
 
-    # Patch working repositories into installed package directories
+    # Patch working repositories onto the container's PYTHONPATH
     if opts.patch:
+        command.extend(['-e', 'PYTHONPATH={}'.format(PATCH_PATH)])
         for pkg, repo_path in opts.patch.items():
-            command.extend(['-v', '{}:{}/{}:ro'.format(repo_path, PKG_PATH, pkg)])
+            command.extend(['-v', '{}:{}/{}:ro'.format(repo_path, PATCH_PATH, pkg)])
 
     if opts.env:
         for envvar in opts.env:
