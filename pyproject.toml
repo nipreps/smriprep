@@ -97,6 +97,54 @@ version-file = "src/smriprep/_version.py"
 # Developer tool configurations
 #
 
+[tool.tox]
+requires = ["tox>=4.21"]
+env_list = ["py313-pre", "py314-pre", "py315-pre"]
+skip_missing_interpreters = true
+
+[tool.tox.env_run_base]
+description = "Pytest with coverage against pre-release dependencies"
+pip_pre = true
+pass_env = [
+    "TEMPLATEFLOW_HOME",
+    "NO_ET",
+    # Freesurfer variables searched for
+    "FREESURFER_HOME",
+    "SUBJECTS_DIR",
+    "FS_LICENSE",
+    # CI variables
+    "TEST_DATA_HOME",
+    "TEST_OUTPUT_DIR",
+    "TEST_WORK_DIR",
+    "FMRIPREP_REGRESSION_SOURCE",
+    "CACHED_WORK_DIRECTORY",
+    # CircleCI-specific
+    "CIRCLE_NPROCS",
+    "SAVE_CIRCLE_ARTIFACTS",
+    # Pass user color preferences through
+    "PY_COLORS",
+    "FORCE_COLOR",
+    "NO_COLOR",
+    "CLICOLOR",
+    "CLICOLOR_FORCE",
+    "PYTHON_GIL",
+]
+extras = ["tests"]
+commands_pre = [["python", "scripts/fetch_templates.py"]]
+commands = [[
+    "pytest",
+    "--cov-report=term-missing",
+    "--durations=20",
+    "--durations-min=1.0",
+    { replace = "posargs", default = ["-n", "auto"], extend = true },
+]]
+
+[tool.tox.env_run_base.set_env]
+PIP_EXTRA_INDEX_URL = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"
+UV_INDEX = "https://pypi.anaconda.org/scientific-python-nightly-wheels/simple"
+UV_INDEX_STRATEGY = "unsafe-best-match"
+FSLOUTPUTTYPE = "NIFTI_GZ"
+
 [tool.pytest.ini_options]
 minversion = "8"
 testpaths = ["src", "test"]
