@@ -10,21 +10,24 @@ sMRIPrep is a structural MRI preprocessing pipeline in the NiPreps ecosystem (al
 
 ### Testing
 ```bash
-# Run full test suite (uses pytest-xdist for parallelism)
-tox
+# Run full test suite in the newest Python and dependencies (uses pytest-xdist for parallelism)
+pixi run -e dev test
 
-# Run tests for a specific Python version
-tox -e py312-latest
+# Run against the lowest supported dependency versions
+pixi run -e min test
+
+# Run against pre-release dependencies (tox-uv; also py313-pre, py315-pre)
+uvx --with tox-uv tox -e py314-pre
 
 # Run a single test file
-pytest test/interfaces/test_surf.py
+pixi run -e dev pytest test/interfaces/test_surf.py
 
 # Run a single test
-pytest test/interfaces/test_surf.py::test_function_name
+pixi run -e dev pytest test/interfaces/test_surf.py::test_function_name
 
 # Note: default pytest addopts include -svx, --doctest-modules, --cov
 # To skip doctests when running a subset:
-pytest --override-ini="addopts=" test/interfaces/test_surf.py
+pixi run -e dev pytest --override-ini="addopts=" test/interfaces/test_surf.py
 ```
 
 ### Linting and Formatting
@@ -40,7 +43,7 @@ ruff format --diff
 
 ### Building
 ```bash
-tox -e build
+uv build
 ```
 
 ## Code Style
@@ -84,4 +87,4 @@ BIDS-App compliant command-line interface. Entry point: `smriprep.cli.run:main`.
 
 ## Environment Variables
 
-Key variables passed through tox: `TEMPLATEFLOW_HOME`, `FREESURFER_HOME`, `SUBJECTS_DIR`, `FS_LICENSE`, `TEST_DATA_HOME`, `TEST_OUTPUT_DIR`, `TEST_WORK_DIR`.
+Key variables passed through by `pixi run` and tox's `pass_env`: `TEMPLATEFLOW_HOME`, `FREESURFER_HOME`, `SUBJECTS_DIR`, `FS_LICENSE`, `TEST_DATA_HOME`, `TEST_OUTPUT_DIR`, `TEST_WORK_DIR`.

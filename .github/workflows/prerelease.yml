@@ -1,0 +1,84 @@
+name: Prerelease tests
+
+on:
+  push:
+    branches:
+      - ci/prerelease
+  schedule:
+    - cron: '0 0 * * 1'
+  # Allow job to be triggered manually from GitHub interface
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+# Force tox and pytest to use color
+env:
+  FORCE_COLOR: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # Check each supported Python against pre-release dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    env:
+      TEMPLATEFLOW_HOME: /tmp/templateflow
+    strategy:
+      matrix:
+        environment: ["py313-pre", "py314-pre", "py315-pre"]
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          prune-cache: true
+      - name: Restore cached templateflow
+        id: tf-cache-restore
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/templateflow
+          key: templateflow-v0
+      - name: Initialize templateflow
+        if: steps.tf-cache-restore.outputs.cache-hit != 'true'
+        run: |
+          uvx templateflow update --no-overwrite
+      - name: Install tox
+        run: uv tool install --with=tox-uv tox
+      - name: Show tox config
+        run: tox c -e ${{ matrix.environment }}
+      - name: Setup test suite
+        run: tox run -vv --notest -e ${{ matrix.environment }}
+      - name: Run test suite
+        id: pre
+        run: tox run -v --skip-pkg-install --exit-and-dump-after 1200 -e ${{ matrix.environment }}
+      - name: Create issue
+        # Workflows triggered by schedule only notify the workflow creator
+        # So let's open an issue to make sure this is visible to all
+        if: ${{ failure() }}
+        uses: JasonEtco/create-an-issue@1b14a70e4d8dc185e5cc76d3bec9eab20257b2c5 # v2.9.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run_id: ${{ github.run_id }}
+          repository: ${{ github.repository }}
+          workflow_name: PRE-RELEASE TESTS
+        with:
+          filename: .github/workflow_failure.md
+          update_existing: true
+          search_existing: open
+      - name: Return failure
+        if: ${{ failure() }}
+        run: exit 1

@@ -6,7 +6,7 @@ Installation
 
 There are two ways of getting *sMRIPrep* installed:
 
-* within a `Manually Prepared Environment (Python 3.5+)`_, also known as
+* within a `Manually Prepared Environment (Python 3.13+)`_, also known as
   *bare-metal installation*; or
 * using container technologies (RECOMMENDED), such as
   `Docker <https://fmriprep.readthedocs.io/en/stable/docker.html>`__ or
@@ -108,8 +108,8 @@ Please make sure you `follow our tips and tricks to run sMRIPrep's Singularity i
 <singularity.html>`_.
 
 
-Manually Prepared Environment (Python 3.5+)
-===========================================
+Manually Prepared Environment (Python 3.13+)
+============================================
 
 .. warning::
 
@@ -124,7 +124,7 @@ A relatively interpretable description of how your environment can be set-up
 is found in the `Dockerfile <https://github.com/nipreps/smriprep/blob/master/Dockerfile>`_.
 As an additional installation setting, FreeSurfer requires a license file (see :ref:`fs_license`).
 
-On a functional Python 3.5 (or above) environment with ``pip`` installed,
+On a functional Python 3.13 (or above) environment with ``pip`` installed,
 *sMRIPrep* can be installed using the habitual command ::
 
     $ python -m pip install smriprep
@@ -137,7 +137,7 @@ Check your installation with the ``--version`` argument ::
 External Dependencies
 ---------------------
 
-*sMRIPrep* is written using Python 3.5 (or above), and is based on
+*sMRIPrep* is written using Python 3.13 (or above), and is based on
 nipype_.
 
 *sMRIPrep* requires some other neuroimaging software tools that are

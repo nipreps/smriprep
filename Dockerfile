@@ -38,7 +38,7 @@ ARG BASE_IMAGE=ghcr.io/nipreps/smriprep-base:20251104
 #   - connectome-workbench (via conda-forge)
 #   - ...
 #
-FROM ghcr.io/prefix-dev/pixi:0.77.1 AS build
+FROM ghcr.io/prefix-dev/pixi:0.78.0 AS build
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
                     ca-certificates \
@@ -52,15 +52,15 @@ RUN pixi config set --global run-post-link-scripts insecure
 RUN mkdir /app
 COPY pixi.lock pyproject.toml /app
 WORKDIR /app
-RUN --mount=type=cache,target=/root/.cache/rattler pixi install -e smriprep -e test --frozen --skip smriprep
+RUN --mount=type=cache,target=/root/.cache/rattler pixi install -e smriprep -e dev --frozen --skip smriprep
 RUN --mount=type=cache,target=/root/.npm pixi run --as-is -e smriprep npm install -g svgo@^3.2.0 bids-validator@1.14.10
 # Note that PATH gets hard-coded. Remove it and re-apply in final image
 RUN pixi shell-hook -e smriprep --as-is | grep -v PATH > /shell-hook.sh
-RUN pixi shell-hook -e test --as-is | grep -v PATH > /test-shell-hook.sh
+RUN pixi shell-hook -e dev --as-is | grep -v PATH > /dev-shell-hook.sh
 
 # Finally, install the package
 COPY . /app
-RUN --mount=type=cache,target=/root/.cache/rattler pixi install -e smriprep -e test --frozen
+RUN --mount=type=cache,target=/root/.cache/rattler pixi install -e smriprep -e dev --frozen
 
 #
 # Pre-fetch templates
@@ -95,16 +95,15 @@ WORKDIR /tmp
 
 FROM base AS test
 
-COPY --link --from=build /app/.pixi/envs/test /app/.pixi/envs/test
-COPY --link --from=build /test-shell-hook.sh /shell-hook.sh
+COPY --link --from=build /app/.pixi/envs/dev /app/.pixi/envs/dev
+COPY --link --from=build /dev-shell-hook.sh /shell-hook.sh
 RUN cat /shell-hook.sh >> $HOME/.bashrc
-ENV PATH="/app/.pixi/envs/test/bin:$PATH"
+ENV PATH="/app/.pixi/envs/dev/bin:$PATH"
 
-ENV FSLDIR="/app/.pixi/envs/test"
+ENV FSLDIR="/app/.pixi/envs/dev"
 
 FROM base AS smriprep
 
-# Keep synced with wrapper's PKG_PATH
 COPY --link --from=build /app/.pixi/envs/smriprep /app/.pixi/envs/smriprep
 COPY --link --from=build /shell-hook.sh /shell-hook.sh
 RUN cat /shell-hook.sh >> $HOME/.bashrc
