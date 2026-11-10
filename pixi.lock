@@ -620,7 +620,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/f1/e0/5e679d528092a21c93cd755d4506692cfe56d103d79edcbc30ce3e3701dd/niworkflows-1.14.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fa/71/e399826fda4c9f41bd3b895c7d5612d4eae76269519ea923ece9f798f79f/nitransforms-25.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fe/d7/c0010400fc5ec90e147d64af9d15a91912278f1e1b04e20240b864bd7659/interface_meta-2.0.0-py3-none-any.whl
-  test:
+  dev:
     channels:
     - url: https://fsl.fmrib.ox.ac.uk/fsldownloads/fslconda/public/
     - url: https://conda.anaconda.org/conda-forge/
