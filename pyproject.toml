@@ -64,16 +64,18 @@ test = [
     "pytest-env >= 1.1.4",
     "pytest-xdist >= 3.7.0",
 ]
-style = ["flake8"]
-# Aliases
-docs = [{include-group = "doc"}]
-tests = [{include-group = "test"}]
-all = [
-    {include-group = "datalad"},
+lint = ["flake8"]
+dev = [
+    {include-group = "lint"},
     {include-group = "doc"},
+    {include-group = "datalad"},
     {include-group = "duecredit"},
     {include-group = "test"},
 ]
+# Aliases
+docs = [{include-group = "doc"}]
+tests = [{include-group = "test"}]
+all = [{include-group = "dev"}]
 
 [project.scripts]
 smriprep = "smriprep.cli.run:main"
