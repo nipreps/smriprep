@@ -31,7 +31,7 @@ if [ "$CHECK_TYPE" == "skiptests" ]; then
     exit 0
 fi
 
-pip install $EXTRA_PIP_FLAGS "smriprep[$CHECK_TYPE]"
+pip install $EXTRA_PIP_FLAGS --group $CHECK_TYPE .
 
 set +eux
 

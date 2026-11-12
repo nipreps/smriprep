@@ -17,7 +17,7 @@ if [ -n "$EXTRA_PIP_FLAGS" ]; then
     EXTRA_PIP_FLAGS=${!EXTRA_PIP_FLAGS}
 fi
 
-pip install $EXTRA_PIP_FLAGS "smriprep[$CHECK_TYPE]"
+pip install $EXTRA_PIP_FLAGS --group $CHECK_TYPE .
 
 set +eux
 

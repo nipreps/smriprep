@@ -44,7 +44,7 @@ Documentation = "https://nipreps.org/smriprep"
 "Docker Images" = "https://hub.docker.com/r/nipreps/smriprep/tags/"
 NiPreps = "https://www.nipreps.org/"
 
-[project.optional-dependencies]
+[dependency-groups]
 datalad = ["datalad"]
 doc = [
     "nbsphinx",
@@ -66,9 +66,14 @@ test = [
 ]
 style = ["flake8"]
 # Aliases
-docs = ["smriprep[doc]"]
-tests = ["smriprep[test]"]
-all = ["smriprep[datalad,doc,duecredit,test]"]
+docs = [{include-group = "doc"}]
+tests = [{include-group = "test"}]
+all = [
+    {include-group = "datalad"},
+    {include-group = "doc"},
+    {include-group = "duecredit"},
+    {include-group = "test"},
+]
 
 [project.scripts]
 smriprep = "smriprep.cli.run:main"
