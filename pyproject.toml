@@ -64,7 +64,7 @@ test = [
     "pytest-env >= 1.1.4",
     "pytest-xdist >= 3.7.0",
 ]
-lint = ["flake8"]
+lint = ["ruff"]
 dev = [
     {include-group = "lint"},
     {include-group = "doc"},
