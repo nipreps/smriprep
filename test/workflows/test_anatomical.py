@@ -23,6 +23,8 @@
 import logging
 from pathlib import Path
 
+import nibabel as nb
+import numpy as np
 import pytest
 from nipype.pipeline.engine.utils import generate_expanded_graph
 from niworkflows.utils.spaces import Reference, SpatialReferences
@@ -156,8 +158,9 @@ def test_anat_fit_realign_xfm(bids_root: Path, tmp_path: Path, t1w_preproc: bool
 
     precomputed = {}
     if t1w_preproc:
-        precomputed['t1w_preproc'] = str(tmp_path / 't1w_preproc.nii.gz')
-        nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4)).to_filename(precomputed['t1w_preproc'])
+        t1w_file = tmp_path / 't1w_preproc.nii.gz'
+        nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4)).to_filename(t1w_file)
+        precomputed['images'] = {'t1w_preproc': str(t1w_file)}
 
     wf = init_anat_fit_wf(
         bids_root=str(bids_root),
