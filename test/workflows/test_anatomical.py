@@ -149,6 +149,43 @@ def test_anat_fit_wf(
     )
 
 
+@pytest.mark.parametrize('t1w_preproc', [False, True])
+def test_anat_fit_realign_xfm(bids_root: Path, tmp_path: Path, t1w_preproc: bool):
+    output_dir = tmp_path / 'output'
+    output_dir.mkdir()
+
+    precomputed = {}
+    if t1w_preproc:
+        precomputed['t1w_preproc'] = str(tmp_path / 't1w_preproc.nii.gz')
+        nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4)).to_filename(precomputed['t1w_preproc'])
+
+    wf = init_anat_fit_wf(
+        bids_root=str(bids_root),
+        output_dir=str(output_dir),
+        freesurfer=False,
+        hires=False,
+        longitudinal=False,
+        msm_sulc=False,
+        t1w=[
+            str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-1_T1w.nii.gz'),
+            str(bids_root / 'sub-01' / 'anat' / 'sub-01_run-2_T1w.nii.gz'),
+        ],
+        t2w=[],
+        skull_strip_mode='skip',
+        skull_strip_template=Reference('OASIS30ANTs'),
+        spaces=SpatialReferences(spaces=['MNI152NLin2009cAsym'], checkpoint=True),
+        precomputed=precomputed,
+        omp_nthreads=1,
+    )
+
+    anat_template_wf = wf.get_node('anat_template_wf')
+    if t1w_preproc:
+        assert anat_template_wf is None
+    else:
+        edge = wf._graph.get_edge_data(anat_template_wf, wf.get_node('outputnode'))
+        assert ('outputnode.anat_realign_xfm', 't1w_realign_xfm') in edge['connect']
+
+
 @pytest.mark.parametrize('t1w', [1, 2])
 @pytest.mark.parametrize('t2w', [0, 1])
 @pytest.mark.parametrize('skull_strip_mode', ['skip', 'force'])

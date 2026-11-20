@@ -598,6 +598,9 @@ def init_anat_fit_wf(
     t1w_valid_list
         List of input T1w images accepted for preprocessing. If t1w_preproc is
         precomputed, this is always a list containing that image.
+    t1w_realign_xfm
+        List of affine transforms realigning each image in ``t1w_valid_list`` to the
+        T1w reference. Undefined if ``t1w_preproc`` is precomputed.
     template
         List of template names to which the structural image has been registered
     anat2std_xfm
@@ -681,6 +684,7 @@ BIDS dataset."""
                 'subjects_dir',
                 'subject_id',
                 't1w_valid_list',
+                't1w_realign_xfm',
             ]
         ),
         name='outputnode',
@@ -809,6 +813,9 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
             ]),
             (anat_template_wf, ds_template_wf, [
                 ('outputnode.anat_realign_xfm', 'inputnode.anat_ref_xfms'),
+            ]),
+            (anat_template_wf, outputnode, [
+                ('outputnode.anat_realign_xfm', 't1w_realign_xfm'),
             ]),
             (sourcefile_buffer, ds_template_wf, [('source_files', 'inputnode.source_files')]),
             (t1w_buffer, ds_template_wf, [('t1w_preproc', 'inputnode.anat_preproc')]),
