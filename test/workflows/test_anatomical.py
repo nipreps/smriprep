@@ -26,6 +26,7 @@ from pathlib import Path
 import nibabel as nb
 import numpy as np
 import pytest
+from nipype.interfaces.base import isdefined
 from nipype.pipeline.engine.utils import generate_expanded_graph
 from niworkflows.utils.spaces import Reference, SpatialReferences
 from niworkflows.utils.testing import generate_bids_skeleton
@@ -151,16 +152,23 @@ def test_anat_fit_wf(
     )
 
 
-@pytest.mark.parametrize('t1w_preproc', [False, True])
-def test_anat_fit_realign_xfm(bids_root: Path, tmp_path: Path, t1w_preproc: bool):
+@pytest.mark.parametrize('precomputed_images', [[], ['t1w_preproc'], ['t1w_preproc', 'xfms']])
+def test_anat_fit_realign_xfm(bids_root: Path, tmp_path: Path, precomputed_images: list):
+    """The realignment transforms are passed on as saved in (or found in) a derivatives
+    directory."""
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
 
     precomputed = {}
-    if t1w_preproc:
+    if 't1w_preproc' in precomputed_images:
         t1w_file = tmp_path / 't1w_preproc.nii.gz'
         nb.Nifti1Image(np.zeros((1, 1, 1)), np.eye(4)).to_filename(t1w_file)
         precomputed['images'] = {'t1w_preproc': str(t1w_file)}
+    xfms = [
+        str(tmp_path / f'sub-01_run-{run}_from-orig_to-T1w_mode-image_xfm.txt') for run in (1, 2)
+    ]
+    if 'xfms' in precomputed_images:
+        precomputed['images']['t1w_realign_xfm'] = xfms
 
     wf = init_anat_fit_wf(
         bids_root=str(bids_root),
@@ -181,12 +189,14 @@ def test_anat_fit_realign_xfm(bids_root: Path, tmp_path: Path, t1w_preproc: bool
         omp_nthreads=1,
     )
 
-    anat_template_wf = wf.get_node('anat_template_wf')
-    if t1w_preproc:
-        assert anat_template_wf is None
+    outputnode = wf.get_node('outputnode')
+    if not precomputed_images:
+        edge = wf._graph.get_edge_data(wf.get_node('ds_template_wf'), outputnode)
+        assert ('outputnode.anat_ref_xfms', 't1w_realign_xfm') in edge['connect']
+    elif 'xfms' in precomputed_images:
+        assert outputnode.inputs.t1w_realign_xfm == xfms
     else:
-        edge = wf._graph.get_edge_data(anat_template_wf, wf.get_node('outputnode'))
-        assert ('outputnode.anat_realign_xfm', 't1w_realign_xfm') in edge['connect']
+        assert not isdefined(outputnode.inputs.t1w_realign_xfm)
 
 
 @pytest.mark.parametrize('t1w', [1, 2])
