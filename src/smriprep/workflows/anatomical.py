@@ -598,6 +598,11 @@ def init_anat_fit_wf(
     t1w_valid_list
         List of input T1w images accepted for preprocessing. If t1w_preproc is
         precomputed, this is always a list containing that image.
+    t1w_realign_xfm
+        List of affine transforms (``*_from-orig_to-T1w_mode-image_xfm.txt``) realigning
+        each input T1w image to the T1w reference, as saved in the output directory.
+        If ``t1w_preproc`` is precomputed, these are the precomputed transforms, if any.
+        Undefined if the T1w reference was built from a single image.
     template
         List of template names to which the structural image has been registered
     anat2std_xfm
@@ -681,6 +686,7 @@ BIDS dataset."""
                 'subjects_dir',
                 'subject_id',
                 't1w_valid_list',
+                't1w_realign_xfm',
             ]
         ),
         name='outputnode',
@@ -812,7 +818,10 @@ non-uniformity (INU) with `N4BiasFieldCorrection` [@n4], distributed with ANTs {
             ]),
             (sourcefile_buffer, ds_template_wf, [('source_files', 'inputnode.source_files')]),
             (t1w_buffer, ds_template_wf, [('t1w_preproc', 'inputnode.anat_preproc')]),
-            (ds_template_wf, outputnode, [('outputnode.anat_preproc', 't1w_preproc')]),
+            (ds_template_wf, outputnode, [
+                ('outputnode.anat_preproc', 't1w_preproc'),
+                ('outputnode.anat_ref_xfms', 't1w_realign_xfm'),
+            ]),
         ])  # fmt:skip
     else:
         LOGGER.info('ANAT Found preprocessed T1w - skipping Stage 1')
@@ -822,6 +831,8 @@ and used as T1w-reference throughout the workflow.
 
         anat_validate.inputs.in_file = t1w_preproc
         sourcefile_buffer.inputs.source_files = [t1w_preproc]
+        if t1w_realign_xfm := images.get('t1w_realign_xfm'):
+            outputnode.inputs.t1w_realign_xfm = t1w_realign_xfm
 
         workflow.connect([
             (anat_validate, t1w_buffer, [('out_file', 't1w_preproc')]),

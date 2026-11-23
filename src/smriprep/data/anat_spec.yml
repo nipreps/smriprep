@@ -43,6 +43,16 @@ images:
           desc: ribbon
           suffix: mask
           extension: [.nii.gz, .nii]
+    t1w_realign_xfm:
+      # One per input T1w image (each may have its own session)
+      entities:
+        - datatype: anat
+          from: orig
+          to: T1w
+          mode: image
+          suffix: xfm
+          extension: .txt
+      multi: true
 surfaces:
   queries:
     white:

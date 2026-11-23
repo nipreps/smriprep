@@ -264,6 +264,9 @@ def init_ds_template_wf(
     -------
     anat_preproc
         The location in the output directory of the preprocessed anatomical image
+    anat_ref_xfms
+        The locations in the output directory of the realignment transforms
+        (only if ``num_anat > 1``)
 
     """
     workflow = Workflow(name=name)
@@ -278,7 +281,9 @@ def init_ds_template_wf(
         ),
         name='inputnode',
     )
-    outputnode = pe.Node(niu.IdentityInterface(fields=['anat_preproc']), name='outputnode')
+    outputnode = pe.Node(
+        niu.IdentityInterface(fields=['anat_preproc', 'anat_ref_xfms']), name='outputnode'
+    )
 
     ds_anat_preproc = pe.Node(
         DerivativesDataSink(base_directory=output_dir, desc='preproc', compress=True),
@@ -315,6 +320,7 @@ def init_ds_template_wf(
         workflow.connect([
             (inputnode, ds_anat_ref_xfms, [('source_files', 'source_file'),
                                            ('anat_ref_xfms', 'in_file')]),
+            (ds_anat_ref_xfms, outputnode, [('out_file', 'anat_ref_xfms')]),
         ])
         # fmt:on
 

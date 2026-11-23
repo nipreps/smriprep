@@ -167,6 +167,20 @@ def test_collect_anat_derivatives_ambiguous(tmp_path):
         collect_anat_derivatives([deriv_dir], '01', [])
 
 
+def test_collect_anat_derivatives_realign_xfm(tmp_path):
+    """The realignment transforms of all sessions are collected with the T1w reference."""
+    xfm = {'suffix': 'xfm', 'from': 'orig', 'to': 'T1w', 'mode': 'image', 'extension': '.txt'}
+    skeleton = deriv_skeleton(['t1w_preproc'])
+    skeleton['01'] += [{'session': ses, 'anat': [dict(xfm)]} for ses in ('B', 'A')]
+    deriv_dir = tmp_path / 'derivatives'
+    generate_bids_skeleton(deriv_dir, skeleton)
+
+    images = collect_anat_derivatives([deriv_dir], '01', [])['images']
+
+    assert _entity(images['t1w_preproc'], 'ses') is None
+    assert [_entity(path, 'ses') for path in images['t1w_realign_xfm']] == ['A', 'B']
+
+
 def test_collect_anat_derivatives_subject(deriv_dset):
     deriv_dir = deriv_dset(['mask'])
     assert _paths(collect_anat_derivatives([deriv_dir], '02', [])) == []
