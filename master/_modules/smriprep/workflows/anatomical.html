@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.anatomical &mdash; smriprep 0.20.1.dev15 documentation</title>
+  <title>smriprep.workflows.anatomical &mdash; smriprep 0.20.1.dev16 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=e08756c3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -684,6 +684,11 @@
 <span class="sd">    t1w_valid_list</span>
 <span class="sd">        List of input T1w images accepted for preprocessing. If t1w_preproc is</span>
 <span class="sd">        precomputed, this is always a list containing that image.</span>
+<span class="sd">    t1w_realign_xfm</span>
+<span class="sd">        List of affine transforms (``*_from-orig_to-T1w_mode-image_xfm.txt``) realigning</span>
+<span class="sd">        each input T1w image to the T1w reference, as saved in the output directory.</span>
+<span class="sd">        If ``t1w_preproc`` is precomputed, these are the precomputed transforms, if any.</span>
+<span class="sd">        Undefined if the T1w reference was built from a single image.</span>
 <span class="sd">    template</span>
 <span class="sd">        List of template names to which the structural image has been registered</span>
 <span class="sd">    anat2std_xfm</span>
@@ -767,6 +772,7 @@
                 <span class="s1">'subjects_dir'</span><span class="p">,</span>
                 <span class="s1">'subject_id'</span><span class="p">,</span>
                 <span class="s1">'t1w_valid_list'</span><span class="p">,</span>
+                <span class="s1">'t1w_realign_xfm'</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="p">),</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">'outputnode'</span><span class="p">,</span>
@@ -898,7 +904,10 @@
             <span class="p">]),</span>
             <span class="p">(</span><span class="n">sourcefile_buffer</span><span class="p">,</span> <span class="n">ds_template_wf</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'source_files'</span><span class="p">,</span> <span class="s1">'inputnode.source_files'</span><span class="p">)]),</span>
             <span class="p">(</span><span class="n">t1w_buffer</span><span class="p">,</span> <span class="n">ds_template_wf</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'t1w_preproc'</span><span class="p">,</span> <span class="s1">'inputnode.anat_preproc'</span><span class="p">)]),</span>
-            <span class="p">(</span><span class="n">ds_template_wf</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'outputnode.anat_preproc'</span><span class="p">,</span> <span class="s1">'t1w_preproc'</span><span class="p">)]),</span>
+            <span class="p">(</span><span class="n">ds_template_wf</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[</span>
+                <span class="p">(</span><span class="s1">'outputnode.anat_preproc'</span><span class="p">,</span> <span class="s1">'t1w_preproc'</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">'outputnode.anat_ref_xfms'</span><span class="p">,</span> <span class="s1">'t1w_realign_xfm'</span><span class="p">),</span>
+            <span class="p">]),</span>
         <span class="p">])</span>  <span class="c1"># fmt:skip</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'ANAT Found preprocessed T1w - skipping Stage 1'</span><span class="p">)</span>
@@ -908,6 +917,8 @@
 
         <span class="n">anat_validate</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">in_file</span> <span class="o">=</span> <span class="n">t1w_preproc</span>
         <span class="n">sourcefile_buffer</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">source_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">t1w_preproc</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">t1w_realign_xfm</span> <span class="o">:=</span> <span class="n">images</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'t1w_realign_xfm'</span><span class="p">):</span>
+            <span class="n">outputnode</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">t1w_realign_xfm</span> <span class="o">=</span> <span class="n">t1w_realign_xfm</span>
 
         <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
             <span class="p">(</span><span class="n">anat_validate</span><span class="p">,</span> <span class="n">t1w_buffer</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'out_file'</span><span class="p">,</span> <span class="s1">'t1w_preproc'</span><span class="p">)]),</span>

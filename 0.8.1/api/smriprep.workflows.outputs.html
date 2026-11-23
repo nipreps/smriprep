@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.outputs module &mdash; smriprep 0.20.1.dev15 documentation</title>
+  <title>smriprep.workflows.outputs module &mdash; smriprep 0.20.1.dev16 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -394,7 +394,11 @@ and preprocessed anatomical images, defining the anatomical space.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Outputs<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>anat_preproc</strong> – The location in the output directory of the preprocessed anatomical image</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>anat_preproc</strong> – The location in the output directory of the preprocessed anatomical image</p></li>
+<li><p><strong>anat_ref_xfms</strong> – The locations in the output directory of the realignment transforms
+(only if <code class="docutils literal notranslate"><span class="pre">num_anat</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

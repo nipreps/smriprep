@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.anatomical module &mdash; smriprep 0.20.1.dev15 documentation</title>
+  <title>smriprep.workflows.anatomical module &mdash; smriprep 0.20.1.dev16 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/banner.css?v=fd51b7f5" />
@@ -170,6 +170,10 @@ gray-matter (GM), white-matter (WM) and cerebrospinal fluid (CSF).</p></li>
 <li><p><strong>t1w_tpms</strong> – List of tissue probability maps corresponding to <code class="docutils literal notranslate"><span class="pre">t1w_dseg</span></code>.</p></li>
 <li><p><strong>t1w_valid_list</strong> – List of input T1w images accepted for preprocessing. If t1w_preproc is
 precomputed, this is always a list containing that image.</p></li>
+<li><p><strong>t1w_realign_xfm</strong> – List of affine transforms (<code class="docutils literal notranslate"><span class="pre">*_from-orig_to-T1w_mode-image_xfm.txt</span></code>) realigning
+each input T1w image to the T1w reference, as saved in the output directory.
+If <code class="docutils literal notranslate"><span class="pre">t1w_preproc</span></code> is precomputed, these are the precomputed transforms, if any.
+Undefined if the T1w reference was built from a single image.</p></li>
 <li><p><strong>template</strong> – List of template names to which the structural image has been registered</p></li>
 <li><p><strong>anat2std_xfm</strong> – List of nonlinear spatial transforms to resample data from subject
 anatomical space into standard template spaces. Collated with template.</p></li>

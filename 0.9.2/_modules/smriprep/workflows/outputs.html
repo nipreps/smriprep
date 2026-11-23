@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>smriprep.workflows.outputs &mdash; smriprep 0.20.1.dev15 documentation</title>
+  <title>smriprep.workflows.outputs &mdash; smriprep 0.20.1.dev16 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=5dd5ad26" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/banner.css?v=fd51b7f5" />
@@ -353,6 +353,9 @@
 <span class="sd">    -------</span>
 <span class="sd">    anat_preproc</span>
 <span class="sd">        The location in the output directory of the preprocessed anatomical image</span>
+<span class="sd">    anat_ref_xfms</span>
+<span class="sd">        The locations in the output directory of the realignment transforms</span>
+<span class="sd">        (only if ``num_anat &gt; 1``)</span>
 
 <span class="sd">    """</span>
     <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
@@ -367,7 +370,9 @@
         <span class="p">),</span>
         <span class="n">name</span><span class="o">=</span><span class="s1">'inputnode'</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">outputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">'anat_preproc'</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'outputnode'</span><span class="p">)</span>
+    <span class="n">outputnode</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
+        <span class="n">niu</span><span class="o">.</span><span class="n">IdentityInterface</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s1">'anat_preproc'</span><span class="p">,</span> <span class="s1">'anat_ref_xfms'</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">'outputnode'</span>
+    <span class="p">)</span>
 
     <span class="n">ds_anat_preproc</span> <span class="o">=</span> <span class="n">pe</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span>
         <span class="n">DerivativesDataSink</span><span class="p">(</span><span class="n">base_directory</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">'preproc'</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
@@ -404,6 +409,7 @@
         <span class="n">workflow</span><span class="o">.</span><span class="n">connect</span><span class="p">([</span>
             <span class="p">(</span><span class="n">inputnode</span><span class="p">,</span> <span class="n">ds_anat_ref_xfms</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'source_files'</span><span class="p">,</span> <span class="s1">'source_file'</span><span class="p">),</span>
                                            <span class="p">(</span><span class="s1">'anat_ref_xfms'</span><span class="p">,</span> <span class="s1">'in_file'</span><span class="p">)]),</span>
+            <span class="p">(</span><span class="n">ds_anat_ref_xfms</span><span class="p">,</span> <span class="n">outputnode</span><span class="p">,</span> <span class="p">[(</span><span class="s1">'out_file'</span><span class="p">,</span> <span class="s1">'anat_ref_xfms'</span><span class="p">)]),</span>
         <span class="p">])</span>
         <span class="c1"># fmt:on</span>
 
