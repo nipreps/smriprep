@@ -108,7 +108,7 @@ class TemplateFlowSelect(SimpleInterface):
     output_spec = _TemplateFlowSelectOutputSpec
 
     def _run_interface(self, runtime):
-        specs = self.inputs.template_spec
+        specs = self.inputs.template_spec.copy()
         if isdefined(self.inputs.resolution):
             specs['resolution'] = self.inputs.resolution
         if isdefined(self.inputs.atlas):
@@ -177,8 +177,7 @@ def fetch_template_files(
     specs: dict | None = None,
     sloppy: bool = False,
 ) -> dict:
-    if specs is None:
-        specs = {}
+    specs = {} if specs is None else specs.copy()
 
     name = template.strip(':').split(':', 1)
     if len(name) > 1:
@@ -187,7 +186,7 @@ def fetch_template_files(
                 k: v
                 for modifier in name[1].split(':')
                 for k, v in [tuple(modifier.split('-'))]
-                if k not in specs
+                if specs.get(k) is None
             }
         )
 
