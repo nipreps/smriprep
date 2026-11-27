@@ -131,3 +131,61 @@ def test_templateflowselect_runs_with_overrides(monkeypatch, tmp_path):
     assert received['specs']['atlas'] == ['atlasA']
     assert Path(result.outputs.t1w_file) == t1w
     assert Path(result.outputs.brain_mask) == mask
+
+
+def test_fetch_template_files_applies_modifiers_over_none_placeholders(monkeypatch):
+    monkeypatch.setattr(
+        'smriprep.interfaces.templateflow.tf.TF_LAYOUT.get_resolutions',
+        lambda template: [1],
+    )
+
+    seen = {}
+
+    def _fake_get(template, **spec):
+        seen['template'] = template
+        seen['spec'] = spec
+        return '/tpl-file.nii.gz'
+
+    monkeypatch.setattr('smriprep.interfaces.templateflow.tf.get', _fake_get)
+    specs = {'atlas': None, 'cohort': None}
+    fetch_template_files('MNIPediatricAsym:cohort-5', specs=specs)
+
+    assert seen['template'] == 'MNIPediatricAsym'
+    assert seen['spec']['cohort'] == '5'
+    assert specs == {'atlas': None, 'cohort': None}
+
+
+def test_templateflowselect_default_spec_applies_template_modifiers(monkeypatch, tmp_path):
+    t1w = tmp_path / 'tpl-T1w.nii.gz'
+    mask = tmp_path / 'tpl-mask.nii.gz'
+    for path in (t1w, mask):
+        path.write_text('x')
+
+    monkeypatch.setattr(
+        'smriprep.interfaces.templateflow.tf.TF_LAYOUT.get_resolutions',
+        lambda template: [1, 2],
+    )
+
+    seen = {}
+
+    def _fake_get(template, **spec):
+        if spec.get('suffix') == 'T1w':
+            seen['template'] = template
+            seen['spec'] = spec.copy()
+            return str(t1w)
+        if spec.get('suffix') == 'mask':
+            return str(mask)
+        return None
+
+    monkeypatch.setattr('smriprep.interfaces.templateflow.tf.get', _fake_get)
+
+    interface = TemplateFlowSelect(resolution=2)
+    interface.inputs.template = 'MNIPediatricAsym:cohort-5'
+    result = interface.run(cwd=tmp_path)
+
+    assert seen['template'] == 'MNIPediatricAsym'
+    assert seen['spec']['cohort'] == '5'
+    assert seen['spec']['resolution'] == [2]
+    assert interface.inputs.template_spec == {'atlas': None, 'cohort': None}
+    assert Path(result.outputs.t1w_file) == t1w
+    assert Path(result.outputs.brain_mask) == mask
